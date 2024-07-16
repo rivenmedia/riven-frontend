@@ -5,7 +5,8 @@ services:
     restart: unless-stopped
     tty: true
     environment:
-      - BACKEND_URL=http://127.0.0.1:8080
+      - ORIGIN=http://localhost:3000 # No trailing slash, read more below
+      - BACKEND_URL=http://127.0.0.1:8080 # No trailing slash, read more below
       - TZ=America/New_York
     ports:
       - '3000:3000'
