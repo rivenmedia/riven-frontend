@@ -35,15 +35,15 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Log in to Docker Hub
-      if: ${{ secrets.DOCKER_HUB_USERNAME && secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      if: ${{ secrets.DOCKER_HUB_USERNAME }} && {{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Read VERSION file
+    - name: Read version.txt file
       id: version
-      run: echo "VERSION=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+      run: echo "VERSION=$(cat version.txt)" >> "$GITHUB_OUTPUT"
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
