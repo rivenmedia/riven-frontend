@@ -12,7 +12,6 @@ import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.serv
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
-
 export const load: PageServerLoad = async ({ fetch }) => {
 	async function getPartialSettings() {
 		try {
