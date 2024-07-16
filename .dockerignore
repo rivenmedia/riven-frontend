@@ -1,0 +1,30 @@
+# Extras That Shouldn't Be Here
+.git/
+.gitignore
+.dockerignore
+docker-compose*
+Dockerfile
+makefile
+htmlcov/
+coverage.xml
+.coverage*
+
+.vscode/
+.ruff_cache/
+*.dat
+
+# Backend
+settings.json
+
+# frontend
+
+.DS_Store
+node_modules
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

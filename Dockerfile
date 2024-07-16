@@ -1,9 +1,8 @@
 # Frontend Builder
 FROM node:20-alpine AS frontend
 WORKDIR /app
-COPY package*.json ./
+COPY . .
 RUN npm install -g pnpm && pnpm install
-COPY / .
 RUN pnpm run build && pnpm prune --prod
 
 # Final Image
