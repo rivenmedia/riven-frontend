@@ -1,0 +1,13 @@
+services:
+  riven:
+    image: spoked/riven-frontend:latest
+    container_name: riven-frontend
+    restart: unless-stopped
+    tty: true
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - BACKEND_URL=http://127.0.0.1:8080
+      - TZ=America/New_York
+    ports:
+      - '3000:3000'
