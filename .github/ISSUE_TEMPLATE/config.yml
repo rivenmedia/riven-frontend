@@ -8,7 +8,7 @@ contact_links:
     about: File an issue or make an improvement to the docs website.
   - name: 💡 Ideas for New Features and Improvements
     url: https://github.com/rivenmedia/riven-frontend/discussions
-    about: Propose and discuss future improvements to Astro
+    about: Propose and discuss future improvements to Riven
   - name: 👾 Chat
     url: https://discord.gg/rivenmedia
     about: Our Discord server is active, come join us!
