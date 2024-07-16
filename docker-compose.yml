@@ -5,8 +5,6 @@ services:
     restart: unless-stopped
     tty: true
     environment:
-      - PUID=1000
-      - PGID=1000
       - BACKEND_URL=http://127.0.0.1:8080
       - TZ=America/New_York
     ports:

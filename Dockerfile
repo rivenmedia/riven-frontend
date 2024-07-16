@@ -21,7 +21,4 @@ COPY --from=frontend  /app/package.json /riven/package.json
 
 COPY version.txt entrypoint.sh /riven/
 
-# Ensure entrypoint script is executable
-RUN chmod +x /riven/entrypoint.sh
-
-ENTRYPOINT ["/riven/entrypoint.sh"]
+ENTRYPOINT ["ORIGIN=$ORIGIN", "BACKEND_URL=$BACKEND_URL", "node", "/riven/build"]
