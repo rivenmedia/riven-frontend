@@ -8,11 +8,11 @@
 </div>
 
 <div align="center">
-  <a href="https://github.com/rivenmedia/riven/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven"></a>
-    <a href="https://github.com/rivenmedia/riven-frontend/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven-frontend"></a>
-  <a href="https://github.com/rivenmedia/riven/issues"><img alt="Issues" src="https://img.shields.io/github/issues/rivenmedia/riven" /></a>
-  <a href="https://github.com/rivenmedia/riven/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/rivenmedia/riven"></a>
-  <a href="https://github.com/rivenmedia/riven/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/rivenmedia/riven" /></a>
+  <a href="https://github.com/rivenmedia/riven/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven?label=Riven+Backend"></a>
+    <a href="https://github.com/rivenmedia/riven-frontend/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven-frontend?label=Riven+Frontend"></a>
+  <a href="https://github.com/rivenmedia/riven/issues"><img alt="Issues" src="https://img.shields.io/github/issues/rivenmedia/riven-frontend" /></a>
+  <a href="https://github.com/rivenmedia/riven/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/rivenmedia/riven-frontend"></a>
+  <a href="https://github.com/rivenmedia/riven/graphs/contributors-frontend"><img alt="Contributors" src="https://img.shields.io/github/contributors/rivenmedia/riven-frontend" /></a>
   <a href="https://discord.gg/wDgVdH8vNM"><img alt="Discord" src="https://img.shields.io/badge/Join%20discord-8A2BE2" /></a>
 </div>
 
@@ -23,6 +23,78 @@
 ## Riven Frontend
 
 This repository contains the frontend for Riven. It is build with [SvelteKit](https://kit.svelte.dev/).
+
+---
+
+## Running the frontend
+
+To run the frontend, you need to have the backend running. You can find the backend [here](https://github.com/rivenmedia/riven)
+
+### Using docker-compose (recommended)
+
+Make sure you have docker and docker-compose installed on your system.
+
+Edit the `docker-compose.yml` (make sure to replace the environment variables with your own) file to match your setup:
+
+> [!IMPORTANT]  
+> It is very important to set the `ORIGIN` and `BACKEND_URL` environment variables correctly to make the frontend work properly. Read more about them [here](#environment-variables).
+
+```yml
+services:
+  riven-frontend:
+    image: ghcr.io/rivenmedia/riven-frontend:latest
+    container_name: riven-frontend
+    restart: unless-stopped
+    tty: true
+    environment:
+      - ORIGIN=http://localhost:3000 # No trailing slash, read more below
+      - BACKEND_URL=http://127.0.0.1:8080 # No trailing slash, read more below
+      - TZ=America/New_York
+    ports:
+      - '3000:3000'
+```
+
+Then run the following command:
+
+```bash
+docker-compose up -d
+```
+
+It will start the frontend container called `riven-frontend` on port `3000`.
+
+### Using npm (or pnpm or yarn)
+
+Make sure you have npm / pnpm / yarn installed on your system (pnpm is recommended).
+
+Install the dependencies:
+
+```bash
+npm install # or pnpm install or yarn
+```
+
+Then run the following command:
+
+```bash
+npm run build # or pnpm run build or yarn build
+```
+
+It will build the frontend in the `build` directory.
+
+Then run the following command:
+
+```bash
+ORIGIN=http://localhost:3000 BACKEND_URL=http://127.0.0.1:8080 node build
+```
+
+It will start the frontend on port `3000`.
+
+### Environment variables
+
+- `ORIGIN`: It's the URL you will use to access the frontend. If running behind a reverse proxy, you should set it to the URL of the reverse proxy, like `https://riven.example.com`. If running locally, you can let it be `http://localhost:3000` or you local server IP address like `http://192.168.1.45:3000`.
+
+- `BACKEND_URL`: The URL of the backend. Default should work in most cases. You can also replace it with container name of backend if you are using docker-compose.
+
+---
 
 ## Contributing
 
@@ -52,3 +124,11 @@ npm run dev
 
 npm run dev -- --open
 ```
+
+## Contributors
+
+Thanks goes to these wonderful people:
+
+<a href="https://github.com/rivenmedia/riven-frontend/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=rivenmedia/riven-frontend" />
+</a>

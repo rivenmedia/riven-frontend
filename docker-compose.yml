@@ -1,5 +1,5 @@
 services:
-  riven:
+  riven-frontend:
     image: spoked/riven-frontend:latest
     container_name: riven-frontend
     restart: unless-stopped
