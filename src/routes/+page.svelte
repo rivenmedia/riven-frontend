@@ -39,7 +39,7 @@
 >
 	<Header />
 	<Carousel.Content class="h-full">
-		{#each data.nowPlaying.data.results as nowPlaying, i}
+		{#each data.nowPlaying.results as nowPlaying, i}
 			{#if i <= 9}
 				<Carousel.Item class="h-full w-full min-w-full basis-full pl-0 text-slate-50">
 					<div class="relative">
@@ -124,7 +124,7 @@
 		class="w-full overflow-hidden"
 	>
 		<Carousel.Content class="w-full">
-			{#each data.trendingAll.data.results as trendingAll, i}
+			{#each data.trendingAll.results as trendingAll, i}
 				{#if trendingAll.media_type !== 'person'}
 					{@const mediaType = trendingAll.media_type}
 					<Carousel.Item class="basis-auto text-slate-50">
@@ -177,6 +177,6 @@
 	</Carousel.Root>
 </div>
 
-<HomeItems name="Movies" data={data.trendingMovies.data} type="movie" />
+<HomeItems name="Movies" data={data.trendingMovies} type="movie" />
 
-<HomeItems name="Shows" data={data.trendingShows.data} type="tv" />
+<HomeItems name="Shows" data={data.trendingShows} type="tv" />
