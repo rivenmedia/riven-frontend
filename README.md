@@ -114,7 +114,7 @@ We welcome contributions from the community! To ensure a smooth collaboration, p
 
 ### Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+First install dependencies with `npm install` (or `pnpm install` or `yarn`). Then create `.env` with same content as `.env.example` and fill in the values. Then start the development server:
 
 > [!NOTE]  
 > It is recommended to use latest LTS version of Node.js. If using `pnpm` you can run `pnpm env use --global lts` to switch to the latest LTS version.
