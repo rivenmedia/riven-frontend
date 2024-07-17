@@ -3,25 +3,10 @@
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import Autoplay from 'embla-carousel-autoplay';
 	import Header from '$lib/components/header.svelte';
-	import {
-		Star,
-		CalendarDays,
-		Languages,
-		Play,
-		Info,
-		Flame,
-		Clapperboard,
-		Tv,
-		Sparkle,
-		MoveUpRight
-	} from 'lucide-svelte';
+	import { Star, CalendarDays, Languages, Play, Info, Flame, Clapperboard } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { roundOff } from '$lib/helpers';
 	import HomeItems from '$lib/components/home-items.svelte';
-	import * as Select from '$lib/components/ui/select';
-
-	let curTopRatedType = 'movie';
-
 	export let data: PageData;
 </script>
 
@@ -124,7 +109,7 @@
 		class="w-full overflow-hidden"
 	>
 		<Carousel.Content class="w-full">
-			{#each data.trendingAll.results as trendingAll, i}
+			{#each data.trendingAll.results as trendingAll}
 				{#if trendingAll.media_type !== 'person'}
 					{@const mediaType = trendingAll.media_type}
 					<Carousel.Item class="basis-auto text-slate-50">

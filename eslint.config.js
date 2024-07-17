@@ -27,16 +27,27 @@ export default [
 			}
 		},
 		rules: {
+			'no-console': 'warn',
 			'@typescript-eslint/no-unused-vars': [
 				'warn',
 				{
 					argsIgnorePattern: '^_',
-					varsIgnorePattern: '^\\$\\$(Props|Events|Slots|Generic)$'
+					varsIgnorePattern: '^_'
 				}
-			]
+			],
+			'svelte/no-target-blank': 'error',
+			'svelte/no-immutable-reactive-statements': 'error',
+			'svelte/prefer-style-directive': 'error',
+			'svelte/no-reactive-literals': 'error',
+			'svelte/no-useless-mustaches': 'error',
+			'svelte/button-has-type': 'off',
+			'svelte/require-each-key': 'off',
+			'svelte/no-at-html-tags': 'off',
+			'svelte/no-unused-svelte-ignore': 'off',
+			'svelte/require-stores-init': 'off'
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/']
+		ignores: ['build/', '.svelte-kit/', 'dist/', 'src/lib/components/ui/']
 	}
 ];

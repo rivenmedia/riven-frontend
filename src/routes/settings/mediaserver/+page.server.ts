@@ -25,8 +25,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		}
 	}
 
-	let data: any = await getPartialSettings();
-	let toPassToSchema = mediaServerSettingsToPass(data);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data: any = await getPartialSettings();
+	const toPassToSchema = mediaServerSettingsToPass(data);
 
 	return {
 		form: await superValidate(toPassToSchema, zod(mediaServerSettingsSchema))
@@ -52,8 +53,10 @@ export const actions: Actions = {
 					status: 400
 				});
 			}
-			const save = await saveSettings(event.fetch);
-			const load = await loadSettings(event.fetch);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const _save = await saveSettings(event.fetch);
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const _load = await loadSettings(event.fetch);
 		} catch (e) {
 			console.error(e);
 			return message(form, 'Unable to save settings. API is down.', {

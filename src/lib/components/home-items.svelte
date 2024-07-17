@@ -1,18 +1,8 @@
 <script lang="ts">
-	import {
-		Star,
-		CalendarDays,
-		Languages,
-		Play,
-		Info,
-		Flame,
-		Clapperboard,
-		Tv,
-		Sparkle,
-		MoveUpRight
-	} from 'lucide-svelte';
+	import { Star, CalendarDays, Clapperboard, MoveUpRight } from 'lucide-svelte';
 	import { roundOff } from '$lib/helpers';
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let data: any;
 	export let name: string;
 	export let type: string;
@@ -34,7 +24,7 @@
 			</div>
 
 			<div class="no-scrollbar flex flex-wrap overflow-x-auto px-1 lg:p-0">
-				{#each data.results as item, i}
+				{#each data.results as item}
 					<a
 						href="/{type}/{item.id}"
 						class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"

@@ -2,6 +2,7 @@ import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
 // TODO: Add toCheck
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function setSettings(fetch: any, toSet: any) {
 	const settings = await fetch(`${BACKEND_URL}/settings/set`, {
 		method: 'POST',
@@ -17,6 +18,7 @@ export async function setSettings(fetch: any, toSet: any) {
 	};
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function saveSettings(fetch: any) {
 	const data = await fetch(`${BACKEND_URL}/settings/save`, {
 		method: 'POST'
@@ -28,6 +30,7 @@ export async function saveSettings(fetch: any) {
 	};
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadSettings(fetch: any) {
 	const data = await fetch(`${BACKEND_URL}/settings/load`, {
 		method: 'GET'

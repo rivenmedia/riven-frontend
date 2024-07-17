@@ -14,9 +14,11 @@
 	import type { Writable } from 'svelte/store';
 	import { formatWords } from '$lib/helpers';
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Props = FieldsetProps<T, U> & {
 		legend?: string;
 		fieldDescription?: string;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		formData: Writable<any>;
 	};
 
@@ -24,6 +26,7 @@
 	export let name: U;
 	export let legend: string = formatWords(name as string);
 	export let fieldDescription: string | undefined = undefined;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let formData: Writable<any>;
 </script>
 

@@ -6,7 +6,9 @@ const HEADERS: Record<string, string> = {
 };
 const TMDB_BASE_URL: string = 'https://api.themoviedb.org/3';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dictToQueryString(params: Record<string, any>): string {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const filteredParams = Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null));
 	return new URLSearchParams(filteredParams).toString();
 }
@@ -24,6 +26,7 @@ export enum TimeWindow {
 }
 
 export async function getTrending(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	page: number = 1,
@@ -46,6 +49,7 @@ export async function getTrending(
 }
 
 export async function getMoviesNowPlaying(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	page: number = 1
@@ -62,6 +66,7 @@ export async function getMoviesNowPlaying(
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getMoviesPopular(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -75,6 +80,7 @@ export async function getMoviesPopular(fetch: any, language: string = 'en-US', p
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getMoviesTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -88,6 +94,7 @@ export async function getMoviesTopRated(fetch: any, language: string = 'en-US', 
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getMoviesUpcoming(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -102,6 +109,7 @@ export async function getMoviesUpcoming(fetch: any, language: string = 'en-US', 
 }
 
 export async function getMovieDetails(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
@@ -119,12 +127,8 @@ export async function getMovieDetails(
 	return await response.json();
 }
 
-
-export async function getTVAiringToday(
-	fetch: any,
-	language: string = 'en-US',
-	page: number = 1
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getTVAiringToday(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -137,6 +141,7 @@ export async function getTVAiringToday(
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getTVOnTheAir(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -150,6 +155,7 @@ export async function getTVOnTheAir(fetch: any, language: string = 'en-US', page
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getTVPopular(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -163,6 +169,7 @@ export async function getTVPopular(fetch: any, language: string = 'en-US', page:
 	return await response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getTVTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
@@ -177,6 +184,7 @@ export async function getTVTopRated(fetch: any, language: string = 'en-US', page
 }
 
 export async function getTVDetails(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
@@ -195,6 +203,7 @@ export async function getTVDetails(
 }
 
 export async function getTVSeasonDetails(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
@@ -204,9 +213,12 @@ export async function getTVSeasonDetails(
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?${queryString}`, {
-		headers: HEADERS
-	});
+	const response = await fetch(
+		`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?${queryString}`,
+		{
+			headers: HEADERS
+		}
+	);
 	if (!response.ok) {
 		throw new Error('Failed to fetch TV season details');
 	}
@@ -214,6 +226,7 @@ export async function getTVSeasonDetails(
 }
 
 export async function getTVEpisodeDetails(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
@@ -237,6 +250,7 @@ export async function getTVEpisodeDetails(
 }
 
 export async function getFromExternalID(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
 	external_source: string,
@@ -255,6 +269,7 @@ export async function getFromExternalID(
 }
 
 export async function getCollectionSearch(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	query: string,
 	include_adult: boolean = false,
@@ -275,6 +290,7 @@ export async function getCollectionSearch(
 }
 
 export async function getMovieSearch(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	query: string,
 	include_adult: boolean = false,
@@ -297,11 +313,12 @@ export async function getMovieSearch(
 }
 
 export async function getMultiSearch(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	query: string,
 	include_adult: boolean = false,
 	language: string = 'en-US',
-	page: number = 1,
+	page: number = 1
 ) {
 	const params = { query, include_adult, language, page };
 	const queryString = dictToQueryString(params);
@@ -316,6 +333,7 @@ export async function getMultiSearch(
 }
 
 export async function getTVSearch(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	query: string,
 	first_air_date_year: number | null = null,
@@ -335,4 +353,3 @@ export async function getTVSearch(
 	}
 	return await response.json();
 }
-

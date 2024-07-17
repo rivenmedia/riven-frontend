@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { animate, stagger, timeline } from 'motion';
+	// import type { PageData } from './$types';
+	import { animate, stagger } from 'motion';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Rocket, Mountain } from 'lucide-svelte';

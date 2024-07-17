@@ -23,8 +23,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		}
 	}
 
-	let data: any = await getPartialSettings();
-	let toPassToSchema = mediaServerSettingsToPass(data);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data: any = await getPartialSettings();
+	const toPassToSchema = mediaServerSettingsToPass(data);
 
 	return {
 		form: await superValidate(toPassToSchema, zod(mediaServerSettingsSchema))
