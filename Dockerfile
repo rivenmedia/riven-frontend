@@ -18,7 +18,10 @@ WORKDIR /riven
 COPY --from=frontend  /app/build /riven/build
 COPY --from=frontend  /app/node_modules /riven/node_modules
 COPY --from=frontend  /app/package.json /riven/package.json
-
 COPY version.txt /riven/
 
-ENTRYPOINT ["ORIGIN=$ORIGIN", "BACKEND_URL=$BACKEND_URL", "node", "/riven/build"]
+# Create an entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
