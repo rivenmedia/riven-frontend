@@ -23,6 +23,7 @@ export const generalSettingsSchema = z.object({
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function generalSettingsToPass(data: any) {
 	return {
 		debug: data.data.debug,
@@ -97,6 +98,7 @@ export const mediaServerSettingsSchema = z.object({
 });
 export type MediaServerSettingsSchema = typeof mediaServerSettingsSchema;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mediaServerSettingsToPass(data: any) {
 	return {
 		update_interval: data.data.updaters.update_interval,
@@ -186,6 +188,7 @@ export const scrapersSettingsSchema = z.object({
 });
 export type ScrapersSettingsSchema = typeof scrapersSettingsSchema;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function scrapersSettingsToPass(data: any) {
 	return {
 		after_2: data.data.scraping.after_2,
@@ -350,6 +353,7 @@ export const contentSettingsSchema = z.object({
 });
 export type ContentSettingsSchema = typeof contentSettingsSchema;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function contentSettingsToPass(data: any) {
 	return {
 		overseerr_enabled: data.data.content.overseerr.enabled,

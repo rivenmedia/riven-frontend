@@ -21,8 +21,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		}
 	}
 
-	let data: any = await getPartialSettings();
-	let toPassToSchema = generalSettingsToPass(data);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data: any = await getPartialSettings();
+	const toPassToSchema = generalSettingsToPass(data);
 
 	return {
 		form: await superValidate(toPassToSchema, zod(generalSettingsSchema))

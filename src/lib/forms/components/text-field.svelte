@@ -15,10 +15,12 @@
 	import { formatWords } from '$lib/helpers';
 	import * as Form from '$lib/components/ui/form';
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Props = FieldProps<T, U> &
 		ControlProps & {
 			label?: string;
 			fieldDescription?: string;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			formData: Writable<any>;
 			isProtected?: boolean;
 		};
@@ -27,11 +29,12 @@
 	export let name: U;
 	export let label: string = formatWords(name as string);
 	export let fieldDescription: string | undefined = undefined;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let formData: Writable<any>;
 	export let isProtected: boolean = false;
 </script>
 
-<Form.Field {form} {name} let:value let:errors let:tainted let:constraints>
+<Form.Field {form} {name}>
 	<Form.Control let:attrs {...$$restProps}>
 		<div
 			class={clsx('flex max-w-6xl flex-col items-start gap-2 md:flex-row md:gap-4', {

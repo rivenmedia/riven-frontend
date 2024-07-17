@@ -100,8 +100,10 @@ export function convertIcebergItemsToObject(items: RivenItem[]) {
 	return result;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createQueryString(params: Record<string, any>): string {
 	const queryString = Object.entries(params)
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		.filter(([_, value]) => value !== null && value !== undefined && value.toString().trim() !== '')
 		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
 		.join('&');

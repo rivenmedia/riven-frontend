@@ -24,7 +24,7 @@
 		validators: zodClient(generalSettingsSchema)
 	});
 
-	const { form: formData, enhance, message, errors, delayed } = form;
+	const { form: formData, enhance, message, delayed } = form;
 
 	$: if ($message && $page.status === 200) {
 		toast.success($message);

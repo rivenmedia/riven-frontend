@@ -5,9 +5,6 @@
 
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import NProgress from 'nprogress';
-	import Header from '$lib/components/header.svelte';
-
-	import { page } from '$app/stores';
 	import { setContext } from 'svelte';
 	import { dev } from '$app/environment';
 	import { writable, type Writable } from 'svelte/store';

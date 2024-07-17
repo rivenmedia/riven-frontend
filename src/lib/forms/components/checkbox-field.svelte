@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts" generics="T extends Record<string, unknown>, U extends FormPath<T>">
-	import { Control, Label, type ControlProps, Field, type FieldProps, FieldErrors } from 'formsnap';
+	import { type ControlProps, type FieldProps } from 'formsnap';
 	import clsx from 'clsx';
 	import type { Writable } from 'svelte/store';
 	import { Checkbox } from '$lib/components/ui/checkbox';
@@ -15,10 +15,12 @@
 	import { formatWords } from '$lib/helpers';
 	import * as Form from '$lib/components/ui/form';
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Props = FieldProps<T, U> &
 		ControlProps & {
 			label?: string;
 			fieldDescription?: string;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			formData: Writable<any>;
 			isForGroup?: boolean;
 		};
@@ -27,12 +29,13 @@
 	export let name: U;
 	export let label: string = formatWords(name as string);
 	export let fieldDescription: string | undefined = undefined;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let formData: Writable<any>;
 	export let isForGroup: boolean = false;
 </script>
 
 {#if isForGroup}
-	<Form.Field {form} {name} let:value let:errors let:tainted let:constraints>
+	<Form.Field {form} {name}>
 		<Form.Control let:attrs {...$$restProps}>
 			<div class="my-2 flex flex-wrap items-center gap-2 md:my-0">
 				<Form.Label class="text-sm">{label}</Form.Label>
@@ -42,7 +45,7 @@
 		</Form.Control>
 	</Form.Field>
 {:else}
-	<Form.Field {form} {name} let:value let:errors let:tainted let:constraints>
+	<Form.Field {form} {name}>
 		<Form.Control let:attrs {...$$restProps}>
 			<div
 				class={clsx('flex max-w-6xl flex-col items-start gap-2 md:flex-row md:gap-4', {

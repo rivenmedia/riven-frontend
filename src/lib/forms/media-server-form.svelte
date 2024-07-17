@@ -26,7 +26,7 @@
 		validators: zodClient(mediaServerSettingsSchema)
 	});
 
-	const { form: formData, enhance, message, errors, delayed } = form;
+	const { form: formData, enhance, message, delayed } = form;
 
 	$: if ($message && $page.status === 200) {
 		toast.success($message);
@@ -43,6 +43,7 @@
 	let appName = 'Riven';
 	let plexId: string;
 	let plexCode: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let pollingInterval: any;
 
 	async function genPlexPin() {
@@ -103,7 +104,9 @@
 
 			pollingInterval = setInterval(pollPlexPin, 2000);
 		} catch (e) {
-			console.error(e);
+			toast.error('An error occurred while trying to authenticate with Plex');
+			alert(e);
+			ongoingAuth = false;
 		}
 	}
 </script>
@@ -126,7 +129,7 @@
 
 		<div transition:slide>
 			<Form.Field {form} name="plex_token">
-				<Form.Control let:attrs>
+				<Form.Control>
 					<div class="mb-2 flex max-w-6xl flex-col items-start gap-2 md:flex-row md:gap-4">
 						<div class="flex w-full min-w-48 flex-col items-start gap-2 md:w-48">
 							<Form.Label>Plex Token</Form.Label>

@@ -26,7 +26,7 @@
 		validators: zodClient(scrapersSettingsSchema)
 	});
 
-	const { form: formData, enhance, message, errors, delayed } = form;
+	const { form: formData, enhance, message, delayed } = form;
 
 	$: if ($message && $page.status === 200) {
 		toast.success($message);
@@ -35,12 +35,12 @@
 	}
 
 	function addField(name: string) {
-		// @ts-ignore eslint-disable-next-line
+		// @ts-expect-error eslint-disable-next-line
 		$formData[name] = [...$formData[name], ''];
 	}
 
 	function removeField(name: string, index: number) {
-		// @ts-ignore eslint-disable-next-line
+		// @ts-expect-error eslint-disable-next-line
 		$formData[name] = $formData[name].filter((_, i) => i !== index);
 	}
 </script>

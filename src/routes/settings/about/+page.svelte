@@ -2,7 +2,6 @@
 	import type { PageData } from './$types';
 	import { Separator } from '$lib/components/ui/separator';
 	import { formatWords } from '$lib/helpers';
-	import * as Alert from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { Loader2, MoveUpRight } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
@@ -14,12 +13,14 @@
 	const library_path = data.settings.data.symlink.library_path;
 
 	interface AboutData {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		[key: string]: any;
 		rclone_path: string;
 		library_path: string;
 	}
 
 	type SupportData = {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		[key: string]: any;
 		github: string;
 		discord: string;

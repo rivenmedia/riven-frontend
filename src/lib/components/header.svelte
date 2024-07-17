@@ -2,9 +2,8 @@
 	import type { NavItem } from '$lib/types';
 	import ThemeSwitcher from '$lib/components/theme-switcher.svelte';
 	import NavigationItem from '$lib/components/header-item.svelte';
-	import { Mountain, MoreHorizontal, X, Command } from 'lucide-svelte';
+	import { Mountain, MoreHorizontal } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
-	import clsx from 'clsx';
 	import * as Drawer from '$lib/components/ui/drawer';
 	import { getContext } from 'svelte';
 	import { type Writable } from 'svelte/store';
@@ -32,10 +31,6 @@
 	];
 
 	let showMenu: Writable<boolean> = getContext('showMenu');
-
-	function toggleNavbar() {
-		showMenu.update((v) => !v);
-	}
 
 	let applyBackdropBlur = () => {};
 
