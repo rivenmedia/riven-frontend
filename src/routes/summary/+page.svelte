@@ -156,6 +156,7 @@
 	$: end = start + perPage;
 	$: incompleteItems = data.incompleteItems.incomplete_items
 		.slice(start, end)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		.filter((item: any) => ['Movie', 'Show'].includes(item.type));
 	$: totalIncompleteItems = incompleteItems.length;
 </script>
