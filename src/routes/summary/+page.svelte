@@ -150,12 +150,12 @@
 		}
 	];
 
-	const totalIncompleteItems = data.incompleteItems.incomplete_items.length;
 	let curPage = 1;
 	const perPage = 20;
 	$: start = (curPage - 1) * perPage;
 	$: end = start + perPage;
-	$: incompleteItems = data.incompleteItems.incomplete_items.slice(start, end);
+	$: incompleteItems = data.incompleteItems.incomplete_items.slice(start, end).filter((item: any) => ["Movie", "Show"].includes(item.type));
+	$: totalIncompleteItems = incompleteItems.length;
 </script>
 
 <Header />
