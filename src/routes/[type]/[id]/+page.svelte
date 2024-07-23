@@ -2,11 +2,16 @@
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Star, TvMinimalPlay, MonitorDown, ArrowUpRight } from 'lucide-svelte';
+	import { Star, TvMinimalPlay, MonitorDown, ArrowUpRight, Tag } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
+	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
+	import clsx from 'clsx';
 
 	export let data: PageData;
+
+	let productionCompanies = 4;
 </script>
 
 <svelte:head>
@@ -168,8 +173,8 @@
 					{/if}
 				</div>
 			</div>
-			<div class="mt-8 flex w-full flex-col items-start md:flex-row backdrop-blur-lg bg-white">
-				<div class="flex w-[70%] flex-col items-start">
+			<div class="mt-8 flex w-full flex-col items-start gap-8 md:flex-row">
+				<div class="flex w-full flex-col items-start md:w-[70%]">
 					{#if data.details.credits && data.details.credits.crew.length > 0}
 						<div class="grid w-full grid-cols-3 gap-4">
 							{#each data.details.credits.crew as crew, i}
@@ -182,20 +187,124 @@
 							{/each}
 						</div>
 					{/if}
-				</div>
-
-				<div class="flex w-[30%] flex-col">
-					<!-- {#if data.details.production_companies && data.details.production_companies.length > 0}
-						<div class="flex flex-col gap-2">
-							<h2 class="text-lg font-medium text-zinc-100">Production Companies</h2>
-							{#each data.details.production_companies as company, i}
-								{#if i < 4}
-									<div class="items flex"></div>
-								{/if}
+					{#if data.details.keywords}
+						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
+						<div class="mt-8 flex w-full flex-wrap gap-2">
+							{#each keywords as keyword}
+								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
+									<Tag class="size-4" />
+									<span>{keyword.name}</span>
+								</Badge>
 							{/each}
 						</div>
-					{/if} -->
+					{/if}
 				</div>
+
+				<div class="flex w-full flex-col md:w-[30%]">
+					<div
+						class="flex flex-col rounded-md border border-zinc-700 bg-zinc-900/50 backdrop-blur-sm"
+					>
+						{#if data.details.status}
+							<div
+								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+							>
+								<h2 class="text-zinc-100">Status</h2>
+								<span class="text-sm text-zinc-300">{data.details.status}</span>
+							</div>
+						{/if}
+						{#if data.details.revenue}
+							<div
+								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+							>
+								<h2 class="text-zinc-100">Revenue</h2>
+								<span class="text-sm text-zinc-300">
+									${data.details.revenue.toLocaleString()}
+								</span>
+							</div>
+						{/if}
+						{#if data.details.budget}
+							<div
+								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+							>
+								<h2 class="text-zinc-100">Budget</h2>
+								<span class="text-sm text-zinc-300">
+									${data.details.budget.toLocaleString()}
+								</span>
+							</div>
+						{/if}
+						{#if data.details.production_countries}
+							<div
+								class={clsx(
+									'flex justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3',
+									{
+										'items-center': data.details.production_countries.length === 1,
+										'items-start': data.details.production_countries.length > 1
+									}
+								)}
+							>
+								<h2 class="text-zinc-100">Countries</h2>
+								<span class="flex flex-col items-end text-sm text-zinc-300">
+									{#each data.details.production_countries as country}
+										<p class="line-clamp-1 text-left">{country.name}</p>
+									{/each}
+								</span>
+							</div>
+						{/if}
+						{#if data.details.production_companies}
+							<div
+								class={clsx(
+									'flex justify-between gap-2 border-b border-b-zinc-700 p-3 last-of-type:border-none',
+									{
+										'items-center': data.details.production_companies.length === 1,
+										'items-start': data.details.production_companies.length > 1
+									}
+								)}
+							>
+								<h2 class="text-zinc-100">Companies</h2>
+								<span class="flex flex-col items-end text-sm text-zinc-300">
+									{#each data.details.production_companies as company, i}
+										{#if i < productionCompanies}
+											<p class="line-clamp-1 text-left">{company.name}</p>
+										{/if}
+									{/each}
+
+									{#if data.details.production_companies.length > 4}
+										<Button
+											on:click={() => {
+												productionCompanies =
+													productionCompanies < data.details.production_companies.length
+														? data.details.production_companies.length
+														: 4;
+											}}
+											variant="link"
+											class="text-zinc-200"
+										>
+											{productionCompanies < data.details.production_companies.length
+												? 'View All'
+												: 'View Less'}
+										</Button>
+									{/if}
+								</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+			<div class="mb-16 mt-16 flex w-full select-none flex-col gap-8">
+				{#if data.details.recommendations && data.details.recommendations.results.length > 0}
+					<MediaTmdbCarousel
+						name="Recommendations"
+						results={data.details.recommendations.results}
+					/>
+				{/if}
+
+				{#if data.details.similar && data.details.similar.results.length > 0}
+					<MediaTmdbCarousel
+						name="Similar titles"
+						results={data.details.similar.results}
+						mediaType={data.mediaType}
+					/>
+				{/if}
 			</div>
 		</div>
 	</div>

@@ -19,13 +19,15 @@ export const load = (async ({ fetch, params }) => {
 				return await getTVDetails(
 					fetch,
 					'en-US',
-					'external_ids,recommendations,similar,videos,images,keywords',
+					'credits,external_ids,recommendations,similar,videos,images,keywords',
 					id
 				);
 		}
 	}
 
 	return {
-		details: await getDetails(type, id)
+		details: await getDetails(type, id),
+		mediaType: type,
+		mediaID: id
 	};
 }) satisfies PageLoad;
