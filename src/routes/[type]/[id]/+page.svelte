@@ -202,7 +202,7 @@
 
 				<div class="flex w-full flex-col md:w-[30%]">
 					<div
-						class="flex flex-col rounded-md border border-zinc-700 bg-zinc-900/50 backdrop-blur-sm"
+						class="flex flex-1 flex-col rounded-md border border-zinc-700 bg-zinc-900/50 backdrop-blur-sm"
 					>
 						{#if data.details.status}
 							<div
@@ -243,10 +243,12 @@
 								)}
 							>
 								<h2 class="text-zinc-100">Countries</h2>
-								<span class="flex flex-col items-end text-sm text-zinc-300">
-									{#each data.details.production_countries as country}
-										<p class="line-clamp-1 text-left">{country.name}</p>
-									{/each}
+								<span class="flex flex-col items-end">
+									<ul class="mb-2 space-y-1 text-right text-sm text-zinc-300">
+										{#each data.details.production_countries as country}
+											<li class="line-clamp-1">{country.name}</li>
+										{/each}
+									</ul>
 								</span>
 							</div>
 						{/if}
@@ -261,12 +263,14 @@
 								)}
 							>
 								<h2 class="text-zinc-100">Companies</h2>
-								<span class="flex flex-col items-end text-sm text-zinc-300">
-									{#each data.details.production_companies as company, i}
-										{#if i < productionCompanies}
-											<p class="line-clamp-1 text-left">{company.name}</p>
-										{/if}
-									{/each}
+								<span class="flex flex-col items-end">
+									<ul class="mb-2 space-y-1 text-right text-sm text-zinc-300">
+										{#each data.details.production_companies as company, i}
+											{#if i < productionCompanies}
+												<li class="line-clamp-1">{company.name}</li>
+											{/if}
+										{/each}
+									</ul>
 
 									{#if data.details.production_companies.length > 4}
 										<Button
