@@ -256,7 +256,7 @@
 						{/if}
 						{#if data.details.production_companies}
 							<div
-								class={clsx('flex justify-between gap-2 p-3 last-of-type:border-none', {
+								class={clsx('flex justify-between gap-2 p-2 last-of-type:border-none', {
 									'items-center': data.details.production_companies.length === 1,
 									'items-start': data.details.production_companies.length > 1
 								})}
