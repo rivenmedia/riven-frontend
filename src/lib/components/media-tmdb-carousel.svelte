@@ -16,7 +16,7 @@
 >
 	<div class="mb-2 flex items-center justify-between">
 		<h3 class="text-2xl text-zinc-100">{name}</h3>
-		<div class="flex items-center gap-1">
+		<div class="flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
 			<Carousel.Previous class="static mt-8 h-8 w-8 rounded-md" />
 			<Carousel.Next class="static mt-8 h-8 w-8 rounded-md" />
 		</div>
