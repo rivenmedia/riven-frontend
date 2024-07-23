@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/rivenmedia/riven-frontend/compare/v0.2.1...v0.2.2) (2024-07-23)
+
+
+### Bug Fixes
+
+* media info page and minor homepage fixes ([#33](https://github.com/rivenmedia/riven-frontend/issues/33)) ([1793aca](https://github.com/rivenmedia/riven-frontend/commit/1793aca584d917ce8800dff9f5ade047ddb2bec4))
+
 ## 0.2.1 (2024-07-23)
 
 ### ⚠ BREAKING CHANGES
