@@ -208,10 +208,10 @@
 				</div>
 
 				<div class="flex w-full flex-col md:w-[30%]">
-					<div class="flex flex-1 flex-col rounded-lg border border-zinc-700 bg-zinc-900/50">
+					<div class="flex flex-1 flex-col rounded-lg bg-zinc-50/10">
 						{#if data.details.status}
 							<div
-								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+								class="flex items-center justify-between gap-2 p-2 last-of-type:border-none md:p-3"
 							>
 								<h2 class="text-zinc-100">Status</h2>
 								<span class="text-sm text-zinc-300">{data.details.status}</span>
@@ -219,7 +219,7 @@
 						{/if}
 						{#if data.details.revenue}
 							<div
-								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+								class="flex items-center justify-between gap-2 p-2 last-of-type:border-none md:p-3"
 							>
 								<h2 class="text-zinc-100">Revenue</h2>
 								<span class="text-sm text-zinc-300">
@@ -229,7 +229,7 @@
 						{/if}
 						{#if data.details.budget}
 							<div
-								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
+								class="flex items-center justify-between gap-2 p-2 last-of-type:border-none md:p-3"
 							>
 								<h2 class="text-zinc-100">Budget</h2>
 								<span class="text-sm text-zinc-300">
@@ -239,13 +239,10 @@
 						{/if}
 						{#if data.details.production_countries}
 							<div
-								class={clsx(
-									'flex justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3',
-									{
-										'items-center': data.details.production_countries.length === 1,
-										'items-start': data.details.production_countries.length > 1
-									}
-								)}
+								class={clsx('flex justify-between gap-2 p-2 last-of-type:border-none md:p-3', {
+									'items-center': data.details.production_countries.length === 1,
+									'items-start': data.details.production_countries.length > 1
+								})}
 							>
 								<h2 class="text-zinc-100">Countries</h2>
 								<span class="flex flex-col items-end">
@@ -259,13 +256,10 @@
 						{/if}
 						{#if data.details.production_companies}
 							<div
-								class={clsx(
-									'flex justify-between gap-2 border-b border-b-zinc-700 p-3 last-of-type:border-none',
-									{
-										'items-center': data.details.production_companies.length === 1,
-										'items-start': data.details.production_companies.length > 1
-									}
-								)}
+								class={clsx('flex justify-between gap-2 p-3 last-of-type:border-none', {
+									'items-center': data.details.production_companies.length === 1,
+									'items-start': data.details.production_companies.length > 1
+								})}
 							>
 								<h2 class="text-zinc-100">Companies</h2>
 								<span class="flex flex-col items-end">
