@@ -34,6 +34,7 @@
 				alt={data.details.id}
 				class="h-full w-full object-cover opacity-50 blur"
 				src="https://www.themoviedb.org/t/p/original{data.details.backdrop_path}"
+				loading="lazy"
 			/>
 			<div
 				class="absolute bottom-0 left-0 right-0 h-full w-full bg-gradient-to-b from-transparent to-zinc-900/55"
