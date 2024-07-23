@@ -2,6 +2,7 @@
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 
 	export let name: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let results: any;
 	export let mediaType: string | null = null;
 </script>
@@ -28,7 +29,7 @@
 						alt={result.id}
 						src="https://www.themoviedb.org/t/p/w780{result.poster_path}"
 						class="h-full w-full rounded-lg object-cover object-center transition-all duration-300 ease-in-out hover:scale-95"
-                        loading="lazy"
+						loading="lazy"
 					/>
 				</a>
 			</Carousel.Item>

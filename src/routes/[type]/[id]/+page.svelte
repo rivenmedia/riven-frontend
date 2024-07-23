@@ -5,7 +5,6 @@
 	import { Star, TvMinimalPlay, MonitorDown, ArrowUpRight, Tag } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
 	import clsx from 'clsx';
 
@@ -13,7 +12,9 @@
 
 	let productionCompanies = 4;
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return seasons.filter((season: any) => season.season_number !== 0);
 	}
 </script>
