@@ -12,6 +12,10 @@
 	export let data: PageData;
 
 	let productionCompanies = 4;
+
+	function filterSpecial(seasons: any) {
+		return seasons.filter((season: any) => season.season_number !== 0);
+	}
 </script>
 
 <svelte:head>
@@ -94,14 +98,14 @@
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						<Button
 							href="/404"
-							class="flex items-center gap-1 bg-zinc-100 p-6 text-zinc-900 hover:bg-zinc-100"
+							class="flex items-center gap-1 bg-zinc-100 px-6 py-4 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
 						>
 							<TvMinimalPlay class="size-4" />
 							<span>Watch</span>
 						</Button>
 						<Button
 							href="/404"
-							class="flex items-center gap-1 border border-zinc-100 bg-transparent p-6 hover:bg-transparent"
+							class="flex items-center gap-1 border border-zinc-100 bg-transparent px-6 py-4 hover:bg-transparent/10"
 						>
 							<MonitorDown class="size-4" />
 							<span>Request</span>
@@ -146,7 +150,9 @@
 											<div class="flex flex-col items-center gap-1">
 												<img
 													alt={cast.id}
-													src="https://www.themoviedb.org/t/p/w185{cast.profile_path}"
+													src={cast.profile_path
+														? `https://www.themoviedb.org/t/p/w185${cast.profile_path}`
+														: '/images/avatar.png'}
 													loading="lazy"
 													class="h-16 w-16 rounded-full object-cover object-center"
 												/>
@@ -201,9 +207,7 @@
 				</div>
 
 				<div class="flex w-full flex-col md:w-[30%]">
-					<div
-						class="flex flex-1 flex-col rounded-md border border-zinc-700 bg-zinc-900/50 backdrop-blur-sm"
-					>
+					<div class="flex flex-1 flex-col rounded-lg border border-zinc-700 bg-zinc-900/50">
 						{#if data.details.status}
 							<div
 								class="flex items-center justify-between gap-2 border-b border-b-zinc-700 p-2 last-of-type:border-none md:p-3"
@@ -294,7 +298,46 @@
 					</div>
 				</div>
 			</div>
-			<div class="mb-16 mt-16 flex w-full select-none flex-col gap-8">
+
+			{#if data.details.seasons}
+				<div class="mt-16 flex w-full select-none flex-col gap-4 rounded-lg bg-zinc-50/10 p-8">
+					<h3 class="text-2xl text-zinc-100">Seasons</h3>
+
+					<div class="relative flex w-full cursor-pointer flex-wrap">
+						{#each filterSpecial(data.details.seasons) as season}
+							<a
+								href="/tv/{data.mediaID}/{season.season_number}"
+								class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 md:w-1/3 lg:w-1/4"
+							>
+								<div class="h-full w-full overflow-hidden rounded-lg bg-white/10 shadow-xl">
+									<img
+										alt={season.id}
+										src={season.poster_path
+											? `https://www.themoviedb.org/t/p/w780${season.poster_path}`
+											: 'https://via.placeholder.com/198x228.png?text=No+thumbnail'}
+										class=" h-full w-full object-cover brightness-75 transition-all duration-300 ease-in-out group-hover:scale-105"
+										loading="lazy"
+									/>
+									<div class="absolute left-0 top-0 flex h-full w-full flex-col px-4 py-3">
+										<div
+											class="line-clamp-2 w-fit rounded-md bg-zinc-900/60 px-2 text-sm font-medium capitalize text-white sm:text-base"
+										>
+											Season {season.season_number}
+										</div>
+										<div
+											class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
+										>
+											{season.episode_count ? season.episode_count : 'N/A'} episodes
+										</div>
+									</div>
+								</div>
+							</a>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<div class="mb-32 mt-16 flex w-full select-none flex-col gap-8">
 				{#if data.details.recommendations && data.details.recommendations.results.length > 0}
 					<MediaTmdbCarousel
 						name="Recommendations"
