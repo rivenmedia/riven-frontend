@@ -24,14 +24,17 @@
 	<Carousel.Content class="h-full w-full">
 		{#each results as result}
 			<Carousel.Item class="basis-1/2 md:basis-1/4 lg:basis-1/6">
-				<a href="/{result.media_type || mediaType}/{result.id}">
-					<img
-						alt={result.id}
-						src="https://www.themoviedb.org/t/p/w780{result.poster_path}"
-						class="h-full w-full rounded-lg object-cover object-center transition-all duration-300 ease-in-out hover:scale-95"
-						loading="lazy"
-					/>
-				</a>
+				<div class="group relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
+					<span class="inline-block h-full w-full">
+						<img
+							alt={result.id}
+							height="100%"
+							src="https://www.themoviedb.org/t/p/w780{result.poster_path}"
+							class="h-full w-full object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-105"
+							loading="lazy"
+						/>
+					</span>
+				</div>
 			</Carousel.Item>
 		{/each}
 	</Carousel.Content>
