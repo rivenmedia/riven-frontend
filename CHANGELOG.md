@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.5](https://github.com/rivenmedia/riven-frontend/compare/v0.2.2...v0.2.5) (2024-07-24)
+
+
+### Bug Fixes
+
+* ui improvements ([#35](https://github.com/rivenmedia/riven-frontend/issues/35)) ([58a4442](https://github.com/rivenmedia/riven-frontend/commit/58a4442a853dfb91aa27fe58896855f6232fd354))
+
+
+### Miscellaneous Chores
+
+* **main:** release 0.2.5 ([2943adb](https://github.com/rivenmedia/riven-frontend/commit/2943adb126b8d25d6bf28e8c699a457f8b6df5aa))
+
 ## [0.2.2](https://github.com/rivenmedia/riven-frontend/compare/v0.2.1...v0.2.2) (2024-07-23)
 
 
