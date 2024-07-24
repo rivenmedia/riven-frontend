@@ -118,8 +118,11 @@
 							<div class="z-[-1] w-full">
 								<img
 									alt={data.details.belongs_to_collection.id}
-									src="https://www.themoviedb.org/t/p/w1280{data.details.belongs_to_collection
-										.backdrop_path}"
+									src={
+										data.details.belongs_to_collection.backdrop_path
+											? `https://www.themoviedb.org/t/p/w1280${data.details.belongs_to_collection.backdrop_path}`
+											: 'https://via.placeholder.com/1280x720.png?text='
+									}
 									loading="lazy"
 									class="h-full max-h-16 w-full rounded-2xl object-cover object-center"
 								/>
