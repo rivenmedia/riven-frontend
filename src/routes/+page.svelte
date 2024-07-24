@@ -90,16 +90,11 @@
 	</Carousel.Content>
 </Carousel.Root>
 
-<div class="flex w-full flex-col items-start gap-4 p-8 md:-mt-56">
-	<div class="z-40 flex w-full items-center gap-2 text-white md:px-16 lg:px-24">
-		<div class="rounded-md bg-primary p-2">
-			<Flame class="size-4" />
-		</div>
-		<h2 class="text-xl font-medium md:text-2xl">What's Trending Today</h2>
-	</div>
+<div class="flex w-full flex-col items-start p-8 md:-mt-56">
 	<Carousel.Root
 		opts={{
-			dragFree: true
+			dragFree: true,
+			slidesToScroll: 'auto'
 		}}
 		plugins={[
 			Autoplay({
@@ -108,6 +103,20 @@
 		]}
 		class="w-full overflow-hidden"
 	>
+		<div class="z-40 mb-4 flex w-full text-white md:px-16 lg:px-24">
+			<div class="flex w-full items-center justify-between">
+				<div class="flex items-center gap-2">
+					<div class="rounded-md bg-primary p-2">
+						<Flame class="size-4" />
+					</div>
+					<h2 class="text-xl font-medium md:text-2xl">What's Trending Today</h2>
+				</div>
+				<div class="flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+					<Carousel.Previous class="static mt-8 h-8 w-8 rounded-md" />
+					<Carousel.Next class="static mt-8 h-8 w-8 rounded-md" />
+				</div>
+			</div>
+		</div>
 		<Carousel.Content class="w-full">
 			{#each data.trendingAll.results as trendingAll}
 				{#if trendingAll.media_type !== 'person'}
@@ -115,9 +124,7 @@
 					<Carousel.Item
 						class="basis-11/12 text-slate-50 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
 					>
-						<div
-							class="aspect-[2/1] h-fit w-full overflow-hidden rounded-2xl border-2 border-transparent hover:border-2 hover:border-primary"
-						>
+						<div class="aspect-[2/1] h-fit w-full overflow-hidden rounded-2xl">
 							<a
 								href="/{mediaType}/{trendingAll.id}"
 								class="group relative flex h-full w-full flex-shrink-0 flex-col"
