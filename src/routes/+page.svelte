@@ -122,7 +122,7 @@
 				{#if trendingAll.media_type !== 'person'}
 					{@const mediaType = trendingAll.media_type}
 					<Carousel.Item
-						class="basis-11/12 text-slate-50 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
+						class="basis-11/12 text-zinc-50 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
 					>
 						<div class="aspect-[2/1] h-fit w-full overflow-hidden rounded-2xl">
 							<a
