@@ -112,7 +112,9 @@
 			{#each data.trendingAll.results as trendingAll}
 				{#if trendingAll.media_type !== 'person'}
 					{@const mediaType = trendingAll.media_type}
-					<Carousel.Item class="basis-full text-slate-50 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+					<Carousel.Item
+						class="basis-full text-slate-50 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
+					>
 						<div
 							class="aspect-[2/1] h-fit w-full overflow-hidden rounded-2xl border-2 border-transparent hover:border-2 hover:border-primary"
 						>
