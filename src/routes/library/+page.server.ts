@@ -1,14 +1,15 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types';
+import { error, fail } from '@sveltejs/kit';
 import { createQueryString } from '$lib/helpers';
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
+
 export const load = (async ({ fetch, url }) => {
 	const params = {
-		limit: Number(url.searchParams.get('limit')) || 100,
+		limit: Number(url.searchParams.get('limit')) || 10000,
 		page: Number(url.searchParams.get('page')) || 1,
-		type: url.searchParams.get('type') || 'Movie',
+		type: url.searchParams.get('type') || 'movie,show',
 		search: url.searchParams.get('search') || '',
 		state: url.searchParams.get('state') || ''
 	};
@@ -29,6 +30,6 @@ export const load = (async ({ fetch, url }) => {
 	}
 
 	return {
-		items: await getItems()
+		items: await getItems(),
 	};
 }) satisfies PageServerLoad;

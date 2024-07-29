@@ -154,7 +154,7 @@
 	const perPage = 20;
 	$: start = (curPage - 1) * perPage;
 	$: end = start + perPage;
-	$: incompleteItems = data.incompleteItems.incomplete_items
+	$: incompleteItems = data.incompleteItems
 		.slice(start, end)
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		.filter((item: any) => ['Movie', 'Show'].includes(item.type));
