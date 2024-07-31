@@ -12,6 +12,7 @@
 	import { statesName } from '$lib/constants';
 	import clsx from 'clsx';
 	import Ytembed from '$lib/components/ytembed.svelte';
+	import { toast } from 'svelte-sonner';
 
 	export let data: PageData;
 
@@ -21,6 +22,19 @@
 	function filterSpecial(seasons: any) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return seasons.filter((season: any) => season.season_number !== 0);
+	}
+
+	async function requestItem() {
+		const response = await fetch("/api/actions/request/" + data.mediaID, {
+			method: 'POST'
+		})
+
+		if (response.status !== 200) {
+			toast.error("Requesting item failed")
+			return
+		}
+
+		toast.info("Successfully requested item")
 	}
 </script>
 
@@ -142,6 +156,9 @@
 						{:else}
 							<Button
 								class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+								on:click={async () => {
+									await requestItem();
+								}}
 							>
 								<Download class="size-4" />
 								<span>Request</span>
