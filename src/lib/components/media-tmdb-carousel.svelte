@@ -12,7 +12,7 @@
 		dragFree: true,
 		slidesToScroll: 'auto'
 	}}
-	class="mt-4 h-full overflow-hidden"
+	class="h-full overflow-hidden"
 >
 	<div class="mb-2 flex items-center justify-between">
 		<h3 class="text-2xl text-zinc-100">{name}</h3>
@@ -30,7 +30,9 @@
 							<img
 								alt={result.id}
 								height="100%"
-								src="https://www.themoviedb.org/t/p/w780{result.poster_path}"
+								src={result.poster_path
+									? `https://www.themoviedb.org/t/p/w780${result.poster_path}`
+									: 'https://via.placeholder.com/780.png?text='}
 								class="h-full w-full object-cover object-center transition-all duration-300 ease-in-out group-hover:scale-105"
 								loading="lazy"
 							/>

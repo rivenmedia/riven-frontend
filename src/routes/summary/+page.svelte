@@ -6,6 +6,14 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Pagination from '$lib/components/ui/pagination';
 	import MediaItem from '$lib/components/media-item.svelte';
+	import {
+		statesName,
+		servicesObject,
+		coreServices,
+		downloaderServices,
+		contentServices,
+		scrapingServices
+	} from '$lib/constants';
 
 	export let data: PageData;
 
@@ -26,58 +34,6 @@
 			title: 'Incomplete Items',
 			value: data.stats.data.incomplete_items
 		}
-	];
-
-	const statesName: Record<string, string> = {
-		Unknown: 'Unknown',
-		Requested: 'Requested',
-		Indexed: 'Indexed',
-		Scraped: 'Scraped',
-		Downloaded: 'Downloaded',
-		Symlinked: 'Symlinked',
-		Completed: 'Completed',
-		PartiallyCompleted: 'Partially Completed',
-		Failed: 'Failed'
-	};
-
-	const servicesObject: Record<string, string> = {
-		symlinklibrary: 'Symlink Library',
-		traktindexer: 'Trakt Indexer',
-		overseerr: 'Overseerr',
-		plex_watchlist: 'Plex Watchlist',
-		listrr: 'Listrr',
-		mdblist: 'MDB List',
-		trakt: 'Trakt',
-		scraping: 'Scraping',
-		annatar: 'Annatar',
-		torrentio: 'Torrentio',
-		knightcrawler: 'Knightcrawler',
-		orionoid: 'Orionoid',
-		jackett: 'Jackett',
-		torbox: 'Torbox',
-		mediafusion: 'Media Fusion',
-		Prowlarr: 'Prowlarr',
-		zilean: 'Zilean',
-		symlink: 'Symlink',
-		updater: 'Updater',
-		plexupdater: 'Plex Updater',
-		localupdater: 'Local Updater',
-		realdebrid: 'Real Debrid',
-		torbox_downloader: 'Torbox Downloader'
-	};
-
-	const coreServices = ['symlinklibrary', 'symlink', 'scraping', 'updater'];
-	const downloaderServices = ['realdebrid', 'torbox', 'torbox_downloader'];
-	const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listrr', 'trakt'];
-	const scrapingServices = [
-		'torrentio',
-		'knightcrawler',
-		'annatar',
-		'jackett',
-		'orionoid',
-		'mediafusion',
-		'Prowlarr',
-		'zilean'
 	];
 
 	function sortServices(services: string[], data: Record<string, boolean>) {
@@ -152,13 +108,10 @@
 
 	let curPage = 1;
 	const perPage = 20;
+	const totalIncompleteItems = data.incompleteItems.length;
 	$: start = (curPage - 1) * perPage;
 	$: end = start + perPage;
-	$: incompleteItems = data.incompleteItems.incomplete_items
-		.slice(start, end)
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		.filter((item: any) => ['Movie', 'Show'].includes(item.type));
-	$: totalIncompleteItems = incompleteItems.length;
+	$: incompleteItems = data.incompleteItems.slice(start, end);
 </script>
 
 <Header />

@@ -353,3 +353,18 @@ export async function getTVSearch(
 	}
 	return await response.json();
 }
+
+export async function getExternalID(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	fetch: any,
+	mediaType: string,
+	tmdb_id: number
+) {
+	const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdb_id}/external_ids`, {
+		headers: HEADERS
+	});
+	if (!response.ok) {
+		throw new Error('Failed to fetch external ID');
+	}
+	return await response.json();
+}

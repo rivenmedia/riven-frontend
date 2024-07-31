@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
-import { createQueryString } from '$lib/helpers';
 import { env } from '$env/dynamic/private';
+import { db } from '$lib/server/db';
+
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
 export const load = (async ({ fetch, url }) => {
@@ -13,22 +13,21 @@ export const load = (async ({ fetch, url }) => {
 		state: url.searchParams.get('state') || ''
 	};
 
-	const queryString = createQueryString(params);
+	async function getLibrary() {
+		const test = await db
+			.selectFrom('MediaItem')
+			.select(({ fn, val, ref }) => [
+				fn.count(val('*')).as('total'),
+				fn.count(ref('tmdb_id')).as('tmdb')
+			])
+			.execute();
 
-	async function getItems() {
-		try {
-			const res = await fetch(`${BACKEND_URL}/items${queryString}`);
-			if (res.ok) {
-				return await res.json();
-			}
-			error(400, `Unable to fetch items data: ${res.status} ${res.statusText}`);
-		} catch (e) {
-			console.error(e);
-			error(503, 'Unable to fetch items data. Server error or API is down.');
-		}
+		console.log(test);
+
+		return await db.selectFrom('MediaItem').selectAll().execute();
 	}
 
 	return {
-		items: await getItems()
+		library: await getLibrary()
 	};
 }) satisfies PageServerLoad;
