@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.3.0-alpha...v0.3.1-alpha) (2024-07-31)
+
+
+### Bug Fixes
+
+* docker entrypoint and docs improvement ([#40](https://github.com/rivenmedia/riven-frontend/issues/40)) ([3e3ff18](https://github.com/rivenmedia/riven-frontend/commit/3e3ff184ae164a7dbd189c2fe31f3ed75caae686))
+
 ## [0.3.0-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.2.5...v0.3.0-alpha) (2024-07-31)
 
 
