@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.2.5...v0.3.0-alpha) (2024-07-31)
+
+
+### Features
+
+* add DB support and other minor fixes ([#38](https://github.com/rivenmedia/riven-frontend/issues/38)) ([38a5c18](https://github.com/rivenmedia/riven-frontend/commit/38a5c18869e23732b6214c866005c621ce7934f5))
+
 ## [0.2.5](https://github.com/rivenmedia/riven-frontend/compare/v0.2.2...v0.2.5) (2024-07-24)
 
 
