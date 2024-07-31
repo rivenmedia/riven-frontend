@@ -23,6 +23,7 @@ export const load = (async () => {
 			if (res.ok) {
 				let data = await res.json();
 				data = data.items.filter(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					(item: any) =>
 						(item.type === 'Movie' || item.type === 'Show') && item.state !== 'Completed'
 				);
