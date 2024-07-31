@@ -2,11 +2,16 @@
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Star, TvMinimalPlay, MonitorDown, ArrowUpRight, Tag } from 'lucide-svelte';
+	import { Star, Trash2, Download, ArrowUpRight, Tag, Wrench } from 'lucide-svelte';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { statesName } from '$lib/constants';
 	import clsx from 'clsx';
+	import Ytembed from '$lib/components/ytembed.svelte';
 
 	export let data: PageData;
 
@@ -59,6 +64,21 @@
 					<h1 class="text-center text-4xl text-zinc-50 md:text-left">
 						{data.details.title || data.details.name || data.details.original_name}
 					</h1>
+					{#if data.db && data.db.last_state}
+						<div class="flex items-center justify-center gap-2 md:justify-start">
+							<Badge
+								class={clsx('font-medium', {
+									'bg-green-500': data.db.last_state === 'Completed',
+									'bg-yellow-500':
+										data.db.last_state === 'Downloaded' ||
+										data.db.last_state === 'PartiallyCompleted',
+									'bg-red-500': data.db.last_state === 'Unknown'
+								})}
+							>
+								{statesName[data.db.last_state]}
+							</Badge>
+						</div>
+					{/if}
 					{#if data.details.tagline}
 						<h2 class="text-center text-xl italic text-zinc-200 md:text-left">
 							&quot;{data.details.tagline}&quot;
@@ -98,20 +118,62 @@
 						{data.details.overview}
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-						<Button
-							href="/404"
-							class="flex items-center gap-1 bg-zinc-100 px-6 py-4 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
-						>
-							<TvMinimalPlay class="size-4" />
-							<span>Watch</span>
-						</Button>
-						<Button
-							href="/404"
-							class="flex items-center gap-1 border border-zinc-100 bg-transparent px-6 py-4 hover:bg-transparent/10"
-						>
-							<MonitorDown class="size-4" />
-							<span>Request</span>
-						</Button>
+						{#if data.db}
+							<Sheet.Root>
+								<Sheet.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+									>
+										<Wrench class="size-4" />
+										<span>Manage</span>
+									</Button>
+								</Sheet.Trigger>
+								<Sheet.Content class="z-[99]">
+									<Sheet.Header>
+										<Sheet.Title
+											>{data.details.title ||
+												data.details.name ||
+												data.details.original_name}</Sheet.Title
+										>
+									</Sheet.Header>
+								</Sheet.Content>
+							</Sheet.Root>
+						{:else}
+							<Button
+								class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+							>
+								<Download class="size-4" />
+								<span>Request</span>
+							</Button>
+						{/if}
+						{#if data.db}
+							<AlertDialog.Root>
+								<AlertDialog.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1"
+										variant="destructive"
+									>
+										<Trash2 class="size-4" />
+										<span>Delete</span>
+									</Button>
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<AlertDialog.Header>
+										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+										<AlertDialog.Description>
+											This action cannot be undone. This will permanently delete the media from your
+											library.
+										</AlertDialog.Description>
+									</AlertDialog.Header>
+									<AlertDialog.Footer>
+										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+										<AlertDialog.Action>Continue</AlertDialog.Action>
+									</AlertDialog.Footer>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
+						{/if}
 					</div>
 					{#if data.details.belongs_to_collection}
 						<div class="relative mt-4 flex h-full w-full flex-col">
@@ -334,7 +396,39 @@
 				</div>
 			{/if}
 
-			<div class="mb-32 mt-16 flex w-full select-none flex-col gap-8">
+			<div class="mt-16 w-full select-none">
+				{#if data.details.videos && data.details.videos.results.length > 0}
+					<Carousel.Root
+						opts={{
+							dragFree: true,
+							slidesToScroll: 'auto'
+						}}
+						class="mt-4 h-full overflow-hidden"
+					>
+						<div class="mb-2 flex items-center justify-between">
+							<h3 class="text-2xl text-zinc-100">Related Videos</h3>
+							<div class="flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
+								<Carousel.Previous class="static mt-8 h-8 w-8 rounded-md" />
+								<Carousel.Next class="static mt-8 h-8 w-8 rounded-md" />
+							</div>
+						</div>
+						<Carousel.Content class="h-full w-full">
+							{#each data.details.videos.results as video}
+								<Carousel.Item
+									class="basis-11/12 sm:basis-10/12 md:basis-1/2 lg:basis-1/3 2xl:basis-1/4"
+								>
+									<Ytembed
+										data={video}
+										bannerImage={`https://www.themoviedb.org/t/p/w780${data.details.backdrop_path}`}
+									/>
+								</Carousel.Item>
+							{/each}
+						</Carousel.Content>
+					</Carousel.Root>
+				{/if}
+			</div>
+
+			<div class="mb-32 mt-8 flex w-full select-none flex-col gap-8">
 				{#if data.details.recommendations && data.details.recommendations.results.length > 0}
 					<MediaTmdbCarousel
 						name="Recommendations"

@@ -19,9 +19,15 @@ export const load = (async () => {
 
 	async function getIncompleteItems() {
 		try {
-			const res = await fetch(`${BACKEND_URL}/items/incomplete`);
+			const res = await fetch(`${BACKEND_URL}/items?limit=1000000&page=1`);
 			if (res.ok) {
-				return await res.json();
+				let data = await res.json();
+				data = data.items.filter(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(item: any) =>
+						(item.type === 'Movie' || item.type === 'Show') && item.state !== 'Completed'
+				);
+				return data;
 			}
 			error(400, `Unable to fetch incomplete items data: ${res.status} ${res.statusText}`);
 		} catch (e) {
