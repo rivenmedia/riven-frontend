@@ -17,6 +17,10 @@
 			path: '/'
 		},
 		{
+			name: 'Browse',
+			path: '/browse'
+		},
+		{
 			name: 'Summary',
 			path: '/summary'
 		},

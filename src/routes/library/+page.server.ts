@@ -14,16 +14,6 @@ export const load = (async () => {
 	// };
 
 	async function getLibrary() {
-		const test = await db
-			.selectFrom('MediaItem')
-			.select(({ fn, val, ref }) => [
-				fn.count(val('*')).as('total'),
-				fn.count(ref('tmdb_id')).as('tmdb')
-			])
-			.execute();
-
-		console.log(test);
-
 		return await db.selectFrom('MediaItem').selectAll().execute();
 	}
 

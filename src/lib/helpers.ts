@@ -109,3 +109,17 @@ export function createQueryString(params: Record<string, any>): string {
 		.join('&');
 	return `?${queryString}`;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<F extends (...args: any[]) => Promise<void>>(
+	func: F,
+	timeout = 500
+): (...args: Parameters<F>) => void {
+	let timer: NodeJS.Timeout;
+	return async (...args: Parameters<F>) => {
+		clearTimeout(timer);
+		timer = setTimeout(async () => {
+			await func(...args);
+		}, timeout);
+	};
+}

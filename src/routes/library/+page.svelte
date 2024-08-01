@@ -4,7 +4,7 @@
 	// import { page } from '$app/stores';
 	import Header from '$lib/components/header.svelte';
 
-	export let data: PageData;
+	// export let data: PageData;
 
 	// $: pageSize = writable(Number($page.url.searchParams.get('limit') || 10));
 	// $: currentPage = writable(Number($page.url.searchParams.get('page') || 1));
@@ -15,4 +15,4 @@
 
 <p>Soon™</p>
 
-<pre>{JSON.stringify(data, null, 2)}</pre>
+<!-- <pre>{JSON.stringify(data, null, 2)}</pre> -->
