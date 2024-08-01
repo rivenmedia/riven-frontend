@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/rivenmedia/riven-frontend/compare/v0.3.2-alpha...v0.4.0) (2024-08-01)
+
+
+### Features
+
+* add browse page and multiple frontend improvements ([#44](https://github.com/rivenmedia/riven-frontend/issues/44)) ([1f97663](https://github.com/rivenmedia/riven-frontend/commit/1f97663fb595402acc61e974de01d8889ca795ba))
+* add library page (basic and wip) ([#46](https://github.com/rivenmedia/riven-frontend/issues/46)) ([8fa47fa](https://github.com/rivenmedia/riven-frontend/commit/8fa47fae3c2af5277f0aa6ba2556320a7d3bd923))
+
 ## [0.3.2-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.3.1-alpha...v0.3.2-alpha) (2024-08-01)
 
 
