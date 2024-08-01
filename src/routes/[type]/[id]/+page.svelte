@@ -12,6 +12,8 @@
 	import { statesName } from '$lib/constants';
 	import clsx from 'clsx';
 	import Ytembed from '$lib/components/ytembed.svelte';
+	import { toast } from 'svelte-sonner';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -21,6 +23,32 @@
 	function filterSpecial(seasons: any) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return seasons.filter((season: any) => season.season_number !== 0);
+	}
+
+	async function deleteItem(_id: number) {
+		const response = await fetch(`/api/media/${_id}`, {
+			method: 'DELETE'
+		});
+
+		if (response.ok) {
+			toast.success('Media deleted successfully');
+			goto('/');
+		} else {
+			toast.error('An error occurred while deleting the media');
+		}
+	}
+
+	async function requestItem(tmdb: number) {
+		const response = await fetch(`/api/media/${tmdb}`, {
+			method: 'POST'
+		});
+
+		if (response.ok) {
+			toast.success('Media requested successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while requesting the media');
+		}
 	}
 </script>
 
@@ -137,15 +165,45 @@
 												data.details.original_name}</Sheet.Title
 										>
 									</Sheet.Header>
+									<Sheet.Description class="flex flex-col mt-2">
+										<p>ID: {data.db._id}</p>
+										<p>Requested by: {data.db.requested_by}</p>
+										<p>Requested at: {data.db.requested_at}</p>
+										<p>Symlinked: {data.db.symlinked}</p>
+									</Sheet.Description>
 								</Sheet.Content>
 							</Sheet.Root>
 						{:else}
-							<Button
-								class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
-							>
-								<Download class="size-4" />
-								<span>Request</span>
-							</Button>
+							<AlertDialog.Root>
+								<AlertDialog.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+									>
+										<Download class="size-4" />
+										<span>Request</span>
+									</Button>
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<AlertDialog.Header>
+										<AlertDialog.Title
+											>{data.details.title ||
+												data.details.name ||
+												data.details.original_name}</AlertDialog.Title
+										>
+									</AlertDialog.Header>
+									<AlertDialog.Footer>
+										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+										<AlertDialog.Action
+											on:click={async () => {
+												await requestItem(data.details.imdb_id);
+											}}
+										>
+											Continue</AlertDialog.Action
+										>
+									</AlertDialog.Footer>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
 						{/if}
 						{#if data.db}
 							<AlertDialog.Root>
@@ -169,7 +227,13 @@
 									</AlertDialog.Header>
 									<AlertDialog.Footer>
 										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action>Continue</AlertDialog.Action>
+										<AlertDialog.Action
+											on:click={async () => {
+												if (data.db) {
+													await deleteItem(data.db._id);
+												}
+											}}>Continue</AlertDialog.Action
+										>
 									</AlertDialog.Footer>
 								</AlertDialog.Content>
 							</AlertDialog.Root>
