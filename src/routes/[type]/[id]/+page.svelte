@@ -165,7 +165,7 @@
 												data.details.original_name}</Sheet.Title
 										>
 									</Sheet.Header>
-									<Sheet.Description class="flex flex-col mt-2">
+									<Sheet.Description class="mt-2 flex flex-col">
 										<p>ID: {data.db._id}</p>
 										<p>Requested by: {data.db.requested_by}</p>
 										<p>Requested at: {data.db.requested_at}</p>

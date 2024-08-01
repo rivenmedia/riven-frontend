@@ -5,8 +5,8 @@
 	import { debounce } from '$lib/helpers';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-    import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
-    import { Loader2 } from 'lucide-svelte';
+	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
+	import { Loader2 } from 'lucide-svelte';
 
 	export let data: PageData;
 
@@ -42,20 +42,18 @@
 
 	{#if loading}
 		<div class="flex flex-row items-center gap-2">
-			<Loader2 class="w-6 h-6 animate-spin" />
+			<Loader2 class="h-6 w-6 animate-spin" />
 			<p class="text-sm">Loading...</p>
 		</div>
-    {:else}
-        {#if query.length > 0}
-            <p class="text-muted-foreground mt-4">Search results for {query}</p>
+	{:else if query.length > 0}
+		<p class="mt-4 text-muted-foreground">Search results for {query}</p>
 
-            {#if movies.length > 0}
-                <MediaTmdbCarousel name="Movies" results={movies} mediaType="movie" />
-            {/if}
+		{#if movies.length > 0}
+			<MediaTmdbCarousel name="Movies" results={movies} mediaType="movie" />
+		{/if}
 
-            {#if shows.length > 0}
-                <MediaTmdbCarousel name="Shows" results={shows} mediaType="tv" />
-            {/if}
-        {/if}
+		{#if shows.length > 0}
+			<MediaTmdbCarousel name="Shows" results={shows} mediaType="tv" />
+		{/if}
 	{/if}
 </div>
