@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/rivenmedia/riven-frontend/compare/v0.4.0...v0.4.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* Update docker-frontend-build.yml ([b2daeb3](https://github.com/rivenmedia/riven-frontend/commit/b2daeb3934ff9bada0d03f7eaf9657ae5c9b8e05))
+
 ## [0.4.0](https://github.com/rivenmedia/riven-frontend/compare/v0.3.2-alpha...v0.4.0) (2024-08-01)
 
 
