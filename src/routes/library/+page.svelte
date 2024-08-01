@@ -3,7 +3,7 @@
 	import { writable } from 'svelte/store';
 	import { page } from '$app/stores';
 	import Header from '$lib/components/header.svelte';
-	import { get } from 'svelte/store';
+	// import { get } from 'svelte/store';
 	import MediaItem from '$lib/components/media-item.svelte';
 	import * as Pagination from '$lib/components/ui/pagination';
 	import { goto } from '$app/navigation';
@@ -11,9 +11,9 @@
 	export let data: PageData;
 
 	$: pageSize = writable(Number($page.url.searchParams.get('limit') || 25));
-	$: currentPage = writable(Number($page.url.searchParams.get('page') || 1));
+	// $: currentPage = writable(Number($page.url.searchParams.get('page') || 1));
 	$: totalDataItems = writable(Number($page.data.total));
-	$: totalPages = writable(Math.ceil(get(totalDataItems) / get(pageSize)));
+	// $: totalPages = writable(Math.ceil(get(totalDataItems) / get(pageSize)));
 	$: library = writable(data.library);
 </script>
 
