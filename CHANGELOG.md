@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/rivenmedia/riven-frontend/compare/v0.4.1...v0.4.2) (2024-08-01)
+
+
+### Bug Fixes
+
+* add fallback values to dialect type and database url for build to succeed ([#49](https://github.com/rivenmedia/riven-frontend/issues/49)) ([8ea57f0](https://github.com/rivenmedia/riven-frontend/commit/8ea57f0f60dcea5006beae220ef0e8d7805232ef))
+
 ## [0.4.1](https://github.com/rivenmedia/riven-frontend/compare/v0.4.0...v0.4.1) (2024-08-01)
 
 
