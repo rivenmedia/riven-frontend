@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.3.1-alpha...v0.3.2-alpha) (2024-08-01)
+
+
+### Bug Fixes
+
+* improve regex on docker builds to handle alpha/beta/rc versioning ([0e6afb0](https://github.com/rivenmedia/riven-frontend/commit/0e6afb05a7f2c3a8a958310785620f374d0b106e))
+
 ## [0.3.1-alpha](https://github.com/rivenmedia/riven-frontend/compare/v0.3.0-alpha...v0.3.1-alpha) (2024-07-31)
 
 
