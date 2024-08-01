@@ -7,25 +7,24 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 let dialect;
+const dialectType = env.DIALECT || 'sqlite';
+const databaseUrl = env.DATABASE_URL || '';
 
-if (env.DIALECT) {
-	switch (env.DIALECT) {
-		case 'sqlite':
-			dialect = new SqliteDialect({
-				database: new SQLite(env.DATABASE_URL)
-			});
-			break;
-		case 'postgres':
-			dialect = new PostgresDialect({
-				pool: new Pool({
-					connectionString: env.DATABASE_URL
-				})
-			});
-			break;
-	}
+switch (dialectType) {
+	case 'sqlite':
+		dialect = new SqliteDialect({
+			database: new SQLite(databaseUrl)
+		});
+		break;
+	case 'postgres':
+		dialect = new PostgresDialect({
+			pool: new Pool({
+				connectionString: databaseUrl
+			})
+		});
+		break;
 }
 
 export const db = new Kysely<DB>({
-	// @ts-expect-error eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	dialect
 });
