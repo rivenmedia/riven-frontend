@@ -225,7 +225,7 @@
 		</div>
 		<div class="no-scrollbar mt-2 flex flex-wrap overflow-x-auto">
 			{#each incompleteItems as item (item.imdb_id)}
-				<MediaItem data={item} {statesName} />
+				<MediaItem data={item} />
 			{/each}
 		</div>
 		{#if totalIncompleteItems}
