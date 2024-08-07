@@ -97,6 +97,95 @@ It will start the frontend on port `3000`.
 - `BACKEND_URL`: The URL of the backend. Default should work in most cases. You can also replace it with container name of backend if you are using docker-compose.
 
 ---
+## NGINX Configuration
+
+### Install NGINX if not already
+
+```
+sudo apt update
+sudo apt install nginx -y
+```
+### Start NGINX
+
+```
+sudo systemctl start nginx
+sudo systemctl enable nginx
+```
+
+### *Optional* Backup Default NGINX Configuration
+
+```
+sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
+```
+
+### Create Riven Front End Conf
+
+```
+sudo nano /etc/nginx/sites-available/riven.conf
+```
+
+```
+server {
+    listen 80;
+    server_name IP/DOMAIN; # Change to your Public IP Address or use a Domain with DNS A Record pointed to your Public IP address
+
+    # Main location block to serve your application at /
+    location / {
+        # Create a user ` htpasswd -c /etc/nginx/.htpasswd USERNAMEHERE `
+        auth_basic "Restricted Area";  # This is the realm name that will appear in the authentication dialog
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        proxy_set_header Origin http://127.0.0.1:3000;
+
+        # Prevent proxying loops
+        proxy_redirect off;
+
+        # Allow serving static assets correctly
+        try_files $uri $uri/ @proxy;
+
+        # Disable buffering for proxied responses
+        proxy_buffering off;
+    }
+
+    # Fallback for anything that doesn't match
+    location @proxy {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        
+        proxy_set_header Origin http://127.0.0.1:3000;
+    }
+}
+```
+
+### Symlink to Sites Enabled
+
+```
+sudo ln -s /etc/nginx/sites-available/riven.conf /etc/nginx/sites-enabled/
+```
+
+### Test Configuration
+
+```
+sudo nginx -t
+```
+
+### Restart NGINX
+```
+sudo systemctl restart nginx
+```
+
+---
 
 ## Contributing
 
