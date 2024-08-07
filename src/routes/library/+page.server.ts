@@ -1,30 +1,54 @@
 import type { PageServerLoad } from './$types';
-// import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
+import type { Expression, SqlBool } from 'kysely';
+import Fuse from 'fuse.js';
 
-// const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
+const fuseOptions = {
+	keys: ['_id', 'item_id', 'title'],
+	threshold: 0.8
+};
 
 export const load = (async ({ url }) => {
-	const params = {
-		limit: Number(url.searchParams.get('limit')) || 25,
-		page: Number(url.searchParams.get('page')) || 1,
-		type: url.searchParams.get('type') || 'Movie',
-		search: url.searchParams.get('search') || '',
-		state: url.searchParams.get('state') || ''
-	};
+	const limit = Number(url.searchParams.get('limit')) || 24;
+	const page = Number(url.searchParams.get('page')) || 1;
+	const type = url.searchParams.get('type'); // movie | show
+	const query = url.searchParams.get('query'); // search query
+	const states = url.searchParams.get('states'); // selected States
+
+	let dbQuery = db.selectFrom('MediaItem').selectAll();
 
 	async function getLibrary() {
-		return await db
-			.selectFrom('MediaItem')
-			.selectAll()
-			.where((eb) => eb.or([eb('type', '=', 'movie'), eb('type', '=', 'show')]))
-			.execute();
+		if (type) {
+			dbQuery = dbQuery.where('type', '=', type);
+		} else {
+			dbQuery = dbQuery.where((eb) => eb.or([eb('type', '=', 'movie'), eb('type', '=', 'show')]));
+		}
+
+		if (states) {
+			const statesArray = states.split(',');
+			dbQuery = dbQuery.where((eb) => {
+				const ors: Expression<SqlBool>[] = [];
+				statesArray.forEach((state) => {
+					ors.push(eb('last_state', '=', state));
+				});
+
+				return eb.or(ors);
+			});
+		}
+
+		if (query && query.length > 0) {
+			const fuse = new Fuse(await dbQuery.execute(), fuseOptions);
+			const searchResults = fuse.search(query).map((result) => result.item);
+			return searchResults;
+		}
+
+		return await dbQuery.execute();
 	}
 
 	const library = await getLibrary();
 
 	return {
-		library: library.slice((params.page - 1) * params.limit, params.page * params.limit),
+		library: library.slice((page - 1) * limit, page * limit),
 		total: library.length
 	};
 }) satisfies PageServerLoad;

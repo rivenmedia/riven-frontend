@@ -1,3 +1,24 @@
+import type { ColumnType } from 'kysely';
+
+export type Generated<T> =
+	T extends ColumnType<infer S, infer I, infer U>
+		? ColumnType<S, I | undefined, U>
+		: ColumnType<T, T | undefined, T>;
+
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+	[K in string]?: JsonValue;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
 export interface AlembicVersion {
 	version_num: string;
 }
@@ -8,19 +29,19 @@ export interface Episode {
 }
 
 export interface MediaItem {
-	_id: number;
-	active_stream: string | null;
-	aired_at: string | null;
+	_id: Generated<number>;
+	active_stream: Json | null;
+	aired_at: Timestamp | null;
 	alternative_folder: string | null;
-	blacklisted_streams: string | null;
+	blacklisted_streams: Json | null;
 	country: string | null;
 	file: string | null;
 	folder: string | null;
-	genres: string | null;
+	genres: Json | null;
 	guid: string | null;
 	imdb_id: string | null;
-	indexed_at: string | null;
-	is_anime: number | null;
+	indexed_at: Timestamp | null;
+	is_anime: boolean | null;
 	item_id: string;
 	key: string | null;
 	language: string | null;
@@ -28,12 +49,12 @@ export interface MediaItem {
 	network: string | null;
 	number: number | null;
 	overseerr_id: number | null;
-	requested_at: string | null;
+	requested_at: Timestamp | null;
 	requested_by: string | null;
-	scraped_at: string | null;
+	scraped_at: Timestamp | null;
 	scraped_times: number | null;
-	symlinked: number | null;
-	symlinked_at: string | null;
+	symlinked: boolean | null;
+	symlinked_at: Timestamp | null;
 	symlinked_times: number | null;
 	title: string | null;
 	tmdb_id: string | null;
@@ -57,10 +78,10 @@ export interface Show {
 }
 
 export interface Stream {
-	_id: number;
-	blacklisted: number;
+	_id: Generated<number>;
+	blacklisted: boolean;
 	infohash: string;
-	lev_ratio: string;
+	lev_ratio: number;
 	parent_id: number;
 	parsed_title: string;
 	rank: number;

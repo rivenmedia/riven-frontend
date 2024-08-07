@@ -14,7 +14,7 @@
 </script>
 
 <a
-	class="xl:w-1/7 group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-[.5rem] sm:w-1/3 md:w-1/4 lg:w-1/6"
+	class="xl:w-1/6 2xl:w-1/7 group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-[.5rem] sm:w-1/3 md:w-1/4 lg:w-1/5"
 	href="/{convertTo[data.type.toLowerCase()]}/{data.tmdb_id}"
 >
 	<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">

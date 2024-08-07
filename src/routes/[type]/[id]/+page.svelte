@@ -50,6 +50,15 @@
 			toast.error('An error occurred while requesting the media');
 		}
 	}
+
+	function getTime(time: number) {
+		const date = new Date(time);
+		return date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+		});
+	}
 </script>
 
 <svelte:head>
@@ -167,8 +176,12 @@
 									</Sheet.Header>
 									<Sheet.Description class="mt-2 flex flex-col">
 										<p>ID: {data.db._id}</p>
-										<p>Requested by: {data.db.requested_by}</p>
-										<p>Requested at: {data.db.requested_at}</p>
+										{#if data.db.requested_by}
+											<p>Requested by: {data.db.requested_by}</p>
+										{/if}
+										{#if data.db.requested_at}
+											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
+										{/if}
 										<p>Symlinked: {data.db.symlinked}</p>
 									</Sheet.Description>
 								</Sheet.Content>

@@ -94,7 +94,6 @@
 	<Carousel.Root
 		opts={{
 			dragFree: true,
-			slidesToScroll: 'auto'
 		}}
 		plugins={[
 			Autoplay({
