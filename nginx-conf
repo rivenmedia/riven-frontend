@@ -1,9 +1,10 @@
 server {
     listen 80;
-    server_name IP/DOMAIN;
+    server_name IP/DOMAIN; # Change to your Public IP Address or use a Domain with DNS A Record pointed to your Public IP address
 
     # Main location block to serve your application at /
     location / {
+        # Create a user ` htpasswd -c /etc/nginx/.htpasswd USERNAMEHERE `
         auth_basic "Restricted Area";  # This is the realm name that will appear in the authentication dialog
         auth_basic_user_file /etc/nginx/.htpasswd;
         
@@ -12,6 +13,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
         
         proxy_set_header Origin http://127.0.0.1:3000;
 
@@ -32,6 +34,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
         
         proxy_set_header Origin http://127.0.0.1:3000;
     }
