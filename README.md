@@ -97,7 +97,7 @@ It will start the frontend on port `3000`.
 - `BACKEND_URL`: The URL of the backend. Default should work in most cases. You can also replace it with container name of backend if you are using docker-compose.
 
 ---
-## NGINX Configuration
+## NGINX Configuration *Optional*
 
 ### Install NGINX if not already
 
