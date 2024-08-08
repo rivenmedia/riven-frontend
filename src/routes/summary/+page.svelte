@@ -193,7 +193,7 @@
 			</Dialog.Header>
 		</Dialog.Content>
 	</Dialog.Root>
-	
+
 	{#if data.states}
 		<div class="mt-4 grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
 			{#each Object.keys(data.states) as state}
