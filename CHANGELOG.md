@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/rivenmedia/riven-frontend/compare/v0.4.2...v0.5.0) (2024-08-08)
+
+
+### Features
+
+* add library filtering ([#54](https://github.com/rivenmedia/riven-frontend/issues/54)) ([626d76e](https://github.com/rivenmedia/riven-frontend/commit/626d76e3b55a1e1043d18cac116e1f5a92e8ef24))
+
 ## [0.4.2](https://github.com/rivenmedia/riven-frontend/compare/v0.4.1...v0.4.2) (2024-08-01)
 
 
