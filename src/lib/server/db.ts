@@ -1,4 +1,4 @@
-import type { DB } from './types.ts';
+import type { DB } from './types';
 import SQLite from 'better-sqlite3';
 import { Kysely, SqliteDialect, PostgresDialect } from 'kysely';
 import { env } from '$env/dynamic/private';
@@ -26,5 +26,7 @@ switch (dialectType) {
 }
 
 export const db = new Kysely<DB>({
-	dialect
+	// @ts-expect-error eslint-disable-next-line
+	dialect,
+	log: ['query', 'error']
 });

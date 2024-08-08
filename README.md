@@ -97,7 +97,8 @@ It will start the frontend on port `3000`.
 - `BACKEND_URL`: The URL of the backend. Default should work in most cases. You can also replace it with container name of backend if you are using docker-compose.
 
 ---
-## NGINX Configuration *Optional*
+
+## NGINX Configuration _Optional_
 
 ### Install NGINX if not already
 
@@ -105,6 +106,7 @@ It will start the frontend on port `3000`.
 sudo apt update
 sudo apt install nginx -y
 ```
+
 ### Start NGINX
 
 ```
@@ -112,7 +114,7 @@ sudo systemctl start nginx
 sudo systemctl enable nginx
 ```
 
-### *Optional* Backup Default NGINX Configuration
+### _Optional_ Backup Default NGINX Configuration
 
 ```
 sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
@@ -134,14 +136,14 @@ server {
         # Create a user ` htpasswd -c /etc/nginx/.htpasswd USERNAMEHERE `
         auth_basic "Restricted Area";  # This is the realm name that will appear in the authentication dialog
         auth_basic_user_file /etc/nginx/.htpasswd;
-        
+
         proxy_pass http://127.0.0.1:3000/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
-        
+
         proxy_set_header Origin http://127.0.0.1:3000;
 
         # Prevent proxying loops
@@ -162,7 +164,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
-        
+
         proxy_set_header Origin http://127.0.0.1:3000;
     }
 }
@@ -181,6 +183,7 @@ sudo nginx -t
 ```
 
 ### Restart NGINX
+
 ```
 sudo systemctl restart nginx
 ```

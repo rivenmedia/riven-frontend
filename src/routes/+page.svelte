@@ -93,8 +93,7 @@
 <div class="flex w-full flex-col items-start p-8 md:-mt-56">
 	<Carousel.Root
 		opts={{
-			dragFree: true,
-			slidesToScroll: 'auto'
+			dragFree: true
 		}}
 		plugins={[
 			Autoplay({
