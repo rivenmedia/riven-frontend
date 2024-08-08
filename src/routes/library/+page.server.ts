@@ -11,15 +11,23 @@ const fuseOptions = {
 export const load = (async ({ url }) => {
 	const limit = Number(url.searchParams.get('limit')) || 24;
 	const page = Number(url.searchParams.get('page')) || 1;
-	const type = url.searchParams.get('type'); // movie | show
-	const query = url.searchParams.get('query'); // search query
-	const states = url.searchParams.get('states'); // selected States
+	const types = url.searchParams.get('types');
+	const query = url.searchParams.get('query');
+	const states = url.searchParams.get('states');
 
 	let dbQuery = db.selectFrom('MediaItem').selectAll();
 
 	async function getLibrary() {
-		if (type) {
-			dbQuery = dbQuery.where('type', '=', type);
+		if (types) {
+			const typesArray = types.split(',');
+			dbQuery = dbQuery.where((eb) => {
+				const ors: Expression<SqlBool>[] = [];
+				typesArray.forEach((type) => {
+					ors.push(eb('type', '=', type));
+				});
+
+				return eb.or(ors);
+			});
 		} else {
 			dbQuery = dbQuery.where((eb) => eb.or([eb('type', '=', 'movie'), eb('type', '=', 'show')]));
 		}
