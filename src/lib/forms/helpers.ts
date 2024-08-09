@@ -2,7 +2,14 @@ import { type SuperValidated, type Infer } from 'sveltekit-superforms';
 import { z } from 'zod';
 
 // General Settings -----------------------------------------------------------------------------------
-export const generalSettingsToGet: string[] = ['debug', 'log', 'symlink', 'downloaders'];
+export const generalSettingsToGet: string[] = [
+	'debug',
+	'log',
+	'symlink',
+	'downloaders',
+	'database',
+	'notifications'
+];
 
 export const generalSettingsSchema = z.object({
 	debug: z.boolean().default(true),
@@ -23,7 +30,15 @@ export const generalSettingsSchema = z.object({
 	alldebrid_enabled: z.boolean().default(false),
 	alldebrid_api_key: z.string().optional().default(''),
 	alldebrid_proxy_enabled: z.boolean().default(false),
-	alldebrid_proxy_url: z.string().optional().default('')
+	alldebrid_proxy_url: z.string().optional().default(''),
+	database_host: z
+		.string()
+		.optional()
+		.default('postgresql+psycopg2://postgres:postgres@riven-db:5432/riven'),
+	notifications_enabled: z.boolean().default(false),
+	notifications_title: z.string().optional().default('Riven completed something'),
+	notifications_on_item_type: z.string().array().optional().default([]),
+	notifications_service_urls: z.string().array().optional().default([])
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
@@ -48,7 +63,12 @@ export function generalSettingsToPass(data: any) {
 		alldebrid_enabled: data.data.downloaders.all_debrid.enabled,
 		alldebrid_api_key: data.data.downloaders.all_debrid?.api_key,
 		alldebrid_proxy_enabled: data.data.downloaders.all_debrid?.proxy_enabled,
-		alldebrid_proxy_url: data.data.downloaders.all_debrid?.proxy_url
+		alldebrid_proxy_url: data.data.downloaders.all_debrid?.proxy_url,
+		database_host: data.data.database.host,
+		notifications_enabled: data.data.notifications.enabled,
+		notifications_title: data.data.notifications.title,
+		notifications_on_item_type: data.data.notifications.on_item_type,
+		notifications_service_urls: data.data.notifications.service_urls
 	};
 }
 
@@ -93,6 +113,21 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 					enabled: form.data.torbox_enabled,
 					api_key: form.data.torbox_api_key
 				}
+			}
+		},
+		{
+			key: 'database',
+			value: {
+				host: form.data.database_host
+			}
+		},
+		{
+			key: 'notifications',
+			value: {
+				enabled: form.data.notifications_enabled,
+				title: form.data.notifications_title,
+				on_item_type: form.data.notifications_on_item_type,
+				service_urls: form.data.notifications_service_urls
 			}
 		}
 	];
