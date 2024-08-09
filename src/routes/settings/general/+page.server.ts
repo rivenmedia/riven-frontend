@@ -9,13 +9,11 @@ import {
 	generalSettingsToSet
 } from '$lib/forms/helpers';
 import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.server';
-import { env } from '$env/dynamic/private';
-const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageServerLoad = async ({ fetch, locals }) => {
 	async function getPartialSettings() {
 		try {
-			const results = await fetch(`${BACKEND_URL}/settings/get/${generalSettingsToGet.join(',')}`);
+			const results = await fetch(`${locals.BACKEND_URL}/settings/get/${generalSettingsToGet.join(',')}`);
 			return await results.json();
 		} catch (e) {
 			console.error(e);

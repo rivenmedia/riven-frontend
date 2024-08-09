@@ -1,11 +1,10 @@
 import type { PageServerLoad } from './$types';
-import { db } from '$lib/server/db';
 
-export const load = (async ({ params }) => {
+export const load = (async ({ params, locals }) => {
 	// const type = params.type;
 	const id = Number(params.id);
 
-	const dbData = await db
+	const dbData = await locals.db
 		.selectFrom('MediaItem')
 		.selectAll()
 		.where('type', 'in', ['movie', 'show'])

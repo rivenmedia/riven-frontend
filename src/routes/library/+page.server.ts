@@ -1,5 +1,4 @@
 import type { PageServerLoad } from './$types';
-import { db } from '$lib/server/db';
 import type { Expression, SqlBool } from 'kysely';
 import Fuse from 'fuse.js';
 
@@ -8,14 +7,14 @@ const fuseOptions = {
 	threshold: 0.8
 };
 
-export const load = (async ({ url }) => {
+export const load = (async ({ url, locals }) => {
 	const limit = Number(url.searchParams.get('limit')) || 24;
 	const page = Number(url.searchParams.get('page')) || 1;
 	const types = url.searchParams.get('types');
 	const query = url.searchParams.get('query');
 	const states = url.searchParams.get('states');
 
-	let dbQuery = db.selectFrom('MediaItem').selectAll();
+	let dbQuery = locals.db.selectFrom('MediaItem').selectAll();
 
 	async function getLibrary() {
 		if (types) {
