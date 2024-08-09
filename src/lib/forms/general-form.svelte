@@ -90,6 +90,13 @@
 			{formData}
 			isForGroup={true}
 		/>
+		<CheckboxField
+			{form}
+			name="alldebrid_enabled"
+			label="All-Debrid"
+			{formData}
+			isForGroup={true}
+		/>
 		<CheckboxField {form} name="torbox_enabled" label="Torbox" {formData} isForGroup={true} />
 	</GroupCheckboxField>
 
@@ -111,6 +118,28 @@
 		{#if $formData.realdebrid_proxy_enabled}
 			<div transition:slide>
 				<TextField {form} name="realdebrid_proxy_url" {formData} />
+			</div>
+		{/if}
+	{/if}
+
+	{#if $formData.alldebrid_enabled}
+		<div transition:slide>
+			<TextField {form} name="alldebrid_api_key" {formData} isProtected={true} />
+		</div>
+
+		<div transition:slide>
+			<CheckboxField
+				{form}
+				name="alldebrid_proxy_enabled"
+				label="All-Debrid Proxy"
+				{formData}
+				fieldDescription="Use proxy for All-Debrid API"
+			/>
+		</div>
+
+		{#if $formData.alldebrid_proxy_enabled}
+			<div transition:slide>
+				<TextField {form} name="alldebrid_proxy_url" {formData} />
 			</div>
 		{/if}
 	{/if}

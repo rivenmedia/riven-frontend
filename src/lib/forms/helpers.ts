@@ -19,7 +19,11 @@ export const generalSettingsSchema = z.object({
 	realdebrid_proxy_enabled: z.boolean().default(false),
 	realdebrid_proxy_url: z.string().optional().default(''),
 	torbox_enabled: z.boolean().default(false),
-	torbox_api_key: z.string().optional().default('')
+	torbox_api_key: z.string().optional().default(''),
+	alldebrid_enabled: z.boolean().default(false),
+	alldebrid_api_key: z.string().optional().default(''),
+	alldebrid_proxy_enabled: z.boolean().default(false),
+	alldebrid_proxy_url: z.string().optional().default('')
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
@@ -36,11 +40,15 @@ export function generalSettingsToPass(data: any) {
 		episode_filesize_min: data.data.downloaders.episode_filesize_min,
 		episode_filesize_max: data.data.downloaders.episode_filesize_max,
 		realdebrid_enabled: data.data.downloaders.real_debrid.enabled,
-		realdebrid_api_key: data.data.downloaders.real_debrid?.api_key || '',
-		realdebrid_proxy_enabled: data.data.downloaders.real_debrid?.proxy_enabled || false,
-		realdebrid_proxy_url: data.data.downloaders.real_debrid?.proxy_url || '',
+		realdebrid_api_key: data.data.downloaders.real_debrid?.api_key,
+		realdebrid_proxy_enabled: data.data.downloaders.real_debrid?.proxy_enabled,
+		realdebrid_proxy_url: data.data.downloaders.real_debrid?.proxy_url,
 		torbox_enabled: data.data.downloaders.torbox.enabled,
-		torbox_api_key: data.data.downloaders.torbox?.api_key || ''
+		torbox_api_key: data.data.downloaders.torbox?.api_key,
+		alldebrid_enabled: data.data.downloaders.all_debrid.enabled,
+		alldebrid_api_key: data.data.downloaders.all_debrid?.api_key,
+		alldebrid_proxy_enabled: data.data.downloaders.all_debrid?.proxy_enabled,
+		alldebrid_proxy_url: data.data.downloaders.all_debrid?.proxy_url
 	};
 }
 
@@ -74,6 +82,12 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 					api_key: form.data.realdebrid_api_key,
 					proxy_enabled: form.data.realdebrid_proxy_enabled,
 					proxy_url: form.data.realdebrid_proxy_url
+				},
+				all_debrid: {
+					enabled: form.data.alldebrid_enabled,
+					api_key: form.data.alldebrid_api_key,
+					proxy_enabled: form.data.alldebrid_proxy_enabled,
+					proxy_url: form.data.alldebrid_proxy_url
 				},
 				torbox: {
 					enabled: form.data.torbox_enabled,
@@ -184,7 +198,12 @@ export const scrapersSettingsSchema = z.object({
 	zilean_enabled: z.boolean().default(false),
 	zilean_url: z.string().optional().default('http://localhost:8181'),
 	zilean_timeout: z.coerce.number().gte(0).int().optional().default(30),
-	zilean_ratelimit: z.boolean().default(true)
+	zilean_ratelimit: z.boolean().default(true),
+	comet_enabled: z.boolean().default(false),
+	comet_url: z.string().optional().default('http://localhost:8000'),
+	comet_indexers: z.array(z.string()).optional().default([]),
+	comet_timeout: z.coerce.number().gte(0).int().optional().default(30),
+	comet_ratelimit: z.boolean().default(true)
 });
 export type ScrapersSettingsSchema = typeof scrapersSettingsSchema;
 
@@ -194,53 +213,54 @@ export function scrapersSettingsToPass(data: any) {
 		after_2: data.data.scraping.after_2,
 		after_5: data.data.scraping.after_5,
 		after_10: data.data.scraping.after_10,
-		torrentio_url: data.data.scraping.torrentio?.url || 'https://torrentio.strem.fun',
+		torrentio_url: data.data.scraping.torrentio?.url,
 		torrentio_enabled: data.data.scraping.torrentio.enabled,
-		torrentio_filter: data.data.scraping.torrentio?.filter || '',
-		torrentio_timeout: data.data.scraping.torrentio?.timeout || 30,
-		torrentio_ratelimit: data.data.scraping.torrentio?.ratelimit || true,
-		knightcrawler_url:
-			data.data.scraping.knightcrawler?.url || 'https://knightcrawler.elfhosted.com/',
+		torrentio_filter: data.data.scraping.torrentio?.filter,
+		torrentio_timeout: data.data.scraping.torrentio?.timeout,
+		torrentio_ratelimit: data.data.scraping.torrentio?.ratelimit,
+		knightcrawler_url: data.data.scraping.knightcrawler?.url,
 		knightcrawler_enabled: data.data.scraping.knightcrawler.enabled,
-		knightcrawler_filter: data.data.scraping.knightcrawler?.filter || '',
-		knightcrawler_timeout: data.data.scraping.knightcrawler?.timeout || 30,
-		knightcrawler_ratelimit: data.data.scraping.knightcrawler?.ratelimit || true,
-		annatar_url: data.data.scraping.annatar?.url || 'https://annatar.elfhosted.com',
+		knightcrawler_filter: data.data.scraping.knightcrawler?.filter,
+		knightcrawler_timeout: data.data.scraping.knightcrawler?.timeout,
+		knightcrawler_ratelimit: data.data.scraping.knightcrawler?.ratelimit,
+		annatar_url: data.data.scraping.annatar?.url,
 		annatar_enabled: data.data.scraping.annatar.enabled,
-		annatar_limit: data.data.scraping.annatar?.limit || 2000,
-		annatar_timeout: data.data.scraping.annatar?.timeout || 10,
-		annatar_ratelimit: data.data.scraping.annatar?.ratelimit || true,
+		annatar_limit: data.data.scraping.annatar?.limit,
+		annatar_timeout: data.data.scraping.annatar?.timeout,
+		annatar_ratelimit: data.data.scraping.annatar?.ratelimit,
 		orionoid_enabled: data.data.scraping.orionoid.enabled,
-		orionoid_api_key: data.data.scraping.orionoid?.api_key || '',
-		orionoid_limitcount: data.data.scraping.orionoid?.limitcount || 5,
-		orionoid_timeout: data.data.scraping.orionoid?.timeout || 10,
-		orionoid_ratelimit: data.data.scraping.orionoid?.ratelimit || true,
+		orionoid_api_key: data.data.scraping.orionoid?.api_key,
+		orionoid_limitcount: data.data.scraping.orionoid?.limitcount,
+		orionoid_timeout: data.data.scraping.orionoid?.timeout,
+		orionoid_ratelimit: data.data.scraping.orionoid?.ratelimit,
 		jackett_enabled: data.data.scraping.jackett.enabled,
-		jackett_url: data.data.scraping.jackett?.url || '',
-		jackett_api_key: data.data.scraping.jackett?.api_key || '',
-		jackett_timeout: data.data.scraping.jackett?.timeout || 10,
-		jackett_ratelimit: data.data.scraping.jackett?.ratelimit || true,
-		mediafusion_url: data.data.scraping.mediafusion?.url || 'https://mediafusion.elfhosted.com/',
+		jackett_url: data.data.scraping.jackett?.url,
+		jackett_api_key: data.data.scraping.jackett?.api_key,
+		jackett_timeout: data.data.scraping.jackett?.timeout,
+		jackett_ratelimit: data.data.scraping.jackett?.ratelimit,
+		mediafusion_url: data.data.scraping.mediafusion?.url,
 		mediafusion_enabled: data.data.scraping.mediafusion.enabled,
-		mediafusion_catalogs: data.data.scraping.mediafusion.catalogs || [
-			'prowlarr_streams',
-			'torrentio_streams'
-		],
-		mediafusion_timeout: data.data.scraping.mediafusion?.timeout || 10,
-		mediafusion_ratelimit: data.data.scraping.mediafusion?.ratelimit || true,
-		prowlarr_enabled: data.data.scraping.prowlarr?.enabled || false,
-		prowlarr_url: data.data.scraping.prowlarr?.url || 'http://localhost:9696',
-		prowlarr_api_key: data.data.scraping.prowlarr?.api_key || '',
-		prowlarr_timeout: data.data.scraping.prowlarr?.timeout || 10,
-		prowlarr_ratelimit: data.data.scraping.prowlarr?.ratelimit || true,
-		prowlarr_limiter_seconds: data.data.scraping.prowlarr?.limiter_seconds || 60,
-		torbox_scraper_enabled: data.data.scraping.torbox_scraper?.enabled || false,
-		torbox_scraper_timeout: data.data.scraping.torbox_scraper?.timeout || 30,
-		torbox_scraper_ratelimit: data.data.scraping.torbox_scraper?.ratelimit || true,
-		zilean_enabled: data.data.scraping.zilean?.enabled || false,
-		zilean_url: data.data.scraping.zilean?.url || 'http://localhost:8181',
-		zilean_timeout: data.data.scraping.zilean?.timeout || 30,
-		zilean_ratelimit: data.data.scraping.zilean?.ratelimit || true
+		mediafusion_catalogs: data.data.scraping.mediafusion.catalogs,
+		mediafusion_timeout: data.data.scraping.mediafusion?.timeout,
+		mediafusion_ratelimit: data.data.scraping.mediafusion?.ratelimit,
+		prowlarr_enabled: data.data.scraping.prowlarr?.enabled,
+		prowlarr_url: data.data.scraping.prowlarr?.url,
+		prowlarr_api_key: data.data.scraping.prowlarr?.api_key,
+		prowlarr_timeout: data.data.scraping.prowlarr?.timeout,
+		prowlarr_ratelimit: data.data.scraping.prowlarr?.ratelimit,
+		prowlarr_limiter_seconds: data.data.scraping.prowlarr?.limiter_seconds,
+		torbox_scraper_enabled: data.data.scraping.torbox_scraper?.enabled,
+		torbox_scraper_timeout: data.data.scraping.torbox_scraper?.timeout,
+		torbox_scraper_ratelimit: data.data.scraping.torbox_scraper?.ratelimit,
+		zilean_enabled: data.data.scraping.zilean?.enabled,
+		zilean_url: data.data.scraping.zilean?.url,
+		zilean_timeout: data.data.scraping.zilean?.timeout,
+		zilean_ratelimit: data.data.scraping.zilean?.ratelimit,
+		comet_enabled: data.data.scraping.comet?.enabled,
+		comet_url: data.data.scraping.comet?.url,
+		comet_indexers: data.data.scraping.comet?.indexers,
+		comet_timeout: data.data.scraping.comet?.timeout,
+		comet_ratelimit: data.data.scraping.comet?.ratelimit
 	};
 }
 
@@ -312,6 +332,13 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 					url: form.data.zilean_url,
 					timeout: form.data.zilean_timeout,
 					ratelimit: form.data.zilean_ratelimit
+				},
+				comet: {
+					enabled: form.data.comet_enabled,
+					url: form.data.comet_url,
+					indexers: form.data.comet_indexers,
+					timeout: form.data.comet_timeout,
+					ratelimit: form.data.comet_ratelimit
 				}
 			}
 		}
@@ -357,32 +384,32 @@ export type ContentSettingsSchema = typeof contentSettingsSchema;
 export function contentSettingsToPass(data: any) {
 	return {
 		overseerr_enabled: data.data.content.overseerr.enabled,
-		overseerr_url: data.data.content.overseerr?.url || '',
-		overseerr_api_key: data.data.content.overseerr?.api_key || '',
-		overseerr_update_interval: data.data.content.overseerr?.update_interval || 30,
-		overseerr_use_webhook: data.data.content.overseerr?.use_webhook || false,
+		overseerr_url: data.data.content.overseerr?.url,
+		overseerr_api_key: data.data.content.overseerr?.api_key,
+		overseerr_update_interval: data.data.content.overseerr?.update_interval,
+		overseerr_use_webhook: data.data.content.overseerr?.use_webhook,
 		mdblist_enabled: data.data.content.mdblist.enabled,
-		mdblist_api_key: data.data.content.mdblist?.api_key || '',
-		mdblist_update_interval: data.data.content.mdblist?.update_interval || 300,
-		mdblist_lists: data.data.content.mdblist?.lists || [],
+		mdblist_api_key: data.data.content.mdblist?.api_key,
+		mdblist_update_interval: data.data.content.mdblist?.update_interval,
+		mdblist_lists: data.data.content.mdblist?.lists,
 		plex_watchlist_enabled: data.data.content.plex_watchlist.enabled,
-		plex_watchlist_rss: data.data.content.plex_watchlist?.rss || [],
-		plex_watchlist_update_interval: data.data.content.plex_watchlist?.update_interval || 60,
+		plex_watchlist_rss: data.data.content.plex_watchlist?.rss,
+		plex_watchlist_update_interval: data.data.content.plex_watchlist?.update_interval,
 		listrr_enabled: data.data.content.listrr.enabled,
-		listrr_api_key: data.data.content.listrr?.api_key || '',
-		listrr_update_interval: data.data.content.listrr?.update_interval || 300,
-		listrr_movie_lists: data.data.content.listrr?.movie_lists || [],
-		listrr_show_lists: data.data.content.listrr?.show_lists || [],
+		listrr_api_key: data.data.content.listrr?.api_key,
+		listrr_update_interval: data.data.content.listrr?.update_interval,
+		listrr_movie_lists: data.data.content.listrr?.movie_lists,
+		listrr_show_lists: data.data.content.listrr?.show_lists,
 		trakt_enabled: data.data.content.trakt.enabled,
-		trakt_api_key: data.data.content.trakt?.api_key || '',
-		trakt_update_interval: data.data.content.trakt?.update_interval || 300,
-		trakt_watchlist: data.data.content.trakt?.watchlist || [],
-		trakt_user_lists: data.data.content.trakt?.user_lists || [],
-		trakt_collection: data.data.content.trakt?.collection || [],
-		trakt_fetch_trending: data.data.content.trakt?.fetch_trending || false,
-		trakt_fetch_popular: data.data.content.trakt?.fetch_popular || false,
-		trakt_trending_count: data.data.content.trakt?.fetch_trending_count || 10,
-		trakt_popular_count: data.data.content.trakt?.fetch_popular_count || 10
+		trakt_api_key: data.data.content.trakt?.api_key,
+		trakt_update_interval: data.data.content.trakt?.update_interval,
+		trakt_watchlist: data.data.content.trakt?.watchlist,
+		trakt_user_lists: data.data.content.trakt?.user_lists,
+		trakt_collection: data.data.content.trakt?.collection,
+		trakt_fetch_trending: data.data.content.trakt?.fetch_trending,
+		trakt_fetch_popular: data.data.content.trakt?.fetch_popular,
+		trakt_trending_count: data.data.content.trakt?.fetch_trending_count,
+		trakt_popular_count: data.data.content.trakt?.fetch_popular_count
 	};
 }
 

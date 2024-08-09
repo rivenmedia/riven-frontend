@@ -23,7 +23,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const data: any = await getPartialSettings();
+	console.log(JSON.stringify(data, null, 2));
 	const toPassToSchema = scrapersSettingsToPass(data);
+	console.log(JSON.stringify(toPassToSchema, null, 2));
 
 	return {
 		form: await superValidate(toPassToSchema, zod(scrapersSettingsSchema))
