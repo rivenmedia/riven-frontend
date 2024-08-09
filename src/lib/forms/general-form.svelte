@@ -15,7 +15,7 @@
 	import ArrayField from './components/array-field.svelte';
 	import { Loader2, Trash2, Plus } from 'lucide-svelte';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Input } from "$lib/components/ui/input"
+	import { Input } from '$lib/components/ui/input';
 
 	export let data: SuperValidated<Infer<GeneralSettingsSchema>>;
 	export let actionUrl: string = '?/default';
@@ -167,7 +167,6 @@
 	<CheckboxField {form} name="notifications_enabled" label="Notifications" {formData} />
 
 	{#if $formData.notifications_enabled}
-
 		<div transition:slide>
 			<TextField {form} name="notifications_title" {formData} />
 		</div>

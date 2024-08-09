@@ -5,6 +5,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { getExternalID } from '$lib/tmdb';
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let data: any;
 	export let type: string;
 
@@ -37,7 +38,9 @@
 	</AlertDialog.Trigger>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
-			<AlertDialog.Title>Requesting {data.title || data.name || data.original_name}</AlertDialog.Title>
+			<AlertDialog.Title
+				>Requesting {data.title || data.name || data.original_name}</AlertDialog.Title
+			>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>

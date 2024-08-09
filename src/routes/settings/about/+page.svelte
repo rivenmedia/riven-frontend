@@ -50,7 +50,7 @@
 		const remoteVersion = (await data.text()).match(/version = "(.*?)"/)?.[1];
 		updateLoading = false;
 
-		if (remoteVersion !== "version") {
+		if (remoteVersion !== 'version') {
 			toast.warning('A new version is available! Checkout the changelog on GitHub.');
 		} else {
 			toast.success('You are running the latest version.');

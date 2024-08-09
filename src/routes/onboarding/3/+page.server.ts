@@ -11,7 +11,9 @@ import {
 export const load: PageServerLoad = async ({ fetch, locals }) => {
 	async function getPartialSettings() {
 		try {
-			const results = await fetch(`${locals.BACKEND_URL}/settings/get/${contentSettingsToGet.join(',')}`);
+			const results = await fetch(
+				`${locals.BACKEND_URL}/settings/get/${contentSettingsToGet.join(',')}`
+			);
 			return await results.json();
 		} catch (e) {
 			console.error(e);
