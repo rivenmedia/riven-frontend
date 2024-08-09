@@ -9,13 +9,13 @@ import {
 	scrapersSettingsToSet
 } from '$lib/forms/helpers';
 import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.server';
-import { env } from '$env/dynamic/private';
-const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageServerLoad = async ({ fetch, locals }) => {
 	async function getPartialSettings() {
 		try {
-			const results = await fetch(`${BACKEND_URL}/settings/get/${scrapersSettingsToGet.join(',')}`);
+			const results = await fetch(
+				`${locals.BACKEND_URL}/settings/get/${scrapersSettingsToGet.join(',')}`
+			);
 			return await results.json();
 		} catch (e) {
 			console.error(e);
@@ -25,7 +25,9 @@ export const load: PageServerLoad = async ({ fetch }) => {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const data: any = await getPartialSettings();
+	console.log(JSON.stringify(data, null, 2));
 	const toPassToSchema = scrapersSettingsToPass(data);
+	console.log(JSON.stringify(toPassToSchema, null, 2));
 
 	return {
 		form: await superValidate(toPassToSchema, zod(scrapersSettingsSchema))

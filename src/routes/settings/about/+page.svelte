@@ -39,16 +39,18 @@
 
 	async function getLatestVersion() {
 		updateLoading = true;
-		const data = await fetch('https://raw.githubusercontent.com/rivenmedia/riven/main/VERSION');
+		const data = await fetch(
+			'https://raw.githubusercontent.com/rivenmedia/riven/main/pyproject.toml'
+		);
 		if (data.status !== 200) {
 			toast.error('Failed to fetch latest version.');
 			updateLoading = false;
 			return;
 		}
-		const remoteVersion = await data.text();
+		const remoteVersion = (await data.text()).match(/version = "(.*?)"/)?.[1];
 		updateLoading = false;
 
-		if (remoteVersion !== version) {
+		if (remoteVersion !== 'version') {
 			toast.warning('A new version is available! Checkout the changelog on GitHub.');
 		} else {
 			toast.success('You are running the latest version.');

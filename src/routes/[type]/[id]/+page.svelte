@@ -38,8 +38,8 @@
 		}
 	}
 
-	async function requestItem(tmdb: number) {
-		const response = await fetch(`/api/media/${tmdb}`, {
+	async function requestItem(imdb: number) {
+		const response = await fetch(`/api/media/${imdb}`, {
 			method: 'POST'
 		});
 

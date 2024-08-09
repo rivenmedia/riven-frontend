@@ -1,13 +1,10 @@
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
 
-const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
-
-export const POST: RequestHandler = async ({ params }) => {
+export const POST: RequestHandler = async ({ params, locals }) => {
 	const imdb = params.id; // This is the IMDB ID
 
 	try {
-		const response = await fetch(`${BACKEND_URL}/actions/request/${imdb}`, {
+		const response = await fetch(`${locals.BACKEND_URL}/actions/request/${imdb}`, {
 			method: 'POST'
 		});
 
@@ -53,11 +50,11 @@ export const POST: RequestHandler = async ({ params }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
 	const id = params.id;
 
 	try {
-		const itemDeleteResponse = await fetch(`${BACKEND_URL}/items/remove?${id}`, {
+		const itemDeleteResponse = await fetch(`${locals.BACKEND_URL}/items/remove?${id}`, {
 			method: 'DELETE'
 		});
 
@@ -75,7 +72,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
 			);
 		}
 
-		const response = await fetch(`${BACKEND_URL}/actions/symlink/${id}`, {
+		const response = await fetch(`${locals.BACKEND_URL}/actions/symlink/${id}`, {
 			method: 'DELETE'
 		});
 

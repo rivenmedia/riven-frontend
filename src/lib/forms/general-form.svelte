@@ -12,8 +12,10 @@
 	import NumberField from './components/number-field.svelte';
 	import CheckboxField from './components/checkbox-field.svelte';
 	import GroupCheckboxField from './components/group-checkbox-field.svelte';
-	import { Loader2 } from 'lucide-svelte';
+	import ArrayField from './components/array-field.svelte';
+	import { Loader2, Trash2, Plus } from 'lucide-svelte';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Input } from '$lib/components/ui/input';
 
 	export let data: SuperValidated<Infer<GeneralSettingsSchema>>;
 	export let actionUrl: string = '?/default';
@@ -30,6 +32,16 @@
 		toast.success($message);
 	} else if ($message) {
 		toast.error($message);
+	}
+
+	function addField(name: string) {
+		// @ts-expect-error eslint-disable-next-line
+		$formData[name] = [...$formData[name], ''];
+	}
+
+	function removeField(name: string, index: number) {
+		// @ts-expect-error eslint-disable-next-line
+		$formData[name] = $formData[name].filter((_, i) => i !== index);
 	}
 </script>
 
@@ -79,6 +91,8 @@
 		fieldDescription="Filesize in MB. Set to -1 for no limit"
 	/>
 
+	<TextField {form} name="database_host" fieldDescription="Database connection string" {formData} />
+
 	<GroupCheckboxField
 		fieldTitle="Downloaders"
 		fieldDescription="Enable only one downloader at a time"
@@ -87,6 +101,13 @@
 			{form}
 			name="realdebrid_enabled"
 			label="Real-Debrid"
+			{formData}
+			isForGroup={true}
+		/>
+		<CheckboxField
+			{form}
+			name="alldebrid_enabled"
+			label="All-Debrid"
 			{formData}
 			isForGroup={true}
 		/>
@@ -115,9 +136,133 @@
 		{/if}
 	{/if}
 
+	{#if $formData.alldebrid_enabled}
+		<div transition:slide>
+			<TextField {form} name="alldebrid_api_key" {formData} isProtected={true} />
+		</div>
+
+		<div transition:slide>
+			<CheckboxField
+				{form}
+				name="alldebrid_proxy_enabled"
+				label="All-Debrid Proxy"
+				{formData}
+				fieldDescription="Use proxy for All-Debrid API"
+			/>
+		</div>
+
+		{#if $formData.alldebrid_proxy_enabled}
+			<div transition:slide>
+				<TextField {form} name="alldebrid_proxy_url" {formData} />
+			</div>
+		{/if}
+	{/if}
+
 	{#if $formData.torbox_enabled}
 		<div transition:slide>
 			<TextField {form} name="torbox_api_key" {formData} />
+		</div>
+	{/if}
+
+	<CheckboxField {form} name="notifications_enabled" label="Notifications" {formData} />
+
+	{#if $formData.notifications_enabled}
+		<div transition:slide>
+			<TextField {form} name="notifications_title" {formData} />
+		</div>
+
+		<div transition:slide>
+			<ArrayField {form} name="notifications_on_item_type" {formData}>
+				{#each $formData.notifications_on_item_type as _, i}
+					<Form.ElementField {form} name="notifications_on_item_type[{i}]">
+						<Form.Control let:attrs>
+							<div class="flex items-center gap-2">
+								<Input
+									type="text"
+									spellcheck="false"
+									autocomplete="false"
+									{...attrs}
+									bind:value={$formData.notifications_on_item_type[i]}
+								/>
+
+								<div class="flex items-center gap-2">
+									<Form.Button
+										type="button"
+										size="sm"
+										variant="destructive"
+										on:click={() => {
+											removeField('notifications_on_item_type', i);
+										}}
+									>
+										<Trash2 class="h-4 w-4" />
+									</Form.Button>
+								</div>
+							</div>
+						</Form.Control>
+					</Form.ElementField>
+				{/each}
+
+				<div class="flex w-full items-center justify-between gap-2">
+					<p class="text-sm text-muted-foreground">Add notifications type</p>
+					<Form.Button
+						type="button"
+						size="sm"
+						variant="outline"
+						on:click={() => {
+							addField('notifications_on_item_type');
+						}}
+					>
+						<Plus class="h-4 w-4" />
+					</Form.Button>
+				</div>
+			</ArrayField>
+		</div>
+
+		<div transition:slide>
+			<ArrayField {form} name="notifications_service_urls" {formData}>
+				{#each $formData.notifications_service_urls as _, i}
+					<Form.ElementField {form} name="notifications_service_urls[{i}]">
+						<Form.Control let:attrs>
+							<div class="flex items-center gap-2">
+								<Input
+									type="text"
+									spellcheck="false"
+									autocomplete="false"
+									{...attrs}
+									bind:value={$formData.notifications_service_urls[i]}
+								/>
+
+								<div class="flex items-center gap-2">
+									<Form.Button
+										type="button"
+										size="sm"
+										variant="destructive"
+										on:click={() => {
+											removeField('notifications_service_urls', i);
+										}}
+									>
+										<Trash2 class="h-4 w-4" />
+									</Form.Button>
+								</div>
+							</div>
+						</Form.Control>
+					</Form.ElementField>
+				{/each}
+
+				<div class="flex w-full items-center justify-between gap-2">
+					<p class="text-sm text-muted-foreground">Add notification service urls</p>
+					<Form.Button
+						type="button"
+						size="sm"
+						variant="outline"
+						on:click={() => {
+							addField('notifications_service_urls');
+						}}
+					>
+						<Plus class="h-4 w-4" />
+					</Form.Button>
+				</div>
+			</ArrayField>
 		</div>
 	{/if}
 

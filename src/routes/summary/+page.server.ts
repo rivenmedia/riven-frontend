@@ -1,11 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
-import { db } from '$lib/server/db';
 
-export const load = (async () => {
-	const statistics = await db
+export const load = (async ({ locals }) => {
+	const statistics = await locals.db
 		.selectFrom('MediaItem')
 		.select(({ fn }) => [
 			fn.count<number>('_id').as('total'),
@@ -30,7 +27,7 @@ export const load = (async () => {
 		[key: string]: number; // Index signature
 	};
 
-	const states = (await db
+	const states = (await locals.db
 		.selectFrom('MediaItem')
 		.select(({ fn }) => [
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Completed').as('Completed'),
@@ -48,7 +45,7 @@ export const load = (async () => {
 		])
 		.executeTakeFirst()) as States;
 
-	const incompleteItems = await db
+	const incompleteItems = await locals.db
 		.selectFrom('MediaItem')
 		.selectAll()
 		.where((eb) => eb.or([eb('type', '=', 'movie'), eb('type', '=', 'show')]))
@@ -57,7 +54,7 @@ export const load = (async () => {
 
 	async function getServices() {
 		try {
-			const res = await fetch(`${BACKEND_URL}/services`);
+			const res = await fetch(`${locals.BACKEND_URL}/services`);
 			if (res.ok) {
 				return await res.json();
 			}
