@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Star, CalendarDays, Clapperboard, MoveUpRight } from 'lucide-svelte';
+	import ItemRequest from './item-request.svelte';
 	import { roundOff } from '$lib/helpers';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,8 +26,7 @@
 
 			<div class="no-scrollbar flex flex-wrap overflow-x-auto px-1 lg:p-0">
 				{#each data.results as item}
-					<a
-						href="/{type}/{item.id}"
+					<div
 						class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"
 					>
 						<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
@@ -44,8 +44,14 @@
 									{roundOff(item.vote_average)}
 								</span>
 							</div>
+							<a
+								href="/{type}/{item.id}"
+								class="absolute inset-0 hidden flex-col justify-end from-zinc-900/70 p-2 group-hover:flex group-hover:bg-gradient-to-t"
+							>
+								<ItemRequest data={item} {type} />
+							</a>
 						</div>
-					</a>
+					</div>
 				{/each}
 			</div>
 		</div>
