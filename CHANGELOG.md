@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/rivenmedia/riven-frontend/compare/v0.5.0...v0.6.0) (2024-08-09)
+
+
+### Features
+
+* ui improvements ([ad8a9ba](https://github.com/rivenmedia/riven-frontend/commit/ad8a9ba0982bf927cf01266ccfeef6eea8c7bed1))
+
 ## [0.5.0](https://github.com/rivenmedia/riven-frontend/compare/v0.4.2...v0.5.0) (2024-08-08)
 
 
