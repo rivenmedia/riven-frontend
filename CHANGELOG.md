@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/rivenmedia/riven-frontend/compare/v0.6.0...v0.7.0) (2024-08-10)
+
+
+### Features
+
+* add anime and dev image ([#58](https://github.com/rivenmedia/riven-frontend/issues/58)) ([d4d50e5](https://github.com/rivenmedia/riven-frontend/commit/d4d50e557c91ecd5a2d37bcfb7b1915ee11e8594))
+
 ## [0.6.0](https://github.com/rivenmedia/riven-frontend/compare/v0.5.0...v0.6.0) (2024-08-09)
 
 
