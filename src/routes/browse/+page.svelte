@@ -32,6 +32,7 @@
 <div class="mt-32 flex w-full flex-col p-8 md:px-24 lg:px-32">
 	<div class="flex w-full flex-col gap-1.5">
 		<Input
+			autofocus
 			type="text"
 			id="query"
 			placeholder="Search for your movie/series/anime/collections here"
