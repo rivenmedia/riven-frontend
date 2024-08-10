@@ -135,10 +135,11 @@
 		target="_blank"
 		rel="noopener noreferrer"
 		class="my-8"
-		><img
+	>
+		<img
 			alt="contributors"
 			src="https://contrib.rocks/image?repo=rivenmedia/riven"
 			class="mt-2 max-w-lg"
-		/></a
-	>
+		/>
+	</a>
 </div>
