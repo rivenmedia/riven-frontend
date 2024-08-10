@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch:
 
 jobs:
-  build-and-push:
-    if: github.event_name != 'pull_request'
+  build-and-push-dev:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -51,7 +49,7 @@ jobs:
           flavor: |
             latest=auto
           tags: |
-            type=ref,event=tag
+            type=ref,event=branch
             type=sha,commit=${{ github.sha }}
             type=raw,value=dev,enable={{is_default_branch}}
 
