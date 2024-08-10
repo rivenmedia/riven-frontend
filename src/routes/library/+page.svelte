@@ -88,7 +88,7 @@
 					label: $limit?.toString() || 'Select limit'
 				}}
 			>
-				<Select.Trigger class="w-full lg:max-w-32">
+				<Select.Trigger class="w-full lg:max-w-20">
 					<Select.Value placeholder="Select limit" />
 				</Select.Trigger>
 
@@ -119,6 +119,7 @@
 				<Select.Content>
 					<Select.Item value="movie" label="movie">Movie</Select.Item>
 					<Select.Item value="show" label="show">TV</Select.Item>
+					<Select.Item value="anime" label="anime">Anime</Select.Item>
 				</Select.Content>
 			</Select.Root>
 

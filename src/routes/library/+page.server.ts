@@ -19,10 +19,17 @@ export const load = (async ({ url, locals }) => {
 	async function getLibrary() {
 		if (types) {
 			const typesArray = types.split(',');
+
 			dbQuery = dbQuery.where((eb) => {
 				const ors: Expression<SqlBool>[] = [];
 				typesArray.forEach((type) => {
-					ors.push(eb('type', '=', type));
+					if (type === 'anime') {
+						ors.push(
+							eb('is_anime', '=', true).and(eb('type', '=', 'show').or(eb('type', '=', 'movie')))
+						);
+					} else {
+						ors.push(eb('type', '=', type));
+					}
 				});
 
 				return eb.or(ors);

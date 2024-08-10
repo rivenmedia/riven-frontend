@@ -50,7 +50,7 @@
 		const remoteVersion = (await data.text()).match(/version = "(.*?)"/)?.[1];
 		updateLoading = false;
 
-		if (remoteVersion !== 'version') {
+		if (remoteVersion !== version) {
 			toast.warning('A new version is available! Checkout the changelog on GitHub.');
 		} else {
 			toast.success('You are running the latest version.');
@@ -118,7 +118,12 @@
 					{formatWords(key)}
 				</h3>
 				<div class="flex w-full">
-					<a href={supportData[key]} class="break-words text-sm underline">
+					<a
+						target="_blank"
+						rel="noopener noreferrer"
+						href={supportData[key]}
+						class="break-words text-sm underline"
+					>
 						{supportData[key]}
 					</a>
 				</div>
@@ -135,10 +140,11 @@
 		target="_blank"
 		rel="noopener noreferrer"
 		class="my-8"
-		><img
+	>
+		<img
 			alt="contributors"
 			src="https://contrib.rocks/image?repo=rivenmedia/riven"
 			class="mt-2 max-w-lg"
-		/></a
-	>
+		/>
+	</a>
 </div>
