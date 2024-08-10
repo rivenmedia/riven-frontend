@@ -118,7 +118,12 @@
 					{formatWords(key)}
 				</h3>
 				<div class="flex w-full">
-					<a target="_blank" href={supportData[key]} class="break-words text-sm underline">
+					<a
+						target="_blank"
+						rel="noopener noreferrer"
+						href={supportData[key]}
+						class="break-words text-sm underline"
+					>
 						{supportData[key]}
 					</a>
 				</div>
