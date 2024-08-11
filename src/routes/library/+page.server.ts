@@ -52,8 +52,7 @@ export const load = (async ({ url, locals }) => {
 
 		if (query && query.length > 0) {
 			const fuse = new Fuse(await dbQuery.execute(), fuseOptions);
-			const searchResults = fuse.search(query).map((result) => result.item);
-			return searchResults;
+			return fuse.search(query).map((result) => result.item);
 		}
 
 		return await dbQuery.execute();
