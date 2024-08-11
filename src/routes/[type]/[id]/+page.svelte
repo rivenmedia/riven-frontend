@@ -244,7 +244,7 @@
 										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 										<AlertDialog.Action
 											on:click={async () => {
-												await requestItem(data.details.imdb_id);
+												await requestItem(data.details.external_ids.imdb_id);
 											}}
 										>
 											Continue</AlertDialog.Action
