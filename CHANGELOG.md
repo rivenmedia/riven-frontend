@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/rivenmedia/riven-frontend/compare/v0.8.0...v0.8.1) (2024-08-11)
+
+
+### Bug Fixes
+
+* season request not working ([70a50df](https://github.com/rivenmedia/riven-frontend/commit/70a50df2cec75837a3810fea524995b0db4b365e))
+
 ## [0.8.0](https://github.com/rivenmedia/riven-frontend/compare/v0.7.0...v0.8.0) (2024-08-11)
 
 
