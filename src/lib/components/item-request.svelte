@@ -32,7 +32,7 @@
 				e.stopPropagation();
 			}}
 			variant="outline"
-			size="sm"
+
 			builders={[builder]}>Request</Button
 		>
 	</AlertDialog.Trigger>

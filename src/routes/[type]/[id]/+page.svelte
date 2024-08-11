@@ -23,6 +23,7 @@
 	import Ytembed from '$lib/components/ytembed.svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidateAll } from '$app/navigation';
+	import ItemRequest from '$lib/components/item-request.svelte';
 
 	export let data: PageData;
 
@@ -222,7 +223,7 @@
 								</Sheet.Content>
 							</Sheet.Root>
 						{:else}
-							<AlertDialog.Root>
+							<!-- <AlertDialog.Root>
 								<AlertDialog.Trigger asChild let:builder>
 									<Button
 										builders={[builder]}
@@ -251,7 +252,8 @@
 										>
 									</AlertDialog.Footer>
 								</AlertDialog.Content>
-							</AlertDialog.Root>
+							</AlertDialog.Root> -->
+							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 						{#if data.db}
 							<AlertDialog.Root>

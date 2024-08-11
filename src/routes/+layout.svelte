@@ -28,17 +28,6 @@
 <ModeWatcher track={true} />
 <Toaster richColors closeButton />
 
-<!-- <div class="flex h-full w-full flex-col overflow-x-hidden font-primary font-medium">
-	{#if !$page.url.pathname.startsWith('/onboarding')}
-		<Header />
-	{/if}
-	<slot />
-</div> -->
-
 <div class="bg-background font-primary font-medium">
-	<!-- {#if !$page.url.pathname.startsWith('/onboarding')}
-		<Header />
-	{/if} -->
-
 	<slot />
 </div>
