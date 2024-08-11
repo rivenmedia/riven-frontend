@@ -33,7 +33,6 @@ export interface MediaItem {
 	active_stream: Json | null;
 	aired_at: Timestamp | null;
 	alternative_folder: string | null;
-	blacklisted_streams: Json | null;
 	country: string | null;
 	file: string | null;
 	folder: string | null;
@@ -53,6 +52,7 @@ export interface MediaItem {
 	requested_by: string | null;
 	scraped_at: Timestamp | null;
 	scraped_times: number | null;
+	symlink_path: string | null;
 	symlinked: boolean | null;
 	symlinked_at: Timestamp | null;
 	symlinked_times: number | null;
@@ -79,13 +79,30 @@ export interface Show {
 
 export interface Stream {
 	_id: Generated<number>;
-	blacklisted: boolean;
 	infohash: string;
 	lev_ratio: number;
-	parent_id: number;
 	parsed_title: string;
 	rank: number;
 	raw_title: string;
+}
+
+export interface StreamBlacklistRelation {
+	_id: Generated<number>;
+	media_item_id: number;
+	stream_id: number;
+}
+
+export interface StreamRelation {
+	_id: Generated<number>;
+	child_id: number;
+	parent_id: number;
+}
+
+export interface Subtitle {
+	_id: Generated<number>;
+	file: string | null;
+	language: string;
+	parent_id: number;
 }
 
 export interface DB {
@@ -96,4 +113,7 @@ export interface DB {
 	Season: Season;
 	Show: Show;
 	Stream: Stream;
+	StreamBlacklistRelation: StreamBlacklistRelation;
+	StreamRelation: StreamRelation;
+	Subtitle: Subtitle;
 }

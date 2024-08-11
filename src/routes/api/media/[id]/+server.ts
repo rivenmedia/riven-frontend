@@ -54,7 +54,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	const id = params.id;
 
 	try {
-		const itemDeleteResponse = await fetch(`${locals.BACKEND_URL}/items/remove?${id}`, {
+		const itemDeleteResponse = await fetch(`${locals.BACKEND_URL}/items?${id}`, {
 			method: 'DELETE'
 		});
 
