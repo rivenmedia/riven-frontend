@@ -266,6 +266,65 @@
 		</div>
 	{/if}
 
+	<GroupCheckboxField fieldTitle="Post Processing" fieldDescription="Post processing options">
+		<CheckboxField
+			{form}
+			name="subliminal_enabled"
+			label="Subtitles Download"
+			{formData}
+			isForGroup={true}
+		/>
+	</GroupCheckboxField>
+
+	{#if $formData.subliminal_enabled}
+		<div transition:slide>
+			<ArrayField {form} name="subliminal_languages" {formData}>
+				{#each $formData.subliminal_languages as _, i}
+					<Form.ElementField {form} name="subliminal_languages[{i}]">
+						<Form.Control let:attrs>
+							<div class="flex items-center gap-2">
+								<Input
+									type="text"
+									spellcheck="false"
+									autocomplete="false"
+									{...attrs}
+									bind:value={$formData.subliminal_languages[i]}
+								/>
+
+								<div class="flex items-center gap-2">
+									<Form.Button
+										type="button"
+										size="sm"
+										variant="destructive"
+										on:click={() => {
+											removeField('subliminal_languages', i);
+										}}
+									>
+										<Trash2 class="h-4 w-4" />
+									</Form.Button>
+								</div>
+							</div>
+						</Form.Control>
+					</Form.ElementField>
+				{/each}
+
+				<div class="flex w-full items-center justify-between gap-2">
+					<p class="text-sm text-muted-foreground">Add subtitle languages</p>
+					<Form.Button
+						type="button"
+						size="sm"
+						variant="outline"
+						on:click={() => {
+							addField('subliminal_languages');
+						}}
+					>
+						<Plus class="h-4 w-4" />
+					</Form.Button>
+				</div>
+			</ArrayField>
+		</div>
+	{/if}
+
 	<Separator class="mt-4" />
 	<div class="flex w-full justify-end">
 		<Form.Button disabled={$delayed} type="submit" size="sm" class="w-full lg:max-w-max">
