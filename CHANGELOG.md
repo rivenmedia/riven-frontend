@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/rivenmedia/riven-frontend/compare/v0.7.0...v0.8.0) (2024-08-11)
+
+
+### Features
+
+* add /settings/all.json and add subliminal in settings ([5727ac4](https://github.com/rivenmedia/riven-frontend/commit/5727ac48e338fb31294615847e809160d411308c))
+* add reset and retry, disabled delete temporarily ([7f92dbd](https://github.com/rivenmedia/riven-frontend/commit/7f92dbd4f5db378d96e49b8ee6102a05e8acb70e))
+* add support for x-forwared headers ([24138ad](https://github.com/rivenmedia/riven-frontend/commit/24138adf13cee4fd374a99585847f333b306f9df))
+
+
+### Bug Fixes
+
+* browse searching bug ([ebb490c](https://github.com/rivenmedia/riven-frontend/commit/ebb490c1875f9e76370afc055ff4535e6a09edbd))
+
 ## [0.7.0](https://github.com/rivenmedia/riven-frontend/compare/v0.6.0...v0.7.0) (2024-08-10)
 
 
