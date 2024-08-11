@@ -8,7 +8,8 @@ export const generalSettingsToGet: string[] = [
 	'symlink',
 	'downloaders',
 	'database',
-	'notifications'
+	'notifications',
+	'post_processing'
 ];
 
 export const generalSettingsSchema = z.object({
@@ -38,7 +39,9 @@ export const generalSettingsSchema = z.object({
 	notifications_enabled: z.boolean().default(false),
 	notifications_title: z.string().optional().default('Riven completed something'),
 	notifications_on_item_type: z.string().array().optional().default([]),
-	notifications_service_urls: z.string().array().optional().default([])
+	notifications_service_urls: z.string().array().optional().default([]),
+	subliminal_enabled: z.boolean().default(false),
+	subliminal_languages: z.string().array().optional().default([])
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
@@ -68,7 +71,9 @@ export function generalSettingsToPass(data: any) {
 		notifications_enabled: data.data.notifications.enabled,
 		notifications_title: data.data.notifications.title,
 		notifications_on_item_type: data.data.notifications.on_item_type,
-		notifications_service_urls: data.data.notifications.service_urls
+		notifications_service_urls: data.data.notifications.service_urls,
+		subliminal_enabled: data.data.post_processing.subliminal.enabled,
+		subliminal_languages: data.data.post_processing.subliminal?.languages
 	};
 }
 
@@ -128,6 +133,15 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 				title: form.data.notifications_title,
 				on_item_type: form.data.notifications_on_item_type,
 				service_urls: form.data.notifications_service_urls
+			}
+		},
+		{
+			key: 'post_processing',
+			value: {
+				subliminal: {
+					enabled: form.data.subliminal_enabled,
+					languages: form.data.subliminal_languages
+				}
 			}
 		}
 	];

@@ -2,7 +2,16 @@
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Star, Trash2, Download, ArrowUpRight, Tag, Wrench } from 'lucide-svelte';
+	import {
+		Star,
+		Trash2,
+		Download,
+		ArrowUpRight,
+		Tag,
+		Wrench,
+		RotateCcw,
+		CirclePower
+	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
@@ -35,6 +44,32 @@
 			goto('/');
 		} else {
 			toast.error('An error occurred while deleting the media');
+		}
+	}
+
+	async function retryItem(_id: number) {
+		const response = await fetch(`/api/media/${_id}/retry`, {
+			method: 'POST'
+		});
+
+		if (response.ok) {
+			toast.success('Media retried successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while retrying the media');
+		}
+	}
+
+	async function resetItem(_id: number) {
+		const response = await fetch(`/api/media/${_id}/reset`, {
+			method: 'POST'
+		});
+
+		if (response.ok) {
+			toast.success('Media reset successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while resetting the media');
 		}
 	}
 
@@ -225,6 +260,7 @@
 										builders={[builder]}
 										class="flex items-center gap-1"
 										variant="destructive"
+										disabled={true}
 									>
 										<Trash2 class="size-4" />
 										<span>Delete</span>
@@ -244,6 +280,69 @@
 											on:click={async () => {
 												if (data.db) {
 													await deleteItem(data.db._id);
+												}
+											}}>Continue</AlertDialog.Action
+										>
+									</AlertDialog.Footer>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
+
+							<AlertDialog.Root>
+								<AlertDialog.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1"
+										variant="destructive"
+									>
+										<RotateCcw class="size-4" />
+										<span>Retry</span>
+									</Button>
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<AlertDialog.Header>
+										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+										<AlertDialog.Description>
+											This action will remove the item from queue and insert it back
+										</AlertDialog.Description>
+									</AlertDialog.Header>
+									<AlertDialog.Footer>
+										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+										<AlertDialog.Action
+											on:click={async () => {
+												if (data.db) {
+													await retryItem(data.db._id);
+												}
+											}}>Continue</AlertDialog.Action
+										>
+									</AlertDialog.Footer>
+								</AlertDialog.Content>
+							</AlertDialog.Root>
+
+							<AlertDialog.Root>
+								<AlertDialog.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1"
+										variant="destructive"
+									>
+										<CirclePower class="size-4" />
+										<span>Reset</span>
+									</Button>
+								</AlertDialog.Trigger>
+								<AlertDialog.Content>
+									<AlertDialog.Header>
+										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+										<AlertDialog.Description>
+											This action will reset the media to its initial state and blacklist the
+											torrent
+										</AlertDialog.Description>
+									</AlertDialog.Header>
+									<AlertDialog.Footer>
+										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+										<AlertDialog.Action
+											on:click={async () => {
+												if (data.db) {
+													await resetItem(data.db._id);
 												}
 											}}>Continue</AlertDialog.Action
 										>

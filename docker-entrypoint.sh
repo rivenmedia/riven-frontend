@@ -1,9 +1,13 @@
 #!/bin/sh
-# Export the ORIGIN and BACKEND_URL environment variables
-export ORIGIN=${ORIGIN}
+if [ -z "$ORIGIN" ]; then
+    echo "ORIGIN is not set"
+    export PROTOCOL_HEADER=x-forwarded-proto
+    export HOST_HEADER=x-forwarded-host
+else
+    export ORIGIN=${ORIGIN}
+fi
+
 export BACKEND_URL=${BACKEND_URL}
 export DIALECT=${DIALECT}
 export DATABASE_URL=${DATABASE_URL}
-
-# Execute the command provided to the script
 exec "$@"
