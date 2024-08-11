@@ -40,8 +40,8 @@ export const generalSettingsSchema = z.object({
 	notifications_title: z.string().optional().default('Riven completed something'),
 	notifications_on_item_type: z.string().array().optional().default([]),
 	notifications_service_urls: z.string().array().optional().default([]),
-	subliminal_enabled : z.boolean().default(false),
-	subliminal_languages: z.string().array().optional().default([]),
+	subliminal_enabled: z.boolean().default(false),
+	subliminal_languages: z.string().array().optional().default([])
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
