@@ -4,8 +4,6 @@
 	import * as Card from '$lib/components/ui/card';
 	import { clsx } from 'clsx';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Pagination from '$lib/components/ui/pagination';
-	import MediaItem from '$lib/components/media-item.svelte';
 	import {
 		statesName,
 		servicesObject,
@@ -17,22 +15,27 @@
 
 	export let data: PageData;
 
-	const statsData: { title: string; value: number }[] = [
+	const statsData: { title: string; value: number; refTo: string }[] = [
 		{
 			title: 'Total Items',
-			value: data.stats?.total || 0
+			value: data.stats?.total || 0,
+			refTo: '/library'
 		},
 		{
 			title: 'Total Movies',
-			value: data.stats?.movies || 0
+			value: data.stats?.movies || 0,
+			refTo: '/library?types=movie'
 		},
 		{
 			title: 'Total Shows',
-			value: data.stats?.shows || 0
+			value: data.stats?.shows || 0,
+			refTo: '/library?types=show'
 		},
 		{
 			title: 'Incomplete Items',
-			value: data.stats?.incomplete || 0
+			value: data.stats?.incomplete || 0,
+			refTo:
+				'/library?states=Unknown%2CRequested%2CIndexed%2CScraped%2CDownloaded%2CSymlinked%2CFailed%2CPartiallyCompleted'
 		}
 	];
 
@@ -106,12 +109,7 @@
 		}
 	];
 
-	let curPage = 1;
-	const perPage = 20;
-	const totalIncompleteItems = data.incompleteItems.length;
-	$: start = (curPage - 1) * perPage;
-	$: end = start + perPage;
-	$: incompleteItems = data.incompleteItems.slice(start, end);
+	console.log(servicesStatus);
 </script>
 
 <Header />
@@ -137,6 +135,7 @@
 					{:else}
 						<p class="text-lg lg:text-3xl">{stat.value}</p>
 					{/if}
+					<a href={stat.refTo} class="text-sm text-muted-foreground"> See items </a>
 				</Card.Content>
 			</Card.Root>
 		{/each}
@@ -195,7 +194,7 @@
 	</Dialog.Root>
 
 	{#if data.states}
-		<div class="mt-4 grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+		<div class="mb-16 mt-4 grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
 			{#each Object.keys(data.states) as state}
 				<Card.Root
 					class={clsx({
@@ -207,60 +206,12 @@
 					</Card.Header>
 					<Card.Content>
 						<p class="text-lg lg:text-3xl">{data.states[state]}</p>
+						<a href={`/library?states=${state}`} class="text-sm text-muted-foreground">
+							See items
+						</a>
 					</Card.Content>
 				</Card.Root>
 			{/each}
 		</div>
 	{/if}
-
-	<div class="mt-12 flex w-full flex-col">
-		<h2 class="text-xl md:text-2xl">Incomplete Items</h2>
-		<p class="text-sm text-muted-foreground lg:text-base">Items whose state is not Completed</p>
-		<div class="mt-2">
-			{#if totalIncompleteItems}
-				<p class="text-sm text-muted-foreground lg:text-base">
-					Showing {start + 1} to {end > totalIncompleteItems ? totalIncompleteItems : end} of {totalIncompleteItems}
-					items
-				</p>
-			{:else}
-				<p class="text-sm text-muted-foreground lg:text-base">No incomplete items found</p>
-			{/if}
-		</div>
-		<div class="no-scrollbar mt-2 flex flex-wrap overflow-x-auto">
-			{#each incompleteItems as item (item.imdb_id)}
-				<MediaItem data={item} />
-			{/each}
-		</div>
-		{#if totalIncompleteItems}
-			<Pagination.Root
-				count={totalIncompleteItems}
-				{perPage}
-				let:pages
-				let:currentPage
-				onPageChange={(page) => (curPage = page)}
-			>
-				<Pagination.Content>
-					<Pagination.Item>
-						<Pagination.PrevButton />
-					</Pagination.Item>
-					{#each pages as page (page.key)}
-						{#if page.type === 'ellipsis'}
-							<Pagination.Item>
-								<Pagination.Ellipsis />
-							</Pagination.Item>
-						{:else}
-							<Pagination.Item>
-								<Pagination.Link {page} isActive={currentPage == page.value}>
-									{page.value}
-								</Pagination.Link>
-							</Pagination.Item>
-						{/if}
-					{/each}
-					<Pagination.Item>
-						<Pagination.NextButton />
-					</Pagination.Item>
-				</Pagination.Content>
-			</Pagination.Root>
-		{/if}
-	</div>
 </div>

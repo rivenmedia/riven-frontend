@@ -201,134 +201,125 @@
 								</Sheet.Content>
 							</Sheet.Root>
 						{:else}
-							<!-- <AlertDialog.Root>
-								<AlertDialog.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
-									>
-										<Download class="size-4" />
-										<span>Request</span>
-									</Button>
-								</AlertDialog.Trigger>
-								<AlertDialog.Content>
-									<AlertDialog.Header>
-										<AlertDialog.Title
-											>{data.details.title ||
-												data.details.name ||
-												data.details.original_name}</AlertDialog.Title
-										>
-									</AlertDialog.Header>
-									<AlertDialog.Footer>
-										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action
-											on:click={async () => {
-												await requestItem(data.details.imdb_id);
-											}}
-										>
-											Continue</AlertDialog.Action
-										>
-									</AlertDialog.Footer>
-								</AlertDialog.Content>
-							</AlertDialog.Root> -->
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 						{#if data.db}
-							<AlertDialog.Root>
-								<AlertDialog.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1"
-										variant="destructive"
-										disabled={true}
-									>
-										<Trash2 class="size-4" />
-										<span>Delete</span>
-									</Button>
-								</AlertDialog.Trigger>
-								<AlertDialog.Content>
-									<AlertDialog.Header>
-										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-										<AlertDialog.Description>
-											This action cannot be undone. This will permanently delete the media from your
-											library.
-										</AlertDialog.Description>
-									</AlertDialog.Header>
-									<AlertDialog.Footer>
-										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action
-											on:click={async () => {
-												if (data.db) {
-													await deleteItem(data.db._id);
-												}
-											}}>Continue</AlertDialog.Action
-										>
-									</AlertDialog.Footer>
-								</AlertDialog.Content>
-							</AlertDialog.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<AlertDialog.Root>
+										<AlertDialog.Trigger asChild let:builder>
+											<Button
+												builders={[builder]}
+												class="flex items-center gap-1"
+												variant="destructive"
+												disabled={true}
+											>
+												<Trash2 class="size-4" />
+												<span>Delete</span>
+											</Button>
+										</AlertDialog.Trigger>
+										<AlertDialog.Content>
+											<AlertDialog.Header>
+												<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+												<AlertDialog.Description>
+													This action cannot be undone. This will permanently delete the media from
+													your library.
+												</AlertDialog.Description>
+											</AlertDialog.Header>
+											<AlertDialog.Footer>
+												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+												<AlertDialog.Action
+													on:click={async () => {
+														if (data.db) {
+															await deleteItem(data.db._id);
+														}
+													}}>Continue</AlertDialog.Action
+												>
+											</AlertDialog.Footer>
+										</AlertDialog.Content>
+									</AlertDialog.Root>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Delete item from library</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
 
-							<AlertDialog.Root>
-								<AlertDialog.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1"
-										variant="destructive"
-									>
-										<RotateCcw class="size-4" />
-										<span>Retry</span>
-									</Button>
-								</AlertDialog.Trigger>
-								<AlertDialog.Content>
-									<AlertDialog.Header>
-										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-										<AlertDialog.Description>
-											This action will remove the item from queue and insert it back
-										</AlertDialog.Description>
-									</AlertDialog.Header>
-									<AlertDialog.Footer>
-										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action
-											on:click={async () => {
-												if (data.db) {
-													await retryItem(data.db._id);
-												}
-											}}>Continue</AlertDialog.Action
-										>
-									</AlertDialog.Footer>
-								</AlertDialog.Content>
-							</AlertDialog.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<AlertDialog.Root>
+										<AlertDialog.Trigger asChild let:builder>
+											<Button
+												builders={[builder]}
+												class="flex items-center gap-1"
+												variant="destructive"
+											>
+												<RotateCcw class="size-4" />
+												<span>Retry</span>
+											</Button>
+										</AlertDialog.Trigger>
+										<AlertDialog.Content>
+											<AlertDialog.Header>
+												<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+												<AlertDialog.Description>
+													This action will remove the item from queue and insert it back
+												</AlertDialog.Description>
+											</AlertDialog.Header>
+											<AlertDialog.Footer>
+												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+												<AlertDialog.Action
+													on:click={async () => {
+														if (data.db) {
+															await retryItem(data.db._id);
+														}
+													}}>Continue</AlertDialog.Action
+												>
+											</AlertDialog.Footer>
+										</AlertDialog.Content>
+									</AlertDialog.Root>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Removes the item and add it again to the queue</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
 
-							<AlertDialog.Root>
-								<AlertDialog.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1"
-										variant="destructive"
-									>
-										<CirclePower class="size-4" />
-										<span>Reset</span>
-									</Button>
-								</AlertDialog.Trigger>
-								<AlertDialog.Content>
-									<AlertDialog.Header>
-										<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-										<AlertDialog.Description>
-											This action will reset the media to its initial state and blacklist the
-											torrent
-										</AlertDialog.Description>
-									</AlertDialog.Header>
-									<AlertDialog.Footer>
-										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action
-											on:click={async () => {
-												if (data.db) {
-													await resetItem(data.db._id);
-												}
-											}}>Continue</AlertDialog.Action
-										>
-									</AlertDialog.Footer>
-								</AlertDialog.Content>
-							</AlertDialog.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<AlertDialog.Root>
+										<AlertDialog.Trigger asChild let:builder>
+											<Button
+												builders={[builder]}
+												class="flex items-center gap-1"
+												variant="destructive"
+											>
+												<CirclePower class="size-4" />
+												<span>Reset</span>
+											</Button>
+										</AlertDialog.Trigger>
+										<AlertDialog.Content>
+											<AlertDialog.Header>
+												<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+												<AlertDialog.Description>
+													This action will reset the media to its initial state and blacklist the
+													torrent
+												</AlertDialog.Description>
+											</AlertDialog.Header>
+											<AlertDialog.Footer>
+												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+												<AlertDialog.Action
+													on:click={async () => {
+														if (data.db) {
+															await resetItem(data.db._id);
+														}
+													}}>Continue</AlertDialog.Action
+												>
+											</AlertDialog.Footer>
+										</AlertDialog.Content>
+									</AlertDialog.Root>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Blacklist the torrent added and scrapes again</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
 						{/if}
 					</div>
 					{#if data.details.belongs_to_collection}

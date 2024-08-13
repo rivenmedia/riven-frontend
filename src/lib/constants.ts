@@ -28,16 +28,20 @@ export const servicesObject: Record<string, string> = {
 	mediafusion: 'Media Fusion',
 	Prowlarr: 'Prowlarr',
 	zilean: 'Zilean',
+	comet: 'Comet',
 	symlink: 'Symlink',
 	updater: 'Updater',
 	plexupdater: 'Plex Updater',
 	localupdater: 'Local Updater',
 	realdebrid: 'Real Debrid',
-	torbox_downloader: 'Torbox Downloader'
+	torbox_downloader: 'Torbox Downloader',
+	alldebrid: 'All Debrid',
+	post_processing: 'Post Processing',
+	subliminal: 'Subliminal'
 };
 
-export const coreServices = ['symlinklibrary', 'symlink', 'scraping', 'updater'];
-export const downloaderServices = ['realdebrid', 'torbox', 'torbox_downloader'];
+export const coreServices = ['symlinklibrary', 'symlink', 'scraping', 'updater', 'post_processing', 'subliminal'];
+export const downloaderServices = ['realdebrid', 'torbox', 'torbox_downloader', 'alldebrid'];
 export const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listrr', 'trakt'];
 export const scrapingServices = [
 	'torrentio',
@@ -47,5 +51,7 @@ export const scrapingServices = [
 	'orionoid',
 	'mediafusion',
 	'Prowlarr',
-	'zilean'
+	'zilean',
+	'torbox',
+	'comet'
 ];
