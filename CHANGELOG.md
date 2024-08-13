@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0](https://github.com/rivenmedia/riven-frontend/compare/v0.8.1...v0.9.0) (2024-08-13)
+
+
+### Features
+
+* add tooltip, add ranking page (wip), improve summary page ([73e826d](https://github.com/rivenmedia/riven-frontend/commit/73e826d0fa90ffe09dc4beecb2c236df01f9c1ff))
+* collection view ([#65](https://github.com/rivenmedia/riven-frontend/issues/65)) ([20cda7c](https://github.com/rivenmedia/riven-frontend/commit/20cda7c022c0866713307c32772b1406be1733e2))
+* ui improvements ([7fc8d0c](https://github.com/rivenmedia/riven-frontend/commit/7fc8d0c127a743a420e94636227e18f16561e34f))
+
+
+### Bug Fixes
+
+* library page type filter ([be76793](https://github.com/rivenmedia/riven-frontend/commit/be767939d96672bff037e3f0cf7dd5e17c1c4937))
+* use basis-1/7 on xl: for carousel items ([25a52d0](https://github.com/rivenmedia/riven-frontend/commit/25a52d0d19b90c1d30caf76e736b2c4793252a70))
+
 ## [0.8.1](https://github.com/rivenmedia/riven-frontend/compare/v0.8.0...v0.8.1) (2024-08-11)
 
 
