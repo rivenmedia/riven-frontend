@@ -118,7 +118,7 @@
 
 				<Select.Content>
 					<Select.Item value="movie" label="movie">Movie</Select.Item>
-					<Select.Item value="show" label="show">TV</Select.Item>
+					<Select.Item value="show" label="show">Show</Select.Item>
 					<Select.Item value="anime" label="anime">Anime</Select.Item>
 				</Select.Content>
 			</Select.Root>
@@ -154,17 +154,18 @@
 				class="w-full lg:w-80"
 				bind:value={$query}
 			/>
-		</div>
 
-		<div class="flex flex-col gap-2 lg:flex-row">
-			<Button type="button" variant="secondary" class="w-full lg:max-w-max" on:click={submitQueries}
-				>Search</Button
-			>
 			<Button
 				type="button"
 				variant="destructive"
 				class="w-full lg:max-w-max"
 				on:click={resetQueries}>Reset</Button
+			>
+		</div>
+
+		<div class="flex flex-col gap-2 lg:flex-row">
+			<Button type="button" variant="secondary" class="w-full lg:max-w-max" on:click={submitQueries}
+				>Search</Button
 			>
 		</div>
 	</div>

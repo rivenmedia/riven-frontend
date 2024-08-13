@@ -25,6 +25,10 @@
 			path: '/settings/scrapers'
 		},
 		{
+			name: 'Ranking',
+			path: '/settings/ranking'
+		},
+		{
 			name: 'About',
 			path: '/settings/about'
 		}
