@@ -40,7 +40,14 @@ export const servicesObject: Record<string, string> = {
 	subliminal: 'Subliminal'
 };
 
-export const coreServices = ['symlinklibrary', 'symlink', 'scraping', 'updater', 'post_processing', 'subliminal'];
+export const coreServices = [
+	'symlinklibrary',
+	'symlink',
+	'scraping',
+	'updater',
+	'post_processing',
+	'subliminal'
+];
 export const downloaderServices = ['realdebrid', 'torbox', 'torbox_downloader', 'alldebrid'];
 export const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listrr', 'trakt'];
 export const scrapingServices = [

@@ -108,8 +108,6 @@
 			services: scrapingServicesStatus
 		}
 	];
-
-	console.log(servicesStatus);
 </script>
 
 <Header />

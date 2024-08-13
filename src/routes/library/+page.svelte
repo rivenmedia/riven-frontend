@@ -11,7 +11,6 @@
 	import { statesName } from '$lib/constants';
 	import { Button } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
-	import * as Tooltip from "$lib/components/ui/tooltip";
 
 	export let data: PageData;
 

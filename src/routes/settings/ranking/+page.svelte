@@ -37,7 +37,7 @@
 			)}
         </pre>
 
-		<h3 class="text-base lg:text-lg font-bold">There are 7 profile in ranking:</h3>
+		<h3 class="text-base font-bold lg:text-lg">There are 7 profile in ranking:</h3>
 		<ul class="list-disc pl-4">
 			<li>default - The default ranking model.</li>
 			<li>remux - The ranking model for the best remux.</li>
@@ -48,7 +48,7 @@
 			<li>all - The ranking model for all releases.</li>
 		</ul>
 
-		<h3 class="text-base lg:text-lg font-bold mt-4">What are require, exclude and preferred?</h3>
+		<h3 class="mt-4 text-base font-bold lg:text-lg">What are require, exclude and preferred?</h3>
 		<p class="text-sm lg:text-base">
 			These are array of regex patterns that are used to filter the releases. Example:
 		</p>
@@ -74,11 +74,15 @@
 			)}
         </pre>
 
-        <h3 class="text-base lg:text-lg font-bold mt-4">What is enable, fetch and rank in custom_ranks?</h3>
-        <p class="text-sm lg:text-base">fetch means if you want to grab it or not when its scraped</p>
-        <p class="text-sm lg:text-base">enable just means you can set your own rank instead of using the internal ranking system from the profile name you specify</p>
-        <p class="text-sm lg:text-base">rank is the priority of the custom rank</p>
-            
+		<h3 class="mt-4 text-base font-bold lg:text-lg">
+			What is enable, fetch and rank in custom_ranks?
+		</h3>
+		<p class="text-sm lg:text-base">fetch means if you want to grab it or not when its scraped</p>
+		<p class="text-sm lg:text-base">
+			enable just means you can set your own rank instead of using the internal ranking system from
+			the profile name you specify
+		</p>
+		<p class="text-sm lg:text-base">rank is the priority of the custom rank</p>
 	</div>
 
 	<!-- <ScrapersForm data={data.form} actionUrl="/settings/scrapers" /> -->
