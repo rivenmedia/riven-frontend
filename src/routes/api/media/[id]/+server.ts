@@ -4,7 +4,7 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 	const imdb = params.id; // This is the IMDB ID
 
 	try {
-		const response = await fetch(`${locals.BACKEND_URL}/actions/request/${imdb}`, {
+		const response = await fetch(`${locals.BACKEND_URL}/items/add?imdb_ids=${imdb}`, {
 			method: 'POST'
 		});
 
