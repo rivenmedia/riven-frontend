@@ -360,14 +360,16 @@
 									<Tooltip.Root>
 										<Tooltip.Trigger>
 											<div class="flex flex-col items-center gap-1">
-												<img
-													alt={cast.id}
-													src={cast.profile_path
-														? `https://www.themoviedb.org/t/p/w185${cast.profile_path}`
-														: '/images/avatar.png'}
-													loading="lazy"
-													class="h-16 w-16 rounded-full object-cover object-center"
-												/>
+												<a href="/people/{cast.id}">
+													<img
+														alt={cast.id}
+														src={cast.profile_path
+															? `https://www.themoviedb.org/t/p/w185${cast.profile_path}`
+															: '/images/avatar.png'}
+														loading="lazy"
+														class="h-16 w-16 rounded-full object-cover object-center"
+													/>
+												</a>
 											</div>
 										</Tooltip.Trigger>
 										<Tooltip.Content>

@@ -386,3 +386,22 @@ export async function getCollection(
 	}
 	return await response.json();
 }
+
+export async function getPerson(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	fetch: any,
+	language: string = 'en-US',
+	append_to_response: string | null = null,
+	personId: number
+) {
+	const params = { language, append_to_response };
+	const queryString = dictToQueryString(params);
+
+	const response = await fetch(`${TMDB_BASE_URL}/person/${personId}?${queryString}`, {
+		headers: HEADERS
+	});
+	if (!response.ok) {
+		throw new Error('Failed to fetch person details');
+	}
+	return await response.json();
+}
