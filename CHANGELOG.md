@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/rivenmedia/riven-frontend/compare/v0.9.0...v0.9.1) (2024-08-15)
+
+
+### Bug Fixes
+
+* wrong url for item requests ([bd779ae](https://github.com/rivenmedia/riven-frontend/commit/bd779ae4ab0dea76410b506d08d96b155ee3d46c))
+* Wrong url for item requests ([#72](https://github.com/rivenmedia/riven-frontend/issues/72)) ([#73](https://github.com/rivenmedia/riven-frontend/issues/73)) ([bd779ae](https://github.com/rivenmedia/riven-frontend/commit/bd779ae4ab0dea76410b506d08d96b155ee3d46c))
+
 ## [0.9.0](https://github.com/rivenmedia/riven-frontend/compare/v0.8.1...v0.9.0) (2024-08-13)
 
 
