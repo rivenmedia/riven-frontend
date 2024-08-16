@@ -1,8 +1,8 @@
 <div align="center">
   <a href="https://github.com/rivenmedia/riven">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/iceberg-light.png">
-      <img alt="riven" src="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/iceberg-dark.png">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/riven-light.png">
+      <img alt="riven" src="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/riven-dark.png">
     </picture>
   </a>
 </div>
