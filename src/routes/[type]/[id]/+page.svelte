@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Star, Trash2, ArrowUpRight, Tag, Wrench, RotateCcw, CirclePower } from 'lucide-svelte';
+	import { Star, Trash2, ArrowUpRight, Tag, Wrench, RotateCcw, CirclePower, Clipboard } from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
@@ -188,7 +188,7 @@
 												data.details.original_name}</Sheet.Title
 										>
 									</Sheet.Header>
-									<Sheet.Description class="mt-2 flex flex-col">
+									<Sheet.Description class="mt-2 flex flex-col gap-2">
 										<p>ID: {data.db._id}</p>
 										{#if data.db.requested_by}
 											<p>Requested by: {data.db.requested_by}</p>
@@ -197,6 +197,95 @@
 											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
 										{/if}
 										<p>Symlinked: {data.db.symlinked}</p>
+
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<AlertDialog.Root>
+													<AlertDialog.Trigger asChild let:builder>
+														<Button
+															builders={[builder]}
+															class="flex w-full items-center gap-1"
+															variant="destructive"
+														>
+															<RotateCcw class="size-4" />
+															<span>Retry</span>
+														</Button>
+													</AlertDialog.Trigger>
+													<AlertDialog.Content>
+														<AlertDialog.Header>
+															<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+															<AlertDialog.Description>
+																This action will remove the item from queue and insert it back
+															</AlertDialog.Description>
+														</AlertDialog.Header>
+														<AlertDialog.Footer>
+															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+															<AlertDialog.Action
+																on:click={async () => {
+																	if (data.db) {
+																		await retryItem(data.db._id);
+																	}
+																}}>Continue</AlertDialog.Action
+															>
+														</AlertDialog.Footer>
+													</AlertDialog.Content>
+												</AlertDialog.Root>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p>Removes the item and add it again to the queue</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
+
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<AlertDialog.Root>
+													<AlertDialog.Trigger asChild let:builder>
+														<Button
+															builders={[builder]}
+															class="flex w-full items-center gap-1"
+															variant="destructive"
+														>
+															<CirclePower class="size-4" />
+															<span>Reset</span>
+														</Button>
+													</AlertDialog.Trigger>
+													<AlertDialog.Content>
+														<AlertDialog.Header>
+															<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+															<AlertDialog.Description>
+																This action will reset the media to its initial state and blacklist
+																the torrent
+															</AlertDialog.Description>
+														</AlertDialog.Header>
+														<AlertDialog.Footer>
+															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+															<AlertDialog.Action
+																on:click={async () => {
+																	if (data.db) {
+																		await resetItem(data.db._id);
+																	}
+																}}>Continue</AlertDialog.Action
+															>
+														</AlertDialog.Footer>
+													</AlertDialog.Content>
+												</AlertDialog.Root>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p>Blacklist the torrent added and scrapes again</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
+
+										<Button
+											class="flex w-full items-center gap-1"
+											variant="destructive"
+											on:click={() => {
+												navigator.clipboard.writeText(JSON.stringify(data.db, null, 2));
+												toast.success('Item data copied to clipboard');
+											}}
+										>
+											<Clipboard class="size-4" />
+											<span>Copy item data</span>
+										</Button>
 									</Sheet.Description>
 								</Sheet.Content>
 							</Sheet.Root>
@@ -241,83 +330,6 @@
 								</Tooltip.Trigger>
 								<Tooltip.Content>
 									<p>Delete item from library</p>
-								</Tooltip.Content>
-							</Tooltip.Root>
-
-							<Tooltip.Root>
-								<Tooltip.Trigger>
-									<AlertDialog.Root>
-										<AlertDialog.Trigger asChild let:builder>
-											<Button
-												builders={[builder]}
-												class="flex items-center gap-1"
-												variant="destructive"
-											>
-												<RotateCcw class="size-4" />
-												<span>Retry</span>
-											</Button>
-										</AlertDialog.Trigger>
-										<AlertDialog.Content>
-											<AlertDialog.Header>
-												<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-												<AlertDialog.Description>
-													This action will remove the item from queue and insert it back
-												</AlertDialog.Description>
-											</AlertDialog.Header>
-											<AlertDialog.Footer>
-												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-												<AlertDialog.Action
-													on:click={async () => {
-														if (data.db) {
-															await retryItem(data.db._id);
-														}
-													}}>Continue</AlertDialog.Action
-												>
-											</AlertDialog.Footer>
-										</AlertDialog.Content>
-									</AlertDialog.Root>
-								</Tooltip.Trigger>
-								<Tooltip.Content>
-									<p>Removes the item and add it again to the queue</p>
-								</Tooltip.Content>
-							</Tooltip.Root>
-
-							<Tooltip.Root>
-								<Tooltip.Trigger>
-									<AlertDialog.Root>
-										<AlertDialog.Trigger asChild let:builder>
-											<Button
-												builders={[builder]}
-												class="flex items-center gap-1"
-												variant="destructive"
-											>
-												<CirclePower class="size-4" />
-												<span>Reset</span>
-											</Button>
-										</AlertDialog.Trigger>
-										<AlertDialog.Content>
-											<AlertDialog.Header>
-												<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-												<AlertDialog.Description>
-													This action will reset the media to its initial state and blacklist the
-													torrent
-												</AlertDialog.Description>
-											</AlertDialog.Header>
-											<AlertDialog.Footer>
-												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-												<AlertDialog.Action
-													on:click={async () => {
-														if (data.db) {
-															await resetItem(data.db._id);
-														}
-													}}>Continue</AlertDialog.Action
-												>
-											</AlertDialog.Footer>
-										</AlertDialog.Content>
-									</AlertDialog.Root>
-								</Tooltip.Trigger>
-								<Tooltip.Content>
-									<p>Blacklist the torrent added and scrapes again</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 						{/if}
