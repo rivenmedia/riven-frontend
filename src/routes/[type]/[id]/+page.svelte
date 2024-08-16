@@ -382,7 +382,7 @@
 							{#if data.details.credits.cast.length > 9}
 								<Button
 									variant="link"
-									href="/credits/{data.details.id}"
+									href="/{data.mediaType}/{data.details.id}/credits"
 									class="flex gap-1 text-zinc-100"
 								>
 									<ArrowUpRight class="size-4" />

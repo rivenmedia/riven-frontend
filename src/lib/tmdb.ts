@@ -387,6 +387,25 @@ export async function getCollection(
 	return await response.json();
 }
 
+export async function getCredits(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	fetch: any,
+	language: string = 'en-US',
+	mediaId: number,
+	mediaType: string
+) {
+	const params = { language };
+	const queryString = dictToQueryString(params);
+
+	const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${mediaId}/credits?${queryString}`, {
+		headers: HEADERS
+	});
+	if (!response.ok) {
+		throw new Error('Failed to fetch credits');
+	}
+	return await response.json();
+}
+
 export async function getPerson(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
@@ -402,6 +421,6 @@ export async function getPerson(
 	});
 	if (!response.ok) {
 		throw new Error('Failed to fetch person details');
-	}
-	return await response.json();
+  }
+  return await response.json();
 }
