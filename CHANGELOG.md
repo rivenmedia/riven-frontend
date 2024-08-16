@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.0](https://github.com/rivenmedia/riven-frontend/compare/v0.9.1...v0.10.0) (2024-08-16)
+
+
+### Features
+
+* people view ([ff72fbb](https://github.com/rivenmedia/riven-frontend/commit/ff72fbb6ec74876527b40a239a6dacabb5335f3b))
+* People view ([#71](https://github.com/rivenmedia/riven-frontend/issues/71)) ([ff72fbb](https://github.com/rivenmedia/riven-frontend/commit/ff72fbb6ec74876527b40a239a6dacabb5335f3b))
+* ui improvements ([#76](https://github.com/rivenmedia/riven-frontend/issues/76)) ([2aa7af5](https://github.com/rivenmedia/riven-frontend/commit/2aa7af5b4ad41ac703db764031dba5f843cda189))
+
 ## [0.9.1](https://github.com/rivenmedia/riven-frontend/compare/v0.9.0...v0.9.1) (2024-08-15)
 
 
