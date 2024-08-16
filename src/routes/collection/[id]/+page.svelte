@@ -16,19 +16,19 @@
 	<Header />
 </div>
 
-<div class="mt-16 p-8 md:px-24 lg:px-32">
+<div class="mt-32 p-8 md:px-24 lg:px-32">
 	<h1 class="text-center text-4xl text-zinc-50 md:text-left">
 		{data.details.name}
 	</h1>
 
-	<h2 class="text-center text-xl italic text-zinc-200 md:text-left">
+	<h2 class="text-center text-xl italic text-zinc-200 md:text-left font-thin">
 		&quot;{data.details.overview}&quot;
 	</h2>
 
-	<div class="no-scrollbar mt-4 flex flex-wrap overflow-x-auto px-1 lg:p-0">
+	<div class="mt-8 flex flex-wrap overflow-x-auto px-1 lg:p-0">
 		{#each data.details.parts as item}
 			<div
-				class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"
+				class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:w-1/7 xl:p-[.4rem]"
 			>
 				<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
 					<img
