@@ -421,6 +421,6 @@ export async function getPerson(
 	});
 	if (!response.ok) {
 		throw new Error('Failed to fetch person details');
-  }
-  return await response.json();
+	}
+	return await response.json();
 }

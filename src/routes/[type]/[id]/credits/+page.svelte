@@ -4,7 +4,6 @@
 	import * as Card from '$lib/components/ui/card';
 
 	export let data: PageData;
-	console.log(data);
 </script>
 
 <svelte:head>
@@ -31,11 +30,11 @@
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
 		<div class="flex max-w-7xl flex-col gap-2">
-			<h3 class="text-center text-3xl lg:text-4xl text-zinc-50 md:text-left">
+			<h3 class="text-center text-3xl text-zinc-50 md:text-left lg:text-4xl">
 				{data.media.title || data.media.name || data.media.original_name}
 			</h3>
 
-			<p class="text-center text-lg lg:text-xl font-thin italic text-zinc-200 md:text-left">
+			<p class="text-center text-lg font-thin italic text-zinc-200 md:text-left lg:text-xl">
 				&quot;{data.media.overview}&quot;
 			</p>
 

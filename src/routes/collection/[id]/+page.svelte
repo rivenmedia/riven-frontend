@@ -21,7 +21,7 @@
 		{data.details.name}
 	</h1>
 
-	<h2 class="text-center text-xl italic text-zinc-200 md:text-left font-thin">
+	<h2 class="text-center text-xl font-thin italic text-zinc-200 md:text-left">
 		&quot;{data.details.overview}&quot;
 	</h2>
 
