@@ -23,7 +23,10 @@
 	const formDebug: boolean = getContext('formDebug');
 
 	const form = superForm(data, {
-		validators: zodClient(scrapersSettingsSchema)
+		validators: zodClient(scrapersSettingsSchema),
+		onError(event) {
+			toast.error(event.result.error.message);
+		}
 	});
 
 	const { form: formData, enhance, message, delayed } = form;

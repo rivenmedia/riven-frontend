@@ -2,7 +2,16 @@
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Star, Trash2, ArrowUpRight, Tag, Wrench, RotateCcw, CirclePower, Clipboard } from 'lucide-svelte';
+	import {
+		Star,
+		Trash2,
+		ArrowUpRight,
+		Tag,
+		Wrench,
+		RotateCcw,
+		CirclePower,
+		Clipboard
+	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
