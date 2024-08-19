@@ -3,7 +3,12 @@ import WebSocket from 'ws';
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
-const websocket = new WebSocket(`${BACKEND_URL}/ws`);
+let websocket: WebSocket;
+try {
+	websocket = new WebSocket(`${BACKEND_URL}/ws`);
+} catch (error) {
+	console.error(error);
+}
 
 export function POST() {
 	return produce(async function start({ emit }) {
