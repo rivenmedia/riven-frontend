@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0](https://github.com/rivenmedia/riven-frontend/compare/v0.10.0...v0.11.0) (2024-08-19)
+
+
+### Features
+
+* add copy media item json button ([5adde5d](https://github.com/rivenmedia/riven-frontend/commit/5adde5d457321b651f6d020790e54f7cf211c0d7))
+* add websockets support ([618d5d5](https://github.com/rivenmedia/riven-frontend/commit/618d5d556805ea330df7da3985de7f830386bccc))
+* ui improvements ([06b3797](https://github.com/rivenmedia/riven-frontend/commit/06b379742be44512d32053c56da73e2aaaeb762a))
+* ui improvements ([06b3797](https://github.com/rivenmedia/riven-frontend/commit/06b379742be44512d32053c56da73e2aaaeb762a))
+
+
+### Bug Fixes
+
+* docker build ([b456131](https://github.com/rivenmedia/riven-frontend/commit/b4561313033ce56192c51b013dc309b547f26b91))
+* docker build ([dcacae4](https://github.com/rivenmedia/riven-frontend/commit/dcacae4a0ae1c5d49876bfe3cc13c968e759e0fe))
+* docker build ([a34d7d8](https://github.com/rivenmedia/riven-frontend/commit/a34d7d89edf41860a47ea9eda80d646096f5fad8))
+* docker build ([e005e78](https://github.com/rivenmedia/riven-frontend/commit/e005e78b6e8a9e24085080cab231b17f02ede63c))
+* enable delete button ([3702566](https://github.com/rivenmedia/riven-frontend/commit/3702566a8ba167df35c7be92761343c3c3136b99))
+* show origin wrong error ([eba66cb](https://github.com/rivenmedia/riven-frontend/commit/eba66cb37ae6f16d48efab7e9b71ca35f785e7fa))
+
 ## [0.10.0](https://github.com/rivenmedia/riven-frontend/compare/v0.9.1...v0.10.0) (2024-08-16)
 
 
