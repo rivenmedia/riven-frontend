@@ -3,6 +3,8 @@ import WebSocket from 'ws';
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 
+export const prerender = false;
+
 let websocket: WebSocket;
 try {
 	websocket = new WebSocket(`${BACKEND_URL}/ws`);
