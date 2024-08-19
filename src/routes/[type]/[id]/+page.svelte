@@ -42,7 +42,7 @@
 
 		if (response.ok) {
 			toast.success('Media deleted successfully');
-			goto('/');
+			goto('/library');
 		} else {
 			toast.error('An error occurred while deleting the media');
 		}
@@ -310,7 +310,6 @@
 												builders={[builder]}
 												class="flex items-center gap-1"
 												variant="destructive"
-												disabled={true}
 											>
 												<Trash2 class="size-4" />
 												<span>Delete</span>

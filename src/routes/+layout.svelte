@@ -20,7 +20,7 @@
 
 		if (data.type === 'item_update') {
 			const item = JSON.parse(data.item);
-			toast.info(`Item ${item.title} has been updated to ${item.state}`);
+			toast.info(`${item.type} ${item.title} has been updated to ${item.state}`);
 		}
 	}
 

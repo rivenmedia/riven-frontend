@@ -14,5 +14,8 @@ export function POST() {
 				return;
 			}
 		});
+		websocket.on('error', (error) => {
+			console.error(error);
+		});
 	});
 }

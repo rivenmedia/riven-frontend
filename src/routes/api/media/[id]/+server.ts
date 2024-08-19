@@ -54,29 +54,11 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	const id = params.id;
 
 	try {
-		const itemDeleteResponse = await fetch(`${locals.BACKEND_URL}/items?${id}`, {
+		const itemDeleteResponse = await fetch(`${locals.BACKEND_URL}/items/remove?ids=${id}`, {
 			method: 'DELETE'
 		});
 
 		if (!itemDeleteResponse.ok) {
-			return new Response(
-				JSON.stringify({
-					error: 'Failed to delete media item'
-				}),
-				{
-					status: 500,
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				}
-			);
-		}
-
-		const response = await fetch(`${locals.BACKEND_URL}/actions/symlink/${id}`, {
-			method: 'DELETE'
-		});
-
-		if (!response.ok) {
 			return new Response(
 				JSON.stringify({
 					error: 'Failed to delete media item'
