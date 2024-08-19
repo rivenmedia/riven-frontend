@@ -12,15 +12,19 @@ try {
 
 export function POST() {
 	return produce(async function start({ emit }) {
-		websocket.on('message', (data) => {
-			const { error } = emit('message', data.toString('utf-8'));
-			if (error) {
+		try {
+			websocket.on('message', (data) => {
+				const { error } = emit('message', data.toString('utf-8'));
+				if (error) {
+					console.error(error);
+					return;
+				}
+			});
+			websocket.on('error', (error) => {
 				console.error(error);
-				return;
-			}
-		});
-		websocket.on('error', (error) => {
+			});
+		} catch (error) {
 			console.error(error);
-		});
+		}
 	});
 }
