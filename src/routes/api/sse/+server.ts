@@ -2,31 +2,24 @@ import { produce } from 'sveltekit-sse';
 import WebSocket from 'ws';
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
-
-export const prerender = false;
+import { building } from '$app/environment';
 
 let websocket: WebSocket;
-try {
+if (!building) {
 	websocket = new WebSocket(`${BACKEND_URL}/ws`);
-} catch (error) {
-	console.error(error);
 }
 
 export function POST() {
 	return produce(async function start({ emit }) {
-		try {
-			websocket.on('message', (data) => {
-				const { error } = emit('message', data.toString('utf-8'));
-				if (error) {
-					console.error(error);
-					return;
-				}
-			});
-			websocket.on('error', (error) => {
+		websocket.on('message', (data) => {
+			const { error } = emit('message', data.toString('utf-8'));
+			if (error) {
 				console.error(error);
-			});
-		} catch (error) {
+				return;
+			}
+		});
+		websocket.on('error', (error) => {
 			console.error(error);
-		}
+		});
 	});
 }
