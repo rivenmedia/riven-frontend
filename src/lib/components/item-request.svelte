@@ -2,7 +2,6 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
-	import { invalidateAll } from '$app/navigation';
 	import { getExternalID } from '$lib/tmdb';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,7 +16,6 @@
 
 		if (response.ok) {
 			toast.success('Media requested successfully');
-			invalidateAll();
 		} else {
 			toast.error('An error occurred while requesting the media');
 		}
