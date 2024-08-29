@@ -6,7 +6,9 @@ import { building } from '$app/environment';
 
 let websocket: WebSocket;
 if (!building) {
-	websocket = new WebSocket(`${BACKEND_URL}/ws`);
+	websocket = new WebSocket(`${BACKEND_URL}/ws`, {
+		perMessageDeflate: false
+	});
 }
 
 export function POST() {
