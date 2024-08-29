@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/rivenmedia/riven-frontend/compare/v0.11.0...v0.11.1) (2024-08-29)
+
+
+### Bug Fixes
+
+* disabled ws deflate and sort lib desc order ([#83](https://github.com/rivenmedia/riven-frontend/issues/83)) ([2aa1993](https://github.com/rivenmedia/riven-frontend/commit/2aa1993fe6306d184433bccec4c17926f32ba41b))
+
 ## [0.11.0](https://github.com/rivenmedia/riven-frontend/compare/v0.10.0...v0.11.0) (2024-08-19)
 
 
