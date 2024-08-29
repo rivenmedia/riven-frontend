@@ -51,9 +51,12 @@ export const load = (async ({ url, locals }) => {
 		}
 
 		if (query && query.length > 0) {
+			dbQuery = dbQuery.orderBy('requested_at', 'desc');
 			const fuse = new Fuse(await dbQuery.execute(), fuseOptions);
 			return fuse.search(query).map((result) => result.item);
 		}
+
+		dbQuery = dbQuery.orderBy('requested_at', 'desc');
 
 		return await dbQuery.execute();
 	}
