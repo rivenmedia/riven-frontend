@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/rivenmedia/riven-frontend/compare/v0.11.1...v0.11.2) (2024-08-31)
+
+
+### Bug Fixes
+
+* add 0.11.1 settings ([bf99730](https://github.com/rivenmedia/riven-frontend/commit/bf99730135cbdfc29f793040fb29bd9133d216d6))
+* switch to fn.count('_id') forfaster query time and lower memory usage ([6f357c6](https://github.com/rivenmedia/riven-frontend/commit/6f357c663484ebf4348eb42a851789dd12eba0b6))
+
 ## [0.11.1](https://github.com/rivenmedia/riven-frontend/compare/v0.11.0...v0.11.1) (2024-08-29)
 
 
