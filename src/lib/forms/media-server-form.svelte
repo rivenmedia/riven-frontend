@@ -121,7 +121,6 @@
 		fieldTitle="Updaters"
 		fieldDescription="Choose the updater services you want to enable"
 	>
-		<CheckboxField {form} name="local_enabled" label="Local Updater" {formData} isForGroup={true} />
 		<CheckboxField {form} name="plex_enabled" label="Plex Updater" {formData} isForGroup={true} />
 	</GroupCheckboxField>
 

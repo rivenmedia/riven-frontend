@@ -59,8 +59,9 @@
 		{formData}
 		fieldDescription="Creates anime_movies and anime_shows folders"
 	/>
+	<CheckboxField {form} name="repair_symlinks" {formData} />
+	<NumberField {form} name="repair_interval" stepValue={1} {formData} fieldDescription="In hours" />
 
-	<!-- movie_filesize_min, movie_filesize_max, episode_filesize_min, episode_filesize_max -->
 	<NumberField
 		{form}
 		name="movie_filesize_min"
@@ -95,6 +96,13 @@
 	/>
 
 	<TextField {form} name="database_host" fieldDescription="Database connection string" {formData} />
+	<NumberField
+		{form}
+		name="indexer_update_interval"
+		{formData}
+		stepValue={1}
+		fieldDescription="In seconds"
+	/>
 
 	<GroupCheckboxField
 		fieldTitle="Downloaders"
@@ -326,6 +334,77 @@
 				</div>
 			</ArrayField>
 		</div>
+
+		<!-- "providers": {
+            "opensubtitles": {
+              "enabled": false,
+              "username": "",
+              "password": ""
+            },
+            "opensubtitlescom": {
+              "enabled": false,
+              "username": "",
+              "password": ""
+            }
+          } -->
+
+		<div transition:slide>
+			<GroupCheckboxField
+				fieldTitle="Providers"
+				fieldDescription="Some of the subliminal providers"
+			>
+				<CheckboxField
+					{form}
+					name="subliminal_providers_opensubtitles_enabled"
+					label="OpenSubtitles"
+					{formData}
+					isForGroup={true}
+				/>
+				<CheckboxField
+					{form}
+					name="subliminal_providers_opensubtitlescom_enabled"
+					label="OpenSubtitles.com"
+					{formData}
+					isForGroup={true}
+				/>
+			</GroupCheckboxField>
+		</div>
+
+		{#if $formData.subliminal_providers_opensubtitles_enabled}
+			<div transition:slide>
+				<TextField
+					{form}
+					name="subliminal_providers_opensubtitles_username"
+					label="Opensubtitles Username"
+					{formData}
+				/>
+				<TextField
+					{form}
+					name="subliminal_providers_opensubtitles_password"
+					label="Opensubtitles Password"
+					{formData}
+					isProtected={true}
+				/>
+			</div>
+		{/if}
+
+		{#if $formData.subliminal_providers_opensubtitlescom_enabled}
+			<div transition:slide>
+				<TextField
+					{form}
+					name="subliminal_providers_opensubtitlescom_username"
+					label="Opensubtitles.com Username"
+					{formData}
+				/>
+				<TextField
+					{form}
+					name="subliminal_providers_opensubtitlescom_password"
+					label="Opensubtitles.com Password"
+					{formData}
+					isProtected={true}
+				/>
+			</div>
+		{/if}
 	{/if}
 
 	<Separator class="mt-4" />
