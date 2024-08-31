@@ -8,6 +8,7 @@ export const generalSettingsToGet: string[] = [
 	'symlink',
 	'downloaders',
 	'database',
+	'indexer',
 	'notifications',
 	'post_processing'
 ];
@@ -18,6 +19,8 @@ export const generalSettingsSchema = z.object({
 	rclone_path: z.string().min(1),
 	library_path: z.string().min(1),
 	separate_anime_dirs: z.boolean().default(false),
+	repair_symlinks: z.boolean().default(false),
+	repair_interval: z.coerce.number().gte(0).int().optional().default(6),
 	movie_filesize_min: z.coerce.number().gte(0).int().optional().default(200),
 	movie_filesize_max: z.coerce.number().gte(-1).int().optional().default(-1),
 	episode_filesize_min: z.coerce.number().gte(0).int().optional().default(40),
@@ -41,7 +44,14 @@ export const generalSettingsSchema = z.object({
 	notifications_on_item_type: z.string().array().optional().default([]),
 	notifications_service_urls: z.string().array().optional().default([]),
 	subliminal_enabled: z.boolean().default(false),
-	subliminal_languages: z.string().array().optional().default([])
+	subliminal_languages: z.string().array().optional().default([]),
+	subliminal_providers_opensubtitles_enabled: z.boolean().optional().default(false),
+	subliminal_providers_opensubtitles_username: z.string().optional().default(''),
+	subliminal_providers_opensubtitles_password: z.string().optional().default(''),
+	subliminal_providers_opensubtitlescom_enabled: z.boolean().optional().default(false),
+	subliminal_providers_opensubtitlescom_username: z.string().optional().default(''),
+	subliminal_providers_opensubtitlescom_password: z.string().optional().default(''),
+	indexer_update_interval: z.coerce.number().gte(0).int().optional().default(3600)
 });
 export type GeneralSettingsSchema = typeof generalSettingsSchema;
 
@@ -53,6 +63,8 @@ export function generalSettingsToPass(data: any) {
 		rclone_path: data.data.symlink.rclone_path,
 		library_path: data.data.symlink.library_path,
 		separate_anime_dirs: data.data.symlink.separate_anime_dirs,
+		repair_symlinks: data.data.symlink.repair_symlinks,
+		repair_interval: data.data.symlink.repair_interval,
 		movie_filesize_min: data.data.downloaders.movie_filesize_min,
 		movie_filesize_max: data.data.downloaders.movie_filesize_max,
 		episode_filesize_min: data.data.downloaders.episode_filesize_min,
@@ -73,7 +85,20 @@ export function generalSettingsToPass(data: any) {
 		notifications_on_item_type: data.data.notifications.on_item_type,
 		notifications_service_urls: data.data.notifications.service_urls,
 		subliminal_enabled: data.data.post_processing.subliminal.enabled,
-		subliminal_languages: data.data.post_processing.subliminal?.languages
+		subliminal_languages: data.data.post_processing.subliminal?.languages,
+		subliminal_providers_opensubtitles_enabled:
+			data.data.post_processing.subliminal?.providers.opensubtitles.enabled,
+		subliminal_providers_opensubtitles_username:
+			data.data.post_processing.subliminal?.providers.opensubtitles.username,
+		subliminal_providers_opensubtitles_password:
+			data.data.post_processing.subliminal?.providers.opensubtitles.password,
+		subliminal_providers_opensubtitlescom_enabled:
+			data.data.post_processing.subliminal?.providers.opensubtitlescom.enabled,
+		subliminal_providers_opensubtitlescom_username:
+			data.data.post_processing.subliminal?.providers.opensubtitlescom.username,
+		subliminal_providers_opensubtitlescom_password:
+			data.data.post_processing.subliminal?.providers.opensubtitlescom.password,
+		indexer_update_interval: data.data.indexer.update_interval
 	};
 }
 
@@ -92,7 +117,9 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 			value: {
 				rclone_path: form.data.rclone_path,
 				library_path: form.data.library_path,
-				separate_anime_dirs: form.data.separate_anime_dirs
+				separate_anime_dirs: form.data.separate_anime_dirs,
+				repair_symlinks: form.data.repair_symlinks,
+				repair_interval: form.data.repair_interval
 			}
 		},
 		{
@@ -127,6 +154,12 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 			}
 		},
 		{
+			key: 'indexer',
+			value: {
+				update_interval: form.data.indexer_update_interval
+			}
+		},
+		{
 			key: 'notifications',
 			value: {
 				enabled: form.data.notifications_enabled,
@@ -140,7 +173,19 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 			value: {
 				subliminal: {
 					enabled: form.data.subliminal_enabled,
-					languages: form.data.subliminal_languages
+					languages: form.data.subliminal_languages,
+					providers: {
+						opensubtitles: {
+							enabled: form.data.subliminal_providers_opensubtitles_enabled,
+							username: form.data.subliminal_providers_opensubtitles_username,
+							password: form.data.subliminal_providers_opensubtitles_password
+						},
+						opensubtitlescom: {
+							enabled: form.data.subliminal_providers_opensubtitlescom_enabled,
+							username: form.data.subliminal_providers_opensubtitlescom_username,
+							password: form.data.subliminal_providers_opensubtitlescom_password
+						}
+					}
 				}
 			}
 		}
@@ -154,7 +199,6 @@ export const mediaServerSettingsToGet: string[] = ['updaters'];
 export const mediaServerSettingsSchema = z.object({
 	// update_interval: z.number().nonnegative().int().optional().default(120), // Moved to coerce due to https://github.com/huntabyte/shadcn-svelte/issues/574
 	update_interval: z.coerce.number().gte(0).int().optional().default(120),
-	local_enabled: z.boolean().default(false),
 	plex_enabled: z.boolean().default(false),
 	plex_token: z.string().optional().default(''),
 	plex_url: z.string().optional().default('')
@@ -167,8 +211,7 @@ export function mediaServerSettingsToPass(data: any) {
 		update_interval: data.data.updaters.update_interval,
 		plex_token: data.data.updaters.plex.token,
 		plex_url: data.data.updaters.plex.url,
-		plex_enabled: data.data.updaters.plex.enabled,
-		local_enabled: data.data.updaters.local.enabled
+		plex_enabled: data.data.updaters.plex.enabled
 	};
 }
 
@@ -178,9 +221,6 @@ export function mediaServerSettingsToSet(form: SuperValidated<Infer<MediaServerS
 			key: 'updaters',
 			value: {
 				update_interval: form.data.update_interval,
-				local: {
-					enabled: form.data.local_enabled
-				},
 				plex: {
 					enabled: form.data.plex_enabled,
 					token: form.data.plex_token,

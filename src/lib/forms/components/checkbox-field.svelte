@@ -38,8 +38,8 @@
 	<Form.Field {form} {name}>
 		<Form.Control let:attrs {...$$restProps}>
 			<div class="my-2 flex flex-wrap items-center gap-2 md:my-0">
-				<Form.Label class="text-sm">{label}</Form.Label>
 				<Checkbox {...attrs} bind:checked={$formData[name]} />
+				<Form.Label class="text-sm">{label}</Form.Label>
 			</div>
 			<input name={attrs.name} value={$formData[name]} hidden />
 		</Form.Control>
