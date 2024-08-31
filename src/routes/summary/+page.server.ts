@@ -5,12 +5,12 @@ export const load = (async ({ locals }) => {
 	const statistics = await locals.db
 		.selectFrom('MediaItem')
 		.select(({ fn }) => [
-			fn.countAll<number>().as('total'),
-			fn.countAll<number>().filterWhere('type', '=', 'movie').as('movies'),
-			fn.countAll<number>().filterWhere('type', '=', 'show').as('shows'),
-			fn.countAll<number>().filterWhere('type', '=', 'season').as('seasons'),
-			fn.countAll<number>().filterWhere('type', '=', 'episode').as('episodes'),
-			fn.countAll<number>().filterWhere('last_state', '!=', 'Completed').as('incomplete')
+			fn.count<number>('_id').as('total'),
+			fn.count<number>('_id').filterWhere('type', '=', 'movie').as('movies'),
+			fn.count<number>('_id').filterWhere('type', '=', 'show').as('shows'),
+			fn.count<number>('_id').filterWhere('type', '=', 'season').as('seasons'),
+			fn.count<number>('_id').filterWhere('type', '=', 'episode').as('episodes'),
+			fn.count<number>('_id').filterWhere('last_state', '!=', 'Completed').as('incomplete')
 		])
 		.executeTakeFirst();
 
@@ -30,18 +30,18 @@ export const load = (async ({ locals }) => {
 	const states = (await locals.db
 		.selectFrom('MediaItem')
 		.select(({ fn }) => [
-			fn.countAll<number>().filterWhere('last_state', '=', 'Completed').as('Completed'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Failed').as('Failed'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Requested').as('Requested'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Indexed').as('Indexed'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Scraped').as('Scraped'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Downloaded').as('Downloaded'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Symlinked').as('Symlinked'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Completed').as('Completed'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Failed').as('Failed'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Requested').as('Requested'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Indexed').as('Indexed'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Scraped').as('Scraped'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Downloaded').as('Downloaded'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Symlinked').as('Symlinked'),
 			fn
-				.countAll<number>()
+				.count<number>('_id')
 				.filterWhere('last_state', '=', 'Partially Completed')
 				.as('PartiallyCompleted'),
-			fn.countAll<number>().filterWhere('last_state', '=', 'Unknown').as('Unknown')
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Unknown').as('Unknown')
 		])
 		.executeTakeFirst()) as States;
 
