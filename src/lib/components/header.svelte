@@ -21,6 +21,10 @@
 			path: '/browse'
 		},
 		{
+			name: 'Trending',
+			path: '/trending'
+		},
+		{
 			name: 'Summary',
 			path: '/summary'
 		},
