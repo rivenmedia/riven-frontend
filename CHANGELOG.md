@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.3](https://github.com/rivenmedia/riven-frontend/compare/v0.11.2...v0.11.3) (2024-09-12)
+
+
+### Bug Fixes
+
+* remove potentially sensitive logs ([#91](https://github.com/rivenmedia/riven-frontend/issues/91)) ([d5c9481](https://github.com/rivenmedia/riven-frontend/commit/d5c9481797cb10446131b069a26bfff063cd03ad))
+* trakt trending/popular fetch count always showing default value ([#90](https://github.com/rivenmedia/riven-frontend/issues/90)) ([76866ba](https://github.com/rivenmedia/riven-frontend/commit/76866baf2d34772f091fac0048d004339ce293c4))
+
 ## [0.11.2](https://github.com/rivenmedia/riven-frontend/compare/v0.11.1...v0.11.2) (2024-08-31)
 
 
