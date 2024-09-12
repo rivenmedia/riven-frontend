@@ -1,17 +1,33 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
-	async function getAboutInfo() {
-		try {
-			const toGet = ['version', 'symlink'];
-			const results = await fetch(`${locals.BACKEND_URL}/settings/get/${toGet.join(',')}`);
-			return await results.json();
-		} catch (e) {
-			console.error(e);
-			error(503, 'Unable to fetch settings data. API is down.');
-		}
-	}
+    // Function to fetch backend settings (version and symlink)
+    async function getAboutInfo() {
+        try {
+            const toGet = ['version', 'symlink'];
+            const results = await fetch(`${locals.BACKEND_URL}/settings/get/${toGet.join(',')}`);
+            return await results.json();
+        } catch (e) {
+            console.error(e);
+            error(503, 'Unable to fetch settings data. API is down.');
+        }
+    }
+    // Fetch frontend version from file
+    const versionFilePath = env.FRONTEND_VERSION_PATH || '/riven/version.txt'; // Default to /riven/version.txt based on Dockerfile imports 
+    let frontendVersion = 'Unknown';
 
-	return { settings: await getAboutInfo() };
+    try {
+        frontendVersion = (await fs.readFile(path.resolve(versionFilePath), 'utf-8')).trim();
+    } catch (err) {
+        console.error('Error reading frontend version file:', err);
+    }
+
+    return {
+        settings: await getAboutInfo(),
+        frontendVersion
+    };
 };
