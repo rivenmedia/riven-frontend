@@ -497,8 +497,8 @@ export function contentSettingsToPass(data: any) {
 		trakt_collection: data.data.content.trakt?.collection,
 		trakt_fetch_trending: data.data.content.trakt?.fetch_trending,
 		trakt_fetch_popular: data.data.content.trakt?.fetch_popular,
-		trakt_trending_count: data.data.content.trakt?.fetch_trending_count,
-		trakt_popular_count: data.data.content.trakt?.fetch_popular_count
+		trakt_trending_count: data.data.content.trakt?.trending_count,
+		trakt_popular_count: data.data.content.trakt?.popular_count
 	};
 }
 
