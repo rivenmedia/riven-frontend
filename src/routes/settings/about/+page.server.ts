@@ -16,13 +16,9 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
             error(503, 'Unable to fetch settings data. API is down.');
         }
     }
-    let versionFilePath: string;
-    if (!building) {
-        if (!dev) {
-            versionFilePath = '/riven/version.txt'; 
-        } else {
-            versionFilePath = './version.txt';
-        }
+    let versionFilePath: string = '/riven/version.txt'; 
+    if (dev) {
+        versionFilePath = './version.txt'; 
     }
     let frontendVersion = 'Unknown';
     try {
