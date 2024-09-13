@@ -14,26 +14,26 @@
 	const library_path = data.settings.data.symlink.library_path;
 
 	interface AboutData {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[key: string]: any;
-	rclone_path: string;
-	library_path: string;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		[key: string]: any;
+		rclone_path: string;
+		library_path: string;
 	}
 
 	type SupportData = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[key: string]: any;
-	github: string;
-	discord: string;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		[key: string]: any;
+		github: string;
+		discord: string;
 	};
 
 	const aboutData: AboutData = {
-	rclone_path,
-	library_path
+		rclone_path,
+		library_path
 	};
 	const supportData: SupportData = {
-	discord: 'https://discord.gg/wDgVdH8vNM',
-	github: 'https://github.com/rivenmedia/riven'
+		discord: 'https://discord.gg/wDgVdH8vNM',
+		github: 'https://github.com/rivenmedia/riven'
 	};
 
 	let updateLoadingBackend = false;
@@ -41,40 +41,44 @@
 
 	// Function to check for backend updates
 	async function getLatestBackendVersion() {
-	updateLoadingBackend = true;
-	const data = await fetch('https://raw.githubusercontent.com/rivenmedia/riven/main/pyproject.toml');
-	if (data.status !== 200) {
-	toast.error('Failed to fetch latest backend version.');
-	updateLoadingBackend = false;
-	return;
-	}
-	const remoteVersion = (await data.text()).match(/version = "(.*?)"/)?.[1];
-	updateLoadingBackend = false;
+		updateLoadingBackend = true;
+		const data = await fetch(
+			'https://raw.githubusercontent.com/rivenmedia/riven/main/pyproject.toml'
+		);
+		if (data.status !== 200) {
+			toast.error('Failed to fetch latest backend version.');
+			updateLoadingBackend = false;
+			return;
+		}
+		const remoteVersion = (await data.text()).match(/version = "(.*?)"/)?.[1];
+		updateLoadingBackend = false;
 
-	if (remoteVersion !== version) {
-	toast.warning('A new backend version is available! Checkout the changelog on GitHub.');
-	} else {
-	toast.success('You are running the latest backend version.');
-	}
+		if (remoteVersion !== version) {
+			toast.warning('A new backend version is available! Checkout the changelog on GitHub.');
+		} else {
+			toast.success('You are running the latest backend version.');
+		}
 	}
 
 	// Function to check for frontend updates
 	async function getLatestFrontendVersion() {
-	updateLoadingFrontend = true;
-	const data = await fetch('https://raw.githubusercontent.com/rivenmedia/riven-frontend/main/version.txt');
-	if (data.status !== 200) {
-	toast.error('Failed to fetch latest frontend version.');
-	updateLoadingFrontend = false;
-	return;
-	}
-	const remoteVersion = await data.text();
-	updateLoadingFrontend = false;
+		updateLoadingFrontend = true;
+		const data = await fetch(
+			'https://raw.githubusercontent.com/rivenmedia/riven-frontend/main/version.txt'
+		);
+		if (data.status !== 200) {
+			toast.error('Failed to fetch latest frontend version.');
+			updateLoadingFrontend = false;
+			return;
+		}
+		const remoteVersion = await data.text();
+		updateLoadingFrontend = false;
 
-	if (remoteVersion.trim() !== frontendVersion) {
-	toast.warning('A new frontend version is available! Checkout the changelog on GitHub.');
-	} else {
-	toast.success('You are running the latest frontend version.');
-	}
+		if (remoteVersion.trim() !== frontendVersion) {
+			toast.warning('A new frontend version is available! Checkout the changelog on GitHub.');
+		} else {
+			toast.success('You are running the latest frontend version.');
+		}
 	}
 </script>
 
@@ -95,18 +99,17 @@
 					{version}
 				</p>
 				<Button
-					on:click={async () =>
-					{
-					await getLatestBackendVersion();
+					on:click={async () => {
+						await getLatestBackendVersion();
 					}}
 					disabled={updateLoadingBackend}
 					variant="outline"
 					size="sm"
-					>
+				>
 					{#if updateLoadingBackend}
-					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 					{:else}
-					<MoveUpRight class="mr-2 h-4 w-4" />
+						<MoveUpRight class="mr-2 h-4 w-4" />
 					{/if}
 					Check for Backend Updates
 				</Button>
@@ -119,35 +122,34 @@
 					{frontendVersion}
 				</p>
 				<Button
-					on:click={async () =>
-					{
-					await getLatestFrontendVersion();
+					on:click={async () => {
+						await getLatestFrontendVersion();
 					}}
 					disabled={updateLoadingFrontend}
 					variant="outline"
 					size="sm"
-					>
+				>
 					{#if updateLoadingFrontend}
-					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 					{:else}
-					<MoveUpRight class="mr-2 h-4 w-4" />
+						<MoveUpRight class="mr-2 h-4 w-4" />
 					{/if}
 					Check for Frontend Updates
 				</Button>
 			</div>
 		</div>
 		{#each Object.keys(aboutData) as key}
-		<Separator />
-		<div class="mb-2 flex flex-col items-start md:flex-row md:items-center">
-			<h3 class="w-48 min-w-48 text-sm">
-				{formatWords(key)}
-			</h3>
-			<div class="flex w-full">
-				<p class="break-words rounded-md bg-secondary p-2 text-sm">
-					{aboutData[key]}
-				</p>
+			<Separator />
+			<div class="mb-2 flex flex-col items-start md:flex-row md:items-center">
+				<h3 class="w-48 min-w-48 text-sm">
+					{formatWords(key)}
+				</h3>
+				<div class="flex w-full">
+					<p class="break-words rounded-md bg-secondary p-2 text-sm">
+						{aboutData[key]}
+					</p>
+				</div>
 			</div>
-		</div>
 		{/each}
 	</div>
 
@@ -157,22 +159,22 @@
 	</p>
 	<div class="my-8 flex w-full flex-col gap-4">
 		{#each Object.keys(supportData) as key}
-		<Separator />
-		<div class="mb-2 flex flex-col items-start md:flex-row md:items-center">
-			<h3 class="w-48 min-w-48 text-sm">
-				{formatWords(key)}
-			</h3>
-			<div class="flex w-full">
-				<a
-					target="_blank"
-					rel="noopener noreferrer"
-					href={supportData[key]}
-					class="break-words text-sm underline"
+			<Separator />
+			<div class="mb-2 flex flex-col items-start md:flex-row md:items-center">
+				<h3 class="w-48 min-w-48 text-sm">
+					{formatWords(key)}
+				</h3>
+				<div class="flex w-full">
+					<a
+						target="_blank"
+						rel="noopener noreferrer"
+						href={supportData[key]}
+						class="break-words text-sm underline"
 					>
-					{supportData[key]}
-				</a>
+						{supportData[key]}
+					</a>
+				</div>
 			</div>
-		</div>
 		{/each}
 	</div>
 
