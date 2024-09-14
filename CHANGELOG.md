@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/rivenmedia/riven-frontend/compare/v0.11.3...v0.12.0) (2024-09-14)
+
+
+### Features
+
+* add frontend version update check in about settings ([#97](https://github.com/rivenmedia/riven-frontend/issues/97)) ([e4197e6](https://github.com/rivenmedia/riven-frontend/commit/e4197e6644daf8a53358703f25c27b27393d4e25))
+
 ## [0.11.3](https://github.com/rivenmedia/riven-frontend/compare/v0.11.2...v0.11.3) (2024-09-12)
 
 
