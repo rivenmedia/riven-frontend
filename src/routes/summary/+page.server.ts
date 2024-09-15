@@ -39,7 +39,7 @@ export const load = (async ({ locals }) => {
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Symlinked').as('Symlinked'),
 			fn
 				.count<number>('_id')
-				.filterWhere('last_state', '=', 'Partially Completed')
+				.filterWhere('last_state', '=', 'PartiallyCompleted')
 				.as('PartiallyCompleted'),
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Unknown').as('Unknown')
 		])
