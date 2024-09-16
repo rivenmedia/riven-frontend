@@ -32,10 +32,6 @@ export const servicesObject: Record<string, string> = {
 	symlink: 'Symlink',
 	updater: 'Updater',
 	plexupdater: 'Plex Updater',
-	localupdater: 'Local Updater',
-	realdebrid: 'Real Debrid',
-	torbox_downloader: 'Torbox Downloader',
-	alldebrid: 'All Debrid',
 	post_processing: 'Post Processing',
 	subliminal: 'Subliminal'
 };
@@ -48,7 +44,7 @@ export const coreServices = [
 	'post_processing',
 	'subliminal'
 ];
-export const downloaderServices = ['realdebrid', 'torbox', 'torbox_downloader', 'alldebrid'];
+export const downloaderServices = ['torbox'];
 export const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listrr', 'trakt'];
 export const scrapingServices = [
 	'torrentio',

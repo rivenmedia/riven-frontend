@@ -110,6 +110,10 @@
 	];
 </script>
 
+<svelte:head>
+	<title>Summary | Riven</title>
+</svelte:head>
+
 <Header />
 
 <div class="mt-32 flex w-full flex-col p-8 md:px-24 lg:px-32">
