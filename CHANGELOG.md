@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/rivenmedia/riven-frontend/compare/v0.12.0...v0.12.1) (2024-09-16)
+
+
+### Bug Fixes
+
+* pull latest db schema and remove some services ([2479ea1](https://github.com/rivenmedia/riven-frontend/commit/2479ea1496ded9c4014a1c27128e998cc00fafde))
+* wrong partially completed state used for fetching data ([#99](https://github.com/rivenmedia/riven-frontend/issues/99)) ([5eac722](https://github.com/rivenmedia/riven-frontend/commit/5eac722892932ad5cbb2f695751f5d7176afa43b))
+
 ## [0.12.0](https://github.com/rivenmedia/riven-frontend/compare/v0.11.3...v0.12.0) (2024-09-14)
 
 
