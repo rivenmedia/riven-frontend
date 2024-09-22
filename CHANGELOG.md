@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/rivenmedia/riven-frontend/compare/v0.12.1...v0.13.0) (2024-09-22)
+
+
+### Features
+
+* add discord release yml ([2801328](https://github.com/rivenmedia/riven-frontend/commit/28013285eb57d00b5da824b349d0b27c798796a9))
+
 ## [0.12.1](https://github.com/rivenmedia/riven-frontend/compare/v0.12.0...v0.12.1) (2024-09-16)
 
 
