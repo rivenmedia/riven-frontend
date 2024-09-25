@@ -10,7 +10,9 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard
+		Clipboard,
+		Magnet,
+		LoaderCircle
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -24,10 +26,13 @@
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import ItemRequest from '$lib/components/item-request.svelte';
+	import { Input } from '$lib/components/ui/input';
 
 	export let data: PageData;
 
 	let productionCompanies = 4;
+	let magnetLink = '';
+	let magnetLoading = false;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -81,6 +86,23 @@
 			month: 'long',
 			day: 'numeric'
 		});
+	}
+
+	async function addMagnetLink(_id: number, magnet: string) {
+		magnetLoading = true;
+		const response = await fetch(`/api/media/${_id}/magnet`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ magnet })
+		});
+		magnetLoading = false;
+		if (!response.ok) {
+			toast.error('An error occurred while adding the magnet link');
+			return;
+		}
+		toast.success('Magnet link added successfully');
 	}
 </script>
 
@@ -179,7 +201,7 @@
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if data.db}
-							<Sheet.Root>
+							<Sheet.Root open={true}>
 								<Sheet.Trigger asChild let:builder>
 									<Button
 										builders={[builder]}
@@ -206,6 +228,36 @@
 											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
 										{/if}
 										<p>Symlinked: {data.db.symlinked}</p>
+
+										<Input
+											bind:value={magnetLink}
+											class="mt-2"
+											placeholder="Paste in the magnet link"
+										/>
+
+										<Tooltip.Root>
+											<Tooltip.Trigger class="mb-2">
+												<Button
+													class="flex w-full items-center gap-1"
+													disabled={!magnetLink || magnetLoading}
+													on:click={async () => {
+														if (data.db && magnetLink) {
+															await addMagnetLink(data.db._id, magnetLink);
+														}
+													}}
+												>
+													{#if magnetLoading}
+														<LoaderCircle class="size-4 animate-spin" />
+													{:else}
+														<Magnet class="size-4" />
+													{/if}
+													<span>Add magnet</span>
+												</Button>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p>Replaces the current torrent with the magnet link</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
 
 										<Tooltip.Root>
 											<Tooltip.Trigger>
