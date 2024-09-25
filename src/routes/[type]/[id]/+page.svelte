@@ -201,7 +201,7 @@
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if data.db}
-							<Sheet.Root open={true}>
+							<Sheet.Root>
 								<Sheet.Trigger asChild let:builder>
 									<Button
 										builders={[builder]}
