@@ -254,7 +254,7 @@
 													{:else}
 														<Magnet class="size-4" />
 													{/if}
-													<span>Add magnet</span>
+													<span>Replace torrent</span>
 												</Button>
 											</Tooltip.Trigger>
 											<Tooltip.Content>
