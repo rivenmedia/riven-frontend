@@ -37,6 +37,8 @@ export const load = (async ({ locals }) => {
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Scraped').as('Scraped'),
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Downloaded').as('Downloaded'),
 			fn.count<number>('_id').filterWhere('last_state', '=', 'Symlinked').as('Symlinked'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Unreleased').as('Unreleased'),
+			fn.count<number>('_id').filterWhere('last_state', '=', 'Ongoing').as('Ongoing'),
 			fn
 				.count<number>('_id')
 				.filterWhere('last_state', '=', 'PartiallyCompleted')
