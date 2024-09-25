@@ -228,6 +228,9 @@
 											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
 										{/if}
 										<p>Symlinked: {data.db.symlinked}</p>
+										{#if data.db.folder}
+											<p>Folder: {data.db.folder}</p>
+										{/if}
 
 										<Input
 											bind:value={magnetLink}
