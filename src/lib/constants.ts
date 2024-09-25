@@ -9,7 +9,7 @@ export const statesName: Record<string, string> = {
 	PartiallyCompleted: 'Partially Completed',
 	Failed: 'Failed',
 	Ongoing: 'Ongoing',
-	Unreleased: 'Unreleased',
+	Unreleased: 'Unreleased'
 };
 
 export const servicesObject: Record<string, string> = {
