@@ -27,12 +27,18 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import ItemRequest from '$lib/components/item-request.svelte';
 	import { Input } from '$lib/components/ui/input';
+	import * as Select from '$lib/components/ui/select';
+	import { Item } from '$lib/components/ui/accordion';
+	import type { Selected } from 'bits-ui';
 
 	export let data: PageData;
 
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
+	let isShow = data.db ? data.db.type === 'show' : false;
+	let selectedMagnetId: Selected<string>;
+	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetId : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -90,7 +96,8 @@
 
 	async function addMagnetLink(_id: number, magnet: string) {
 		magnetLoading = true;
-		const response = await fetch(`/api/media/${_id}/magnet`, {
+		const id = isShow ? selectedMagnetId.value : _id;
+		const response = await fetch(`/api/media/${id}/magnet`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -99,7 +106,7 @@
 		});
 		magnetLoading = false;
 		if (!response.ok) {
-			toast.error('An error occurred while adding the magnet link');
+			toast.error((await response.json()).error ?? 'Unknown error');
 			return;
 		}
 		toast.success('Magnet link added successfully');
@@ -201,7 +208,7 @@
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if data.db}
-							<Sheet.Root>
+							<Sheet.Root open={true}>
 								<Sheet.Trigger asChild let:builder>
 									<Button
 										builders={[builder]}
@@ -232,17 +239,39 @@
 											<p>Folder: {data.db.folder}</p>
 										{/if}
 
-										<Input
-											bind:value={magnetLink}
-											class="mt-2"
-											placeholder="Paste in the magnet link"
-										/>
+										<div class="mt-1"></div>
+
+										{#if isShow}
+											<Select.Root portal={null} bind:selected={selectedMagnetId}>
+												<Select.Trigger>
+													<Select.Value placeholder="Select a season/episode" />
+												</Select.Trigger>
+												<Select.Content class="max-h-[600px] sm:max-h-[300px] overflow-y-scroll">
+													<Select.Group>
+														{#each data.db.seasons as season}
+															<Select.Label>Season {season.number}</Select.Label>
+															<Select.Item value={season._id}>
+																All episodes in season {season.number}
+															</Select.Item>
+															{#each season.episodes as episode}
+																<Select.Item value={episode._id}>
+																	S{season.number.toString().padStart(2, '0')}E{episode.number.toString().padStart(2, '0')} {episode.title}
+																</Select.Item>
+															{/each}
+														{/each}
+													</Select.Group>
+												</Select.Content>
+												<Select.Input name="favoriteFruit" />
+											</Select.Root>
+										{/if}
+
+										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
 
 										<Tooltip.Root>
 											<Tooltip.Trigger class="mb-2">
 												<Button
 													class="flex w-full items-center gap-1"
-													disabled={!magnetLink || magnetLoading}
+													disabled={!buttonEnabled}
 													on:click={async () => {
 														if (data.db && magnetLink) {
 															await addMagnetLink(data.db._id, magnetLink);
