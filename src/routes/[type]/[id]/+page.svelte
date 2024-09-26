@@ -13,6 +13,8 @@
 		CirclePower,
 		Clipboard,
 		Magnet,
+		LoaderCircle,
+		Magnet,
 		LoaderCircle
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
