@@ -7,7 +7,9 @@ export const statesName: Record<string, string> = {
 	Symlinked: 'Symlinked',
 	Completed: 'Completed',
 	PartiallyCompleted: 'Partially Completed',
-	Failed: 'Failed'
+	Failed: 'Failed',
+	Ongoing: 'Ongoing',
+	Unreleased: 'Unreleased'
 };
 
 export const servicesObject: Record<string, string> = {

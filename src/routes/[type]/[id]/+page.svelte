@@ -10,7 +10,9 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard
+		Clipboard,
+		Magnet,
+		LoaderCircle
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -24,10 +26,18 @@
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import ItemRequest from '$lib/components/item-request.svelte';
+	import { Input } from '$lib/components/ui/input';
+	import * as Select from '$lib/components/ui/select';
+	import type { Selected } from 'bits-ui';
 
 	export let data: PageData;
 
 	let productionCompanies = 4;
+	let magnetLink = '';
+	let magnetLoading = false;
+	let isShow = data.db ? data.db.type === 'show' : false;
+	let selectedMagnetItem: Selected<{ _id: number; file?: string; folder?: string }>;
+	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -81,6 +91,33 @@
 			month: 'long',
 			day: 'numeric'
 		});
+	}
+
+	async function addMagnetLink(_id: number, magnet: string) {
+		if (!magnet) {
+			toast.error('Magnet link cannot be empty');
+			return;
+		}
+		if (isShow && !selectedMagnetItem) {
+			toast.error('Select a season/episode');
+			return;
+		}
+		if (magnetLoading) return;
+		magnetLoading = true;
+		const id = isShow ? selectedMagnetItem.value._id : _id;
+		const response = await fetch(`/api/media/${id}/magnet`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ magnet })
+		});
+		magnetLoading = false;
+		if (!response.ok) {
+			toast.error((await response.json()).error ?? 'Unknown error');
+			return;
+		}
+		toast.success('Magnet link added successfully');
 	}
 </script>
 
@@ -206,6 +243,69 @@
 											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
 										{/if}
 										<p>Symlinked: {data.db.symlinked}</p>
+										{#if data.db.folder}
+											<p>Folder: {data.db.folder}</p>
+										{/if}
+										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
+											<p>Selected item file: {selectedMagnetItem.value.file}</p>
+										{:else if isShow && selectedMagnetItem && selectedMagnetItem.value.folder}
+											<p>Selected item folder: {selectedMagnetItem.value.folder}</p>
+										{/if}
+
+										<div class="mt-1"></div>
+
+										{#if isShow}
+											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
+												<Select.Trigger>
+													<Select.Value placeholder="Select a season/episode" />
+												</Select.Trigger>
+												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
+													<Select.Group>
+														{#each data.db.seasons as season}
+															<Select.Label>Season {season.number}</Select.Label>
+															<Select.Item value={season}>
+																All episodes in season {season.number}
+															</Select.Item>
+															{#each season.episodes as episode}
+																<Select.Item value={episode}>
+																	S{season.number.toString().padStart(2, '0')}E{episode.number
+																		.toString()
+																		.padStart(2, '0')}
+																	{episode.title}
+																</Select.Item>
+															{/each}
+														{/each}
+													</Select.Group>
+												</Select.Content>
+												<Select.Input name="favoriteFruit" />
+											</Select.Root>
+										{/if}
+
+										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
+
+										<Tooltip.Root>
+											<Tooltip.Trigger class="mb-2">
+												<Button
+													class="flex w-full items-center gap-1"
+													disabled={!buttonEnabled}
+													on:click={async () => {
+														if (data.db && magnetLink) {
+															await addMagnetLink(data.db._id, magnetLink);
+														}
+													}}
+												>
+													{#if magnetLoading}
+														<LoaderCircle class="size-4 animate-spin" />
+													{:else}
+														<Magnet class="size-4" />
+													{/if}
+													<span>Replace torrent</span>
+												</Button>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p>Replaces the current torrent with the magnet link</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
 
 										<Tooltip.Root>
 											<Tooltip.Trigger>
