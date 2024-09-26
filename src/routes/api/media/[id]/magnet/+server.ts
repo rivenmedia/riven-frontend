@@ -26,8 +26,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 			method: 'POST'
 		});
 
+		const data = await response.json();
 		if (response.ok) {
-			const data = await response.json();
 			return new Response(
 				JSON.stringify({
 					success: 'Magnet link added',
@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		} else {
 			return new Response(
 				JSON.stringify({
-					error: 'Failed to add magnet l ink'
+					error: data.detail
 				}),
 				{
 					status: 500,
@@ -56,7 +56,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 	} catch {
 		return new Response(
 			JSON.stringify({
-				error: 'Failed to reset media item'
+				error: 'Failed to reach backend'
 			}),
 			{
 				status: 500,
