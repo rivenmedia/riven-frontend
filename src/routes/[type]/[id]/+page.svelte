@@ -28,7 +28,6 @@
 	import ItemRequest from '$lib/components/item-request.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
-	import { Item } from '$lib/components/ui/accordion';
 	import type { Selected } from 'bits-ui';
 
 	export let data: PageData;
@@ -37,7 +36,7 @@
 	let magnetLink = '';
 	let magnetLoading = false;
 	let isShow = data.db ? data.db.type === 'show' : false;
-	let selectedMagnetItem: Selected<{ _id: number; file?: string, folder?: string }>;
+	let selectedMagnetItem: Selected<{ _id: number; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
