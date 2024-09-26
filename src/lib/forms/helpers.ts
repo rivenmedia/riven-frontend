@@ -28,13 +28,13 @@ export const generalSettingsSchema = z.object({
 	realdebrid_enabled: z.boolean().default(false),
 	realdebrid_api_key: z.string().optional().default(''),
 	realdebrid_proxy_enabled: z.boolean().default(false),
-	realdebrid_proxy_url: z.string().optional().default(''),
+	realdebrid_proxy_url: z.string().url().optional().default(''),
 	torbox_enabled: z.boolean().default(false),
 	torbox_api_key: z.string().optional().default(''),
 	alldebrid_enabled: z.boolean().default(false),
 	alldebrid_api_key: z.string().optional().default(''),
 	alldebrid_proxy_enabled: z.boolean().default(false),
-	alldebrid_proxy_url: z.string().optional().default(''),
+	alldebrid_proxy_url: z.string().url().optional().default(''),
 	database_host: z
 		.string()
 		.optional()
@@ -201,7 +201,7 @@ export const mediaServerSettingsSchema = z.object({
 	update_interval: z.coerce.number().gte(0).int().optional().default(120),
 	plex_enabled: z.boolean().default(false),
 	plex_token: z.string().optional().default(''),
-	plex_url: z.string().optional().default('')
+	plex_url: z.string().url().optional().default('')
 });
 export type MediaServerSettingsSchema = typeof mediaServerSettingsSchema;
 
@@ -240,7 +240,7 @@ export const scrapersSettingsSchema = z.object({
 	after_5: z.coerce.number().gte(0).int().default(2),
 	after_10: z.coerce.number().gte(0).int().default(24),
 	torrentio_enabled: z.boolean().default(false),
-	torrentio_url: z.string().optional().default('https://torrentio.strem.fun'),
+	torrentio_url: z.string().url().optional().default('https://torrentio.strem.fun'),
 	torrentio_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	torrentio_ratelimit: z.boolean().default(true),
 	torrentio_filter: z
@@ -248,7 +248,7 @@ export const scrapersSettingsSchema = z.object({
 		.optional()
 		.default('sort=qualitysize%7Cqualityfilter=480p,scr,cam,unknown'),
 	knightcrawler_enabled: z.boolean().default(false),
-	knightcrawler_url: z.string().optional().default('https://knightcrawler.elfhosted.com/'),
+	knightcrawler_url: z.string().url().optional().default('https://knightcrawler.elfhosted.com/'),
 	knightcrawler_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	knightcrawler_ratelimit: z.boolean().default(true),
 	knightcrawler_filter: z
@@ -256,7 +256,7 @@ export const scrapersSettingsSchema = z.object({
 		.optional()
 		.default('sort=qualitysize%7Cqualityfilter=480p,scr,cam,unknown'),
 	annatar_enabled: z.boolean().default(false),
-	annatar_url: z.string().optional().default('https://annatar.elfhosted.com'),
+	annatar_url: z.string().url().optional().default('https://annatar.elfhosted.com'),
 	annatar_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	annatar_ratelimit: z.boolean().default(true),
 	annatar_limit: z.coerce.number().gte(0).int().optional().default(2000),
@@ -266,17 +266,17 @@ export const scrapersSettingsSchema = z.object({
 	orionoid_ratelimit: z.boolean().default(true),
 	orionoid_limitcount: z.coerce.number().gte(0).int().optional().default(5),
 	jackett_enabled: z.boolean().default(false),
-	jackett_url: z.string().optional().default('http://localhost:9117'),
+	jackett_url: z.string().url().optional().default('http://localhost:9117'),
 	jackett_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	jackett_ratelimit: z.boolean().default(true),
 	jackett_api_key: z.string().optional().default(''),
 	mediafusion_enabled: z.boolean().default(false),
-	mediafusion_url: z.string().optional().default('https://mediafusion.elfhosted.com'),
+	mediafusion_url: z.string().url().optional().default('https://mediafusion.elfhosted.com'),
 	mediafusion_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	mediafusion_ratelimit: z.boolean().default(true),
 	mediafusion_catalogs: z.array(z.string()).optional().default([]),
 	prowlarr_enabled: z.boolean().default(false),
-	prowlarr_url: z.string().optional().default('http://localhost:9696'),
+	prowlarr_url: z.string().url().optional().default('http://localhost:9696'),
 	prowlarr_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	prowlarr_ratelimit: z.boolean().default(true),
 	prowlarr_limiter_seconds: z.coerce.number().gte(0).int().optional().default(60),
@@ -285,11 +285,11 @@ export const scrapersSettingsSchema = z.object({
 	torbox_scraper_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	torbox_scraper_ratelimit: z.boolean().default(true),
 	zilean_enabled: z.boolean().default(false),
-	zilean_url: z.string().optional().default('http://localhost:8181'),
+	zilean_url: z.string().url().optional().default('http://localhost:8181'),
 	zilean_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	zilean_ratelimit: z.boolean().default(true),
 	comet_enabled: z.boolean().default(false),
-	comet_url: z.string().optional().default('http://localhost:8000'),
+	comet_url: z.string().url().optional().default('http://localhost:8000'),
 	comet_indexers: z.array(z.string()).optional().default([]),
 	comet_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	comet_ratelimit: z.boolean().default(true)
@@ -440,7 +440,7 @@ export const contentSettingsToGet: string[] = ['content'];
 
 export const contentSettingsSchema = z.object({
 	overseerr_enabled: z.boolean().default(false),
-	overseerr_url: z.string().optional().default(''),
+	overseerr_url: z.string().url().optional().default(''),
 	overseerr_api_key: z.string().optional().default(''),
 	overseerr_update_interval: z.coerce.number().gte(0).int().optional().default(30),
 	overseerr_use_webhook: z.boolean().optional().default(false),
