@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { statesName } from '$lib/constants';
 
 export const load = (async ({ locals }) => {
 	const statistics = await locals.db
