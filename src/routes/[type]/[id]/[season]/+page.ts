@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import { getTVSeasonDetails, getTVDetails } from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
 
-export const load = (async ({ fetch, params }) => {
+export const load = (async ({ data, fetch, params }) => {
 	const type = params.type;
 	const id = Number(params.id);
 	const season = Number(params.season);
@@ -25,6 +25,7 @@ export const load = (async ({ fetch, params }) => {
 		mediaDetails: await mediaDetails(id),
 		mediaType: type,
 		mediaID: id,
-		seasonNumber: season
+		seasonNumber: season,
+		...data
 	};
 }) satisfies PageLoad;
