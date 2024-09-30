@@ -4,6 +4,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { env } from '$env/dynamic/private';
 const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 import { db } from '$lib/server/db';
+import { client } from './client/services.gen';
 
 const setLocals: Handle = async ({ event, resolve }) => {
 	event.locals.BACKEND_URL = BACKEND_URL;
@@ -28,5 +29,16 @@ const onboarding: Handle = async ({ event, resolve }) => {
 
 	return resolve(event);
 };
+
+client.setConfig({
+	baseUrl: BACKEND_URL
+})
+
+client.interceptors.error.use((error) => {
+	if (error && typeof error == 'object' && 'detail' in error && typeof error.detail == 'string') {
+		return error.detail;
+	}
+	return undefined;
+});
 
 export const handle = sequence(setLocals, onboarding);
