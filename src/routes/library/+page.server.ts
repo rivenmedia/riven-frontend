@@ -1,70 +1,39 @@
 import type { PageServerLoad } from './$types';
-import type { Expression, SqlBool } from 'kysely';
-import Fuse from 'fuse.js';
+import { ItemsService, type ItemsResponse } from '$/client';
+import { error } from '@sveltejs/kit';
 
-const fuseOptions = {
-	keys: ['_id', 'item_id', 'title'],
-	threshold: 0.8
-};
+export const load = (async ({ url }) => {
 
-export const load = (async ({ url, locals }) => {
-	const limit = Number(url.searchParams.get('limit')) || 24;
-	const page = Number(url.searchParams.get('page')) || 1;
-	const types = url.searchParams.get('types');
-	const query = url.searchParams.get('query');
-	const states = url.searchParams.get('states');
+	async function getLibraryApi(): Promise<ItemsResponse> {
+		const limit = Number(url.searchParams.get('limit')) || 24;
+		const page = Number(url.searchParams.get('page')) || 1;
+		const types = url.searchParams.get('types');
+		const query = url.searchParams.get('query');
+		const states = url.searchParams.get('states');
 
-	let dbQuery = locals.db.selectFrom('MediaItem').selectAll();
+		const { data, error: itemsError } = await ItemsService.getItems({
+			query: {
+				limit,
+				page,
+				states,
+				type: types ?? "movie,show",
+				search: query,
+				sort: "date_desc"
+			}
+		})
 
-	async function getLibrary() {
-		if (types) {
-			const typesArray = types.split(',');
-
-			dbQuery = dbQuery.where((eb) => {
-				const ors: Expression<SqlBool>[] = [];
-				typesArray.forEach((type) => {
-					if (type === 'anime') {
-						ors.push(
-							eb('is_anime', '=', true).and(eb('type', '=', 'show').or(eb('type', '=', 'movie')))
-						);
-					} else {
-						ors.push(eb('type', '=', type));
-					}
-				});
-
-				return eb.or(ors);
-			});
+		if (data) {
+			return data;
 		} else {
-			dbQuery = dbQuery.where((eb) => eb.or([eb('type', '=', 'movie'), eb('type', '=', 'show')]));
+			console.log(itemsError)
+			throw error(500, "Couldn't reach backend to get library items");
 		}
-
-		if (states) {
-			const statesArray = states.split(',');
-			dbQuery = dbQuery.where((eb) => {
-				const ors: Expression<SqlBool>[] = [];
-				statesArray.forEach((state) => {
-					ors.push(eb('last_state', '=', state));
-				});
-
-				return eb.or(ors);
-			});
-		}
-
-		if (query && query.length > 0) {
-			dbQuery = dbQuery.orderBy('requested_at', 'desc');
-			const fuse = new Fuse(await dbQuery.execute(), fuseOptions);
-			return fuse.search(query).map((result) => result.item);
-		}
-
-		dbQuery = dbQuery.orderBy('requested_at', 'desc');
-
-		return await dbQuery.execute();
 	}
 
-	const library = await getLibrary();
+	const { items, total_items } = await getLibraryApi();
 
 	return {
-		library: library.slice((page - 1) * limit, page * limit),
-		total: library.length
+		library: items,
+		total: total_items
 	};
 }) satisfies PageServerLoad;
