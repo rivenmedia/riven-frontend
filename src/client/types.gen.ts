@@ -164,13 +164,6 @@ export type IndexerModel = {
     update_interval?: number;
 };
 
-export type ItemResponse = {
-    success: boolean;
-    item: {
-        [key: string]: unknown;
-    };
-};
-
 export type ItemsByImdbResponse = {
     success: boolean;
     items: Array<{
@@ -949,9 +942,14 @@ export type GetItemData = {
     path: {
         id: number;
     };
+    query?: {
+        use_tmdb_id?: (boolean | null);
+    };
 };
 
-export type GetItemResponse = (ItemResponse);
+export type GetItemResponse = ({
+    [key: string]: unknown;
+});
 
 export type GetItemError = (unknown | HTTPValidationError);
 

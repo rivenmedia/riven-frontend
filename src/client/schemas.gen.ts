@@ -1155,22 +1155,6 @@ export const IndexerModelSchema = {
     title: 'IndexerModel'
 } as const;
 
-export const ItemResponseSchema = {
-    properties: {
-        success: {
-            type: 'boolean',
-            title: 'Success'
-        },
-        item: {
-            type: 'object',
-            title: 'Item'
-        }
-    },
-    type: 'object',
-    required: ['success', 'item'],
-    title: 'ItemResponse'
-} as const;
-
 export const ItemsByImdbResponseSchema = {
     properties: {
         success: {

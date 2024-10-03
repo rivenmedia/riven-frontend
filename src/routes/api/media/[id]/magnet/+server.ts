@@ -1,3 +1,4 @@
+import { ItemsService, ScrapeService } from'$/client';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, locals, request }) => {
@@ -22,16 +23,20 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 	url.searchParams.set('magnet', magnet);
 
 	try {
-		const response = await fetch(url, {
-			method: 'POST'
+		const {data, error} = await ItemsService.setTorrentRdMagnet({
+			path: {
+				id: parseInt(id)
+			},
+			query: {
+				magnet: magnet,
+			}
 		});
 
-		const data = await response.json();
-		if (response.ok) {
+		if (data) {
 			return new Response(
 				JSON.stringify({
 					success: 'Magnet link added',
-					data
+					data: data
 				}),
 				{
 					status: 200,
@@ -40,10 +45,10 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 					}
 				}
 			);
-		} else {
+		} else if (error) {
 			return new Response(
 				JSON.stringify({
-					error: data.detail
+					error: error
 				}),
 				{
 					status: 500,

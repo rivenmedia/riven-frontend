@@ -1,3 +1,4 @@
+import { ItemsService } from '$/client';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {
@@ -34,7 +35,24 @@ export const load = (async ({ params, locals }) => {
 		}
 	}
 
+	const {data} = await ItemsService.getItem({
+		path: {
+			id: id
+		},
+		query: {
+			use_tmdb_id: true
+		}
+	})
+
+	if(data) {
+		data.requested_at = new Date(data.requested_at as string)
+	}
+
+	console.log(dbData, data);
+
 	return {
-		db: dbData
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		db: data as any,
+		data
 	};
 }) satisfies PageServerLoad;
