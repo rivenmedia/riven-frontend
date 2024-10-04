@@ -12,7 +12,7 @@ export const load: PageServerLoad = async () => {
 			path: {
 				paths: toGet.join(',')
 			}
-		})
+		});
 		if (apiError) {
 			error(503, 'Unable to fetch settings data. API is down.');
 		}

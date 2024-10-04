@@ -1,7 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { error } from '@sveltejs/kit';
 import {
 	mediaServerSettingsSchema,
 	mediaServerSettingsToGet,
@@ -14,7 +13,7 @@ export const load: PageServerLoad = async () => {
 		path: {
 			paths: mediaServerSettingsToGet.join(',')
 		}
-	})
+	});
 	const toPassToSchema = mediaServerSettingsToPass(data);
 
 	return {

@@ -15,7 +15,7 @@
 			query: {
 				imdb_ids: externalIds.imdb_id
 			}
-		})
+		});
 
 		if (!response.error) {
 			toast.success('Media requested successfully');

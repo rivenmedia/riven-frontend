@@ -15,7 +15,7 @@ const setLocals: Handle = async ({ event, resolve }) => {
 
 const onboarding: Handle = async ({ event, resolve }) => {
 	if (!event.url.pathname.startsWith('/onboarding') && event.request.method === 'GET') {
-		const {data, error: apiError} = await DefaultService.services();
+		const { data, error: apiError } = await DefaultService.services();
 		if (apiError || !data) {
 			return error(500, 'API Error');
 		}

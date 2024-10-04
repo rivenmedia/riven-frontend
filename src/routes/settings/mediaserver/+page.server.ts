@@ -12,8 +12,7 @@ import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.serv
 import { SettingsService } from '$/client';
 
 export const load: PageServerLoad = async () => {
-
-	const {data} = await SettingsService.getSettings({
+	const { data } = await SettingsService.getSettings({
 		path: {
 			paths: mediaServerSettingsToGet.join(',')
 		}

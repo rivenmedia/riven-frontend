@@ -39,7 +39,10 @@
 		}
 	];
 
-	function sortServices(services: string[], data?: Record<string, boolean>): Record<string, boolean> {
+	function sortServices(
+		services: string[],
+		data?: Record<string, boolean>
+	): Record<string, boolean> {
 		if (!data) {
 			const sortedData = {} as Record<string, boolean>;
 			services.forEach((service) => {

@@ -4,15 +4,14 @@ import { SettingsService } from '$/client';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function setSettings(toSet: any) {
 	const settings = await SettingsService.setSettings({
-		body:
-			toSet
+		body: toSet
 	});
 	return settings.data;
 }
 
 export async function saveSettings() {
 	const response = await SettingsService.saveSettings();
-	return response.data
+	return response.data;
 }
 
 export async function loadSettings() {
