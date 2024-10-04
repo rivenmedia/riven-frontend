@@ -1,7 +1,7 @@
 import { DefaultService } from "$/client"
+import type { PageLoad } from "./$types"
 
-export const load = async () => {
-  console.log("Loading summary page")
+export const load: PageLoad = async () => {
   return {
     stats: (await DefaultService.stats()).data,
     services: (await DefaultService.services()).data
