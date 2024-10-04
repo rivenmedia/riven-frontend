@@ -5,11 +5,70 @@ export type AddItemsResponse = {
     message: string;
 };
 
+export type AllDebridModel = {
+    enabled?: boolean;
+    api_key?: string;
+    proxy_enabled?: boolean;
+    proxy_url?: string;
+};
+
+export type AnnatarConfig = {
+    enabled?: boolean;
+    url?: string;
+    limit?: number;
+    timeout?: number;
+    ratelimit?: boolean;
+};
+
+export type AppModel = {
+    version?: string;
+    debug?: boolean;
+    log?: boolean;
+    force_refresh?: boolean;
+    map_metadata?: boolean;
+    tracemalloc?: boolean;
+    symlink?: SymlinkModel;
+    updaters?: UpdatersModel;
+    downloaders?: DownloadersModel;
+    content?: ContentModel;
+    scraping?: ScraperModel;
+    ranking?: RTNSettingsModel;
+    indexer?: IndexerModel;
+    database?: DatabaseModel;
+    notifications?: NotificationsModel;
+    post_processing?: PostProcessing;
+};
+
 export type BelongsToCollection = {
     id: number;
     name: string;
     poster_path: (string | null);
     backdrop_path: (string | null);
+};
+
+export type CometConfig = {
+    enabled?: boolean;
+    url?: string;
+    indexers?: Array<(string)>;
+    timeout?: number;
+    ratelimit?: boolean;
+};
+
+export type ContentModel = {
+    overseerr?: OverseerrModel;
+    plex_watchlist?: PlexWatchlistModel;
+    mdblist?: MdblistModel;
+    listrr?: ListrrModel;
+    trakt?: TraktModel;
+};
+
+/**
+ * Custom Ranks used in SettingsModel.
+ */
+export type CustomRank = {
+    fetch?: boolean;
+    use_custom_rank?: boolean;
+    rank?: number;
 };
 
 export type DataAndSuccessResponse_RDUser_ = {
@@ -31,9 +90,27 @@ export type DataAndSuccessResponse_dict_str__str__ = {
     success: boolean;
 };
 
+export type DatabaseModel = {
+    host?: string;
+};
+
 export type Dates = {
     maximum: string;
     minimum: string;
+};
+
+export type DownloadersModel = {
+    video_extensions?: Array<(string)>;
+    prefer_speed_over_quality?: boolean;
+    real_debrid?: RealDebridModel;
+    all_debrid?: AllDebridModel;
+    torbox?: TorboxModel;
+};
+
+export type EmbyLibraryModel = {
+    enabled?: boolean;
+    api_key?: string;
+    url?: string;
 };
 
 export type EventUpdate = {
@@ -59,6 +136,10 @@ export type HTTPValidationError = {
 
 export type IncludeAdult = 'true' | 'false';
 
+export type IndexerModel = {
+    update_interval?: number;
+};
+
 export type ItemsByImdbResponse = {
     success: boolean;
     items: Array<{
@@ -77,9 +158,54 @@ export type ItemsResponse = {
     total_pages: number;
 };
 
+export type JackettConfig = {
+    enabled?: boolean;
+    url?: string;
+    api_key?: string;
+    timeout?: number;
+    ratelimit?: boolean;
+};
+
+export type JellyfinLibraryModel = {
+    enabled?: boolean;
+    api_key?: string;
+    url?: string;
+};
+
+export type KnightcrawlerConfig = {
+    enabled?: boolean;
+    filter?: string;
+    url?: string;
+    timeout?: number;
+    ratelimit?: boolean;
+};
+
+export type ListrrModel = {
+    update_interval?: number;
+    enabled?: boolean;
+    movie_lists?: Array<(string)>;
+    show_lists?: Array<(string)>;
+    api_key?: string;
+};
+
 export type LogsResponse = {
     success: boolean;
     logs: string;
+};
+
+export type MdblistModel = {
+    update_interval?: number;
+    enabled?: boolean;
+    api_key?: string;
+    lists?: Array<(string | number)>;
+};
+
+export type MediafusionConfig = {
+    enabled?: boolean;
+    url?: string;
+    timeout?: number;
+    ratelimit?: boolean;
+    catalogs?: Array<(string)>;
 };
 
 export type MessageAndSuccessResponse = {
@@ -98,6 +224,51 @@ export type Network = {
     origin_country: string;
 };
 
+export type NotificationsModel = {
+    enabled?: boolean;
+    title?: string;
+    on_item_type?: Array<(string)>;
+    service_urls?: Array<(string)>;
+};
+
+export type OrionoidConfig = {
+    enabled?: boolean;
+    api_key?: string;
+    cached_results_only?: boolean;
+    parameters?: {
+        [key: string]: unknown;
+    };
+    timeout?: number;
+    /**
+     * @deprecated
+     */
+    ratelimit?: boolean;
+};
+
+export type OverseerrModel = {
+    update_interval?: number;
+    enabled?: boolean;
+    url?: string;
+    api_key?: string;
+    use_webhook?: boolean;
+};
+
+export type PlexLibraryModel = {
+    enabled?: boolean;
+    token?: string;
+    url?: string;
+};
+
+export type PlexWatchlistModel = {
+    update_interval?: number;
+    enabled?: boolean;
+    rss?: Array<(string)>;
+};
+
+export type PostProcessing = {
+    subliminal?: SubliminalConfig;
+};
+
 export type ProductionCompany = {
     id: number;
     logo_path: (string | null);
@@ -108,6 +279,15 @@ export type ProductionCompany = {
 export type ProductionCountry = {
     iso_3166_1: string;
     name: string;
+};
+
+export type ProwlarrConfig = {
+    enabled?: boolean;
+    url?: string;
+    api_key?: string;
+    timeout?: number;
+    ratelimit?: boolean;
+    limiter_seconds?: number;
 };
 
 export type RDTorrent = {
@@ -147,6 +327,34 @@ export type RDUser = {
 
 export type type = 'free' | 'premium';
 
+export type RTNSettingsModel = {
+    profile?: string;
+    require?: Array<(string)>;
+    exclude?: Array<(string)>;
+    preferred?: Array<(string)>;
+    resolutions?: {
+        [key: string]: (boolean);
+    };
+    options?: {
+        [key: string]: unknown;
+    };
+    languages?: {
+        [key: string]: unknown;
+    };
+    custom_ranks?: {
+        [key: string]: {
+            [key: string]: CustomRank;
+        };
+    };
+};
+
+export type RealDebridModel = {
+    enabled?: boolean;
+    api_key?: string;
+    proxy_enabled?: boolean;
+    proxy_url?: string;
+};
+
 export type RemoveResponse = {
     success: boolean;
     message: string;
@@ -180,6 +388,24 @@ export type ScrapedTorrent = {
     rank: number;
     raw_title: string;
     infohash: string;
+};
+
+export type ScraperModel = {
+    after_2?: number;
+    after_5?: number;
+    after_10?: number;
+    parse_debug?: boolean;
+    enable_aliases?: boolean;
+    torrentio?: TorrentioConfig;
+    knightcrawler?: KnightcrawlerConfig;
+    jackett?: JackettConfig;
+    prowlarr?: ProwlarrConfig;
+    orionoid?: OrionoidConfig;
+    annatar?: AnnatarConfig;
+    torbox_scraper?: TorBoxScraperConfig;
+    mediafusion?: MediafusionConfig;
+    zilean?: ZileanConfig;
+    comet?: CometConfig;
 };
 
 export type SetSettings = {
@@ -224,6 +450,22 @@ export type StatsResponse = {
     states: {
         [key: string]: (number);
     };
+};
+
+export type SubliminalConfig = {
+    enabled?: boolean;
+    languages?: Array<(string)>;
+    providers?: {
+        [key: string]: unknown;
+    };
+};
+
+export type SymlinkModel = {
+    rclone_path?: string;
+    library_path?: string;
+    separate_anime_dirs?: boolean;
+    repair_symlinks?: boolean;
+    repair_interval?: number;
 };
 
 export type TmdbCollectionDetails = {
@@ -458,6 +700,40 @@ export type TmdbTVDetails = {
     vote_count: number;
 };
 
+export type TorBoxScraperConfig = {
+    enabled?: boolean;
+    timeout?: number;
+};
+
+export type TorboxModel = {
+    enabled?: boolean;
+    api_key?: string;
+};
+
+export type TorrentioConfig = {
+    enabled?: boolean;
+    filter?: string;
+    url?: string;
+    timeout?: number;
+    /**
+     * @deprecated
+     */
+    ratelimit?: boolean;
+};
+
+export type TraktModel = {
+    update_interval?: number;
+    enabled?: boolean;
+    api_key?: string;
+    watchlist?: Array<(string)>;
+    user_lists?: Array<(string)>;
+    collection?: Array<(string)>;
+    fetch_trending?: boolean;
+    trending_count?: number;
+    fetch_popular?: boolean;
+    popular_count?: number;
+};
+
 export type TraktOAuthInitiateResponse = {
     auth_url: string;
 };
@@ -466,10 +742,27 @@ export type TrendingType = 'all' | 'movie' | 'tv' | 'person';
 
 export type TrendingWindow = 'day' | 'week';
 
+export type UpdatersModel = {
+    updater_interval?: number;
+    plex?: PlexLibraryModel;
+    jellyfin?: JellyfinLibraryModel;
+    emby?: EmbyLibraryModel;
+};
+
 export type ValidationError = {
     loc: Array<(string | number)>;
     msg: string;
     type: string;
+};
+
+export type ZileanConfig = {
+    enabled?: boolean;
+    url?: string;
+    timeout?: number;
+    /**
+     * @deprecated
+     */
+    ratelimit?: boolean;
 };
 
 export type RootResponse2 = (RootResponse);
@@ -544,9 +837,7 @@ export type SaveSettingsResponse = (MessageResponse);
 
 export type SaveSettingsError = (unknown);
 
-export type GetAllSettingsResponse = ({
-    [key: string]: unknown;
-});
+export type GetAllSettingsResponse = (AppModel);
 
 export type GetAllSettingsError = (unknown);
 
