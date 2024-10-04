@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import { getExternalID } from '$lib/tmdb';
+	import { ItemsService } from '$/client';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let data: any;
@@ -10,11 +11,13 @@
 
 	async function requestItem(id: number) {
 		const externalIds = await getExternalID(fetch, type, id);
-		const response = await fetch(`/api/media/${externalIds.imdb_id}`, {
-			method: 'POST'
-		});
+		const response = await ItemsService.addItems({
+			query: {
+				imdb_ids: externalIds.imdb_id
+			}
+		})
 
-		if (response.ok) {
+		if (!response.error) {
 			toast.success('Media requested successfully');
 		} else {
 			toast.error('An error occurred while requesting the media');
