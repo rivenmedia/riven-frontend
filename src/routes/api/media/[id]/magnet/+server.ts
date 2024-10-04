@@ -1,4 +1,4 @@
-import { ItemsService, ScrapeService } from'$/client';
+import { ItemsService } from '$/client';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, locals, request }) => {
@@ -23,12 +23,12 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 	url.searchParams.set('magnet', magnet);
 
 	try {
-		const {data, error} = await ItemsService.setTorrentRdMagnet({
+		const { data, error } = await ItemsService.setTorrentRdMagnet({
 			path: {
 				id: parseInt(id)
 			},
 			query: {
-				magnet: magnet,
+				magnet: magnet
 			}
 		});
 

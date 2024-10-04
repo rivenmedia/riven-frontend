@@ -81,7 +81,7 @@
 			query: {
 				ids: id.toString()
 			}
-		})
+		});
 
 		if (!response.error) {
 			toast.success('Media reset successfully');
@@ -122,7 +122,7 @@
 		});
 		magnetLoading = false;
 		if (error) {
-			toast.error(error as string ?? 'Unknown error');
+			toast.error((error as string) ?? 'Unknown error');
 			return;
 		}
 		toast.success('Magnet link added successfully');
@@ -180,8 +180,7 @@
 									'bg-red-500': data.db.last_state === 'Unknown'
 								})}
 							>
-								{
-								statesName[(data.db.last_state)]}
+								{statesName[data.db.last_state]}
 							</Badge>
 						</div>
 					{/if}

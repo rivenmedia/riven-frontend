@@ -32,7 +32,7 @@ const onboarding: Handle = async ({ event, resolve }) => {
 
 client.setConfig({
 	baseUrl: BACKEND_URL
-})
+});
 
 client.interceptors.error.use((error) => {
 	if (error && typeof error == 'object' && 'detail' in error && typeof error.detail == 'string') {

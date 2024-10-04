@@ -35,17 +35,17 @@ export const load = (async ({ params, locals }) => {
 		}
 	}
 
-	const {data} = await ItemsService.getItem({
+	const { data } = await ItemsService.getItem({
 		path: {
 			id: id
 		},
 		query: {
 			use_tmdb_id: true
 		}
-	})
+	});
 
-	if(data) {
-		data.requested_at = new Date(data.requested_at as string)
+	if (data) {
+		data.requested_at = new Date(data.requested_at as string);
 	}
 
 	console.log(dbData, data);

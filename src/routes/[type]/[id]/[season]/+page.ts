@@ -28,10 +28,10 @@ export const load = (async ({ fetch, params }) => {
 				id: tvID
 			},
 			query: {
-				use_tmdb_id: true,
+				use_tmdb_id: true
 			}
 		});
-		if(!data) {
+		if (!data) {
 			throw error(404, 'Media item not found');
 		}
 		const anyData = data as any;
@@ -44,6 +44,6 @@ export const load = (async ({ fetch, params }) => {
 		mediaType: type,
 		mediaID: id,
 		seasonNumber: season,
-		mediaItemDetails: await getMediaItemDetails(id),
+		mediaItemDetails: await getMediaItemDetails(id)
 	};
 }) satisfies PageLoad;

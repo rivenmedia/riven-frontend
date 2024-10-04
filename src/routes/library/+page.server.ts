@@ -3,7 +3,6 @@ import { ItemsService, type ItemsResponse } from '$/client';
 import { error } from '@sveltejs/kit';
 
 export const load = (async ({ url }) => {
-
 	async function getLibraryApi(): Promise<ItemsResponse> {
 		const limit = Number(url.searchParams.get('limit')) || 24;
 		const page = Number(url.searchParams.get('page')) || 1;
@@ -16,16 +15,16 @@ export const load = (async ({ url }) => {
 				limit,
 				page,
 				states,
-				type: types ?? "movie,show",
+				type: types ?? 'movie,show',
 				search: query,
-				sort: "date_desc"
+				sort: 'date_desc'
 			}
-		})
+		});
 
 		if (data) {
 			return data;
 		} else {
-			console.log(itemsError)
+			console.log(itemsError);
 			throw error(500, "Couldn't reach backend to get library items");
 		}
 	}
