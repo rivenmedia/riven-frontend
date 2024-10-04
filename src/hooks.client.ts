@@ -1,7 +1,7 @@
 import { client } from './client/services.gen';
 
 client.setConfig({
-	baseUrl: "/api"
+	baseUrl: '/api'
 });
 
 client.interceptors.error.use((error) => {
