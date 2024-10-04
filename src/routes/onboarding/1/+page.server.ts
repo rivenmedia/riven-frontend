@@ -7,22 +7,14 @@ import {
 	generalSettingsToGet,
 	generalSettingsToPass
 } from '$lib/forms/helpers';
+import { SettingsService } from '$/client';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	async function getPartialSettings() {
-		try {
-			const results = await fetch(
-				`${locals.BACKEND_URL}/settings/get/${generalSettingsToGet.join(',')}`
-			);
-			return await results.json();
-		} catch (e) {
-			console.error(e);
-			error(503, 'Unable to fetch settings data. API is down.');
+export const load: PageServerLoad = async () => {
+	const {data} = await SettingsService.getSettings({
+		path: {
+			paths: generalSettingsToGet.join(',')
 		}
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const data: any = await getPartialSettings();
+	})
 	const toPassToSchema = generalSettingsToPass(data);
 
 	return {
