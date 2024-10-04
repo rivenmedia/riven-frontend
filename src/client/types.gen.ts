@@ -76,18 +76,6 @@ export type DataAndSuccessResponse_RDUser_ = {
     success: boolean;
 };
 
-export type DataAndSuccessResponse_StatsResponse_ = {
-    data: StatsResponse;
-    success: boolean;
-};
-
-export type DataAndSuccessResponse_dict_ = {
-    data: {
-        [key: string]: unknown;
-    };
-    success: boolean;
-};
-
 export type DataAndSuccessResponse_dict_str__list_EventUpdate___ = {
     data: {
         [key: string]: Array<EventUpdate>;
@@ -821,7 +809,9 @@ export type TorboxResponse = (unknown);
 
 export type TorboxError = (unknown);
 
-export type ServicesResponse = (DataAndSuccessResponse_dict_);
+export type ServicesResponse = ({
+    [key: string]: (boolean);
+});
 
 export type ServicesError = (unknown);
 
@@ -839,7 +829,7 @@ export type TraktOauthCallbackResponse = (MessageAndSuccessResponse);
 
 export type TraktOauthCallbackError = (unknown | HTTPValidationError);
 
-export type StatsResponse2 = (DataAndSuccessResponse_StatsResponse_);
+export type StatsResponse2 = (StatsResponse);
 
 export type StatsError = (unknown);
 

@@ -865,37 +865,6 @@ export const DataAndSuccessResponse_RDUser_Schema = {
     title: 'DataAndSuccessResponse[RDUser]'
 } as const;
 
-export const DataAndSuccessResponse_StatsResponse_Schema = {
-    properties: {
-        data: {
-            '$ref': '#/components/schemas/StatsResponse'
-        },
-        success: {
-            type: 'boolean',
-            title: 'Success'
-        }
-    },
-    type: 'object',
-    required: ['data', 'success'],
-    title: 'DataAndSuccessResponse[StatsResponse]'
-} as const;
-
-export const DataAndSuccessResponse_dict_Schema = {
-    properties: {
-        data: {
-            type: 'object',
-            title: 'Data'
-        },
-        success: {
-            type: 'boolean',
-            title: 'Success'
-        }
-    },
-    type: 'object',
-    required: ['data', 'success'],
-    title: 'DataAndSuccessResponse[dict]'
-} as const;
-
 export const DataAndSuccessResponse_dict_str__list_EventUpdate___Schema = {
     properties: {
         data: {
