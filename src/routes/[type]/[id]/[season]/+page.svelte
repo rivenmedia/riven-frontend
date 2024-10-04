@@ -98,7 +98,7 @@
 												>
 													{statesName[
 														data.mediaItemDetails.find((x) => x.number == episode.episode_number)
-															?.last_state ?? 'Unknown'
+															?.state ?? 'Unknown'
 													]}
 												</div>
 											{/if}
