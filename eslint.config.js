@@ -48,6 +48,6 @@ export default [
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/', 'src/lib/components/ui/', '.idea/']
+		ignores: ['build/', '.svelte-kit/', 'dist/', 'src/lib/components/ui/', '.idea/', 'src/client/']
 	}
 ];
