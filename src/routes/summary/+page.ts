@@ -1,4 +1,4 @@
-import { DefaultService } from '$/client';
+import { DefaultService } from '$lib/client';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {

@@ -6,7 +6,7 @@ import {
 	scrapersSettingsToGet,
 	scrapersSettingsToPass
 } from '$lib/forms/helpers';
-import { SettingsService } from '$/client';
+import { SettingsService } from '$lib/client';
 
 export const load: PageServerLoad = async () => {
 	const { data } = await SettingsService.getSettings({

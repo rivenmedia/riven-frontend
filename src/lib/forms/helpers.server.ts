@@ -1,4 +1,4 @@
-import { SettingsService } from '$/client';
+import { SettingsService } from '$lib/client';
 
 // TODO: Add toCheck
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

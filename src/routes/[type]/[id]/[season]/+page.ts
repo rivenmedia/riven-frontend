@@ -2,7 +2,7 @@
 import type { PageLoad } from './$types';
 import { getTVSeasonDetails, getTVDetails } from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
-import { ItemsService } from '$/client';
+import { ItemsService } from '$lib/client';
 
 export const load = (async ({ fetch, params }) => {
 	const type = params.type;

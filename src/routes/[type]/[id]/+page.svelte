@@ -29,7 +29,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import { ItemsService } from '$/client';
+	import { ItemsService } from '$lib/client';
 
 	export let data: PageData;
 

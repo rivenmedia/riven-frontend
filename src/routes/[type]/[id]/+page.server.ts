@@ -1,4 +1,4 @@
-import { ItemsService } from '$/client';
+import { ItemsService } from '$lib/client';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {

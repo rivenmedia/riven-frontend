@@ -9,7 +9,7 @@ import {
 	mediaServerSettingsToSet
 } from '$lib/forms/helpers';
 import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.server';
-import { SettingsService } from '$/client';
+import { SettingsService } from '$lib/client';
 
 export const load: PageServerLoad = async () => {
 	const { data } = await SettingsService.getSettings({

@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 import { dev } from '$app/environment';
-import { SettingsService } from '$/client';
+import { SettingsService } from '$lib/client';
 
 export const load: PageServerLoad = async () => {
 	async function getAboutInfo() {

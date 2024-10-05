@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import { getExternalID } from '$lib/tmdb';
-	import { ItemsService } from '$/client';
+	import { ItemsService } from '$lib/client';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let data: any;
