@@ -36,7 +36,7 @@
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
-	let isShow = data.db ? data.db.type === 'show' : false;
+	let isShow = data.db ? data.db.type === 'Show' : false;
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 

@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import {
@@ -8,7 +8,7 @@ import {
 } from '$lib/forms/helpers';
 import { SettingsService } from '$lib/client';
 
-export const load: PageServerLoad = async () => {
+export const load: PageLoad = async () => {
 	const { data } = await SettingsService.getSettings({
 		path: {
 			paths: mediaServerSettingsToGet.join(',')
