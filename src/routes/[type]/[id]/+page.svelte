@@ -29,6 +29,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
+	import { ItemsService } from '$lib/client';
 
 	export let data: PageData;
 
@@ -36,7 +37,7 @@
 	let magnetLink = '';
 	let magnetLoading = false;
 	let isShow = data.db ? data.db.type === 'show' : false;
-	let selectedMagnetItem: Selected<{ _id: number; file?: string; folder?: string }>;
+	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,12 +46,14 @@
 		return seasons.filter((season: any) => season.season_number !== 0);
 	}
 
-	async function deleteItem(_id: number) {
-		const response = await fetch(`/api/media/${_id}`, {
-			method: 'DELETE'
+	async function deleteItem(id: number) {
+		const response = await ItemsService.removeItem({
+			query: {
+				ids: id.toString()
+			}
 		});
 
-		if (response.ok) {
+		if (!response.error) {
 			toast.success('Media deleted successfully');
 			goto('/library');
 		} else {
@@ -58,12 +61,14 @@
 		}
 	}
 
-	async function retryItem(_id: number) {
-		const response = await fetch(`/api/media/${_id}/retry`, {
-			method: 'POST'
+	async function retryItem(id: number) {
+		const response = await ItemsService.retryItems({
+			query: {
+				ids: id.toString()
+			}
 		});
 
-		if (response.ok) {
+		if (!response.error) {
 			toast.success('Media retried successfully');
 			invalidateAll();
 		} else {
@@ -71,12 +76,14 @@
 		}
 	}
 
-	async function resetItem(_id: number) {
-		const response = await fetch(`/api/media/${_id}/reset`, {
-			method: 'POST'
+	async function resetItem(id: number) {
+		const response = await ItemsService.resetItems({
+			query: {
+				ids: id.toString()
+			}
 		});
 
-		if (response.ok) {
+		if (!response.error) {
 			toast.success('Media reset successfully');
 			invalidateAll();
 		} else {
@@ -93,7 +100,7 @@
 		});
 	}
 
-	async function addMagnetLink(_id: number, magnet: string) {
+	async function addMagnetLink(id: string, magnet: string) {
 		if (!magnet) {
 			toast.error('Magnet link cannot be empty');
 			return;
@@ -104,17 +111,18 @@
 		}
 		if (magnetLoading) return;
 		magnetLoading = true;
-		const id = isShow ? selectedMagnetItem.value._id : _id;
-		const response = await fetch(`/api/media/${id}/magnet`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
+		const idToSet = isShow ? selectedMagnetItem.value.id : id;
+		const { error } = await ItemsService.setTorrentRdMagnet({
+			path: {
+				id: parseInt(idToSet)
 			},
-			body: JSON.stringify({ magnet })
+			query: {
+				magnet
+			}
 		});
 		magnetLoading = false;
-		if (!response.ok) {
-			toast.error((await response.json()).error ?? 'Unknown error');
+		if (error) {
+			toast.error((error as string) ?? 'Unknown error');
 			return;
 		}
 		toast.success('Magnet link added successfully');
@@ -235,7 +243,7 @@
 										>
 									</Sheet.Header>
 									<Sheet.Description class="mt-2 flex flex-col gap-2">
-										<p>ID: {data.db._id}</p>
+										<p>ID: {data.db.id}</p>
 										{#if data.db.requested_by}
 											<p>Requested by: {data.db.requested_by}</p>
 										{/if}
@@ -290,7 +298,7 @@
 													disabled={!buttonEnabled}
 													on:click={async () => {
 														if (data.db && magnetLink) {
-															await addMagnetLink(data.db._id, magnetLink);
+															await addMagnetLink(data.db.id, magnetLink);
 														}
 													}}
 												>
@@ -332,7 +340,7 @@
 															<AlertDialog.Action
 																on:click={async () => {
 																	if (data.db) {
-																		await retryItem(data.db._id);
+																		await retryItem(data.db.id);
 																	}
 																}}>Continue</AlertDialog.Action
 															>
@@ -371,7 +379,7 @@
 															<AlertDialog.Action
 																on:click={async () => {
 																	if (data.db) {
-																		await resetItem(data.db._id);
+																		await resetItem(data.db.id);
 																	}
 																}}>Continue</AlertDialog.Action
 															>
@@ -428,7 +436,7 @@
 												<AlertDialog.Action
 													on:click={async () => {
 														if (data.db) {
-															await deleteItem(data.db._id);
+															await deleteItem(data.db.id);
 														}
 													}}>Continue</AlertDialog.Action
 												>

@@ -171,7 +171,7 @@
 	</div>
 
 	<div class="mt-8 flex w-full flex-wrap">
-		{#each $library as item (item._id)}
+		{#each $library as item (item.id)}
 			<MediaItem data={item} />
 		{/each}
 	</div>

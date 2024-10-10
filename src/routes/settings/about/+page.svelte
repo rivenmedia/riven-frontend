@@ -8,10 +8,10 @@
 
 	export let data: PageData;
 
-	const version = data.settings.data.version; // Backend version
+	const version = data.settings.version; // Backend version
 	const frontendVersion = data.frontendVersion; // Frontend version passed from server
-	const rclone_path = data.settings.data.symlink.rclone_path;
-	const library_path = data.settings.data.symlink.library_path;
+	const rclone_path = data.settings.symlink.rclone_path;
+	const library_path = data.settings.symlink.library_path;
 
 	interface AboutData {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

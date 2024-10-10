@@ -18,28 +18,38 @@
 	const statsData: { title: string; value: number; refTo: string }[] = [
 		{
 			title: 'Total Items',
-			value: data.stats?.total || 0,
+			value: data.stats?.total_items || 0,
 			refTo: '/library'
 		},
 		{
 			title: 'Total Movies',
-			value: data.stats?.movies || 0,
+			value: data.stats?.total_movies || 0,
 			refTo: '/library?types=movie'
 		},
 		{
 			title: 'Total Shows',
-			value: data.stats?.shows || 0,
+			value: data.stats?.total_shows || 0,
 			refTo: '/library?types=show'
 		},
 		{
 			title: 'Incomplete Items',
-			value: data.stats?.incomplete || 0,
+			value: data.stats?.incomplete_items || 0,
 			refTo:
 				'/library?states=Unknown%2CRequested%2CIndexed%2CScraped%2CDownloaded%2CSymlinked%2CFailed%2CPartiallyCompleted'
 		}
 	];
 
-	function sortServices(services: string[], data: Record<string, boolean>) {
+	function sortServices(
+		services: string[],
+		data?: Record<string, boolean>
+	): Record<string, boolean> {
+		if (!data) {
+			const sortedData = {} as Record<string, boolean>;
+			services.forEach((service) => {
+				sortedData[service] = false;
+			});
+			return sortedData;
+		}
 		let sortedData = {} as Record<string, boolean>;
 
 		for (let service of services) {
@@ -51,10 +61,10 @@
 		return sortedData as Record<string, boolean>;
 	}
 
-	const coreServicesData = sortServices(coreServices, data.services.data);
-	const downloaderServicesData = sortServices(downloaderServices, data.services.data);
-	const contentServicesData = sortServices(contentServices, data.services.data);
-	const scrapingServicesData = sortServices(scrapingServices, data.services.data);
+	const coreServicesData = sortServices(coreServices, data.services);
+	const downloaderServicesData = sortServices(downloaderServices, data.services);
+	const contentServicesData = sortServices(contentServices, data.services);
+	const scrapingServicesData = sortServices(scrapingServices, data.services);
 
 	const coreServicesStatus = Object.keys(coreServicesData).map((service) => {
 		return {
@@ -129,10 +139,10 @@
 					{#if stat.title === 'Total Shows'}
 						<p class="text-lg lg:text-3xl">{stat.value}</p>
 						<p class="text-sm text-muted-foreground lg:text-base">
-							{data.stats?.seasons || 0} Seasons
+							{data.stats?.total_seasons || 0} Seasons
 						</p>
 						<p class="text-sm text-muted-foreground lg:text-base">
-							{data.stats?.episodes || 0} Episodes
+							{data.stats?.total_episodes || 0} Episodes
 						</p>
 					{:else}
 						<p class="text-lg lg:text-3xl">{stat.value}</p>
@@ -195,9 +205,9 @@
 		</Dialog.Content>
 	</Dialog.Root>
 
-	{#if data.states}
+	{#if data.stats?.states}
 		<div class="mb-16 mt-4 grid w-full grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-			{#each Object.keys(data.states) as state}
+			{#each Object.keys(data.stats.states) as state}
 				<Card.Root
 					class={clsx({
 						'col-span-2': state === 'Completed'
@@ -207,7 +217,7 @@
 						<Card.Title class="text-sm font-medium lg:text-base">{statesName[state]}</Card.Title>
 					</Card.Header>
 					<Card.Content>
-						<p class="text-lg lg:text-3xl">{data.states[state]}</p>
+						<p class="text-lg lg:text-3xl">{data.stats.states[state]}</p>
 						<a href={`/library?states=${state}`} class="text-sm text-muted-foreground">
 							See items
 						</a>

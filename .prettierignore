@@ -4,3 +4,4 @@ package-lock.json
 yarn.lock
 CHANGELOG.md
 .idea
+src/lib/client/
