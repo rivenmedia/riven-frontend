@@ -1,8 +1,8 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { ItemsService, type ItemsResponse } from '$lib/client';
 import { error } from '@sveltejs/kit';
 
-export const load = (async ({ url }) => {
+export const load: PageLoad = async ({ url }) => {
 	async function getLibraryApi(): Promise<ItemsResponse> {
 		const limit = Number(url.searchParams.get('limit')) || 24;
 		const page = Number(url.searchParams.get('page')) || 1;
@@ -35,4 +35,4 @@ export const load = (async ({ url }) => {
 		library: items,
 		total: total_items
 	};
-}) satisfies PageServerLoad;
+};

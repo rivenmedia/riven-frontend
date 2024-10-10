@@ -1,11 +1,11 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 import { dev } from '$app/environment';
 import { SettingsService } from '$lib/client';
 
-export const load: PageServerLoad = async () => {
+export const load: PageLoad = async () => {
 	async function getAboutInfo() {
 		const toGet = ['version', 'symlink'];
 		const { data, error: apiError } = await SettingsService.getSettings({
