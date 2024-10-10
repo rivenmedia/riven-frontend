@@ -11,7 +11,7 @@ export const load = (async ({ fetch, params }) => {
 			id: id
 		},
 		query: {
-			use_tmdb_id: true,
+			use_tmdb_id: true
 		}
 	});
 
