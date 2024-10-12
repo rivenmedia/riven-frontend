@@ -349,9 +349,6 @@
 													if (data.db && magnetLink) {
 														await addMagnetLink(data.db.id, magnetLink);
 													} else if (magnetLink) {
-														console.log(data.details)
-														console.log(data.details.external_ids)
-														console.log(data.details.external_ids.imdb_id)
 														await addItemManually(data.details.external_ids.imdb_id, magnetLink);
 													}
 												}}
@@ -602,7 +599,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
+								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>
