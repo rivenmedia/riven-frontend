@@ -130,6 +130,24 @@
 		}
 		toast.success('Magnet link added successfully');
 	}
+
+	async function addItemManually(imdb_id: string, input: string) {
+		if (!input) {
+			toast.error('Input cannot be empty');
+			return;
+		}
+		const { error } = await ItemsService.addItemManually({
+			query: {
+				imdb_id,
+				input
+			}
+		});
+		if (error) {
+			toast.error((error as string) ?? 'Unknown error');
+			return;
+		}
+		toast.success('Added successfully');
+	}
 </script>
 
 <svelte:head>
@@ -290,7 +308,9 @@
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
+									{/if}
 
+<<<<<<< HEAD
 										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
 
 										<Tooltip.Root>
@@ -316,7 +336,39 @@
 												<p>Replaces the current torrent with the magnet link</p>
 											</Tooltip.Content>
 										</Tooltip.Root>
+=======
+									<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
+>>>>>>> 2316044 (feat: add manual torrent adding)
 
+									<Tooltip.Root>
+										<Tooltip.Trigger class="mb-2">
+											<Button
+												class="flex w-full items-center gap-1"
+												disabled={!buttonEnabled}
+												on:click={async () => {
+													if (data.db && magnetLink) {
+														await addMagnetLink(data.db.id, magnetLink);
+													} else if (magnetLink) {
+														console.log(data.details)
+														console.log(data.details.external_ids)
+														console.log(data.details.external_ids.imdb_id)
+														await addItemManually(data.details.external_ids.imdb_id, magnetLink);
+													}
+												}}
+											>
+												{#if magnetLoading}
+													<LoaderCircle class="size-4 animate-spin" />
+												{:else}
+													<Magnet class="size-4" />
+												{/if}
+												<span>Replace torrent</span>
+											</Button>
+										</Tooltip.Trigger>
+										<Tooltip.Content>
+											<p>Replaces the current torrent with the magnet link</p>
+										</Tooltip.Content>
+									</Tooltip.Root>
+									{#if data.db}
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
@@ -405,6 +457,7 @@
 											<Clipboard class="size-4" />
 											<span>Copy item data</span>
 										</Button>
+<<<<<<< HEAD
 									</Sheet.Description>
 								</Sheet.Content>
 							</Sheet.Root>
@@ -412,6 +465,14 @@
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 						{#if data.riven}
+=======
+									{/if}
+								</Sheet.Description>
+							</Sheet.Content>
+						</Sheet.Root>
+						<ItemRequest data={data.details} type={data.mediaType} />
+						{#if data.db}
+>>>>>>> 2316044 (feat: add manual torrent adding)
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<AlertDialog.Root>
@@ -541,7 +602,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
+								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>

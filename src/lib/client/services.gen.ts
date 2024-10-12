@@ -174,6 +174,28 @@ export class ItemsService {
     }
     
     /**
+     * Add Media Items Manually
+     * Add media item manually with a magnet link or infohash
+     */
+    public static addItemManually<ThrowOnError extends boolean = false>(options?: Options<AddItemManuallyData, ThrowOnError>) {
+        return (options?.client ?? client).post<AddItemManuallyResponse, AddItemManuallyError, ThrowOnError>({
+            ...options,
+            url: '/items/add-manually'
+        });
+    }
+    
+    /**
+     * Add Media Items Manually
+     * Add media item manually with a magnet link or infohash
+     */
+    public static addItemManually<ThrowOnError extends boolean = false>(options?: Options<AddItemManuallyData, ThrowOnError>) {
+        return (options?.client ?? client).post<AddItemManuallyResponse, AddItemManuallyError, ThrowOnError>({
+            ...options,
+            url: '/items/add-manually'
+        });
+    }
+    
+    /**
      * Retrieve Media Item
      * Fetch a single media item by ID
      */

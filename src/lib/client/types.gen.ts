@@ -808,6 +808,17 @@ export type AddItemsResponse = (MessageResponse);
 
 export type AddItemsError = (unknown | HTTPValidationError);
 
+export type AddItemManuallyData = {
+    query?: {
+        imdb_id?: string;
+        input_string?: string;
+    };
+};
+
+export type AddItemManuallyResponse = (MessageResponse);
+
+export type AddItemManuallyError = (unknown | HTTPValidationError);
+
 export type GetItemData = {
     path: {
         id: number;
