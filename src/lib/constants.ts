@@ -57,7 +57,7 @@ export const scrapingServices = [
 	'jackett',
 	'orionoid',
 	'mediafusion',
-	'Prowlarr',
+	'prowlarr',
 	'zilean',
 	'torbox',
 	'comet'
