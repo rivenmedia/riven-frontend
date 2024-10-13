@@ -308,7 +308,6 @@
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
-									{/if}
 
 										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
 
@@ -354,7 +353,9 @@
 												{:else}
 													<Magnet class="size-4" />
 												{/if}
-												<span>{#if data.db}Replace{:else}Add{/if} torrent</span>
+												<span
+													>{#if data.db}Replace{:else}Add{/if} torrent</span
+												>
 											</Button>
 										</Tooltip.Trigger>
 										<Tooltip.Content>
@@ -588,7 +589,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
+								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>
