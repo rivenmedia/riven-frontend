@@ -310,7 +310,6 @@
 										{/if}
 									{/if}
 
-<<<<<<< HEAD
 										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
 
 										<Tooltip.Root>
@@ -336,9 +335,6 @@
 												<p>Replaces the current torrent with the magnet link</p>
 											</Tooltip.Content>
 										</Tooltip.Root>
-=======
-									<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
->>>>>>> 2316044 (feat: add manual torrent adding)
 
 									<Tooltip.Root>
 										<Tooltip.Trigger class="mb-2">
@@ -358,7 +354,7 @@
 												{:else}
 													<Magnet class="size-4" />
 												{/if}
-												<span>Replace torrent</span>
+												<span>{#if data.db}Replace{:else}Add{/if} torrent</span>
 											</Button>
 										</Tooltip.Trigger>
 										<Tooltip.Content>
@@ -454,7 +450,6 @@
 											<Clipboard class="size-4" />
 											<span>Copy item data</span>
 										</Button>
-<<<<<<< HEAD
 									</Sheet.Description>
 								</Sheet.Content>
 							</Sheet.Root>
@@ -462,14 +457,6 @@
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 						{#if data.riven}
-=======
-									{/if}
-								</Sheet.Description>
-							</Sheet.Content>
-						</Sheet.Root>
-						<ItemRequest data={data.details} type={data.mediaType} />
-						{#if data.db}
->>>>>>> 2316044 (feat: add manual torrent adding)
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<AlertDialog.Root>
@@ -508,6 +495,8 @@
 									<p>Delete item from library</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
+						{:else}
+							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 					</div>
 					{#if data.details.belongs_to_collection}
@@ -599,7 +588,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
+								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>
