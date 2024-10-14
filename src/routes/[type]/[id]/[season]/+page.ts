@@ -32,7 +32,7 @@ export const load = (async ({ fetch, params }) => {
 			}
 		});
 		if (!data) {
-			throw error(404, 'Media item not found');
+			return Promise.resolve([]);
 		}
 		const anyData = data as any;
 		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season).episodes;
