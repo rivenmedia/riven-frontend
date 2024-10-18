@@ -1,5 +1,3 @@
-import type { Kysely } from 'kysely';
-
 declare global {
 	namespace App {
 		interface Locals {

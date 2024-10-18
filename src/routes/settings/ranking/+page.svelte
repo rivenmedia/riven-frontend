@@ -23,12 +23,28 @@
 						require: [],
 						exclude: [],
 						preferred: [],
+						resolutions: {
+							'2160p': false,
+							'1080p': true,
+							'720p': true,
+							'480p': false,
+							'360p': false,
+							unknown: true
+						},
+						options: {
+							title_similarity: 0.85,
+							remove_all_trash: true,
+							remove_ranks_under: -10000,
+							remove_unknown_languages: false,
+							allow_english_in_languages: false
+						},
+						languages: {
+							required: [],
+							exclude: ['common'],
+							preferred: []
+						},
 						custom_ranks: {
-							uhd: {
-								enable: false,
-								fetch: false,
-								rank: 120
-							}
+							'...': '...'
 						}
 					}
 				},
@@ -37,53 +53,18 @@
 			)}
         </pre>
 
-		<h3 class="text-base font-bold lg:text-lg">There are 7 profile in ranking:</h3>
+		<h3 class="text-base font-bold lg:text-lg">There are 3 profile in ranking:</h3>
 		<ul class="list-disc pl-4">
-			<li>default - The default ranking model.</li>
-			<li>remux - The ranking model for the best remux.</li>
-			<li>web - The ranking model for the best web release.</li>
-			<li>resolution - The ranking model for the best resolution.</li>
-			<li>overall - The ranking model for the best overall quality.</li>
-			<li>anime - The ranking model for anime releases.</li>
-			<li>all - The ranking model for all releases.</li>
+			<li>default - Optimized for streaming without transcoding</li>
+			<li>best - Aimed at obtaining the highest quality content available</li>
+			<li>custom - This is a custom profile that you can create yourself</li>
 		</ul>
 
-		<h3 class="mt-4 text-base font-bold lg:text-lg">What are require, exclude and preferred?</h3>
-		<p class="text-sm lg:text-base">
-			These are array of regex patterns that are used to filter the releases. Example:
+		<p>
+			You can read more in detail about all the settings on rankings wiki <a
+				class="text-blue-500 underline underline-offset-4"
+				href="https://dreulavelle.github.io/rank-torrent-name/users/faq/">here</a
+			>
 		</p>
-
-		<pre class="w-full rounded-md p-4 font-mono text-sm">
-
-{JSON.stringify(
-				{
-					exclude: [
-						'\\bupscaled?\\b',
-						'^(?!.*2160p.*1080p).*$',
-						'\\bmatte\\b',
-						'\\bcamrp\\b',
-						'\\bwebrip\\b',
-						'\\bweb-dl\\b',
-						'\\bwebhd\\b',
-						'\\bweb\\b',
-						'\\bhdrip\\b'
-					]
-				},
-				null,
-				2
-			)}
-        </pre>
-
-		<h3 class="mt-4 text-base font-bold lg:text-lg">
-			What is enable, fetch and rank in custom_ranks?
-		</h3>
-		<p class="text-sm lg:text-base">fetch means if you want to grab it or not when its scraped</p>
-		<p class="text-sm lg:text-base">
-			enable just means you can set your own rank instead of using the internal ranking system from
-			the profile name you specify
-		</p>
-		<p class="text-sm lg:text-base">rank is the priority of the custom rank</p>
 	</div>
-
-	<!-- <ScrapersForm data={data.form} actionUrl="/settings/scrapers" /> -->
 </div>

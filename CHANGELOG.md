@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.16.0](https://github.com/rivenmedia/riven-frontend/compare/v0.14.1...v0.16.0) (2024-10-18)
+
+
+### Miscellaneous Chores
+
+* release 0.16.0 ([e4b5277](https://github.com/rivenmedia/riven-frontend/commit/e4b5277cb8c2edb706c514d9840d65954fd636f7))
+
+## [0.14.1](https://github.com/rivenmedia/riven-frontend/compare/v0.14.0...v0.14.1) (2024-10-18)
+
+
+### Miscellaneous Chores
+
+* release 0.14.1 ([baa873b](https://github.com/rivenmedia/riven-frontend/commit/baa873bec48c2f8e0319056d8b3e34e35c396746))
+
 ## [0.14.0](https://github.com/rivenmedia/riven-frontend/compare/v0.13.1...v0.14.0) (2024-10-18)
 
 

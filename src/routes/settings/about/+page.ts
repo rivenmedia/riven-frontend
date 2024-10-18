@@ -1,11 +1,8 @@
 import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import fs from 'fs/promises';
-import path from 'path';
-import { dev } from '$app/environment';
 import { SettingsService } from '$lib/client';
 
-export const load: PageLoad = async () => {
+export const load: PageLoad = async ({ data }) => {
 	async function getAboutInfo() {
 		const toGet = ['version', 'symlink'];
 		const { data, error: apiError } = await SettingsService.getSettings({
@@ -19,16 +16,8 @@ export const load: PageLoad = async () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return data! as any;
 	}
-	let versionFilePath: string = '/riven/version.txt';
-	if (dev) {
-		versionFilePath = './version.txt';
-	}
-	let frontendVersion = 'Unknown';
-	try {
-		frontendVersion = (await fs.readFile(path.resolve(versionFilePath), 'utf-8')).trim();
-	} catch (err) {
-		console.error('Error reading frontend version file:', err);
-	}
+	const frontendVersion = data.frontendVersion;
+
 	return {
 		settings: await getAboutInfo(),
 		frontendVersion
