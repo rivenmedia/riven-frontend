@@ -127,6 +127,24 @@
 		}
 		toast.success('Magnet link added successfully');
 	}
+
+	async function addItemManually(imdb_id: string, input: string) {
+		if (!input) {
+			toast.error('Input cannot be empty');
+			return;
+		}
+		const { error } = await ItemsService.addItemManually({
+			query: {
+				imdb_id,
+				input
+			}
+		});
+		if (error) {
+			toast.error((error as string) ?? 'Unknown error');
+			return;
+		}
+		toast.success('Added successfully');
+	}
 </script>
 
 <svelte:head>
@@ -223,26 +241,29 @@
 						{data.details.overview}
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-						{#if data.db}
-							<Sheet.Root>
-								<Sheet.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+						<Sheet.Root>
+							<Sheet.Trigger asChild let:builder>
+								<Button
+									builders={[builder]}
+									class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+								>
+									<Wrench class="size-4" />
+									<span
+										>{#if data.db}Manage{:else}Add torrent
+										{/if}</span
 									>
-										<Wrench class="size-4" />
-										<span>Manage</span>
-									</Button>
-								</Sheet.Trigger>
-								<Sheet.Content class="z-[99]">
-									<Sheet.Header>
-										<Sheet.Title
-											>{data.details.title ||
-												data.details.name ||
-												data.details.original_name}</Sheet.Title
-										>
-									</Sheet.Header>
-									<Sheet.Description class="mt-2 flex flex-col gap-2">
+								</Button>
+							</Sheet.Trigger>
+							<Sheet.Content class="z-[99]">
+								<Sheet.Header>
+									<Sheet.Title
+										>{data.details.title ||
+											data.details.name ||
+											data.details.original_name}</Sheet.Title
+									>
+								</Sheet.Header>
+								<Sheet.Description class="mt-2 flex flex-col gap-2">
+									{#if data.db}
 										<p>ID: {data.db.id}</p>
 										{#if data.db.requested_by}
 											<p>Requested by: {data.db.requested_by}</p>
@@ -288,33 +309,41 @@
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
+									{/if}
 
-										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
+									<Input
+										bind:value={magnetLink}
+										placeholder="Paste in the magnet link or infohash"
+									/>
 
-										<Tooltip.Root>
-											<Tooltip.Trigger class="mb-2">
-												<Button
-													class="flex w-full items-center gap-1"
-													disabled={!buttonEnabled}
-													on:click={async () => {
-														if (data.db && magnetLink) {
-															await addMagnetLink(data.db.id, magnetLink);
-														}
-													}}
+									<Tooltip.Root>
+										<Tooltip.Trigger class="mb-2">
+											<Button
+												class="flex w-full items-center gap-1"
+												disabled={!buttonEnabled}
+												on:click={async () => {
+													if (data.db && magnetLink) {
+														await addMagnetLink(data.db.id, magnetLink);
+													} else if (magnetLink) {
+														await addItemManually(data.details.external_ids.imdb_id, magnetLink);
+													}
+												}}
+											>
+												{#if magnetLoading}
+													<LoaderCircle class="size-4 animate-spin" />
+												{:else}
+													<Magnet class="size-4" />
+												{/if}
+												<span
+													>{#if data.db}Replace{:else}Add{/if} torrent</span
 												>
-													{#if magnetLoading}
-														<LoaderCircle class="size-4 animate-spin" />
-													{:else}
-														<Magnet class="size-4" />
-													{/if}
-													<span>Replace torrent</span>
-												</Button>
-											</Tooltip.Trigger>
-											<Tooltip.Content>
-												<p>Replaces the current torrent with the magnet link</p>
-											</Tooltip.Content>
-										</Tooltip.Root>
-
+											</Button>
+										</Tooltip.Trigger>
+										<Tooltip.Content>
+											<p>Replaces the current torrent with the magnet link</p>
+										</Tooltip.Content>
+									</Tooltip.Root>
+									{#if data.db}
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
@@ -403,12 +432,10 @@
 											<Clipboard class="size-4" />
 											<span>Copy item data</span>
 										</Button>
-									</Sheet.Description>
-								</Sheet.Content>
-							</Sheet.Root>
-						{:else}
-							<ItemRequest data={data.details} type={data.mediaType} />
-						{/if}
+									{/if}
+								</Sheet.Description>
+							</Sheet.Content>
+						</Sheet.Root>
 						{#if data.db}
 							<Tooltip.Root>
 								<Tooltip.Trigger>
@@ -448,6 +475,8 @@
 									<p>Delete item from library</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
+						{:else}
+							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 					</div>
 					{#if data.details.belongs_to_collection}
