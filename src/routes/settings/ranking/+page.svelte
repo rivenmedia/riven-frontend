@@ -61,7 +61,8 @@
 		</ul>
 
 		<p>
-			You can read more in detail about all the settings on rankings wiki <a class="text-blue-500 underline underline-offset-4"
+			You can read more in detail about all the settings on rankings wiki <a
+				class="text-blue-500 underline underline-offset-4"
 				href="https://dreulavelle.github.io/rank-torrent-name/users/faq/">here</a
 			>
 		</p>
