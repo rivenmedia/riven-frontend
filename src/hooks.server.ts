@@ -15,7 +15,7 @@ const middleware: Handle = async ({ event, resolve }) => {
 		client.setConfig({
 			baseUrl: backendUrl,
 			headers: {
-				"x-api-key": apiKey
+				'x-api-key': apiKey
 			}
 		});
 	}
@@ -24,46 +24,50 @@ const middleware: Handle = async ({ event, resolve }) => {
 
 	if (customEvent) {
 		switch (customEvent) {
-            case 'initialize-api':
-                const newBackendUrl = event.request.headers.get('X-Backend-Url');
-                const newApiKey = event.request.headers.get('X-Api-Key');
+			case 'initialize-api':
+				const newBackendUrl = event.request.headers.get('X-Backend-Url');
+				const newApiKey = event.request.headers.get('X-Api-Key');
 
-                if (newBackendUrl && newApiKey) {
-                    // Set new values in locals
-                    event.locals.backendUrl = newBackendUrl;
-                    event.locals.apiKey = newApiKey;
+				if (newBackendUrl && newApiKey) {
+					// Set new values in locals
+					event.locals.backendUrl = newBackendUrl;
+					event.locals.apiKey = newApiKey;
 
-                    // Set new values in cookies (secure and HTTP-only)
-                    event.cookies.set('backendUrl', newBackendUrl, {
-                        path: '/',
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'strict',
-                        maxAge: 60 * 60 * 24 * 30 // 30 days
-                    });
-                    event.cookies.set('apiKey', newApiKey, {
-                        path: '/',
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'strict',
-                        maxAge: 60 * 60 * 24 * 30 // 30 days
-                    });
+					// Set new values in cookies (secure and HTTP-only)
+					event.cookies.set('backendUrl', newBackendUrl, {
+						path: '/',
+						httpOnly: true,
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'strict',
+						maxAge: 60 * 60 * 24 * 30 // 30 days
+					});
+					event.cookies.set('apiKey', newApiKey, {
+						path: '/',
+						httpOnly: true,
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'strict',
+						maxAge: 60 * 60 * 24 * 30 // 30 days
+					});
 
-                    // Configure the client with new values
-                    client.setConfig({
-                        baseUrl: newBackendUrl,
-                        headers: {
-                            "x-api-key": newApiKey
-                        }
-                    });
-                }
-                break;
+					// Configure the client with new values
+					client.setConfig({
+						baseUrl: newBackendUrl,
+						headers: {
+							'x-api-key': newApiKey
+						}
+					});
+				}
+				break;
 		}
 	}
 
-	if (!event.url.pathname.startsWith('/connect') && !event.url.pathname.startsWith('/onboarding') && event.request.method === 'GET') {
+	if (
+		!event.url.pathname.startsWith('/connect') &&
+		!event.url.pathname.startsWith('/onboarding') &&
+		event.request.method === 'GET'
+	) {
 		if (!event.locals.backendUrl && !event.locals.apiKey) {
-			redirect(302, '/connect')
+			redirect(302, '/connect');
 		}
 		const { data, error: apiError } = await DefaultService.services();
 		if (apiError || !data) {

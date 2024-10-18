@@ -5,12 +5,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
 	const backendUrl = new URL(backendPathname, locals.backendUrl);
-	const apiKey = locals.apiKey
+	const apiKey = locals.apiKey;
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			headers: {
-				"x-api-key": apiKey
+				'x-api-key': apiKey
 			}
 		});
 		return json(await response.json(), {
@@ -25,14 +25,14 @@ export const PUT: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
 	const backendUrl = new URL(backendPathname, locals.backendUrl);
-	const apiKey = locals.apiKey
+	const apiKey = locals.apiKey;
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
-				"x-api-key": apiKey
+				'x-api-key': apiKey
 			},
 			body: await request.text()
 		});
@@ -48,14 +48,14 @@ export const POST: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
 	const backendUrl = new URL(backendPathname, locals.backendUrl);
-	const apiKey = locals.apiKey
+	const apiKey = locals.apiKey;
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				"x-api-key": apiKey
+				'x-api-key': apiKey
 			},
 			body: await request.text()
 		});
@@ -71,13 +71,13 @@ export const DELETE: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
 	const backendUrl = new URL(backendPathname, locals.backendUrl);
-	const apiKey = locals.apiKey
+	const apiKey = locals.apiKey;
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			method: 'DELETE',
 			headers: {
-				"x-api-key": apiKey
+				'x-api-key': apiKey
 			}
 		});
 		return json(await response.json(), {
