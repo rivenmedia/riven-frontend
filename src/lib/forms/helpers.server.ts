@@ -1,43 +1,22 @@
-import { env } from '$env/dynamic/private';
-const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
+import { SettingsService } from '$lib/client';
 
 // TODO: Add toCheck
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function setSettings(fetch: any, toSet: any) {
-	const settings = await fetch(`${BACKEND_URL}/settings/set`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(toSet)
+export async function setSettings(toSet: any) {
+	const settings = await SettingsService.setSettings({
+		body: toSet
 	});
-	const settingsData = await settings.json();
-
-	return {
-		data: settingsData
-	};
+	return settings.data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function saveSettings(fetch: any) {
-	const data = await fetch(`${BACKEND_URL}/settings/save`, {
-		method: 'POST'
-	});
-	const response = await data.json();
-
-	return {
-		data: response
-	};
+export async function saveSettings() {
+	const response = await SettingsService.saveSettings();
+	return response.data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function loadSettings(fetch: any) {
-	const data = await fetch(`${BACKEND_URL}/settings/load`, {
-		method: 'GET'
-	});
-	const response = await data.json();
-
+export async function loadSettings() {
+	const response = await SettingsService.loadSettings();
 	return {
-		data: response
+		data: response.data
 	};
 }

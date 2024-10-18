@@ -10,9 +10,11 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"generate-client": "openapi-ts generate"
 	},
 	"devDependencies": {
+		"@hey-api/openapi-ts": "^0.53.6",
 		"@sveltejs/adapter-node": "^5.0.1",
 		"@sveltejs/kit": "^2.5.10",
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
@@ -46,6 +48,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@hey-api/client-fetch": "^0.4.0",
 		"better-sqlite3": "^11.1.2",
 		"bits-ui": "^0.21.10",
 		"clsx": "^2.1.1",

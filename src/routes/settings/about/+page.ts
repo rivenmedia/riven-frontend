@@ -1,19 +1,23 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 import { dev } from '$app/environment';
+import { SettingsService } from '$lib/client';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
+export const load: PageLoad = async () => {
 	async function getAboutInfo() {
-		try {
-			const toGet = ['version', 'symlink'];
-			const results = await fetch(`${locals.BACKEND_URL}/settings/get/${toGet.join(',')}`);
-			return await results.json();
-		} catch (e) {
-			console.error(e);
+		const toGet = ['version', 'symlink'];
+		const { data, error: apiError } = await SettingsService.getSettings({
+			path: {
+				paths: toGet.join(',')
+			}
+		});
+		if (apiError) {
 			error(503, 'Unable to fetch settings data. API is down.');
 		}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return data! as any;
 	}
 	let versionFilePath: string = '/riven/version.txt';
 	if (dev) {

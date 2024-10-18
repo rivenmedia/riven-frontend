@@ -3,6 +3,7 @@
 	import Header from '$lib/components/header.svelte';
 	import { Star } from 'lucide-svelte';
 	import { formatDate } from '$lib/helpers';
+	import { statesName } from '$lib/constants';
 
 	export let data: PageData;
 </script>
@@ -90,10 +91,22 @@
 										>
 											Episode {episode.episode_number}
 										</div>
-										<div
-											class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-										>
-											{formatDate(episode.air_date, 'short')}
+										<div class="mt-auto flex w-full justify-between">
+											{#if data.mediaItemDetails.find((x) => x.number == episode.episode_number)}
+												<div
+													class="mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
+												>
+													{statesName[
+														data.mediaItemDetails.find((x) => x.number == episode.episode_number)
+															?.state ?? 'Unknown'
+													]}
+												</div>
+											{/if}
+											<div
+												class="ml-auto mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
+											>
+												{formatDate(episode.air_date, 'short')}
+											</div>
 										</div>
 									</div>
 								</div>

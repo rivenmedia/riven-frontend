@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { fail, error, redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import {
 	mediaServerSettingsSchema,
 	mediaServerSettingsToGet,
@@ -9,22 +9,14 @@ import {
 	mediaServerSettingsToSet
 } from '$lib/forms/helpers';
 import { setSettings, saveSettings, loadSettings } from '$lib/forms/helpers.server';
+import { SettingsService } from '$lib/client';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
-	async function getPartialSettings() {
-		try {
-			const results = await fetch(
-				`${locals.BACKEND_URL}/settings/get/${mediaServerSettingsToGet.join(',')}`
-			);
-			return await results.json();
-		} catch (e) {
-			console.error(e);
-			error(503, 'Unable to fetch settings data. API is down.');
+export const load: PageServerLoad = async () => {
+	const { data } = await SettingsService.getSettings({
+		path: {
+			paths: mediaServerSettingsToGet.join(',')
 		}
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const data: any = await getPartialSettings();
+	});
 	const toPassToSchema = mediaServerSettingsToPass(data);
 
 	return {
@@ -45,16 +37,16 @@ export const actions: Actions = {
 		const toSet = mediaServerSettingsToSet(form);
 
 		try {
-			const data = await setSettings(event.fetch, toSet);
-			if (!data.data.success) {
+			const data = await setSettings(toSet);
+			if (!data) {
 				return message(form, `Service(s) failed to initialize. Please check your settings.`, {
 					status: 400
 				});
 			}
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const _save = await saveSettings(event.fetch);
+			const _save = await saveSettings();
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const _load = await loadSettings(event.fetch);
+			const _load = await loadSettings();
 		} catch (e) {
 			console.error(e);
 			return message(form, 'Unable to save settings. API is down.', {

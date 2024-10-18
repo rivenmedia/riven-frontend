@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PageLoad } from './$types';
 import { getTVSeasonDetails, getTVDetails } from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
+import { ItemsService } from '$lib/client';
 
 export const load = (async ({ fetch, params }) => {
 	const type = params.type;
@@ -20,11 +22,28 @@ export const load = (async ({ fetch, params }) => {
 		return await getTVDetails(fetch, 'en-US', null, tvID);
 	}
 
+	async function getMediaItemDetails(tvID: number): Promise<any[]> {
+		const { data } = await ItemsService.getItem({
+			path: {
+				id: tvID
+			},
+			query: {
+				use_tmdb_id: true
+			}
+		});
+		if (!data) {
+			return Promise.resolve([]);
+		}
+		const anyData = data as any;
+		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season).episodes;
+	}
+
 	return {
 		details: await getDetails(id, season),
 		mediaDetails: await mediaDetails(id),
 		mediaType: type,
 		mediaID: id,
-		seasonNumber: season
+		seasonNumber: season,
+		mediaItemDetails: await getMediaItemDetails(id)
 	};
 }) satisfies PageLoad;
