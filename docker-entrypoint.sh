@@ -8,6 +8,4 @@ else
 fi
 
 export BACKEND_URL=${BACKEND_URL}
-export DIALECT=${DIALECT}
-export DATABASE_URL=${DATABASE_URL}
 exec "$@"

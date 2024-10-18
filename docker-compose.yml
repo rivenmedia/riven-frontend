@@ -7,8 +7,6 @@ services:
     environment:
       - ORIGIN=http://localhost:3000 # No trailing slash, read more below
       - BACKEND_URL=http://127.0.0.1:8080 # No trailing slash, read more below
-      - DIALECT=sqlite # or postgres
-      - DATABASE_URL=/path/to/media.db # or postgres://user:password@localhost:5432/media
       - TZ=America/New_York
     ports:
       - '3000:3000'
