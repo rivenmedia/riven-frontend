@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.1](https://github.com/rivenmedia/riven-frontend/compare/v0.13.0...v0.13.1) (2024-09-25)
+
+
+### Bug Fixes
+
+* add new states to the frontend ([#106](https://github.com/rivenmedia/riven-frontend/issues/106)) ([6d3911b](https://github.com/rivenmedia/riven-frontend/commit/6d3911b0d40f663e26aa966d58e961d8e1de914e))
+* minor statistics page improvement ([b6d8a2a](https://github.com/rivenmedia/riven-frontend/commit/b6d8a2a29daa94483a6c73933c46482c23b2dde6))
+* update discord notification ([25f1348](https://github.com/rivenmedia/riven-frontend/commit/25f13485e3ffda595d1e667b2eeb6abfdb5e9dfb))
+
 ## [0.13.0](https://github.com/rivenmedia/riven-frontend/compare/v0.12.1...v0.13.0) (2024-09-22)
 
 
