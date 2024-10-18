@@ -66,6 +66,11 @@ export const AppModelSchema = {
             title: 'Version',
             default: '0.16.0'
         },
+        api_key: {
+            type: 'string',
+            title: 'Api Key',
+            default: ''
+        },
         debug: {
             type: 'boolean',
             title: 'Debug',

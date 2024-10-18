@@ -17,6 +17,7 @@ export type AnnatarConfig = {
 
 export type AppModel = {
     version?: string;
+    api_key?: string;
     debug?: boolean;
     log?: boolean;
     force_refresh?: boolean;
@@ -712,7 +713,7 @@ export type ZileanConfig = {
 
 export type RootResponse2 = (RootResponse);
 
-export type RootError = (unknown);
+export type RootError = unknown;
 
 export type HealthResponse = (MessageResponse);
 
@@ -766,59 +767,11 @@ export type MountResponse = ({
 
 export type MountError = (unknown);
 
-export type OverseerrWebhookOverseerrPostResponse = ({
+export type OverseerrApiV1WebhookOverseerrPostResponse = ({
     [key: string]: unknown;
 });
 
-export type OverseerrWebhookOverseerrPostError = (unknown);
-
-export type GetSettingsSchemaResponse = ({
-    [key: string]: unknown;
-});
-
-export type GetSettingsSchemaError = (unknown);
-
-export type LoadSettingsResponse = (MessageResponse);
-
-export type LoadSettingsError = (unknown);
-
-export type SaveSettingsResponse = (MessageResponse);
-
-export type SaveSettingsError = (unknown);
-
-export type GetAllSettingsResponse = (AppModel);
-
-export type GetAllSettingsError = (unknown);
-
-export type GetSettingsData = {
-    path: {
-        paths: string;
-    };
-};
-
-export type GetSettingsResponse = ({
-    [key: string]: unknown;
-});
-
-export type GetSettingsError = (unknown | HTTPValidationError);
-
-export type SetAllSettingsData = {
-    body: {
-        [key: string]: unknown;
-    };
-};
-
-export type SetAllSettingsResponse = (MessageResponse);
-
-export type SetAllSettingsError = (unknown | HTTPValidationError);
-
-export type SetSettingsData = {
-    body: Array<SetSettings>;
-};
-
-export type SetSettingsResponse = (MessageResponse);
-
-export type SetSettingsError = (unknown | HTTPValidationError);
+export type OverseerrApiV1WebhookOverseerrPostError = (unknown);
 
 export type GetStatesResponse = (StateResponse);
 
@@ -921,7 +874,7 @@ export type SetTorrentRdMagnetResponse = (SetTorrentRDResponse);
 
 export type SetTorrentRdMagnetError = (unknown | HTTPValidationError);
 
-export type SetTorrentRdItemsIdSetTorrentRdPostData = {
+export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostData = {
     path: {
         id: number;
     };
@@ -930,9 +883,9 @@ export type SetTorrentRdItemsIdSetTorrentRdPostData = {
     };
 };
 
-export type SetTorrentRdItemsIdSetTorrentRdPostResponse = (SetTorrentRDResponse);
+export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostResponse = (SetTorrentRDResponse);
 
-export type SetTorrentRdItemsIdSetTorrentRdPostError = (unknown | HTTPValidationError);
+export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostError = (unknown | HTTPValidationError);
 
 export type ScrapeData = {
     query: {
@@ -955,6 +908,54 @@ export type GetRdTorrentsData = {
 export type GetRdTorrentsResponse = (Array<RDTorrent>);
 
 export type GetRdTorrentsError = (HTTPValidationError);
+
+export type GetSettingsSchemaResponse = ({
+    [key: string]: unknown;
+});
+
+export type GetSettingsSchemaError = (unknown);
+
+export type LoadSettingsResponse = (MessageResponse);
+
+export type LoadSettingsError = (unknown);
+
+export type SaveSettingsResponse = (MessageResponse);
+
+export type SaveSettingsError = (unknown);
+
+export type GetAllSettingsResponse = (AppModel);
+
+export type GetAllSettingsError = (unknown);
+
+export type GetSettingsData = {
+    path: {
+        paths: string;
+    };
+};
+
+export type GetSettingsResponse = ({
+    [key: string]: unknown;
+});
+
+export type GetSettingsError = (unknown | HTTPValidationError);
+
+export type SetAllSettingsData = {
+    body: {
+        [key: string]: unknown;
+    };
+};
+
+export type SetAllSettingsResponse = (MessageResponse);
+
+export type SetAllSettingsError = (unknown | HTTPValidationError);
+
+export type SetSettingsData = {
+    body: Array<SetSettings>;
+};
+
+export type SetSettingsResponse = (MessageResponse);
+
+export type SetSettingsError = (unknown | HTTPValidationError);
 
 export type GetTrendingData = {
     path: {
