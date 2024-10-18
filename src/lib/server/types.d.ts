@@ -105,16 +105,3 @@ export interface Subtitle {
 	language: string;
 	parent_id: number;
 }
-
-export interface DB {
-	alembic_version: AlembicVersion;
-	Episode: Episode;
-	MediaItem: MediaItem;
-	Movie: Movie;
-	Season: Season;
-	Show: Show;
-	Stream: Stream;
-	StreamBlacklistRelation: StreamBlacklistRelation;
-	StreamRelation: StreamRelation;
-	Subtitle: Subtitle;
-}

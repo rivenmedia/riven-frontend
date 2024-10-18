@@ -4,10 +4,15 @@ import type { RequestHandler } from '@sveltejs/kit';
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.BACKEND_URL);
+	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const apiKey = locals.apiKey
 
 	try {
-		const response = await fetch(`${backendUrl.toString()}${url.search}`);
+		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
+			headers: {
+				"x-api-key": apiKey
+			}
+		});
 		return json(await response.json(), {
 			status: response.status
 		});
@@ -19,13 +24,15 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 export const PUT: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.BACKEND_URL);
+	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const apiKey = locals.apiKey
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			method: 'PUT',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				"x-api-key": apiKey
 			},
 			body: await request.text()
 		});
@@ -40,13 +47,15 @@ export const PUT: RequestHandler = async ({ locals, url, request }) => {
 export const POST: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.BACKEND_URL);
+	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const apiKey = locals.apiKey
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				"x-api-key": apiKey
 			},
 			body: await request.text()
 		});
@@ -61,11 +70,15 @@ export const POST: RequestHandler = async ({ locals, url, request }) => {
 export const DELETE: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
 	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.BACKEND_URL);
+	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const apiKey = locals.apiKey
 
 	try {
 		const response = await fetch(`${backendUrl.toString()}${url.search}`, {
-			method: 'DELETE'
+			method: 'DELETE',
+			headers: {
+				"x-api-key": apiKey
+			}
 		});
 		return json(await response.json(), {
 			status: response.status
