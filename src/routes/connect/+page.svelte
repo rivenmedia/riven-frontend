@@ -42,7 +42,7 @@
 			} else {
 				error = 'Invalid credentials or backend URL';
 			}
-		} catch (err) {
+		} catch {
 			error = 'Error connecting to the backend';
 		} finally {
 			loading = false;

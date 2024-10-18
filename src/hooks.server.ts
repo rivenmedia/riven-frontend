@@ -24,7 +24,7 @@ const middleware: Handle = async ({ event, resolve }) => {
 
 	if (customEvent) {
 		switch (customEvent) {
-			case 'initialize-api':
+			case 'initialize-api': {
 				const newBackendUrl = event.request.headers.get('X-Backend-Url');
 				const newApiKey = event.request.headers.get('X-Api-Key');
 
@@ -58,6 +58,7 @@ const middleware: Handle = async ({ event, resolve }) => {
 					});
 				}
 				break;
+			}
 		}
 	}
 
