@@ -14,6 +14,9 @@
 	onMount(() => {
 		backendUrlValue = localStorage.getItem('backendUrl') || '';
 		apiKeyValue = localStorage.getItem('apiKey') || '';
+		if (backendUrlValue && apiKeyValue) {
+			validateAndSave();
+		}
 	});
 
 	async function validateAndSave() {

@@ -76,6 +76,9 @@ const middleware: Handle = async ({ event, resolve }) => {
 
 client.interceptors.error.use((error: unknown) => {
 	if (error && typeof error == 'object' && 'detail' in error && typeof error.detail == 'string') {
+		if ( error.detail === 'Missing or invalid API key' ) {
+			redirect(307, '/connect')
+		}
 		return error.detail;
 	}
 	return undefined;
