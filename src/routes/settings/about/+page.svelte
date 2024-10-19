@@ -188,10 +188,6 @@
 		rel="noopener noreferrer"
 		class="my-8"
 	>
-		<img
-			alt="contributors"
-			src="https://contrib.rocks/image?repo=rivenmedia/riven"
-			class="mt-2"
-		/>
+		<img alt="contributors" src="https://contrib.rocks/image?repo=rivenmedia/riven" class="mt-2" />
 	</a>
 </div>
