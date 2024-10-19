@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/rivenmedia/riven-frontend/compare/v0.16.1...v0.16.2) (2024-10-19)
+
+
+### Bug Fixes
+
+* page overflow ([#137](https://github.com/rivenmedia/riven-frontend/issues/137)) ([c241433](https://github.com/rivenmedia/riven-frontend/commit/c241433b1d268b6c2ee7f2a249d165ed6f7d5348))
+
 ## [0.16.1](https://github.com/rivenmedia/riven-frontend/compare/v0.16.0...v0.16.1) (2024-10-19)
 
 
