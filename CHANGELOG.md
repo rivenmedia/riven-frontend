@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/rivenmedia/riven-frontend/compare/v0.16.0...v0.16.1) (2024-10-19)
+
+
+### Bug Fixes
+
+* build issues ([#135](https://github.com/rivenmedia/riven-frontend/issues/135)) ([b464ccd](https://github.com/rivenmedia/riven-frontend/commit/b464ccdf99afe162fe024daac6818d67456f1759))
+
 ## [0.16.0](https://github.com/rivenmedia/riven-frontend/compare/v0.14.1...v0.16.0) (2024-10-18)
 
 
