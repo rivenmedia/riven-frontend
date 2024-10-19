@@ -3,8 +3,8 @@
 	import { onMount } from 'svelte';
 	import '../../app.css';
 	import { sendCustomEvent } from '$lib/sendCustomEvent';
-    import { DefaultService } from '$lib/client/services.gen';
-    import { error } from '@sveltejs/kit';
+	import { DefaultService } from '$lib/client/services.gen';
+	import { error } from '@sveltejs/kit';
 
 	let backendUrlValue = '';
 	let apiKeyValue = '';
@@ -42,27 +42,25 @@
 					'Api-Key': apiKeyValue
 				});
 
-                const { data, error: apiError } = await DefaultService.services();
+				const { data, error: apiError } = await DefaultService.services();
 
-                if (apiError || !data) {
-                    return error(500, 'API Error');
-                }
+				if (apiError || !data) {
+					return error(500, 'API Error');
+				}
 
-                const toCheck = ['symlink', 'symlinklibrary'];
-                const allServicesTrue: boolean = toCheck.every((service) => data[service] === true);
-                if (!allServicesTrue) {
-                    goto('/onboarding');
-                }
+				const toCheck = ['symlink', 'symlinklibrary'];
+				const allServicesTrue: boolean = toCheck.every((service) => data[service] === true);
+				if (!allServicesTrue) {
+					goto('/onboarding');
+				}
 
 				// Navigate to home
 				goto('/');
-			} 
-            else if (response.status === 401 ) {
+			} else if (response.status === 401) {
 				errorMessage = 'Invalid API Key';
+			} else {
+				errorMessage = 'Unkown error';
 			}
-            else {
-                errorMessage = "Unkown error"
-            }
 		} catch {
 			errorMessage = 'Error connecting to the backend';
 		} finally {
