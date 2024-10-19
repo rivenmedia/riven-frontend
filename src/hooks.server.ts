@@ -1,7 +1,8 @@
 import type { Handle } from '@sveltejs/kit';
 import { redirect, error } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { BACKEND_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+const BACKEND_URL = env.BACKEND_URL || 'http://127.0.0.1:8080';
 import { client, DefaultService } from '$lib/client/services.gen';
 
 const setLocals: Handle = async ({ event, resolve }) => {
