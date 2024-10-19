@@ -191,7 +191,7 @@
 		<img
 			alt="contributors"
 			src="https://contrib.rocks/image?repo=rivenmedia/riven"
-			class="mt-2 max-w-lg"
+			class="mt-2"
 		/>
 	</a>
 </div>
