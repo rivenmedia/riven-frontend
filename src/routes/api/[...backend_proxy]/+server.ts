@@ -3,8 +3,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
-	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const backendUrl = new URL(pathname, locals.backendUrl);
 	const apiKey = locals.apiKey;
 
 	try {
@@ -23,8 +22,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 export const PUT: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
-	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const backendUrl = new URL(pathname, locals.backendUrl);
 	const apiKey = locals.apiKey;
 
 	try {
@@ -46,8 +44,7 @@ export const PUT: RequestHandler = async ({ locals, url, request }) => {
 
 export const POST: RequestHandler = async ({ locals, url, request }) => {
 	const { pathname } = url;
-	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const backendUrl = new URL(pathname, locals.backendUrl);
 	const apiKey = locals.apiKey;
 
 	try {
@@ -69,8 +66,7 @@ export const POST: RequestHandler = async ({ locals, url, request }) => {
 
 export const DELETE: RequestHandler = async ({ locals, url }) => {
 	const { pathname } = url;
-	const backendPathname = pathname.replace('/api', '');
-	const backendUrl = new URL(backendPathname, locals.backendUrl);
+	const backendUrl = new URL(pathname, locals.backendUrl);
 	const apiKey = locals.apiKey;
 
 	try {

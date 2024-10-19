@@ -1,7 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { client, DefaultService } from '$lib/client/services.gen';
+import { client } from '$lib/client/services.gen';
 
 const middleware: Handle = async ({ event, resolve }) => {
 	// Try to get backendUrl and apiKey from cookies
@@ -64,20 +64,10 @@ const middleware: Handle = async ({ event, resolve }) => {
 
 	if (
 		!event.url.pathname.startsWith('/connect') &&
-		!event.url.pathname.startsWith('/onboarding') &&
 		event.request.method === 'GET'
 	) {
 		if (!event.locals.backendUrl && !event.locals.apiKey) {
-			redirect(302, '/connect');
-		}
-		const { data, error: apiError } = await DefaultService.services();
-		if (apiError || !data) {
-			return error(500, 'API Error');
-		}
-		const toCheck = ['symlink', 'symlinklibrary'];
-		const allServicesTrue: boolean = toCheck.every((service) => data[service] === true);
-		if (!allServicesTrue) {
-			redirect(302, '/onboarding');
+			redirect(307, '/connect');
 		}
 	}
 

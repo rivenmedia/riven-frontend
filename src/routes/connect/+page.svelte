@@ -3,10 +3,12 @@
 	import { onMount } from 'svelte';
 	import '../../app.css';
 	import { sendCustomEvent } from '$lib/sendCustomEvent';
+    import { DefaultService } from '$lib/client/services.gen';
+    import { error } from '@sveltejs/kit';
 
 	let backendUrlValue = '';
 	let apiKeyValue = '';
-	let error = '';
+	let errorMessage = '';
 	let loading = false;
 
 	onMount(() => {
@@ -16,7 +18,7 @@
 
 	async function validateAndSave() {
 		loading = true;
-		error = '';
+		errorMessage = '';
 
 		try {
 			const response = await fetch(`${backendUrlValue}/api/v1/health`, {
@@ -37,13 +39,29 @@
 					'Api-Key': apiKeyValue
 				});
 
+                const { data, error: apiError } = await DefaultService.services();
+
+                if (apiError || !data) {
+                    return error(500, 'API Error');
+                }
+
+                const toCheck = ['symlink', 'symlinklibrary'];
+                const allServicesTrue: boolean = toCheck.every((service) => data[service] === true);
+                if (!allServicesTrue) {
+                    goto('/onboarding');
+                }
+
 				// Navigate to home
 				goto('/');
-			} else {
-				error = 'Invalid credentials or backend URL';
+			} 
+            else if (response.status === 401 ) {
+				errorMessage = 'Invalid API Key';
 			}
+            else {
+                errorMessage = "Unkown error"
+            }
 		} catch {
-			error = 'Error connecting to the backend';
+			errorMessage = 'Error connecting to the backend';
 		} finally {
 			loading = false;
 		}
@@ -73,8 +91,8 @@
 					class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
 				/>
 			</div>
-			{#if error}
-				<p class="text-sm text-red-500">{error}</p>
+			{#if errorMessage}
+				<p class="text-sm text-red-500">{errorMessage}</p>
 			{/if}
 			<button
 				type="submit"
