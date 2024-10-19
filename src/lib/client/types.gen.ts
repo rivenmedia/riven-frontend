@@ -723,6 +723,10 @@ export type RdResponse = (RDUser);
 
 export type RdError = (unknown);
 
+export type GenerateapikeyResponse = (MessageResponse);
+
+export type GenerateapikeyError = (unknown);
+
 export type TorboxResponse = (unknown);
 
 export type TorboxError = (unknown);
