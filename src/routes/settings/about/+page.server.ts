@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { dev } from '$app/environment';
 
-export const prerender = true;
+// export const prerender = true;
 
 export const load = (async () => {
 	let versionFilePath: string = '/riven/version.txt';
