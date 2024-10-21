@@ -1,12 +1,9 @@
 declare global {
 	namespace App {
-		// interface Error {}
 		interface Locals {
-			BACKEND_URL: string;
+			backendUrl: string;
+			apiKey: string;
 		}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
 	}
 }
 
