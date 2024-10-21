@@ -2,86 +2,49 @@ import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { client } from '$lib/client/services.gen';
+import { getServerConfig } from '$lib/serverConfig';
 
-const middleware: Handle = async ({ event, resolve }) => {
-	// Try to get backendUrl and apiKey from cookies
-	const backendUrl = event.cookies.get('backendUrl');
-	const apiKey = event.cookies.get('apiKey');
+const configureClientMiddleware: Handle = async ({ event, resolve }) => {
+    // const config = await getServerConfig();
 
-	// If we have values in cookies, set them in locals and configure the client
-	if (backendUrl && apiKey) {
-		event.locals.backendUrl = backendUrl;
-		event.locals.apiKey = apiKey;
-		client.setConfig({
-			baseUrl: backendUrl,
-			headers: {
-				'x-api-key': apiKey
-			}
-		});
-	}
+    // if (config) {
+    //     event.locals.backendUrl = config.backendUrl;
+    //     event.locals.apiKey = config.apiKey;
+    //     client.setConfig({
+    //         baseUrl: config.backendUrl,
+    //         headers: {
+    //             'x-api-key': config.apiKey
+    //         }
+    //     });
+    // }
 
-	const customEvent = event.request.headers.get('X-Custom-Event');
+    if (
+        !event.url.pathname.startsWith('/connect') &&
+        !event.url.pathname.startsWith('/api/configure-client') &&
+        event.request.method === 'GET'
+    ) {
+        if (!event.locals.backendUrl || !event.locals.apiKey) {
+            throw redirect(307, '/connect');
+        }
+    }
 
-	if (customEvent) {
-		switch (customEvent) {
-			case 'initialize-api': {
-				const newBackendUrl = event.request.headers.get('X-Backend-Url');
-				const newApiKey = event.request.headers.get('X-Api-Key');
-
-				if (newBackendUrl && newApiKey) {
-					// Set new values in locals
-					event.locals.backendUrl = newBackendUrl;
-					event.locals.apiKey = newApiKey;
-
-					// Set new values in cookies (secure and HTTP-only)
-					event.cookies.set('backendUrl', newBackendUrl, {
-						path: '/',
-						httpOnly: true,
-						secure: process.env.NODE_ENV === 'production',
-						sameSite: 'strict',
-						maxAge: 60 * 60 * 24 * 30 // 30 days
-					});
-					event.cookies.set('apiKey', newApiKey, {
-						path: '/',
-						httpOnly: true,
-						secure: process.env.NODE_ENV === 'production',
-						sameSite: 'strict',
-						maxAge: 60 * 60 * 24 * 30 // 30 days
-					});
-
-					// Configure the client with new values
-					client.setConfig({
-						baseUrl: newBackendUrl,
-						headers: {
-							'x-api-key': newApiKey
-						}
-					});
-				}
-				break;
-			}
-		}
-	}
-
-	if (
-		!event.url.pathname.startsWith('/connect') &&
-		event.request.method === 'GET'
-	) {
-		if (!event.locals.backendUrl && !event.locals.apiKey) {
-			redirect(307, '/connect');
-		}
-	}
-
-	return resolve(event);
+    return resolve(event);
 };
 
-client.interceptors.error.use((error: unknown) => {
-	if (error && typeof error == 'object' && 'detail' in error && typeof error.detail == 'string') {
-		if ( error.detail === 'Missing or invalid API key' ) {
-			redirect(307, '/connect')
-		}
-		return error.detail;
-	}
-	return undefined;
-});
+const errorInterceptor: Handle = async ({ event, resolve }) => {
+    const response = await resolve(event);
 
-export const handle = sequence(middleware);
+    client.interceptors.error.use((error: unknown) => {
+        if (error && typeof error === 'object' && 'detail' in error && typeof error.detail === 'string') {
+            if (error.detail === 'Missing or invalid API key') {
+                throw redirect(307, '/connect');
+            }
+            return error.detail;
+        }
+        return undefined;
+    });
+
+    return response;
+};
+
+export const handle = sequence(configureClientMiddleware, errorInterceptor);
