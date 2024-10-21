@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.16.3](https://github.com/rivenmedia/riven-frontend/compare/v0.16.2...v0.16.3) (2024-10-19)
+
+
+### Bug Fixes
+
+* Prevent /api requests from being redirected to /onboarding ([#141](https://github.com/rivenmedia/riven-frontend/issues/141)) ([fdcd0c4](https://github.com/rivenmedia/riven-frontend/commit/fdcd0c44dc93dd2c524716d8140fe33773f45465))
+
+## [0.16.2](https://github.com/rivenmedia/riven-frontend/compare/v0.16.1...v0.16.2) (2024-10-19)
+
+
+### Bug Fixes
+
+* page overflow ([#137](https://github.com/rivenmedia/riven-frontend/issues/137)) ([c241433](https://github.com/rivenmedia/riven-frontend/commit/c241433b1d268b6c2ee7f2a249d165ed6f7d5348))
+
+## [0.16.1](https://github.com/rivenmedia/riven-frontend/compare/v0.16.0...v0.16.1) (2024-10-19)
+
+
+### Bug Fixes
+
+* build issues ([#135](https://github.com/rivenmedia/riven-frontend/issues/135)) ([b464ccd](https://github.com/rivenmedia/riven-frontend/commit/b464ccdf99afe162fe024daac6818d67456f1759))
+
 ## [0.16.0](https://github.com/rivenmedia/riven-frontend/compare/v0.14.1...v0.16.0) (2024-10-18)
 
 
