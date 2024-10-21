@@ -5,18 +5,18 @@ import { client } from '$lib/client/services.gen';
 import { getServerConfig } from '$lib/serverConfig';
 
 const configureClientMiddleware: Handle = async ({ event, resolve }) => {
-    const config = await getServerConfig();
+	const config = await getServerConfig();
 
-    if (config) {
-        event.locals.backendUrl = config.backendUrl;
-        event.locals.apiKey = config.apiKey;
-        client.setConfig({
-            baseUrl: config.backendUrl,
-            headers: {
-                'x-api-key': config.apiKey
-            }
-        });
-    }
+	if (config) {
+		event.locals.backendUrl = config.backendUrl;
+		event.locals.apiKey = config.apiKey;
+		client.setConfig({
+			baseUrl: config.backendUrl,
+			headers: {
+				'x-api-key': config.apiKey
+			}
+		});
+	}
 
 	if (
 		!event.url.pathname.startsWith('/connect') &&
