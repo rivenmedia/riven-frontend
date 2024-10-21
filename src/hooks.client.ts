@@ -1,7 +1,7 @@
 import { client } from '$lib/client/services.gen';
 
 client.setConfig({
-	baseUrl: '/api'
+	baseUrl: ''
 });
 
 client.interceptors.error.use((error: unknown) => {
