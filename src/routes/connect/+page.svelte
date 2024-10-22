@@ -2,6 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { error } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { Button } from '$lib/components/ui/button';
 
 	let backendUrlValue = '';
 	let apiKeyValue = '';
@@ -57,39 +60,24 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center">
-	<div class="w-96 rounded-lg p-8 shadow-md">
+<div class="flex h-screen items-center justify-center">
+	<div class="w-96 rounded-lg">
 		<form on:submit|preventDefault={validateAndSave} class="space-y-4">
-			<div>
-				<label for="backendUrl" class="block text-sm font-medium text-gray-700">Backend URL</label>
-				<input
-					type="url"
-					id="backendUrl"
-					bind:value={backendUrlValue}
-					required
-					class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-				/>
+			<p class="text-base text-center w-full">Connect to your backend</p>
+			<div class="space-y-1">
+				<Label for="backendUrl" class="text-muted-foreground">Backend URL</Label>
+				<Input type="url" id="backendUrl" bind:value={backendUrlValue} required />
 			</div>
-			<div>
-				<label for="apiKey" class="block text-sm font-medium text-gray-700">API Key</label>
-				<input
-					type="password"
-					id="apiKey"
-					bind:value={apiKeyValue}
-					required
-					class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-				/>
+			<div class="space-y-1">
+				<Label for="apiKey" class="text-muted-foreground">API Key</Label>
+				<Input type="password" id="apiKey" bind:value={apiKeyValue} required />
 			</div>
 			{#if errorMessage}
 				<p class="text-sm text-red-500">{errorMessage}</p>
 			{/if}
-			<button
-				type="submit"
-				disabled={loading}
-				class="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-			>
+			<Button type="submit" disabled={loading} class="w-full mt-2">
 				{loading ? 'Validating...' : 'Save and Connect'}
-			</button>
+			</Button>
 		</form>
 	</div>
 </div>
