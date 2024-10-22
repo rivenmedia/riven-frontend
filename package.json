@@ -11,8 +11,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write",
-		"format-all": "prettier --write .",
+		"format": "prettier --write .",
 		"generate-client": "openapi-ts generate"
 	},
 	"devDependencies": {

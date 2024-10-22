@@ -63,7 +63,7 @@
 <div class="flex h-screen items-center justify-center">
 	<div class="w-96 rounded-lg">
 		<form on:submit|preventDefault={validateAndSave} class="space-y-4">
-			<p class="text-base text-center w-full">Connect to your backend</p>
+			<p class="w-full text-center text-base">Connect to your backend</p>
 			<div class="space-y-1">
 				<Label for="backendUrl" class="text-muted-foreground">Backend URL</Label>
 				<Input type="url" id="backendUrl" bind:value={backendUrlValue} required />
@@ -75,7 +75,7 @@
 			{#if errorMessage}
 				<p class="text-sm text-red-500">{errorMessage}</p>
 			{/if}
-			<Button type="submit" disabled={loading} class="w-full mt-2">
+			<Button type="submit" disabled={loading} class="mt-2 w-full">
 				{loading ? 'Validating...' : 'Save and Connect'}
 			</Button>
 		</form>
