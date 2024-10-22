@@ -13,3 +13,4 @@ vite.config.ts.timestamp-*
 /package-lock.json
 .vscode
 server-config.json
+.git

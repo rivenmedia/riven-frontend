@@ -29,6 +29,9 @@
 	// 	handleSSE($value);
 	// }
 
+	const value = source('api/sse/logging').select('message')
+	$: console.log($value)
+
 	const showMenu: Writable<boolean> = writable(false);
 
 	setContext('formDebug', dev);
