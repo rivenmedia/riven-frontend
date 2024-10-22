@@ -3,7 +3,7 @@
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import Autoplay from 'embla-carousel-autoplay';
 	import Header from '$lib/components/header.svelte';
-	import { Star, CalendarDays, Languages, Play, Info, Flame, Clapperboard } from 'lucide-svelte';
+	import { Star, CalendarDays, Languages, Info, Flame, Clapperboard } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { roundOff } from '$lib/helpers';
 	import HomeItems from '$lib/components/home-items.svelte';
@@ -63,7 +63,7 @@
 									<p class="line-clamp-2 text-base">{nowPlaying.overview}</p>
 								</div>
 								<div class="mt-2 flex gap-2">
-									<ItemRequest data={nowPlaying} type={'movie'} />
+									<ItemRequest data={nowPlaying} type="movie" />
 									<Button
 										size="lg"
 										variant="ghost"
