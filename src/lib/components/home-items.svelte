@@ -2,11 +2,15 @@
 	import { Star, CalendarDays, Clapperboard, MoveUpRight } from 'lucide-svelte';
 	import ItemRequest from './item-request.svelte';
 	import { roundOff } from '$lib/helpers';
+	import { writable } from 'svelte/store';
+	import { goto } from '$app/navigation';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export let data: any;
 	export let name: string;
 	export let type: string;
+
+	const hoveredItem = writable(null);
 </script>
 
 <div class="flex h-full w-full flex-col p-8 md:px-24 lg:px-32">
@@ -28,6 +32,19 @@
 				{#each data.results as item}
 					<div
 						class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"
+						role="button"
+						tabindex="0"
+						on:mouseenter={() => ($hoveredItem = item.id)}
+						on:mouseleave={() => ($hoveredItem = null)}
+						on:focus={() => ($hoveredItem = item.id)}
+						on:blur={() => ($hoveredItem = null)}
+						on:keydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								$hoveredItem = item.id;
+							}
+						}}
+						on:click={() => goto(`/${type}/${item.id}`)}
 					>
 						<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
 							<img
@@ -44,12 +61,13 @@
 									{roundOff(item.vote_average)}
 								</span>
 							</div>
-							<a
-								href="/{type}/{item.id}"
+							<div
 								class="absolute inset-0 hidden flex-col justify-end from-zinc-900/70 p-2 group-hover:flex group-hover:bg-gradient-to-t"
 							>
-								<ItemRequest data={item} {type} />
-							</a>
+								{#if $hoveredItem === item.id}
+									<ItemRequest data={item} {type} />
+								{/if}
+							</div>
 						</div>
 					</div>
 				{/each}
