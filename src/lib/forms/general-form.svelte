@@ -62,39 +62,6 @@
 	<CheckboxField {form} name="repair_symlinks" {formData} />
 	<NumberField {form} name="repair_interval" stepValue={1} {formData} fieldDescription="In hours" />
 
-	<NumberField
-		{form}
-		name="movie_filesize_min"
-		label="Minimum Movie Filesize"
-		{formData}
-		stepValue={0.1}
-		fieldDescription="Filesize in MB"
-	/>
-	<NumberField
-		{form}
-		name="movie_filesize_max"
-		label="Maximum Movie Filesize"
-		{formData}
-		stepValue={0.1}
-		fieldDescription="Filesize in MB. Set to -1 for no limit"
-	/>
-	<NumberField
-		{form}
-		name="episode_filesize_min"
-		label="Minimum Episode Filesize"
-		{formData}
-		stepValue={0.1}
-		fieldDescription="Filesize in MB"
-	/>
-	<NumberField
-		{form}
-		name="episode_filesize_max"
-		label="Maximum Episode Filesize"
-		{formData}
-		stepValue={0.1}
-		fieldDescription="Filesize in MB. Set to -1 for no limit"
-	/>
-
 	<TextField {form} name="database_host" fieldDescription="Database connection string" {formData} />
 	<NumberField
 		{form}
