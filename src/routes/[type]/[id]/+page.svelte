@@ -169,14 +169,13 @@
 					<h1 class="text-center text-4xl text-zinc-50 md:text-left">
 						{data.details.title || data.details.name || data.details.original_name}
 					</h1>
-					{#if data.riven.state}
+					{#if data.riven}
 						<div class="flex items-center justify-center gap-2 md:justify-start">
 							<Badge
 								class={clsx('font-medium', {
 									'bg-green-500': data.riven.state === 'Completed',
 									'bg-yellow-500':
-										data.riven.state === 'Downloaded' ||
-										data.riven.state === 'PartiallyCompleted',
+										data.riven.state === 'Downloaded' || data.riven.state === 'PartiallyCompleted',
 									'bg-red-500': data.riven.state === 'Unknown'
 								})}
 							>
