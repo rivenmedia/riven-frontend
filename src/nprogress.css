@@ -4,7 +4,7 @@
 }
 
 #nprogress .bar {
-	background: red;
+	background: grey;
 
 	position: fixed;
 	z-index: 1031;
@@ -12,7 +12,7 @@
 	left: 0;
 
 	width: 100%;
-	height: 3px;
+	height: 2px;
 }
 
 /* Fancy blur effect */
@@ -23,8 +23,8 @@
 	width: 100px;
 	height: 100%;
 	box-shadow:
-		0 0 10px red,
-		0 0 5px red;
+		0 0 10px grey,
+		0 0 5px grey;
 	opacity: 1;
 
 	-webkit-transform: rotate(3deg) translate(0px, -4px);
@@ -47,8 +47,8 @@
 	box-sizing: border-box;
 
 	border: solid 2px transparent;
-	border-top-color: red;
-	border-left-color: red;
+	border-top-color: grey;
+	border-left-color: grey;
 	border-radius: 50%;
 
 	-webkit-animation: nprogress-spinner 400ms linear infinite;
