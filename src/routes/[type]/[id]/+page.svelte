@@ -36,7 +36,7 @@
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
-	let isShow = data.db ? data.db.type === 'Show' : false;
+	let isShow = data.riven ? data.riven.type === 'Show' : false;
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
@@ -169,18 +169,18 @@
 					<h1 class="text-center text-4xl text-zinc-50 md:text-left">
 						{data.details.title || data.details.name || data.details.original_name}
 					</h1>
-					{#if data.db && data.db.last_state}
+					{#if data.riven.state}
 						<div class="flex items-center justify-center gap-2 md:justify-start">
 							<Badge
 								class={clsx('font-medium', {
-									'bg-green-500': data.db.last_state === 'Completed',
+									'bg-green-500': data.riven.state === 'Completed',
 									'bg-yellow-500':
-										data.db.last_state === 'Downloaded' ||
-										data.db.last_state === 'PartiallyCompleted',
-									'bg-red-500': data.db.last_state === 'Unknown'
+										data.riven.state === 'Downloaded' ||
+										data.riven.state === 'PartiallyCompleted',
+									'bg-red-500': data.riven.state === 'Unknown'
 								})}
 							>
-								{statesName[data.db.last_state]}
+								{statesName[data.riven.state]}
 							</Badge>
 						</div>
 					{/if}
@@ -223,7 +223,7 @@
 						{data.details.overview}
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-						{#if data.db}
+						{#if data.riven}
 							<Sheet.Root>
 								<Sheet.Trigger asChild let:builder>
 									<Button
@@ -243,16 +243,16 @@
 										>
 									</Sheet.Header>
 									<Sheet.Description class="mt-2 flex flex-col gap-2">
-										<p>ID: {data.db.id}</p>
-										{#if data.db.requested_by}
-											<p>Requested by: {data.db.requested_by}</p>
+										<p>ID: {data.riven.id}</p>
+										{#if data.riven.requested_by}
+											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
-										{#if data.db.requested_at}
-											<p>Requested at: {getTime(data.db.requested_at.getTime())}</p>
+										{#if data.riven.requested_at}
+											<p>Requested at: {getTime(data.riven.requested_at.getTime())}</p>
 										{/if}
-										<p>Symlinked: {data.db.symlinked}</p>
-										{#if data.db.folder}
-											<p>Folder: {data.db.folder}</p>
+										<p>Symlinked: {data.riven.symlinked}</p>
+										{#if data.riven.folder}
+											<p>Folder: {data.riven.folder}</p>
 										{/if}
 										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
 											<p>Selected item file: {selectedMagnetItem.value.file}</p>
@@ -269,7 +269,7 @@
 												</Select.Trigger>
 												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
 													<Select.Group>
-														{#each data.db.seasons as season}
+														{#each data.riven.seasons as season}
 															<Select.Label>Season {season.number}</Select.Label>
 															<Select.Item value={season}>
 																All episodes in season {season.number}
@@ -297,8 +297,8 @@
 													class="flex w-full items-center gap-1"
 													disabled={!buttonEnabled}
 													on:click={async () => {
-														if (data.db && magnetLink) {
-															await addMagnetLink(data.db.id, magnetLink);
+														if (data.riven && magnetLink) {
+															await addMagnetLink(data.riven.id, magnetLink);
 														}
 													}}
 												>
@@ -339,8 +339,8 @@
 															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 															<AlertDialog.Action
 																on:click={async () => {
-																	if (data.db) {
-																		await retryItem(data.db.id);
+																	if (data.riven) {
+																		await retryItem(data.riven.id);
 																	}
 																}}>Continue</AlertDialog.Action
 															>
@@ -378,8 +378,8 @@
 															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 															<AlertDialog.Action
 																on:click={async () => {
-																	if (data.db) {
-																		await resetItem(data.db.id);
+																	if (data.riven) {
+																		await resetItem(data.riven.id);
 																	}
 																}}>Continue</AlertDialog.Action
 															>
@@ -396,7 +396,7 @@
 											class="flex w-full items-center gap-1"
 											variant="destructive"
 											on:click={() => {
-												navigator.clipboard.writeText(JSON.stringify(data.db, null, 2));
+												navigator.clipboard.writeText(JSON.stringify(data.riven, null, 2));
 												toast.success('Item data copied to clipboard');
 											}}
 										>
@@ -409,7 +409,7 @@
 						{:else}
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
-						{#if data.db}
+						{#if data.riven}
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<AlertDialog.Root>
@@ -435,8 +435,8 @@
 												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 												<AlertDialog.Action
 													on:click={async () => {
-														if (data.db) {
-															await deleteItem(data.db.id);
+														if (data.riven) {
+															await deleteItem(data.riven.id);
 														}
 													}}>Continue</AlertDialog.Action
 												>
