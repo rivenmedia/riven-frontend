@@ -1,6 +1,7 @@
 import type { PageLoad } from './$types';
 import { getMovieDetails, getTVDetails } from '$lib/tmdb';
 import { ItemsService } from '$lib/client';
+import type { RivenItem } from '$lib/types';
 
 export const load = (async ({ fetch, params }) => {
 	const type = params.type;
@@ -14,10 +15,6 @@ export const load = (async ({ fetch, params }) => {
 			use_tmdb_id: true
 		}
 	});
-
-	if (data) {
-		data.requested_at = new Date(data.requested_at as string);
-	}
 
 	async function getDetails(type: string, id: number) {
 		switch (type) {
@@ -43,7 +40,6 @@ export const load = (async ({ fetch, params }) => {
 		details: await getDetails(type, id),
 		mediaType: type,
 		mediaID: id,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		db: data as any
+		riven: data as unknown as RivenItem
 	};
 }) satisfies PageLoad;

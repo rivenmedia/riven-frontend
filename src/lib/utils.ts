@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
+import type { RivenEpisode, RivenItem, RivenMovie, RivenSeason, RivenShow } from './types';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -54,3 +55,19 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
+
+export function isRivenMovie(item: RivenItem): item is RivenMovie {
+	return item.type === 'Movie';
+}
+
+export function isRivenShow(item: RivenItem): item is RivenShow {
+	return item.type === 'Show';
+}
+
+export function isRivenSeason(item: RivenItem): item is RivenSeason {
+	return item.type === 'Season';
+}
+
+export function isRivenEpisode(item: RivenItem): item is RivenEpisode {
+	return item.type === 'Episode';
+}
