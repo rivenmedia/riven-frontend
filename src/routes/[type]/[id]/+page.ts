@@ -44,6 +44,6 @@ export const load = (async ({ fetch, params }) => {
 		mediaType: type,
 		mediaID: id,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		db: data as any
+		riven: data as any
 	};
 }) satisfies PageLoad;
