@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -36,7 +37,7 @@
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
-	let isShow = data.riven ? data.riven.type === 'Show' : false;
+	let isShow = data.riven ? isRivenShow(data.riven) : false;
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
@@ -91,7 +92,7 @@
 		}
 	}
 
-	function getTime(time: number) {
+	function getTime(time: string) {
 		const date = new Date(time);
 		return date.toLocaleDateString('en-US', {
 			year: 'numeric',
@@ -147,8 +148,8 @@
 				loading="lazy"
 			/>
 			<div
-				class="absolute bottom-0 left-0 right-0 h-full w-full bg-gradient-to-b from-transparent to-zinc-900/55"
-			></div>
+				class="absolute bottom-0 left-0 right-0 h-full w-full bg-gradient-to-b from-transparent to-slate-900 to-80%"
+			/>
 		</span>
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
@@ -247,7 +248,7 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at.getTime())}</p>
+											<p>Requested at: {getTime(data.riven.requested_at)}</p>
 										{/if}
 										<p>Symlinked: {data.riven.symlinked}</p>
 										{#if data.riven.folder}
@@ -261,7 +262,7 @@
 
 										<div class="mt-1"></div>
 
-										{#if isShow}
+										{#if isRivenShow(data.riven)}
 											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
 												<Select.Trigger>
 													<Select.Value placeholder="Select a season/episode" />
@@ -297,7 +298,7 @@
 													disabled={!buttonEnabled}
 													on:click={async () => {
 														if (data.riven && magnetLink) {
-															await addMagnetLink(data.riven.id, magnetLink);
+															await addMagnetLink(data.riven.id.toString(), magnetLink);
 														}
 													}}
 												>
