@@ -44,21 +44,56 @@ export interface TorboxUserResponse {
 	downloader: string;
 }
 
-export interface RivenItem {
-	item_id: number;
+export interface RivenSubtitle {
+	id: number;
+	language: string;
+	file: string;
+}
+
+export interface RivenBaseItem {
+	id: number;
 	title: string;
-	type: string;
 	imdb_id: string | null;
 	tvdb_id: number | null;
 	tmdb_id: number | null;
 	state: string;
-	imdb_link: string;
-	aired_at: string;
+	aired_at: Date;
 	genres: string[];
 	is_anime: boolean;
-	guid: string | null;
 	requested_at: string;
 	requested_by: string;
 	scraped_at: string | null;
 	scraped_times: number | null;
+	language: string;
+	country: string;
+	symlinked: boolean;
+	symlinked_at: string;
+	symlinked_times: number;
+	update_folder: string;
+	file: string;
+	folder: string;
+	symlink_path: string;
+	subtitles: Array<RivenSubtitle>;
 }
+
+export interface RivenMovie extends RivenBaseItem {
+	type: 'Movie';
+}
+
+export interface RivenShow extends RivenBaseItem {
+	type: 'Show';
+	seasons: Array<RivenSeason>;
+}
+
+export interface RivenSeason extends RivenBaseItem {
+	type: 'Season';
+	number: number;
+	episodes: Array<RivenEpisode>;
+}
+
+export interface RivenEpisode extends RivenBaseItem {
+	type: 'Episode';
+	number: number;
+}
+
+export type RivenItem = RivenMovie | RivenShow | RivenSeason | RivenEpisode;
