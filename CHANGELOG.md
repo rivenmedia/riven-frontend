@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.17.0](https://github.com/rivenmedia/riven-frontend/compare/v0.16.3...v0.17.0) (2024-10-24)
+
+
+### Features
+
+* check item exists on request ([d56cf6c](https://github.com/rivenmedia/riven-frontend/commit/d56cf6c6f01340fc8ccddbe334477fa785e55607))
+* connect page, apikey and v1 generation ([#134](https://github.com/rivenmedia/riven-frontend/issues/134)) ([7469bd9](https://github.com/rivenmedia/riven-frontend/commit/7469bd9597268a67352833a511c71d7efe387373))
+* search component and browse rework ([1148d20](https://github.com/rivenmedia/riven-frontend/commit/1148d2039a15e125d0669d157e95257ef4b98102))
+
+
+### Bug Fixes
+
+* minor changes to /connect page and removed outdated settings ([#146](https://github.com/rivenmedia/riven-frontend/issues/146)) ([4118e74](https://github.com/rivenmedia/riven-frontend/commit/4118e74862b5f600cb2d9eb693a071d06708d9e6))
+* state not shown in item page ([c527ced](https://github.com/rivenmedia/riven-frontend/commit/c527ced35a26754a31b542586b3c77e30319af4a))
+
 ## [0.16.3](https://github.com/rivenmedia/riven-frontend/compare/v0.16.2...v0.16.3) (2024-10-19)
 
 
