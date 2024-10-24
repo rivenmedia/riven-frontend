@@ -1,44 +1,23 @@
-import { superValidate } from 'sveltekit-superforms/client';
-import { schema } from './schema';
-import { ItemsService } from '$lib/client';
-import { zod } from 'sveltekit-superforms/adapters';
-import type { PageLoad } from '../$types';
-import type { RivenGetItemsResponse } from '$lib/types';
+import type { PageLoad } from './$types';
+import { getMovieSearch, getTVSearch, getCollectionSearch } from '$lib/tmdb';
 
-export const load = (async () => {
-	const form = await superValidate({}, zod(schema));
-	const page = 1;
-	const limit = 12;
+export const load = (async ({ fetch, url }) => {
+	const query = url.searchParams.get('query');
 
-	async function getItems(): Promise<RivenGetItemsResponse> {
-		try {
-			const { data, error } = await ItemsService.getItems({
-				query: {
-					page,
-					sort: form.data.sort,
-					limit,
-					type: form.data.type,
-					states: form.data.state
-				}
-			});
+	if (query && query.length > 0) {
+		const moviesRes = await getMovieSearch(fetch, query, false, 'en-US', null, 1, null, null);
+		const tvRes = await getTVSearch(fetch, query, null, false, 'en-US', 1, null);
+		const collectionRes = await getCollectionSearch(fetch, query, false, 'en-US', 1, null);
 
-			if (error) {
-				console.error('Error fetching items:', error);
-				return { success: true, items: [], page: 0, limit: 0, total_items: 0, total_pages: 0 };
-			}
-
-			return data as unknown as RivenGetItemsResponse;
-		} catch (err) {
-			console.error('Error in getItems:', err);
-			return { success: true, items: [], page: 0, limit: 0, total_items: 0, total_pages: 0 };
-		}
+		return {
+			movies: moviesRes.results,
+			shows: tvRes.results,
+			collections: collectionRes.results
+		};
+	} else {
+		return {
+			movies: [],
+			shows: []
+		};
 	}
-
-	const itemsData = await getItems();
-
-	return {
-		form,
-		page,
-		itemsData
-	};
 }) satisfies PageLoad;

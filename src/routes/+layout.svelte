@@ -8,6 +8,26 @@
 	import { setContext } from 'svelte';
 	import { dev } from '$app/environment';
 	import { writable, type Writable } from 'svelte/store';
+	import { source } from 'sveltekit-sse';
+	import { toast } from 'svelte-sonner';
+
+	// function handleSSE(message: string) {
+	// 	const data = JSON.parse(message);
+
+	// 	if (data.type === 'health') {
+	// 		toast.info('Websocket is connected');
+	// 	}
+
+	// 	if (data.type === 'item_update') {
+	// 		const item = JSON.parse(data.item);
+	// 		toast.info(`${item.type} ${item.title} has been updated to ${item.state}`);
+	// 	}
+	// }
+
+	// const value = source('/api/sse').select('message');
+	// $: if ($value) {
+	// 	handleSSE($value);
+	// }
 
 	const showMenu: Writable<boolean> = writable(false);
 
@@ -25,7 +45,7 @@
 	});
 </script>
 
-<ModeWatcher track={true}></ModeWatcher>
+<ModeWatcher track={true} />
 <Toaster richColors closeButton />
 
 <div class="bg-background font-primary font-medium">

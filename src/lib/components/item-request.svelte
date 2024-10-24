@@ -16,16 +16,14 @@
 	async function checkItemExists(id: number) {
 		try {
 			const externalIds = await getExternalID(fetch, type, id);
-			if (externalIds.imdb_id) {
-				const response = await ItemsService.getItems({
-					query: {
-						search: externalIds.imdb_id
-					}
-				});
-
-				if (response.data && response.data.items.length > 0) {
-					isInLibrary = true;
+			const response = await ItemsService.getItems({
+				query: {
+					search: externalIds.imdb_id
 				}
+			});
+
+			if (response.data && response.data.items.length > 0) {
+				isInLibrary = true;
 			}
 		} catch {
 			//pass
