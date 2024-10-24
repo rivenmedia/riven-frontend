@@ -23,6 +23,9 @@
 					</div>
 					<h2 class="text-xl font-medium md:text-2xl">Trending {name}</h2>
 				</div>
+				<a href="/movies" class="flex items-center gap-2 text-sm text-primary-foreground">
+					<MoveUpRight class="size-4" />
+				</a>
 			</div>
 
 			<div class="no-scrollbar flex flex-wrap overflow-x-auto px-1 lg:p-0">
