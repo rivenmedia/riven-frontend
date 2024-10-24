@@ -28,7 +28,7 @@
 	<div class="mt-8 flex flex-wrap overflow-x-auto px-1 lg:p-0">
 		{#each data.details.parts as item}
 			<div
-				class="xl:w-1/7 group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"
+				class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:w-1/7 xl:p-[.4rem]"
 			>
 				<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
 					<img
