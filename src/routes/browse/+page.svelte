@@ -1,60 +1,231 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { debounce } from '$lib/helpers';
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
-	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
-	import { Loader2 } from 'lucide-svelte';
+	import * as Pagination from '$lib/components/ui/pagination';
+	import { ItemsService } from '$lib/client';
+	import { writable } from 'svelte/store';
+	import MediaItem from '$lib/components/media-item.svelte';
+	import { superForm } from 'sveltekit-superforms/client';
+	import * as Select from '$lib/components/ui/select';
+	import { Field, Control, Label, FieldErrors } from 'formsnap';
+	import { Button } from '$lib/components/ui/button';
+	import { SortAsc, SortDesc } from 'lucide-svelte';
 
-	export let data: PageData;
+	import { states, types, sortOptions } from './schema';
+	import type { RivenItem } from '$lib/types';
 
-	let loading = false;
-	let query = $page.url.searchParams.get('query') || '';
+	export let data;
 
-	$: movies = data.movies;
-	$: shows = data.shows;
+	let items = data.itemsData.items;
+	let totalItems = data.itemsData.total_items;
+	let pageNumber = data.page;
+	const limit = 12;
 
-	let fetchedResults = debounce(async (e) => {
-		loading = true;
-		query = e.target.value;
-		if (query.length === 0) {
-			goto(`?`, { invalidateAll: true });
+	$: totalDataItems = writable(totalItems);
+
+	const form = superForm(data.form);
+
+	const { form: formData, enhance } = form;
+
+	$: selectedState = {
+		label: states[$formData.state],
+		value: $formData.state
+	};
+
+	$: selectedType = {
+		label: types[$formData.type],
+		value: $formData.type
+	};
+
+	$: selectedSort = {
+		label: sortOptions[$formData.sort],
+		value: $formData.sort
+	};
+
+	async function fetchItems() {
+		let { data } = await ItemsService.getItems({
+			query: {
+				page: pageNumber,
+				sort: $formData.sort,
+				limit,
+				type: $formData.type,
+				states: $formData.state
+			}
+		});
+
+		if (data) {
+			items = data.items as unknown as RivenItem[];
+			totalItems = data.total_items;
+			$totalDataItems = totalItems;
+		} else {
+			//pass
 		}
-		goto(`?query=${query}`, { invalidateAll: true });
-		loading = false;
-	});
+	}
+
+	function handleFilterChange() {
+		pageNumber = 1;
+		fetchItems();
+	}
+
+	function toggleSortOrder() {
+		$formData.sort = $formData.sort.includes('asc')
+			? ($formData.sort.replace('asc', 'desc') as keyof typeof sortOptions)
+			: ($formData.sort.replace('desc', 'asc') as keyof typeof sortOptions);
+		fetchItems();
+	}
 </script>
+
+<svelte:head>
+	<title>Browse | Riven</title>
+</svelte:head>
 
 <Header />
 
-<div class="mt-32 flex w-full flex-col p-8 md:px-24 lg:px-32">
-	<div class="flex w-full flex-col gap-1.5">
-		<Input
-			autofocus
-			type="text"
-			id="query"
-			placeholder="Search for your movie/series/anime/collections here"
-			bind:value={query}
-			on:input={fetchedResults}
-		/>
-	</div>
+<div class="min-h-screen bg-background text-foreground">
+	<main class="container mx-auto mt-16 h-screen w-screen px-4 py-8">
+		<form
+			method="POST"
+			use:enhance
+			on:submit|preventDefault={handleFilterChange}
+			class="mb-6 flex flex-wrap items-center gap-4"
+		>
+			<Field {form} name="state">
+				<Control let:attrs>
+					<Label>State</Label>
+					<Select.Root
+						selected={selectedState}
+						onSelectedChange={(s) => {
+							if (s) {
+								$formData.state = s.value;
+								handleFilterChange();
+							}
+						}}
+					>
+						<Select.Input name={attrs.name} />
+						<Select.Trigger {...attrs} class="w-[180px]">
+							<Select.Value placeholder="Filter by state" />
+						</Select.Trigger>
+						<Select.Content>
+							{#each Object.entries(states) as [value, label]}
+								<Select.Item {value} {label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</Control>
+				<FieldErrors />
+			</Field>
 
-	{#if loading}
-		<div class="flex flex-row items-center gap-2">
-			<Loader2 class="h-6 w-6 animate-spin" />
-			<p class="text-sm">Loading...</p>
+			<Field {form} name="type">
+				<Control let:attrs>
+					<Label>Type</Label>
+					<Select.Root
+						selected={selectedType}
+						onSelectedChange={(s) => {
+							if (s) {
+								$formData.type = s.value;
+								handleFilterChange();
+							}
+						}}
+					>
+						<Select.Input name={attrs.name} />
+						<Select.Trigger {...attrs} class="w-[180px]">
+							<Select.Value placeholder="Filter by type" />
+						</Select.Trigger>
+						<Select.Content>
+							{#each Object.entries(types) as [value, label]}
+								<Select.Item {value} {label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</Control>
+				<FieldErrors />
+			</Field>
+
+			<Field {form} name="sort">
+				<Control let:attrs>
+					<Label>Sort</Label>
+					<Select.Root
+						selected={selectedSort}
+						onSelectedChange={(s) => {
+							if (s) {
+								$formData.sort = s.value;
+								handleFilterChange();
+							}
+						}}
+					>
+						<Select.Input name={attrs.name} />
+						<Select.Trigger {...attrs} class="w-[180px]">
+							<Select.Value placeholder="Sort by" />
+						</Select.Trigger>
+						<Select.Content>
+							{#each Object.entries(sortOptions) as [value, label]}
+								<Select.Item {value} {label} />
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</Control>
+				<FieldErrors />
+			</Field>
+
+			<Button variant="outline" size="icon" on:click={toggleSortOrder}>
+				{#if $formData.sort.includes('asc')}
+					<SortAsc class="h-4 w-4" />
+				{:else}
+					<SortDesc class="h-4 w-4" />
+				{/if}
+			</Button>
+		</form>
+
+		<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+			{#each items as item (item.id)}
+				<div
+					class="relative aspect-[2/3] overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-105"
+				>
+					<MediaItem data={item} />
+				</div>
+			{/each}
 		</div>
-	{:else if query.length > 0}
-		<p class="mt-4 text-muted-foreground">Search results for {query}</p>
 
-		{#if movies.length > 0}
-			<MediaTmdbCarousel name="Movies" results={movies} mediaType="movie" />
-		{/if}
-
-		{#if shows.length > 0}
-			<MediaTmdbCarousel name="Shows" results={shows} mediaType="tv" />
-		{/if}
-	{/if}
+		<div class="mt-8">
+			<Pagination.Root
+				count={$totalDataItems}
+				perPage={limit}
+				let:pages
+				let:currentPage
+				onPageChange={(page) => {
+					pageNumber = page;
+					fetchItems();
+				}}
+			>
+				<Pagination.Content class="flex items-center justify-center space-x-2">
+					<Pagination.Item>
+						<Pagination.PrevButton
+							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+						/>
+					</Pagination.Item>
+					{#each pages as page (page.key)}
+						{#if page.type === 'ellipsis'}
+							<Pagination.Item>
+								<Pagination.Ellipsis class="px-4 py-2" />
+							</Pagination.Item>
+						{:else}
+							<Pagination.Item>
+								<Pagination.Link
+									{page}
+									isActive={currentPage === page.value}
+									class="rounded-md px-4 py-2"
+								>
+									{page.value}
+								</Pagination.Link>
+							</Pagination.Item>
+						{/if}
+					{/each}
+					<Pagination.Item>
+						<Pagination.NextButton
+							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+						/>
+					</Pagination.Item>
+				</Pagination.Content>
+			</Pagination.Root>
+		</div>
+	</main>
 </div>

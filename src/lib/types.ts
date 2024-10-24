@@ -97,3 +97,38 @@ export interface RivenEpisode extends RivenBaseItem {
 }
 
 export type RivenItem = RivenMovie | RivenShow | RivenSeason | RivenEpisode;
+
+export interface RivenGetItemsResponse {
+	success: boolean;
+	items: RivenItem[];
+	page: number;
+	limit: number;
+	total_items: number;
+	total_pages: number;
+}
+
+export type TMDBItem = {
+	backdrop_path: string | null;
+	id: number;
+	title: string | null;
+	name: string | null;
+	original_title: string;
+	overview: string;
+	poster_path: string | null;
+	media_type: 'movie' | 'tv' | 'person';
+	adult: boolean;
+	original_language: string;
+	genre_ids: number[];
+	popularity: number;
+	release_date: string;
+	video: boolean;
+	vote_average: number;
+	vote_count: number;
+};
+
+export interface TMDBSearchResponse {
+	page: number;
+	results: TMDBItem[];
+	total_pages: number;
+	total_results: number;
+}

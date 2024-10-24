@@ -37,7 +37,7 @@
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
-	let isShow = data.riven ? isRivenShow(data.riven) : false;
+	let isShow = data.details.media_type === 'tv';
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
@@ -710,6 +710,7 @@
 					<MediaTmdbCarousel
 						name="Recommendations"
 						results={data.details.recommendations.results}
+						mediaType={data.mediaType}
 					/>
 				{/if}
 
