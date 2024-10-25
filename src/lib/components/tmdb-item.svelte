@@ -9,7 +9,7 @@
 
 <a
 	href="/{type}/{data.id}"
-	class="relative block h-full w-full overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+	class="relative block h-full w-full overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105"
 >
 	<img
 		src="https://www.themoviedb.org/t/p/w780{data.poster_path}"

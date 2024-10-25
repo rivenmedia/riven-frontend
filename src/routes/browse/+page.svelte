@@ -10,7 +10,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { SortAsc, SortDesc } from 'lucide-svelte';
 
-	import { states, types, sortOptions } from './schema';
+	import { states, types, sortOptions } from '$lib/schema/browse';
 	import type { RivenItem } from '$lib/types';
 
 	export let data;
@@ -18,7 +18,7 @@
 	let items = data.itemsData.items;
 	let totalItems = data.itemsData.total_items;
 	let pageNumber = data.page;
-	const limit = 12;
+	const limit = 24;
 
 	$: totalDataItems = writable(totalItems);
 

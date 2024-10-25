@@ -47,12 +47,8 @@
 	}
 
 	async function handleMediaSearch() {
-		try {
-			const tmdbResults = await searchTMDB(searchQuery);
-			searchResults = [...tmdbResults];
-		} catch {
-			//pass
-		}
+		const tmdbResults = await searchTMDB(searchQuery);
+		searchResults = [...tmdbResults];
 	}
 
 	function handleResultClick(result: (typeof searchResults)[number]) {
@@ -157,7 +153,7 @@
 </header>
 
 <Dialog.Root bind:open={isSearchOpen}>
-	<Dialog.Content class="p-0 sm:max-w-[600px] [&>button]:hidden">
+	<Dialog.Content class="p-0 sm:max-w-[600px]">
 		<div class="border-b p-4">
 			<div class="flex items-center">
 				<Input
