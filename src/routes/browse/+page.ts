@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms/client';
-import { schema } from './schema';
+import { schema } from '$lib/schema/browse';
 import { ItemsService } from '$lib/client';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageLoad } from '../$types';

@@ -4,7 +4,7 @@
 
 	export let data: RivenItem;
 
-	const baseUrl = 'https://images.metahub.space/poster/medium/';
+	const baseUrl = 'https://images.metahub.space/poster/small/';
 
 	const convertTo: Record<string, string> = {
 		movie: 'movie',
@@ -14,7 +14,7 @@
 
 <a
 	href="/{convertTo[data.type.toLowerCase()]}/{data.tmdb_id}"
-	class="relative block h-full w-full overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+	class="relative block h-full w-full overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-105"
 >
 	<img
 		src="{baseUrl}{data.imdb_id}/img"
