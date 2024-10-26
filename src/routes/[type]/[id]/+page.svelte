@@ -13,8 +13,6 @@
 		CirclePower,
 		Clipboard,
 		Magnet,
-		LoaderCircle,
-		Magnet,
 		LoaderCircle
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
@@ -103,7 +101,7 @@
 		});
 	}
 
-	async function addMagnetLink(id: string, magnet: string) {
+	async function addMagnetLink(id: number, magnet: string) {
 		if (!magnet) {
 			toast.error('Magnet link cannot be empty');
 			return;
@@ -114,10 +112,10 @@
 		}
 		if (magnetLoading) return;
 		magnetLoading = true;
-		const idToSet = isShow ? selectedMagnetItem.value.id : id;
+		const idToSet = isShow ? parseInt(selectedMagnetItem.value.id) : id;
 		const { error } = await ItemsService.setTorrentRdMagnet({
 			path: {
-				id: parseInt(idToSet)
+				id: idToSet
 			},
 			query: {
 				magnet
@@ -243,26 +241,29 @@
 						{data.details.overview}
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-						{#if data.riven}
-							<Sheet.Root>
-								<Sheet.Trigger asChild let:builder>
-									<Button
-										builders={[builder]}
-										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+						<Sheet.Root>
+							<Sheet.Trigger asChild let:builder>
+								<Button
+									builders={[builder]}
+									class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
+								>
+									<Wrench class="size-4" />
+									<span>
+										{#if data.riven}Manage{:else}Add torrent
+										{/if}</span
 									>
-										<Wrench class="size-4" />
-										<span>Manage</span>
-									</Button>
-								</Sheet.Trigger>
-								<Sheet.Content class="z-[99]">
-									<Sheet.Header>
-										<Sheet.Title
-											>{data.details.title ||
-												data.details.name ||
-												data.details.original_name}</Sheet.Title
-										>
-									</Sheet.Header>
-									<Sheet.Description class="mt-2 flex flex-col gap-2">
+								</Button>
+							</Sheet.Trigger>
+							<Sheet.Content class="z-[99]">
+								<Sheet.Header>
+									<Sheet.Title
+										>{data.details.title ||
+											data.details.name ||
+											data.details.original_name}</Sheet.Title
+									>
+								</Sheet.Header>
+								<Sheet.Description class="mt-2 flex flex-col gap-2">
+									{#if data.riven}
 										<p>ID: {data.riven.id}</p>
 										{#if data.riven.requested_by}
 											<p>Requested by: {data.riven.requested_by}</p>
@@ -281,59 +282,35 @@
 										{/if}
 
 										<div class="mt-1"></div>
-
-										{#if isRivenShow(data.riven)}
-											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
-												<Select.Trigger>
-													<Select.Value placeholder="Select a season/episode" />
-												</Select.Trigger>
-												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
-													<Select.Group>
-														{#each data.riven.seasons as season}
-															<Select.Label>Season {season.number}</Select.Label>
-															<Select.Item value={season}>
-																All episodes in season {season.number}
+									{/if}
+									{#if data.riven && isRivenShow(data.riven)}
+										<Select.Root portal={null} bind:selected={selectedMagnetItem}>
+											<Select.Trigger>
+												<Select.Value placeholder="Select a season/episode" />
+											</Select.Trigger>
+											<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
+												<Select.Group>
+													{#each data.riven.seasons as season}
+														<Select.Label>Season {season.number}</Select.Label>
+														<Select.Item value={season}>
+															All episodes in season {season.number}
+														</Select.Item>
+														{#each season.episodes as episode}
+															<Select.Item value={episode}>
+																S{season.number.toString().padStart(2, '0')}E{episode.number
+																	.toString()
+																	.padStart(2, '0')}
+																{episode.title}
 															</Select.Item>
-															{#each season.episodes as episode}
-																<Select.Item value={episode}>
-																	S{season.number.toString().padStart(2, '0')}E{episode.number
-																		.toString()
-																		.padStart(2, '0')}
-																	{episode.title}
-																</Select.Item>
-															{/each}
 														{/each}
-													</Select.Group>
-												</Select.Content>
-												<Select.Input name="favoriteFruit" />
-											</Select.Root>
-										{/if}
+													{/each}
+												</Select.Group>
+											</Select.Content>
+											<Select.Input name="favoriteFruit" />
+										</Select.Root>
+									{/if}
 
-										<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
-
-										<Tooltip.Root>
-											<Tooltip.Trigger class="mb-2">
-												<Button
-													class="flex w-full items-center gap-1"
-													disabled={!buttonEnabled}
-													on:click={async () => {
-														if (data.riven && magnetLink) {
-															await addMagnetLink(data.riven.id.toString(), magnetLink);
-														}
-													}}
-												>
-													{#if magnetLoading}
-														<LoaderCircle class="size-4 animate-spin" />
-													{:else}
-														<Magnet class="size-4" />
-													{/if}
-													<span>Replace torrent</span>
-												</Button>
-											</Tooltip.Trigger>
-											<Tooltip.Content>
-												<p>Replaces the current torrent with the magnet link</p>
-											</Tooltip.Content>
-										</Tooltip.Root>
+									<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
 
 									<Tooltip.Root>
 										<Tooltip.Trigger class="mb-2">
@@ -341,8 +318,8 @@
 												class="flex w-full items-center gap-1"
 												disabled={!buttonEnabled}
 												on:click={async () => {
-													if (data.db && magnetLink) {
-														await addMagnetLink(data.db.id, magnetLink);
+													if (data.riven && magnetLink) {
+														await addMagnetLink(data.riven.id, magnetLink);
 													} else if (magnetLink) {
 														await addItemManually(data.details.external_ids.imdb_id, magnetLink);
 													}
@@ -354,7 +331,7 @@
 													<Magnet class="size-4" />
 												{/if}
 												<span
-													>{#if data.db}Replace{:else}Add{/if} torrent</span
+													>{#if data.riven}Replace{:else}Add{/if} torrent</span
 												>
 											</Button>
 										</Tooltip.Trigger>
@@ -362,7 +339,7 @@
 											<p>Replaces the current torrent with the magnet link</p>
 										</Tooltip.Content>
 									</Tooltip.Root>
-									{#if data.db}
+									{#if data.riven}
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
@@ -439,7 +416,6 @@
 												<p>Blacklist the torrent added and scrapes again</p>
 											</Tooltip.Content>
 										</Tooltip.Root>
-
 										<Button
 											class="flex w-full items-center gap-1"
 											variant="destructive"
@@ -451,10 +427,11 @@
 											<Clipboard class="size-4" />
 											<span>Copy item data</span>
 										</Button>
-									</Sheet.Description>
-								</Sheet.Content>
-							</Sheet.Root>
-						{:else}
+									{/if}
+								</Sheet.Description>
+							</Sheet.Content>
+						</Sheet.Root>
+						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 						{#if data.riven}
@@ -496,8 +473,6 @@
 									<p>Delete item from library</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
-						{:else}
-							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
 					</div>
 					{#if data.details.belongs_to_collection}
