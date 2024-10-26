@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		);
 	}
 
-	const url = new URL(`${locals.BACKEND_URL}/items/${id}/set_torrent_rd_magnet`);
+	const url = new URL(`${locals.backendUrl}/items/${id}/set_torrent_rd_magnet`);
 	url.searchParams.set('magnet', magnet);
 
 	try {
