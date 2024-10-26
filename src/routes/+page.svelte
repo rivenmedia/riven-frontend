@@ -161,6 +161,6 @@
 	</Carousel.Root>
 </div>
 
-<HomeItems name="Movies" data={data.trendingMovies} type="movie" />
+<HomeItems name="Movies" trending={data.trendingMovies} popular={data.moviesPopular} type="movie" />
 
-<HomeItems name="Shows" data={data.trendingShows} type="tv" />
+<HomeItems name="Shows" trending={data.trendingShows} popular={data.showsPopular} type="tv" />
