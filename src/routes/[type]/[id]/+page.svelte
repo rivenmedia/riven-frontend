@@ -134,7 +134,7 @@
 			toast.error('Input cannot be empty');
 			return;
 		}
-		const { error } = await ItemsService.addItemManually({
+		const { data, error } = await ItemsService.addItemManually({
 			query: {
 				imdb_id,
 				input
@@ -144,7 +144,7 @@
 			toast.error((error as string) ?? 'Unknown error');
 			return;
 		}
-		toast.success('Added successfully');
+		toast.success(data?.message ?? 'Processing of the item has started');
 	}
 </script>
 
