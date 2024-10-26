@@ -11,6 +11,15 @@
 	export let type: string;
 
 	const hoveredItem = writable(null);
+
+	const handleMouseLeave = (e: MouseEvent) => {
+		// Only reset hoveredItem if we're not hovering over a child element
+		const currentTarget = e.currentTarget as HTMLElement;
+		const relatedTarget = e.relatedTarget as HTMLElement;
+		if (currentTarget.contains(relatedTarget)) {
+			$hoveredItem = null;
+		}
+	};
 </script>
 
 <div class="flex h-full w-full flex-col p-8 md:px-24 lg:px-32">
@@ -35,7 +44,7 @@
 						role="button"
 						tabindex="0"
 						on:mouseenter={() => ($hoveredItem = item.id)}
-						on:mouseleave={() => ($hoveredItem = null)}
+						on:mouseleave={handleMouseLeave}
 						on:focus={() => ($hoveredItem = item.id)}
 						on:blur={() => ($hoveredItem = null)}
 						on:keydown={(e) => {
