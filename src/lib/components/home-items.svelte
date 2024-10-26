@@ -11,7 +11,7 @@
 	export let type: string;
 
 	const hoveredItem = writable(null);
-	
+
 	const handleMouseLeave = (e: MouseEvent) => {
 		// Only reset hoveredItem if we're not hovering over a child element
 		const currentTarget = e.currentTarget as HTMLElement;
