@@ -71,14 +71,13 @@
 	import { source } from 'sveltekit-sse';
 
 	const connection = source('/api/sse/logging');
-	const data = connection.select('message').json(function or({ error, raw, previous }) {
-		console.error(`Could not parse "${raw}" as json.`, error);
-		return previous;
+	const data = connection.select('message').transform(s => {
+		return s ? JSON.parse(s) : null;
 	});
 
 	let logMessagesStore: any[] = [];
 
-	$: logMessagesStore = [...logMessagesStore, $data];
+	$: logMessagesStore = [...logMessagesStore, $data].filter(Boolean);
 	$: console.log($data);
 	$: console.log(logMessagesStore);
 </script>
