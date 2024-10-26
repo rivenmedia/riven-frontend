@@ -136,6 +136,11 @@
 		{/if}
 	{/if}
 
+	<NumberField {form} name="movie_filesize_mb_min" stepValue={1} {formData} fieldDescription="In MB, -1 for disabled" />
+	<NumberField {form} name="movie_filesize_mb_max" stepValue={1} {formData} fieldDescription="In MB, -1 for unlimited" />
+	<NumberField {form} name="episode_filesize_mb_min" stepValue={1} {formData} fieldDescription="In MB, -1 for disabled" />
+	<NumberField {form} name="episode_filesize_mb_max" stepValue={1} {formData} fieldDescription="In MB, -1 for unlimited" />
+
 	{#if $formData.torbox_enabled}
 		<div transition:slide>
 			<TextField {form} name="torbox_api_key" {formData} />
