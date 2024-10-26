@@ -22,7 +22,9 @@
 
 	$: totalDataItems = writable(totalItems);
 
-	const form = superForm(data.form);
+	const form = superForm(data.form, {
+		taintedMessage: false
+	});
 
 	const { form: formData, enhance } = form;
 
