@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { isRivenShow } from '$lib/utils.js';
+	import { cn, isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -13,12 +13,14 @@
 		CirclePower,
 		Clipboard,
 		Magnet,
-		LoaderCircle
+		LoaderCircle,
+		ScanSearch
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import MediaTmdbCarousel from '$lib/components/media-tmdb-carousel.svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { statesName } from '$lib/constants';
@@ -30,7 +32,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import { ItemsService } from '$lib/client';
+	import { ItemsService, ScrapeService } from '$lib/client';
+	import Card from '$lib/components/ui/card/card.svelte';
 
 	export let data: PageData;
 
@@ -39,6 +42,8 @@
 	let magnetLoading = false;
 	let isShow = data.details.media_type === 'tv';
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
+	let scrapedItems = [];
+	let isScraping = false;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,6 +150,24 @@
 			return;
 		}
 		toast.success(data?.message ?? 'Processing of the item has started');
+	}
+
+	function getResolutionColor(resolution: string) {
+		const res = resolution.toLowerCase();
+
+		if (res == '2160p') {
+			return 'bg-purple-500 hover:bg-purple-600';
+		}
+		if (res == '1440p') {
+			return 'bg-indigo-500 hover:bg-indigo-600';
+		}
+		if (res == '1080p') {
+			return 'bg-blue-500 hover:bg-blue-600';
+		}
+		if (res == '720p') {
+			return 'bg-yellow-500 hover:bg-yellow-600 text-black';
+		}
+		return 'bg-pink-500 hover:bg-pink-600'; // Default for lower resolutions
 	}
 </script>
 
@@ -434,6 +457,131 @@
 						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
 						{/if}
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Dialog.Root>
+									<Dialog.Trigger asChild let:builder>
+										<Button
+											builders={[builder]}
+											class="flex w-full items-center gap-1"
+											variant="default"
+											on:click={async () => {
+												isScraping = true;
+												const { data: responseData, error } = await ScrapeService.scrape({
+													query: {
+														imdb_id: data.details.external_ids.imdb_id
+													}
+												});
+												isScraping = false;
+												if (error) {
+													toast.error('Error scraping torrents');
+													return;
+												}
+												scrapedItems = responseData.sort((a, b) => b.rank - a.rank);
+												console.log(scrapedItems);
+											}}
+										>
+											<ScanSearch class="size-4" />
+											<span>Scrape</span>
+										</Button>
+									</Dialog.Trigger>
+									<Dialog.Content class="max-w-[50%]">
+										<Dialog.Header>
+											<Dialog.Title>Results</Dialog.Title>
+											<Dialog.Description
+												class="pt-4 max-h-[35rem] overflow-x-hidden overflow-y-scroll"
+											>
+												{#if isScraping}
+													<p>Scraping...</p>
+												{:else}
+													<div class="grid grid-cols-1 gap-2">
+														{#if scrapedItems.length === 0}
+															<p>No results found</p>
+														{:else}
+															{#each scrapedItems as item}
+																<Card class="relative p-4">
+																	<Badge
+																		class={cn(
+																			'absolute right-4 top-4',
+																			item.rank > 0
+																				? 'bg-green-500 hover:bg-green-600'
+																				: 'bg-red-500 hover:bg-red-600'
+																		)}>{item.rank}</Badge
+																	>
+																	<div class="flex flex-col gap-2">
+																		<div class="pr-24">
+																			<div>{item.raw_title}</div>
+																			<div class="mt-2">
+																				{#each ['resolution', 'quality', 'hdr', 'codec', 'languages'] as key}
+																					{#if item.parsed_data[key]}
+																						{#if Array.isArray(item.parsed_data[key])}
+																							{#each item.parsed_data[key] as value}
+																								<Badge
+																									class={`mr-2 font-medium ${
+																										key === 'resolution'
+																											? getResolutionColor(value)
+																											: 'bg-secondary/50'
+																									}`}
+																								>
+																									{value}
+																								</Badge>
+																							{/each}
+																						{:else}
+																							<Badge
+																								class={`mr-2 font-medium ${
+																									key === 'resolution'
+																										? getResolutionColor(item.parsed_data[key])
+																										: 'bg-secondary/50'
+																								}`}
+																							>
+																								{item.parsed_data[key]}
+																							</Badge>
+																						{/if}
+																					{/if}
+																				{/each}
+																			</div>
+																			<!-- <div class="mt-2">{item.infohash}</div> -->
+																		</div>
+																		<div class="mt-2 flex w-full flex-row gap-2">
+																			<Button
+																				on:click={async () => {
+																					navigator.clipboard.writeText(item.infohash);
+																					toast.success('Infohash copied to clipboard');
+																				}}
+																				size="sm"
+																				class="flex-1"
+																				variant="outline"
+																			>
+																				<span>Copy Infohash</span>
+																			</Button>
+																			<Button
+																				on:click={async () => {
+																					await addItemManually(
+																						data.details.external_ids.imdb_id,
+																						item.infohash
+																					);
+																				}}
+																				size="sm"
+																				class="flex-1"
+																			>
+																				Select
+																			</Button>
+																		</div>
+																	</div>
+																</Card>
+															{/each}
+														{/if}
+													</div>
+												{/if}
+											</Dialog.Description>
+										</Dialog.Header>
+									</Dialog.Content>
+								</Dialog.Root>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Scrapes torrents for the item</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
 						{#if data.riven}
 							<Tooltip.Root>
 								<Tooltip.Trigger>

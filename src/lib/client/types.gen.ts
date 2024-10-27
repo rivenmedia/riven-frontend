@@ -67,6 +67,10 @@ export type DatabaseModel = {
 export type DownloadersModel = {
     video_extensions?: Array<(string)>;
     prefer_speed_over_quality?: boolean;
+    movie_filesize_mb_min?: number;
+    movie_filesize_mb_max?: number;
+    episode_filesize_mb_min?: number;
+    episode_filesize_mb_max?: number;
     real_debrid?: RealDebridModel;
     all_debrid?: AllDebridModel;
     torbox?: TorboxModel;
@@ -301,6 +305,9 @@ export type ScrapedTorrent = {
     rank: number;
     raw_title: string;
     infohash: string;
+    parsed_data: {
+        [key: string]: unknown;
+    };
 };
 
 export type ScraperModel = {
@@ -406,6 +413,9 @@ export type TraktModel = {
     trending_count?: number;
     fetch_popular?: boolean;
     popular_count?: number;
+    fetch_most_watched?: boolean;
+    most_watched_period?: string;
+    most_watched_count?: number;
 };
 
 export type TraktOAuthInitiateResponse = {

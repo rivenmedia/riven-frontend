@@ -132,6 +132,10 @@ export const AppModelSchema = {
             default: {
                 video_extensions: ['mp4', 'mkv', 'avi'],
                 prefer_speed_over_quality: true,
+                movie_filesize_mb_min: -1,
+                movie_filesize_mb_max: -1,
+                episode_filesize_mb_min: -1,
+                episode_filesize_mb_max: -1,
                 real_debrid: {
                     api_key: '',
                     enabled: false,
@@ -182,8 +186,11 @@ export const AppModelSchema = {
                     api_key: '',
                     collection: [],
                     enabled: false,
+                    fetch_most_watched: false,
                     fetch_popular: false,
                     fetch_trending: false,
+                    most_watched_count: 10,
+                    most_watched_period: 'weekly',
                     popular_count: 10,
                     trending_count: 10,
                     update_interval: 86400,
@@ -770,7 +777,10 @@ export const ContentModelSchema = {
                 fetch_trending: false,
                 trending_count: 10,
                 fetch_popular: false,
-                popular_count: 10
+                popular_count: 10,
+                fetch_most_watched: false,
+                most_watched_period: 'weekly',
+                most_watched_count: 10
             }
         }
     },
@@ -827,6 +837,26 @@ export const DownloadersModelSchema = {
             type: 'boolean',
             title: 'Prefer Speed Over Quality',
             default: true
+        },
+        movie_filesize_mb_min: {
+            type: 'integer',
+            title: 'Movie Filesize Mb Min',
+            default: -1
+        },
+        movie_filesize_mb_max: {
+            type: 'integer',
+            title: 'Movie Filesize Mb Max',
+            default: -1
+        },
+        episode_filesize_mb_min: {
+            type: 'integer',
+            title: 'Episode Filesize Mb Min',
+            default: -1
+        },
+        episode_filesize_mb_max: {
+            type: 'integer',
+            title: 'Episode Filesize Mb Max',
+            default: -1
         },
         real_debrid: {
             '$ref': '#/components/schemas/RealDebridModel',
@@ -2049,10 +2079,14 @@ export const ScrapedTorrentSchema = {
         infohash: {
             type: 'string',
             title: 'Infohash'
+        },
+        parsed_data: {
+            type: 'object',
+            title: 'Parsed Data'
         }
     },
     type: 'object',
-    required: ['rank', 'raw_title', 'infohash'],
+    required: ['rank', 'raw_title', 'infohash', 'parsed_data'],
     title: 'ScrapedTorrent'
 } as const;
 
@@ -2497,6 +2531,21 @@ export const TraktModelSchema = {
         popular_count: {
             type: 'integer',
             title: 'Popular Count',
+            default: 10
+        },
+        fetch_most_watched: {
+            type: 'boolean',
+            title: 'Fetch Most Watched',
+            default: false
+        },
+        most_watched_period: {
+            type: 'string',
+            title: 'Most Watched Period',
+            default: 'weekly'
+        },
+        most_watched_count: {
+            type: 'integer',
+            title: 'Most Watched Count',
             default: 10
         }
     },
