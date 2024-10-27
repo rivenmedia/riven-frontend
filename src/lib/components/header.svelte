@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { getContext } from 'svelte';
@@ -32,6 +32,8 @@
 		posterPath?: string;
 	}> = [];
 	let isSearchOpen = false;
+	let selectedIndex = -1;
+	let searchResultElements: HTMLButtonElement[] = [];
 
 	async function handleSearch() {
 		if (searchQuery.trim() === '') {
@@ -41,6 +43,7 @@
 
 		try {
 			searchResults = await searchContent(searchQuery);
+			selectedIndex = -1; // Reset selection when search results change
 		} catch {
 			searchResults = [];
 		}
@@ -49,6 +52,12 @@
 	async function handleMediaSearch() {
 		const tmdbResults = await searchTMDB(searchQuery);
 		searchResults = [...tmdbResults];
+		selectedIndex = -1;
+		await tick(); // Wait for DOM update
+		if (searchResultElements[0]) {
+			searchResultElements[0].focus();
+			selectedIndex = 0;
+		}
 	}
 
 	function handleResultClick(result: (typeof searchResults)[number]) {
@@ -57,6 +66,47 @@
 		} else {
 			goto(result.path);
 			isSearchOpen = false;
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (!searchResults.length) return;
+
+		switch (event.key) {
+			case 'ArrowDown':
+				event.preventDefault();
+				selectedIndex = Math.min(selectedIndex + 1, searchResults.length - 1);
+				searchResultElements[selectedIndex]?.focus();
+				break;
+			case 'ArrowUp':
+				event.preventDefault();
+				if (selectedIndex === 0) {
+					document.querySelector('input')?.focus();
+					selectedIndex = -1;
+				} else {
+					selectedIndex = Math.max(selectedIndex - 1, 0);
+					searchResultElements[selectedIndex]?.focus();
+				}
+				break;
+			case 'Enter':
+				if (searchResults.length === 1) {
+					handleResultClick(searchResults[0]);
+				} else if (selectedIndex >= 0) {
+					handleResultClick(searchResults[selectedIndex]);
+				}
+				break;
+		}
+	}
+
+	function handleGlobalKeydown(event: KeyboardEvent) {
+		// Check for Ctrl+K (or Cmd+K on Mac)
+		if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+			event.preventDefault(); // Prevent default browser behavior
+			isSearchOpen = true;
+			// Focus the search input after the dialog opens
+			tick().then(() => {
+				document.querySelector('input')?.focus();
+			});
 		}
 	}
 
@@ -81,12 +131,14 @@
 
 		if (browser) {
 			window.addEventListener('scroll', applyBackdropBlur);
+			window.addEventListener('keydown', handleGlobalKeydown);
 		}
 	});
 
 	onDestroy(() => {
 		if (browser) {
 			window.removeEventListener('scroll', applyBackdropBlur);
+			window.removeEventListener('keydown', handleGlobalKeydown);
 		}
 	});
 </script>
@@ -161,6 +213,7 @@
 					placeholder="Search..."
 					bind:value={searchQuery}
 					on:input={handleSearch}
+					on:keydown={handleKeydown}
 					class="flex-grow"
 				/>
 			</div>
@@ -168,11 +221,14 @@
 		{#if searchResults.length > 0}
 			<div class="max-h-[400px] overflow-y-auto p-4">
 				<ul class="space-y-4">
-					{#each searchResults as result}
+					{#each searchResults as result, index}
 						<li>
 							<button
-								class="block w-full rounded p-2 text-left hover:bg-muted"
+								class="search-result block w-full rounded p-2 text-left hover:bg-muted focus:bg-muted"
 								on:click={() => handleResultClick(result)}
+								on:keydown={handleKeydown}
+								bind:this={searchResultElements[index]}
+								tabindex={index === 0 ? 0 : -1}
 							>
 								<div class="flex items-start">
 									{#if result.type === 'media' && result.posterPath}
