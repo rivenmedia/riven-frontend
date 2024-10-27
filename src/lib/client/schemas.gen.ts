@@ -132,6 +132,10 @@ export const AppModelSchema = {
             default: {
                 video_extensions: ['mp4', 'mkv', 'avi'],
                 prefer_speed_over_quality: true,
+                movie_filesize_mb_min: -1,
+                movie_filesize_mb_max: -1,
+                episode_filesize_mb_min: -1,
+                episode_filesize_mb_max: -1,
                 real_debrid: {
                     api_key: '',
                     enabled: false,
@@ -182,8 +186,11 @@ export const AppModelSchema = {
                     api_key: '',
                     collection: [],
                     enabled: false,
+                    fetch_most_watched: false,
                     fetch_popular: false,
                     fetch_trending: false,
+                    most_watched_count: 10,
+                    most_watched_period: 'weekly',
                     popular_count: 10,
                     trending_count: 10,
                     update_interval: 86400,
@@ -719,6 +726,51 @@ export const CometConfigSchema = {
     title: 'CometConfig'
 } as const;
 
+export const ContainerSchema = {
+    additionalProperties: {
+        '$ref': '#/components/schemas/ContainerFile'
+    },
+    type: 'object',
+    title: 'Container',
+    description: `Root model for container mapping file IDs to file information.
+
+Example:
+{
+    "4": {
+        "filename": "show.s01e01.mkv",
+        "filesize": 30791392598
+    },
+    "5": {
+        "filename": "show.s01e02.mkv",
+        "filesize": 25573181861
+    }
+}`
+} as const;
+
+export const ContainerFileSchema = {
+    properties: {
+        filename: {
+            type: 'string',
+            title: 'Filename'
+        },
+        filesize: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filesize'
+        }
+    },
+    type: 'object',
+    required: ['filename'],
+    title: 'ContainerFile',
+    description: 'Individual file entry in a container'
+} as const;
+
 export const ContentModelSchema = {
     properties: {
         overseerr: {
@@ -770,7 +822,10 @@ export const ContentModelSchema = {
                 fetch_trending: false,
                 trending_count: 10,
                 fetch_popular: false,
-                popular_count: 10
+                popular_count: 10,
+                fetch_most_watched: false,
+                most_watched_period: 'weekly',
+                most_watched_count: 10
             }
         }
     },
@@ -827,6 +882,26 @@ export const DownloadersModelSchema = {
             type: 'boolean',
             title: 'Prefer Speed Over Quality',
             default: true
+        },
+        movie_filesize_mb_min: {
+            type: 'integer',
+            title: 'Movie Filesize Mb Min',
+            default: -1
+        },
+        movie_filesize_mb_max: {
+            type: 'integer',
+            title: 'Movie Filesize Mb Max',
+            default: -1
+        },
+        episode_filesize_mb_min: {
+            type: 'integer',
+            title: 'Episode Filesize Mb Min',
+            default: -1
+        },
+        episode_filesize_mb_max: {
+            type: 'integer',
+            title: 'Episode Filesize Mb Max',
+            default: -1
         },
         real_debrid: {
             '$ref': '#/components/schemas/RealDebridModel',
@@ -1288,6 +1363,354 @@ export const OverseerrModelSchema = {
     title: 'OverseerrModel'
 } as const;
 
+export const ParsedDataSchema = {
+    properties: {
+        raw_title: {
+            type: 'string',
+            title: 'Raw Title'
+        },
+        parsed_title: {
+            type: 'string',
+            title: 'Parsed Title',
+            default: ''
+        },
+        normalized_title: {
+            type: 'string',
+            title: 'Normalized Title',
+            default: ''
+        },
+        trash: {
+            type: 'boolean',
+            title: 'Trash',
+            default: false
+        },
+        year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Year'
+        },
+        resolution: {
+            type: 'string',
+            title: 'Resolution',
+            default: 'unknown'
+        },
+        seasons: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Seasons',
+            default: []
+        },
+        episodes: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Episodes',
+            default: []
+        },
+        complete: {
+            type: 'boolean',
+            title: 'Complete',
+            default: false
+        },
+        volumes: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Volumes',
+            default: []
+        },
+        languages: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Languages',
+            default: []
+        },
+        quality: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Quality'
+        },
+        hdr: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Hdr',
+            default: []
+        },
+        codec: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Codec'
+        },
+        audio: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Audio',
+            default: []
+        },
+        channels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Channels',
+            default: []
+        },
+        dubbed: {
+            type: 'boolean',
+            title: 'Dubbed',
+            default: false
+        },
+        subbed: {
+            type: 'boolean',
+            title: 'Subbed',
+            default: false
+        },
+        date: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Date'
+        },
+        group: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Group'
+        },
+        edition: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Edition'
+        },
+        bit_depth: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bit Depth'
+        },
+        bitrate: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bitrate'
+        },
+        network: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Network'
+        },
+        extended: {
+            type: 'boolean',
+            title: 'Extended',
+            default: false
+        },
+        converted: {
+            type: 'boolean',
+            title: 'Converted',
+            default: false
+        },
+        hardcoded: {
+            type: 'boolean',
+            title: 'Hardcoded',
+            default: false
+        },
+        region: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Region'
+        },
+        ppv: {
+            type: 'boolean',
+            title: 'Ppv',
+            default: false
+        },
+        site: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Site'
+        },
+        size: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Size'
+        },
+        proper: {
+            type: 'boolean',
+            title: 'Proper',
+            default: false
+        },
+        repack: {
+            type: 'boolean',
+            title: 'Repack',
+            default: false
+        },
+        retail: {
+            type: 'boolean',
+            title: 'Retail',
+            default: false
+        },
+        upscaled: {
+            type: 'boolean',
+            title: 'Upscaled',
+            default: false
+        },
+        remastered: {
+            type: 'boolean',
+            title: 'Remastered',
+            default: false
+        },
+        unrated: {
+            type: 'boolean',
+            title: 'Unrated',
+            default: false
+        },
+        documentary: {
+            type: 'boolean',
+            title: 'Documentary',
+            default: false
+        },
+        episode_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Episode Code'
+        },
+        country: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Country'
+        },
+        container: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Container'
+        },
+        extension: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Extension'
+        },
+        extras: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Extras',
+            default: []
+        },
+        torrent: {
+            type: 'boolean',
+            title: 'Torrent',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['raw_title'],
+    title: 'ParsedData',
+    description: 'Parsed data model for a torrent title.'
+} as const;
+
 export const PlexLibraryModelSchema = {
     properties: {
         enabled: {
@@ -1396,85 +1819,6 @@ export const ProwlarrConfigSchema = {
     },
     type: 'object',
     title: 'ProwlarrConfig'
-} as const;
-
-export const RDTorrentSchema = {
-    properties: {
-        id: {
-            type: 'string',
-            title: 'Id'
-        },
-        hash: {
-            type: 'string',
-            title: 'Hash'
-        },
-        filename: {
-            type: 'string',
-            title: 'Filename'
-        },
-        bytes: {
-            type: 'integer',
-            title: 'Bytes'
-        },
-        status: {
-            '$ref': '#/components/schemas/RDTorrentStatus'
-        },
-        added: {
-            type: 'string',
-            format: 'date-time',
-            title: 'Added'
-        },
-        links: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Links'
-        },
-        ended: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Ended'
-        },
-        speed: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Speed'
-        },
-        seeders: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Seeders'
-        }
-    },
-    type: 'object',
-    required: ['id', 'hash', 'filename', 'bytes', 'status', 'added', 'links'],
-    title: 'RDTorrent'
-} as const;
-
-export const RDTorrentStatusSchema = {
-    type: 'string',
-    enum: ['magnet_error', 'magnet_conversion', 'waiting_files_selection', 'downloading', 'downloaded', 'error', 'seeding', 'dead', 'uploading', 'compressing'],
-    title: 'RDTorrentStatus'
 } as const;
 
 export const RDUserSchema = {
@@ -2036,24 +2380,23 @@ export const RootResponseSchema = {
     title: 'RootResponse'
 } as const;
 
-export const ScrapedTorrentSchema = {
+export const ScrapeItemResponseSchema = {
     properties: {
-        rank: {
-            type: 'integer',
-            title: 'Rank'
-        },
-        raw_title: {
+        message: {
             type: 'string',
-            title: 'Raw Title'
+            title: 'Message'
         },
-        infohash: {
-            type: 'string',
-            title: 'Infohash'
+        streams: {
+            additionalProperties: {
+                '$ref': '#/components/schemas/Stream'
+            },
+            type: 'object',
+            title: 'Streams'
         }
     },
     type: 'object',
-    required: ['rank', 'raw_title', 'infohash'],
-    title: 'ScrapedTorrent'
+    required: ['message', 'streams'],
+    title: 'ScrapeItemResponse'
 } as const;
 
 export const ScraperModelSchema = {
@@ -2190,6 +2533,35 @@ export const ScraperModelSchema = {
     title: 'ScraperModel'
 } as const;
 
+export const SelectFilesResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        download_type: {
+            type: 'string',
+            enum: ['cached', 'uncached'],
+            title: 'Download Type'
+        }
+    },
+    type: 'object',
+    required: ['message', 'download_type'],
+    title: 'SelectFilesResponse'
+} as const;
+
+export const SessionResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'SessionResponse'
+} as const;
+
 export const SetSettingsSchema = {
     properties: {
         key: {
@@ -2205,24 +2577,69 @@ export const SetSettingsSchema = {
     title: 'SetSettings'
 } as const;
 
-export const SetTorrentRDResponseSchema = {
+export const ShowFileDataSchema = {
+    additionalProperties: {
+        additionalProperties: {
+            '$ref': '#/components/schemas/ContainerFile'
+        },
+        type: 'object'
+    },
+    type: 'object',
+    title: 'ShowFileData',
+    description: `Root model for show file data that maps seasons to episodes to file data.
+
+Example:
+{
+    1: {  # Season 1
+        1: {"filename": "path/to/s01e01.mkv"},  # Episode 1
+        2: {"filename": "path/to/s01e02.mkv"}   # Episode 2
+    },
+    2: {  # Season 2
+        1: {"filename": "path/to/s02e01.mkv"}   # Episode 1
+    }
+}`
+} as const;
+
+export const StartSessionResponseSchema = {
     properties: {
         message: {
             type: 'string',
             title: 'Message'
         },
-        item_id: {
-            type: 'integer',
-            title: 'Item Id'
+        session_id: {
+            type: 'string',
+            title: 'Session Id'
         },
         torrent_id: {
             type: 'string',
             title: 'Torrent Id'
+        },
+        torrent_info: {
+            type: 'object',
+            title: 'Torrent Info'
+        },
+        containers: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Containers'
+        },
+        expires_at: {
+            type: 'string',
+            title: 'Expires At'
         }
     },
     type: 'object',
-    required: ['message', 'item_id', 'torrent_id'],
-    title: 'SetTorrentRDResponse'
+    required: ['message', 'session_id', 'torrent_id', 'torrent_info', 'containers', 'expires_at'],
+    title: 'StartSessionResponse'
 } as const;
 
 export const StateResponseSchema = {
@@ -2299,6 +2716,41 @@ export const StatsResponseSchema = {
     type: 'object',
     required: ['total_items', 'total_movies', 'total_shows', 'total_seasons', 'total_episodes', 'total_symlinks', 'incomplete_items', 'incomplete_retries', 'states'],
     title: 'StatsResponse'
+} as const;
+
+export const StreamSchema = {
+    properties: {
+        infohash: {
+            type: 'string',
+            title: 'Infohash'
+        },
+        raw_title: {
+            type: 'string',
+            title: 'Raw Title'
+        },
+        parsed_title: {
+            type: 'string',
+            title: 'Parsed Title'
+        },
+        parsed_data: {
+            '$ref': '#/components/schemas/ParsedData'
+        },
+        rank: {
+            type: 'integer',
+            title: 'Rank'
+        },
+        lev_ratio: {
+            type: 'number',
+            title: 'Lev Ratio'
+        },
+        is_cached: {
+            type: 'boolean',
+            title: 'Is Cached'
+        }
+    },
+    type: 'object',
+    required: ['infohash', 'raw_title', 'parsed_title', 'parsed_data', 'rank', 'lev_ratio', 'is_cached'],
+    title: 'Stream'
 } as const;
 
 export const SubliminalConfigSchema = {
@@ -2498,6 +2950,21 @@ export const TraktModelSchema = {
             type: 'integer',
             title: 'Popular Count',
             default: 10
+        },
+        fetch_most_watched: {
+            type: 'boolean',
+            title: 'Fetch Most Watched',
+            default: false
+        },
+        most_watched_period: {
+            type: 'string',
+            title: 'Most Watched Period',
+            default: 'weekly'
+        },
+        most_watched_count: {
+            type: 'integer',
+            title: 'Most Watched Count',
+            default: 10
         }
     },
     type: 'object',
@@ -2514,6 +2981,18 @@ export const TraktOAuthInitiateResponseSchema = {
     type: 'object',
     required: ['auth_url'],
     title: 'TraktOAuthInitiateResponse'
+} as const;
+
+export const UpdateAttributesResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'UpdateAttributesResponse'
 } as const;
 
 export const UpdatersModelSchema = {

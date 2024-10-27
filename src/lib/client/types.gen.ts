@@ -43,6 +43,33 @@ export type CometConfig = {
     ratelimit?: boolean;
 };
 
+/**
+ * Root model for container mapping file IDs to file information.
+ *
+ * Example:
+ * {
+ * "4": {
+ * "filename": "show.s01e01.mkv",
+ * "filesize": 30791392598
+ * },
+ * "5": {
+ * "filename": "show.s01e02.mkv",
+ * "filesize": 25573181861
+ * }
+ * }
+ */
+export type Container = {
+    [key: string]: ContainerFile;
+};
+
+/**
+ * Individual file entry in a container
+ */
+export type ContainerFile = {
+    filename: string;
+    filesize?: (number | null);
+};
+
 export type ContentModel = {
     overseerr?: OverseerrModel;
     plex_watchlist?: PlexWatchlistModel;
@@ -67,6 +94,10 @@ export type DatabaseModel = {
 export type DownloadersModel = {
     video_extensions?: Array<(string)>;
     prefer_speed_over_quality?: boolean;
+    movie_filesize_mb_min?: number;
+    movie_filesize_mb_max?: number;
+    episode_filesize_mb_min?: number;
+    episode_filesize_mb_max?: number;
     real_debrid?: RealDebridModel;
     all_debrid?: AllDebridModel;
     torbox?: TorboxModel;
@@ -187,6 +218,56 @@ export type OverseerrModel = {
     use_webhook?: boolean;
 };
 
+/**
+ * Parsed data model for a torrent title.
+ */
+export type ParsedData = {
+    raw_title: string;
+    parsed_title?: string;
+    normalized_title?: string;
+    trash?: boolean;
+    year?: (number | null);
+    resolution?: string;
+    seasons?: Array<(number)>;
+    episodes?: Array<(number)>;
+    complete?: boolean;
+    volumes?: Array<(number)>;
+    languages?: Array<(string)>;
+    quality?: (string | null);
+    hdr?: Array<(string)>;
+    codec?: (string | null);
+    audio?: Array<(string)>;
+    channels?: Array<(string)>;
+    dubbed?: boolean;
+    subbed?: boolean;
+    date?: (string | null);
+    group?: (string | null);
+    edition?: (string | null);
+    bit_depth?: (string | null);
+    bitrate?: (string | null);
+    network?: (string | null);
+    extended?: boolean;
+    converted?: boolean;
+    hardcoded?: boolean;
+    region?: (string | null);
+    ppv?: boolean;
+    site?: (string | null);
+    size?: (string | null);
+    proper?: boolean;
+    repack?: boolean;
+    retail?: boolean;
+    upscaled?: boolean;
+    remastered?: boolean;
+    unrated?: boolean;
+    documentary?: boolean;
+    episode_code?: (string | null);
+    country?: (string | null);
+    container?: (string | null);
+    extension?: (string | null);
+    extras?: Array<(string)>;
+    torrent?: boolean;
+};
+
 export type PlexLibraryModel = {
     enabled?: boolean;
     token?: string;
@@ -211,21 +292,6 @@ export type ProwlarrConfig = {
     ratelimit?: boolean;
     limiter_seconds?: number;
 };
-
-export type RDTorrent = {
-    id: string;
-    hash: string;
-    filename: string;
-    bytes: number;
-    status: RDTorrentStatus;
-    added: string;
-    links: Array<(string)>;
-    ended?: (string | null);
-    speed?: (number | null);
-    seeders?: (number | null);
-};
-
-export type RDTorrentStatus = 'magnet_error' | 'magnet_conversion' | 'waiting_files_selection' | 'downloading' | 'downloaded' | 'error' | 'seeding' | 'dead' | 'uploading' | 'compressing';
 
 export type RDUser = {
     id: number;
@@ -297,10 +363,11 @@ export type RootResponse = {
     version: string;
 };
 
-export type ScrapedTorrent = {
-    rank: number;
-    raw_title: string;
-    infohash: string;
+export type ScrapeItemResponse = {
+    message: string;
+    streams: {
+        [key: string]: Stream;
+    };
 };
 
 export type ScraperModel = {
@@ -321,15 +388,53 @@ export type ScraperModel = {
     comet?: CometConfig;
 };
 
+export type SelectFilesResponse = {
+    message: string;
+    download_type: 'cached' | 'uncached';
+};
+
+export type download_type = 'cached' | 'uncached';
+
+export type SessionResponse = {
+    message: string;
+};
+
 export type SetSettings = {
     key: string;
     value: unknown;
 };
 
-export type SetTorrentRDResponse = {
+/**
+ * Root model for show file data that maps seasons to episodes to file data.
+ *
+ * Example:
+ * {
+ * 1: {  # Season 1
+ * 1: {"filename": "path/to/s01e01.mkv"},  # Episode 1
+ * 2: {"filename": "path/to/s01e02.mkv"}   # Episode 2
+ * },
+ * 2: {  # Season 2
+ * 1: {"filename": "path/to/s02e01.mkv"}   # Episode 1
+ * }
+ * }
+ */
+export type ShowFileData = {
+    [key: string]: {
+        [key: string]: ContainerFile;
+    };
+};
+
+export type StartSessionResponse = {
     message: string;
-    item_id: number;
+    session_id: string;
     torrent_id: string;
+    torrent_info: {
+        [key: string]: unknown;
+    };
+    containers: (Array<{
+    [key: string]: unknown;
+}> | null);
+    expires_at: string;
 };
 
 export type StateResponse = {
@@ -356,6 +461,16 @@ export type StatsResponse = {
     states: {
         [key: string]: (number);
     };
+};
+
+export type Stream = {
+    infohash: string;
+    raw_title: string;
+    parsed_title: string;
+    parsed_data: ParsedData;
+    rank: number;
+    lev_ratio: number;
+    is_cached: boolean;
 };
 
 export type SubliminalConfig = {
@@ -406,10 +521,17 @@ export type TraktModel = {
     trending_count?: number;
     fetch_popular?: boolean;
     popular_count?: number;
+    fetch_most_watched?: boolean;
+    most_watched_period?: string;
+    most_watched_count?: number;
 };
 
 export type TraktOAuthInitiateResponse = {
     auth_url: string;
+};
+
+export type UpdateAttributesResponse = {
+    message: string;
 };
 
 export type UpdatersModel = {
@@ -532,17 +654,6 @@ export type AddItemsResponse = (MessageResponse);
 
 export type AddItemsError = (unknown | HTTPValidationError);
 
-export type AddItemManuallyData = {
-    query?: {
-        imdb_id?: string;
-        input?: string;
-    };
-};
-
-export type AddItemManuallyResponse = (MessageResponse);
-
-export type AddItemManuallyError = (unknown | HTTPValidationError);
-
 export type GetItemData = {
     path: {
         id: number;
@@ -600,53 +711,100 @@ export type RemoveItemResponse = (RemoveResponse);
 
 export type RemoveItemError = (unknown | HTTPValidationError);
 
-export type SetTorrentRdMagnetData = {
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
     path: {
-        id: number;
+        item_id: number;
     };
+};
+
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetResponse = (unknown);
+
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetError = (unknown | HTTPValidationError);
+
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
+    path: {
+        item_id: number;
+        stream_id: number;
+    };
+};
+
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostResponse = (unknown);
+
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostError = (unknown | HTTPValidationError);
+
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData = {
+    path: {
+        item_id: number;
+        stream_id: number;
+    };
+};
+
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostResponse = (unknown);
+
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError = (unknown | HTTPValidationError);
+
+export type ScrapeItemData = {
+    path: {
+        id: string;
+    };
+};
+
+export type ScrapeItemResponse2 = (ScrapeItemResponse);
+
+export type ScrapeItemError = (HTTPValidationError);
+
+export type StartManualSessionApiV1ScrapeScrapeStartSessionPostData = {
     query: {
+        item_id: string;
         magnet: string;
     };
 };
 
-export type SetTorrentRdMagnetResponse = (SetTorrentRDResponse);
+export type StartManualSessionApiV1ScrapeScrapeStartSessionPostResponse = (StartSessionResponse);
 
-export type SetTorrentRdMagnetError = (unknown | HTTPValidationError);
+export type StartManualSessionApiV1ScrapeScrapeStartSessionPostError = (HTTPValidationError);
 
-export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostData = {
+export type ManualSelectData = {
+    body: Container;
     path: {
-        id: number;
-    };
-    query: {
-        torrent_id: string;
+        session_id: unknown;
     };
 };
 
-export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostResponse = (SetTorrentRDResponse);
+export type ManualSelectResponse = (SelectFilesResponse);
 
-export type SetTorrentRdApiV1ItemsIdSetTorrentRdPostError = (unknown | HTTPValidationError);
+export type ManualSelectError = (HTTPValidationError);
 
-export type ScrapeData = {
-    query: {
-        episode?: number;
-        imdb_id: string;
-        season?: number;
+export type ManualUpdateAttributesData = {
+    body: (ContainerFile | ShowFileData);
+    path: {
+        session_id: unknown;
     };
 };
 
-export type ScrapeResponse = (Array<ScrapedTorrent>);
+export type ManualUpdateAttributesResponse = (UpdateAttributesResponse);
 
-export type ScrapeError = (HTTPValidationError);
+export type ManualUpdateAttributesError = (HTTPValidationError);
 
-export type GetRdTorrentsData = {
-    query?: {
-        limit?: number;
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostData = {
+    path: {
+        session_id: string;
     };
 };
 
-export type GetRdTorrentsResponse = (Array<RDTorrent>);
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostResponse = (SessionResponse);
 
-export type GetRdTorrentsError = (HTTPValidationError);
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostError = (HTTPValidationError);
+
+export type CompleteManualSessionData = {
+    path: {
+        session_id: string;
+    };
+};
+
+export type CompleteManualSessionResponse = (SessionResponse);
+
+export type CompleteManualSessionError = (HTTPValidationError);
 
 export type GetSettingsSchemaResponse = ({
     [key: string]: unknown;

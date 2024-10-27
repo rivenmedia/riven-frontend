@@ -73,6 +73,18 @@ const config: Config = {
 				'4/7': '57.1428571%',
 				'5/7': '71.4285714%',
 				'6/7': '85.7142857%'
+			},
+			rotate: {
+				'0.5': '0.5deg'
+			},
+			backgroundImage: {
+				unavailable: `repeating-linear-gradient(
+					45deg,
+					rgba(255, 0, 0, 0.1),
+					rgba(255, 0, 0, 0.1) 10px,
+					transparent 10px,
+					transparent 20px
+					)`
 			}
 		}
 	}

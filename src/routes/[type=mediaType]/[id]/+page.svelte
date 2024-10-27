@@ -11,9 +11,7 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard,
-		Magnet,
-		LoaderCircle
+		Clipboard
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -27,19 +25,16 @@
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import ItemRequest from '$lib/components/item-request.svelte';
-	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
 	import { ItemsService } from '$lib/client';
+	import MediaFileSelector from '$lib/components/media-file-selector.svelte';
 
 	export let data: PageData;
 
 	let productionCompanies = 4;
-	let magnetLink = '';
-	let magnetLoading = false;
 	let isShow = data.details.media_type === 'tv';
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
-	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -99,52 +94,6 @@
 			month: 'long',
 			day: 'numeric'
 		});
-	}
-
-	async function addMagnetLink(id: number, magnet: string) {
-		if (!magnet) {
-			toast.error('Magnet link cannot be empty');
-			return;
-		}
-		if (isShow && !selectedMagnetItem) {
-			toast.error('Select a season/episode');
-			return;
-		}
-		if (magnetLoading) return;
-		magnetLoading = true;
-		const idToSet = isShow ? parseInt(selectedMagnetItem.value.id) : id;
-		const { error } = await ItemsService.setTorrentRdMagnet({
-			path: {
-				id: idToSet
-			},
-			query: {
-				magnet
-			}
-		});
-		magnetLoading = false;
-		if (error) {
-			toast.error((error as string) ?? 'Unknown error');
-			return;
-		}
-		toast.success('Magnet link added successfully');
-	}
-
-	async function addItemManually(imdb_id: string, input: string) {
-		if (!input) {
-			toast.error('Input cannot be empty');
-			return;
-		}
-		const { data, error } = await ItemsService.addItemManually({
-			query: {
-				imdb_id,
-				input
-			}
-		});
-		if (error) {
-			toast.error((error as string) ?? 'Unknown error');
-			return;
-		}
-		toast.success(data?.message ?? 'Processing of the item has started');
 	}
 </script>
 
@@ -241,29 +190,33 @@
 						{data.details.overview}
 					</div>
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-						<Sheet.Root>
-							<Sheet.Trigger asChild let:builder>
-								<Button
-									builders={[builder]}
-									class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
-								>
-									<Wrench class="size-4" />
-									<span>
-										{#if data.riven}Manage{:else}Add torrent
-										{/if}</span
+						{#if !data.riven}
+							<ItemRequest data={data.details} type={data.mediaType} />
+							<MediaFileSelector
+								mediaId={data.details.external_ids.imdb_id}
+								mediaType={data.mediaType == 'movie' ? 'movie' : 'tv'}
+							/>
+						{/if}
+						{#if data.riven}
+							<Sheet.Root>
+								<Sheet.Trigger asChild let:builder>
+									<Button
+										builders={[builder]}
+										class="flex items-center gap-1 bg-zinc-100 text-zinc-900 transition-all duration-200 ease-in-out hover:bg-zinc-200"
 									>
-								</Button>
-							</Sheet.Trigger>
-							<Sheet.Content class="z-[99]">
-								<Sheet.Header>
-									<Sheet.Title
-										>{data.details.title ||
-											data.details.name ||
-											data.details.original_name}</Sheet.Title
-									>
-								</Sheet.Header>
-								<Sheet.Description class="mt-2 flex flex-col gap-2">
-									{#if data.riven}
+										<Wrench class="size-4" />
+										<span>Manage</span>
+									</Button>
+								</Sheet.Trigger>
+								<Sheet.Content class="z-[99]">
+									<Sheet.Header>
+										<Sheet.Title
+											>{data.details.title ||
+												data.details.name ||
+												data.details.original_name}</Sheet.Title
+										>
+									</Sheet.Header>
+									<Sheet.Description class="mt-2 flex flex-col gap-2">
 										<p>ID: {data.riven.id}</p>
 										{#if data.riven.requested_by}
 											<p>Requested by: {data.riven.requested_by}</p>
@@ -282,64 +235,34 @@
 										{/if}
 
 										<div class="mt-1"></div>
-									{/if}
-									{#if data.riven && isRivenShow(data.riven)}
-										<Select.Root portal={null} bind:selected={selectedMagnetItem}>
-											<Select.Trigger>
-												<Select.Value placeholder="Select a season/episode" />
-											</Select.Trigger>
-											<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
-												<Select.Group>
-													{#each data.riven.seasons as season}
-														<Select.Label>Season {season.number}</Select.Label>
-														<Select.Item value={season}>
-															All episodes in season {season.number}
-														</Select.Item>
-														{#each season.episodes as episode}
-															<Select.Item value={episode}>
-																S{season.number.toString().padStart(2, '0')}E{episode.number
-																	.toString()
-																	.padStart(2, '0')}
-																{episode.title}
+
+										{#if isRivenShow(data.riven)}
+											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
+												<Select.Trigger>
+													<Select.Value placeholder="Select a season/episode" />
+												</Select.Trigger>
+												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
+													<Select.Group>
+														{#each data.riven.seasons as season}
+															<Select.Label>Season {season.number}</Select.Label>
+															<Select.Item value={season}>
+																All episodes in season {season.number}
 															</Select.Item>
+															{#each season.episodes as episode}
+																<Select.Item value={episode}>
+																	S{season.number.toString().padStart(2, '0')}E{episode.number
+																		.toString()
+																		.padStart(2, '0')}
+																	{episode.title}
+																</Select.Item>
+															{/each}
 														{/each}
-													{/each}
-												</Select.Group>
-											</Select.Content>
-											<Select.Input name="favoriteFruit" />
-										</Select.Root>
-									{/if}
+													</Select.Group>
+												</Select.Content>
+												<Select.Input name="favoriteFruit" />
+											</Select.Root>
+										{/if}
 
-									<Input bind:value={magnetLink} placeholder="Paste in the magnet link" />
-
-									<Tooltip.Root>
-										<Tooltip.Trigger class="mb-2">
-											<Button
-												class="flex w-full items-center gap-1"
-												disabled={!buttonEnabled}
-												on:click={async () => {
-													if (data.riven && magnetLink) {
-														await addMagnetLink(data.riven.id, magnetLink);
-													} else if (magnetLink) {
-														await addItemManually(data.details.external_ids.imdb_id, magnetLink);
-													}
-												}}
-											>
-												{#if magnetLoading}
-													<LoaderCircle class="size-4 animate-spin" />
-												{:else}
-													<Magnet class="size-4" />
-												{/if}
-												<span
-													>{#if data.riven}Replace{:else}Add{/if} torrent</span
-												>
-											</Button>
-										</Tooltip.Trigger>
-										<Tooltip.Content>
-											<p>Replaces the current torrent with the magnet link</p>
-										</Tooltip.Content>
-									</Tooltip.Root>
-									{#if data.riven}
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
@@ -416,6 +339,7 @@
 												<p>Blacklist the torrent added and scrapes again</p>
 											</Tooltip.Content>
 										</Tooltip.Root>
+
 										<Button
 											class="flex w-full items-center gap-1"
 											variant="destructive"
@@ -427,14 +351,20 @@
 											<Clipboard class="size-4" />
 											<span>Copy item data</span>
 										</Button>
-									{/if}
-								</Sheet.Description>
-							</Sheet.Content>
-						</Sheet.Root>
-						{#if !data.riven}
-							<ItemRequest data={data.details} type={data.mediaType} />
-						{/if}
-						{#if data.riven}
+									</Sheet.Description>
+								</Sheet.Content>
+							</Sheet.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<MediaFileSelector
+										mediaId={data.riven.id.toString()}
+										mediaType={data.mediaType == 'movie' ? 'movie' : 'tv'}
+									/>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Scrapes torrents for the item</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<AlertDialog.Root>
