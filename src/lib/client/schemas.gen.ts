@@ -1318,6 +1318,354 @@ export const OverseerrModelSchema = {
     title: 'OverseerrModel'
 } as const;
 
+export const ParsedDataSchema = {
+    properties: {
+        raw_title: {
+            type: 'string',
+            title: 'Raw Title'
+        },
+        parsed_title: {
+            type: 'string',
+            title: 'Parsed Title',
+            default: ''
+        },
+        normalized_title: {
+            type: 'string',
+            title: 'Normalized Title',
+            default: ''
+        },
+        trash: {
+            type: 'boolean',
+            title: 'Trash',
+            default: false
+        },
+        year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Year'
+        },
+        resolution: {
+            type: 'string',
+            title: 'Resolution',
+            default: 'unknown'
+        },
+        seasons: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Seasons',
+            default: []
+        },
+        episodes: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Episodes',
+            default: []
+        },
+        complete: {
+            type: 'boolean',
+            title: 'Complete',
+            default: false
+        },
+        volumes: {
+            items: {
+                type: 'integer'
+            },
+            type: 'array',
+            title: 'Volumes',
+            default: []
+        },
+        languages: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Languages',
+            default: []
+        },
+        quality: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Quality'
+        },
+        hdr: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Hdr',
+            default: []
+        },
+        codec: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Codec'
+        },
+        audio: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Audio',
+            default: []
+        },
+        channels: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Channels',
+            default: []
+        },
+        dubbed: {
+            type: 'boolean',
+            title: 'Dubbed',
+            default: false
+        },
+        subbed: {
+            type: 'boolean',
+            title: 'Subbed',
+            default: false
+        },
+        date: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Date'
+        },
+        group: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Group'
+        },
+        edition: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Edition'
+        },
+        bit_depth: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bit Depth'
+        },
+        bitrate: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bitrate'
+        },
+        network: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Network'
+        },
+        extended: {
+            type: 'boolean',
+            title: 'Extended',
+            default: false
+        },
+        converted: {
+            type: 'boolean',
+            title: 'Converted',
+            default: false
+        },
+        hardcoded: {
+            type: 'boolean',
+            title: 'Hardcoded',
+            default: false
+        },
+        region: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Region'
+        },
+        ppv: {
+            type: 'boolean',
+            title: 'Ppv',
+            default: false
+        },
+        site: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Site'
+        },
+        size: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Size'
+        },
+        proper: {
+            type: 'boolean',
+            title: 'Proper',
+            default: false
+        },
+        repack: {
+            type: 'boolean',
+            title: 'Repack',
+            default: false
+        },
+        retail: {
+            type: 'boolean',
+            title: 'Retail',
+            default: false
+        },
+        upscaled: {
+            type: 'boolean',
+            title: 'Upscaled',
+            default: false
+        },
+        remastered: {
+            type: 'boolean',
+            title: 'Remastered',
+            default: false
+        },
+        unrated: {
+            type: 'boolean',
+            title: 'Unrated',
+            default: false
+        },
+        documentary: {
+            type: 'boolean',
+            title: 'Documentary',
+            default: false
+        },
+        episode_code: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Episode Code'
+        },
+        country: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Country'
+        },
+        container: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Container'
+        },
+        extension: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Extension'
+        },
+        extras: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Extras',
+            default: []
+        },
+        torrent: {
+            type: 'boolean',
+            title: 'Torrent',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['raw_title'],
+    title: 'ParsedData',
+    description: 'Parsed data model for a torrent title.'
+} as const;
+
 export const PlexLibraryModelSchema = {
     properties: {
         enabled: {
@@ -2081,8 +2429,7 @@ export const ScrapedTorrentSchema = {
             title: 'Infohash'
         },
         parsed_data: {
-            type: 'object',
-            title: 'Parsed Data'
+            '$ref': '#/components/schemas/ParsedData'
         }
     },
     type: 'object',

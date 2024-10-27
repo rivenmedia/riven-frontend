@@ -32,19 +32,38 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import { ItemsService, ScrapeService } from '$lib/client';
+	import { ItemsService, ScrapeService, type GetCachedStatusResponse, type ScrapedTorrent, type ScrapeResponse } from '$lib/client';
 	import Card from '$lib/components/ui/card/card.svelte';
 
 	export let data: PageData;
+
+	type CustomScrapedData = ScrapeResponse & {parsed_data: {[key: string]: any}}[]
 
 	let productionCompanies = 4;
 	let magnetLink = '';
 	let magnetLoading = false;
 	let isShow = data.details.media_type === 'tv';
 	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
-	let scrapedItems = [];
 	let isScraping = false;
 	$: buttonEnabled = magnetLink && !magnetLoading && (isShow ? selectedMagnetItem : true);
+
+	let scrapedItems: CustomScrapedData = [];
+	let allResolutions: string[];
+	$: allResolutions = scrapedItems
+		.map((item) => item.parsed_data.resolution)
+		.filter((value, index, self) => self.indexOf(value) === index)
+		.filter((value) => value !== undefined);
+	let filteredScrapedItems: CustomScrapedData;
+	$: filteredScrapedItems = scrapedItems.filter((item) =>
+		selectedResolutionFilter.length > 0
+			? selectedResolutionFilter
+					.map((filter) => filter.value)
+					.some((resolution) => item.parsed_data.resolution === resolution)
+			: true
+	);
+	let selectedResolutionFilter: Selected<string>[];
+	$: selectedResolutionFilter = [];
+	let scrapedItemsAvailibility: {[key: string]: any} | undefined = undefined;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -150,6 +169,34 @@
 			return;
 		}
 		toast.success(data?.message ?? 'Processing of the item has started');
+	}
+
+	async function scrapeForItem() {
+		isScraping = true;
+		const { data: responseData, error } = await ScrapeService.scrape({
+			query: {
+				imdb_id: data.details.external_ids.imdb_id
+			}
+		});
+		isScraping = false;
+		if (error) {
+			toast.error((error as string) ?? 'Error while scraping');
+			return;
+		}
+		scrapedItems = responseData.sort((a, b) => b.rank - a.rank);
+	}
+
+	async function getCachedStatusForScrapedItems() {
+		const { data: responseData, error } = await ScrapeService.getCachedStatus({
+			query: {
+				infohashes: scrapedItems.map((item) => item.infohash).join(',')
+			}
+		});
+		if (error) {
+			toast.error((error as string) ?? 'Error while getting cached status');
+			return;
+		}
+		scrapedItemsAvailibility = responseData;
 	}
 
 	function getResolutionColor(resolution: string) {
@@ -466,19 +513,12 @@
 											class="flex w-full items-center gap-1"
 											variant="default"
 											on:click={async () => {
-												isScraping = true;
-												const { data: responseData, error } = await ScrapeService.scrape({
-													query: {
-														imdb_id: data.details.external_ids.imdb_id
-													}
+												scrapeForItem().then(() => {
+													console.log(scrapedItems);
+													getCachedStatusForScrapedItems().then(() => {
+														console.log(scrapedItemsAvailibility);
+													});
 												});
-												isScraping = false;
-												if (error) {
-													toast.error('Error scraping torrents');
-													return;
-												}
-												scrapedItems = responseData.sort((a, b) => b.rank - a.rank);
-												console.log(scrapedItems);
 											}}
 										>
 											<ScanSearch class="size-4" />
@@ -487,9 +527,23 @@
 									</Dialog.Trigger>
 									<Dialog.Content class="max-w-[50%]">
 										<Dialog.Header>
-											<Dialog.Title>Results</Dialog.Title>
+											<Dialog.Title>
+												<div class="flex flex-row items-center gap-4">
+													Results
+													<Select.Root bind:selected={selectedResolutionFilter} multiple>
+														<Select.Trigger>
+															<Select.Value placeholder="Filter by resolution" />
+														</Select.Trigger>
+														<Select.Content>
+															{#each allResolutions as resolution}
+																<Select.Item value={resolution}>{resolution}</Select.Item>
+															{/each}
+														</Select.Content>
+													</Select.Root>
+												</div>
+											</Dialog.Title>
 											<Dialog.Description
-												class="pt-4 max-h-[35rem] overflow-x-hidden overflow-y-scroll"
+												class="max-h-[35rem] overflow-x-hidden overflow-y-scroll pt-4"
 											>
 												{#if isScraping}
 													<p>Scraping...</p>
@@ -498,7 +552,10 @@
 														{#if scrapedItems.length === 0}
 															<p>No results found</p>
 														{:else}
-															{#each scrapedItems as item}
+															{#if filteredScrapedItems.length === 0}
+																<p>No results found for the selected resolutions</p>
+															{/if}
+															{#each filteredScrapedItems as item}
 																<Card class="relative p-4">
 																	<Badge
 																		class={cn(
@@ -509,18 +566,18 @@
 																		)}>{item.rank}</Badge
 																	>
 																	<div class="flex flex-col gap-2">
-																		<div class="pr-24">
+																		<div class="pr-16">
 																			<div>{item.raw_title}</div>
-																			<div class="mt-2">
-																				{#each ['resolution', 'quality', 'hdr', 'codec', 'languages'] as key}
+																			<div class="mt-2 flex flex-row gap-2 flex-wrap">
+																				{#each ['resolution', 'quality', 'hdr', 'audio', 'codec', 'languages'] as key}
 																					{#if item.parsed_data[key]}
 																						{#if Array.isArray(item.parsed_data[key])}
 																							{#each item.parsed_data[key] as value}
 																								<Badge
-																									class={`mr-2 font-medium ${
+																									class={`font-medium text-nowrap ${
 																										key === 'resolution'
 																											? getResolutionColor(value)
-																											: 'bg-secondary/50'
+																											: 'bg-secondary/50 uppercase'
 																									}`}
 																								>
 																									{value}
@@ -528,10 +585,10 @@
 																							{/each}
 																						{:else}
 																							<Badge
-																								class={`mr-2 font-medium ${
+																								class={`font-medium text-nowrap ${
 																									key === 'resolution'
 																										? getResolutionColor(item.parsed_data[key])
-																										: 'bg-secondary/50'
+																										: 'bg-secondary/50 uppercase'
 																								}`}
 																							>
 																								{item.parsed_data[key]}
@@ -539,6 +596,21 @@
 																						{/if}
 																					{/if}
 																				{/each}
+																				{#if scrapedItemsAvailibility}
+																					<Badge
+																						class={`font-medium text-nowrap ${
+																							(scrapedItemsAvailibility[item.infohash]
+																								?.length || 0) > 0
+																								? 'bg-green-500 hover:bg-green-600'
+																								: 'bg-red-500 hover:bg-red-600'
+																						}`}
+																					>
+																						{(scrapedItemsAvailibility[item.infohash]?.length ||
+																							0) > 0
+																							? 'Cached'
+																							: 'Uncached'}
+																					</Badge>
+																				{/if}
 																			</div>
 																			<!-- <div class="mt-2">{item.infohash}</div> -->
 																		</div>
@@ -712,7 +784,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
+								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>

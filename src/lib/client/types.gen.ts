@@ -191,6 +191,56 @@ export type OverseerrModel = {
     use_webhook?: boolean;
 };
 
+/**
+ * Parsed data model for a torrent title.
+ */
+export type ParsedData = {
+    raw_title: string;
+    parsed_title?: string;
+    normalized_title?: string;
+    trash?: boolean;
+    year?: (number | null);
+    resolution?: string;
+    seasons?: Array<(number)>;
+    episodes?: Array<(number)>;
+    complete?: boolean;
+    volumes?: Array<(number)>;
+    languages?: Array<(string)>;
+    quality?: (string | null);
+    hdr?: Array<(string)>;
+    codec?: (string | null);
+    audio?: Array<(string)>;
+    channels?: Array<(string)>;
+    dubbed?: boolean;
+    subbed?: boolean;
+    date?: (string | null);
+    group?: (string | null);
+    edition?: (string | null);
+    bit_depth?: (string | null);
+    bitrate?: (string | null);
+    network?: (string | null);
+    extended?: boolean;
+    converted?: boolean;
+    hardcoded?: boolean;
+    region?: (string | null);
+    ppv?: boolean;
+    site?: (string | null);
+    size?: (string | null);
+    proper?: boolean;
+    repack?: boolean;
+    retail?: boolean;
+    upscaled?: boolean;
+    remastered?: boolean;
+    unrated?: boolean;
+    documentary?: boolean;
+    episode_code?: (string | null);
+    country?: (string | null);
+    container?: (string | null);
+    extension?: (string | null);
+    extras?: Array<(string)>;
+    torrent?: boolean;
+};
+
 export type PlexLibraryModel = {
     enabled?: boolean;
     token?: string;
@@ -305,9 +355,7 @@ export type ScrapedTorrent = {
     rank: number;
     raw_title: string;
     infohash: string;
-    parsed_data: {
-        [key: string]: unknown;
-    };
+    parsed_data: ParsedData;
 };
 
 export type ScraperModel = {
@@ -657,6 +705,18 @@ export type GetRdTorrentsData = {
 export type GetRdTorrentsResponse = (Array<RDTorrent>);
 
 export type GetRdTorrentsError = (HTTPValidationError);
+
+export type GetCachedStatusData = {
+    query: {
+        infohashes: string;
+    };
+};
+
+export type GetCachedStatusResponse = ({
+    [key: string]: (boolean);
+});
+
+export type GetCachedStatusError = (HTTPValidationError);
 
 export type GetSettingsSchemaResponse = ({
     [key: string]: unknown;
