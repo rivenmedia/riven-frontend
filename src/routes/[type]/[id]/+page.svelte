@@ -69,7 +69,10 @@
 	);
 	let selectedResolutionFilter: Selected<string>[];
 	$: selectedResolutionFilter = [];
-	let scrapedItemsAvailibility: { [key: string]: any } | undefined = undefined;
+	let scrapedItemsAvailability: { [key: string]: any } | undefined = {};
+	$: scrapedItemsAvailability
+
+	let selectedScrapedItem: ScrapedTorrent | undefined;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -202,7 +205,18 @@
 			toast.error((error as string) ?? 'Error while getting cached status');
 			return;
 		}
-		scrapedItemsAvailibility = responseData;
+		scrapedItemsAvailability = responseData;
+	}
+
+	function getFilenamesOfSelectedScrapedItem() {
+		if (!selectedScrapedItem) return new Set<string>();
+		return getFilenamesOfScrapedItem(selectedScrapedItem);																							
+	}
+
+	function getFilenamesOfScrapedItem(item: ScrapedTorrent) {
+		if (!scrapedItemsAvailability) return new Set<string>();
+		if (!scrapedItemsAvailability[item.infohash]) return new Set<string>();
+		return new Set<string>(scrapedItemsAvailability[item.infohash].flatMap((fileData: any) => Object.values(fileData).map(item => (item as any).filename)))																								
 	}
 
 	function getResolutionColor(resolution: string) {
@@ -520,10 +534,7 @@
 											variant="default"
 											on:click={async () => {
 												scrapeForItem().then(() => {
-													console.log(scrapedItems);
-													getCachedStatusForScrapedItems().then(() => {
-														console.log(scrapedItemsAvailibility);
-													});
+													getCachedStatusForScrapedItems();
 												});
 											}}
 										>
@@ -602,20 +613,20 @@
 																						{/if}
 																					{/if}
 																				{/each}
-																				{#if scrapedItemsAvailibility}
+																				{#if scrapedItemsAvailability}
 																					<Badge
 																						class={`text-nowrap font-medium ${
-																							(scrapedItemsAvailibility[item.infohash]?.length ||
+																							(scrapedItemsAvailability[item.infohash]?.length ||
 																								0) > 0
 																								? 'bg-green-500 hover:bg-green-600'
 																								: 'bg-red-500 hover:bg-red-600'
 																						}`}
 																					>
-																						{(scrapedItemsAvailibility[item.infohash]?.length ||
+																						{(scrapedItemsAvailability[item.infohash]?.length ||
 																							0) > 0
 																							? `Cached (${
-																									scrapedItemsAvailibility[item.infohash].length
-																								} file${scrapedItemsAvailibility[item.infohash].length > 1 ? 's' : ''})`
+																								getFilenamesOfScrapedItem(item).size
+																								} file${getFilenamesOfScrapedItem(item).size > 1 ? 's' : ''})`
 																							: 'Uncached'}
 																					</Badge>
 																				{/if}
@@ -634,6 +645,53 @@
 																			>
 																				<span>Copy Infohash</span>
 																			</Button>
+																			<div class="flex-1">
+																				<Tooltip.Root>
+																					<Tooltip.Trigger>
+																						<Dialog.Root>
+																							<Dialog.Trigger asChild let:builder>
+																								<Button
+																									builders={[builder]}
+																									on:click={async () => {
+																										selectedScrapedItem = item;
+																									}}
+																									size="sm"
+																									variant="outline"
+																								>
+																									<span>View Files</span>
+																								</Button>
+																							</Dialog.Trigger>
+																							<Dialog.Content class="max-w-[80%]">
+																								<Dialog.Header>
+																									<Dialog.Title>
+																										Files of {selectedScrapedItem?.raw_title}
+																									</Dialog.Title>
+																									<Dialog.Description
+																										class="max-h-[35rem] overflow-x-hidden overflow-y-scroll pt-4"
+																									>
+																									{#if selectedScrapedItem?.infohash} 
+																										{#if scrapedItemsAvailability}
+																											<div class="grid grid-cols-1 gap-2">
+																												{#each getFilenamesOfSelectedScrapedItem() as filename}
+																													<div>{filename}</div>
+																												{/each}
+																											</div>
+																										{:else}
+																											<p>No files found (yet)</p>
+																										{/if}
+																									{:else}
+																										<p>No infohash selected (this should not happen)</p>
+																									{/if}
+																									</Dialog.Description>
+																								</Dialog.Header>
+																							</Dialog.Content>
+																						</Dialog.Root>
+																					</Tooltip.Trigger>
+																					<Tooltip.Content>
+																						<p>View all files in this torrent</p>
+																					</Tooltip.Content>
+																				</Tooltip.Root>
+																			</div>
 																			<Button
 																				on:click={async () => {
 																					await addItemManually(
