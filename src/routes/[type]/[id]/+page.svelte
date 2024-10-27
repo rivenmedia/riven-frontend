@@ -32,12 +32,18 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import { ItemsService, ScrapeService, type GetCachedStatusResponse, type ScrapedTorrent, type ScrapeResponse } from '$lib/client';
+	import {
+		ItemsService,
+		ScrapeService,
+		type GetCachedStatusResponse,
+		type ScrapedTorrent,
+		type ScrapeResponse
+	} from '$lib/client';
 	import Card from '$lib/components/ui/card/card.svelte';
 
 	export let data: PageData;
 
-	type CustomScrapedData = ScrapeResponse & {parsed_data: {[key: string]: any}}[]
+	type CustomScrapedData = ScrapeResponse & { parsed_data: { [key: string]: any } }[];
 
 	let productionCompanies = 4;
 	let magnetLink = '';
@@ -63,7 +69,7 @@
 	);
 	let selectedResolutionFilter: Selected<string>[];
 	$: selectedResolutionFilter = [];
-	let scrapedItemsAvailibility: {[key: string]: any} | undefined = undefined;
+	let scrapedItemsAvailibility: { [key: string]: any } | undefined = undefined;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -568,13 +574,13 @@
 																	<div class="flex flex-col gap-2">
 																		<div class="pr-16">
 																			<div>{item.raw_title}</div>
-																			<div class="mt-2 flex flex-row gap-2 flex-wrap">
+																			<div class="mt-2 flex flex-row flex-wrap gap-2">
 																				{#each ['resolution', 'quality', 'hdr', 'audio', 'codec', 'languages'] as key}
 																					{#if item.parsed_data[key]}
 																						{#if Array.isArray(item.parsed_data[key])}
 																							{#each item.parsed_data[key] as value}
 																								<Badge
-																									class={`font-medium text-nowrap ${
+																									class={`text-nowrap font-medium ${
 																										key === 'resolution'
 																											? getResolutionColor(value)
 																											: 'bg-secondary/50 uppercase'
@@ -585,7 +591,7 @@
 																							{/each}
 																						{:else}
 																							<Badge
-																								class={`font-medium text-nowrap ${
+																								class={`text-nowrap font-medium ${
 																									key === 'resolution'
 																										? getResolutionColor(item.parsed_data[key])
 																										: 'bg-secondary/50 uppercase'
@@ -598,16 +604,18 @@
 																				{/each}
 																				{#if scrapedItemsAvailibility}
 																					<Badge
-																						class={`font-medium text-nowrap ${
-																							(scrapedItemsAvailibility[item.infohash]
-																								?.length || 0) > 0
+																						class={`text-nowrap font-medium ${
+																							(scrapedItemsAvailibility[item.infohash]?.length ||
+																								0) > 0
 																								? 'bg-green-500 hover:bg-green-600'
 																								: 'bg-red-500 hover:bg-red-600'
 																						}`}
 																					>
 																						{(scrapedItemsAvailibility[item.infohash]?.length ||
 																							0) > 0
-																							? 'Cached'
+																							? `Cached (${
+																									scrapedItemsAvailibility[item.infohash].length
+																								} file${scrapedItemsAvailibility[item.infohash].length > 1 ? 's' : ''})`
 																							: 'Uncached'}
 																					</Badge>
 																				{/if}
@@ -784,7 +792,7 @@
 						{@const keywords = data.details.keywords.keywords || data.details.keywords.results}
 						<div class="mt-8 flex w-full flex-wrap gap-2">
 							{#each keywords as keyword}
-								<Badge class="bg-secondary/50 flex items-center gap-2 font-medium">
+								<Badge class="flex items-center gap-2 bg-secondary/50 font-medium">
 									<Tag class="size-4" />
 									<span>{keyword.name}</span>
 								</Badge>
