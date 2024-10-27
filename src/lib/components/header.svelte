@@ -70,8 +70,6 @@
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
-		console.log(searchResults);
-		console.log(event.key);
 		if (!searchResults.length) return;
 
 		switch (event.key) {
