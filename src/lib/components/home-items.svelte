@@ -6,7 +6,9 @@
 	import { goto } from '$app/navigation';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	export let data: any;
+	export let trending: any;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	export let popular: any;
 	export let name: string;
 	export let type: string;
 
@@ -38,7 +40,7 @@
 			</div>
 
 			<div class="no-scrollbar flex flex-wrap overflow-x-auto px-1 lg:p-0">
-				{#each data.results as item}
+				{#each trending.results as item}
 					<div
 						class="group relative mb-2 flex w-1/2 flex-shrink-0 flex-col gap-2 rounded-lg p-2 sm:w-1/4 lg:w-1/6 xl:p-[.4rem]"
 						role="button"
@@ -98,7 +100,7 @@
 				</a>
 			</div>
 			<div class="flex flex-col gap-2 overflow-hidden">
-				{#each data.results as item, i}
+				{#each popular.results as item, i}
 					{#if i <= 9}
 						<a
 							class="group flex aspect-[4.3/1] w-full gap-1 overflow-hidden rounded-lg 2xl:aspect-[5.33/1]"
