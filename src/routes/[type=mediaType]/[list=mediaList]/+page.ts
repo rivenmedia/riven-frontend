@@ -13,14 +13,22 @@ export const load = (async ({ fetch, params, url }) => {
 						return await getTVPopular(fetch, 'en-US', page);
 					case 'trending':
 						return await getTrending(fetch, 'en-US', page, MediaType.TV, TimeWindow.Week);
+					default:
+						break;
 				}
+				break;
 			case 'movie':
 				switch (list) {
 					case 'popular':
 						return await getMoviesPopular(fetch, 'en-US', page);
 					case 'trending':
 						return await getTrending(fetch, 'en-US', page, MediaType.Movie, TimeWindow.Week);
+					default:
+						break;
 				}
+				break;
+			default:
+				break;
 		}
 	}
 
