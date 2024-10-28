@@ -63,7 +63,7 @@
 						class="absolute inset-0 hidden flex-col justify-end from-zinc-900/70 p-2 group-hover:flex group-hover:bg-gradient-to-t"
 					>
 						{#if $hoveredItem === item.id}
-							<ItemRequest data={item} type="{data.type}" />
+							<ItemRequest data={item} type={data.type} />
 						{/if}
 					</div>
 				</div>
