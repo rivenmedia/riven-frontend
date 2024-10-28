@@ -647,7 +647,7 @@
 																			</Button>
 																			<div class="flex-1">
 																				<Tooltip.Root>
-																					<Tooltip.Trigger>
+																					<Tooltip.Trigger class="w-[100%]">
 																						<Dialog.Root>
 																							<Dialog.Trigger asChild let:builder>
 																								<Button
@@ -657,6 +657,7 @@
 																									}}
 																									size="sm"
 																									variant="outline"
+																									class="w-[100%]"
 																								>
 																									<span>View Files</span>
 																								</Button>
