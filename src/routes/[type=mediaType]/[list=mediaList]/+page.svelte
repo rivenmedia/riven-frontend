@@ -5,32 +5,13 @@
 	import ItemRequest from '$lib/components/item-request.svelte';
 	import Header from '$lib/components/header.svelte';
 	import * as Pagination from '$lib/components/ui/pagination';
-	import { getMoviesPopular } from '$lib/tmdb';
 	import { writable } from 'svelte/store';
 	import { goto } from '$app/navigation';
 
 	export let data: PageData;
 
-	let items = data.movies.results;
-	let totalItems = data.movies.total_results;
-	let pageNumber = data.page;
-
-	$: totalDataItems = writable(totalItems);
-
-	async function fetchItems() {
-		let data = await getMoviesPopular(fetch, 'en-US', pageNumber);
-
-		if (data) {
-			items = data.results;
-			totalItems = data.total_results;
-			$totalDataItems = totalItems;
-		} else {
-			//pass
-		}
-	}
-
-	const limit = 20;
-
+	let totalItems = data.list.total_results;
+	const limit = 24;
 	const hoveredItem = writable(null);
 </script>
 
@@ -43,10 +24,10 @@
 </div>
 
 <div class="mt-32 p-8 md:px-24 lg:px-32">
-	<h1 class="mb-8 text-center text-4xl text-zinc-50 md:text-left">Popular Movies</h1>
+	<h1 class="mb-8 text-center text-4xl text-zinc-50 md:text-left">{data.listType} {data.type}</h1>
 
 	<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-		{#each items as item (item.id)}
+		{#each data.list.results as item (item.id)}
 			<div
 				class="group relative mb-2 flex flex-shrink-0 flex-col gap-2 rounded-lg p-2"
 				role="button"
@@ -61,7 +42,7 @@
 						$hoveredItem = item.id;
 					}
 				}}
-				on:click={() => goto(`/movie/${item.id}`)}
+				on:click={() => goto(`/${data.type}/${item.id}`)}
 			>
 				<div class="relative aspect-[1/1.5] w-full overflow-hidden rounded-lg">
 					<img
@@ -82,7 +63,7 @@
 						class="absolute inset-0 hidden flex-col justify-end from-zinc-900/70 p-2 group-hover:flex group-hover:bg-gradient-to-t"
 					>
 						{#if $hoveredItem === item.id}
-							<ItemRequest data={item} type="movie" />
+							<ItemRequest data={item} type="{data.type}" />
 						{/if}
 					</div>
 				</div>
@@ -92,13 +73,12 @@
 
 	<div class="mt-8 flex flex-wrap overflow-x-auto px-1 lg:p-0">
 		<Pagination.Root
-			count={$totalDataItems}
+			count={totalItems}
 			perPage={limit}
 			let:pages
 			let:currentPage
 			onPageChange={(page) => {
-				pageNumber = page;
-				fetchItems();
+				goto(`/${data.type}/${data.listType}?page=${page}`);
 			}}
 		>
 			<Pagination.Content class="flex items-center justify-center space-x-2">
@@ -108,7 +88,7 @@
 				{#each pages as page (page.key)}
 					{#if page.type === 'ellipsis'}
 						<Pagination.Item>
-							<Pagination.Ellipsis class="px-4 py-2" />
+							<Pagination.Ellipsis />
 						</Pagination.Item>
 					{:else}
 						<Pagination.Item>
