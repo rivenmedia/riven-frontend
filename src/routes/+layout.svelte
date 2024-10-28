@@ -1,8 +1,7 @@
 <script lang="ts">
+	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner';
-	import '../app.css';
-
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import NProgress from 'nprogress';
 	import { setContext } from 'svelte';

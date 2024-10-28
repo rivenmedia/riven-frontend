@@ -82,152 +82,146 @@
 
 <Header />
 
-<div class="min-h-screen bg-background text-foreground">
-	<main class="container mx-auto mt-16 h-screen w-screen px-4 py-8">
-		<form
-			method="POST"
-			use:enhance
-			on:submit|preventDefault={handleFilterChange}
-			class="mb-6 flex flex-wrap items-center gap-4"
-		>
-			<Field {form} name="state">
-				<Control let:attrs>
-					<Label>State</Label>
-					<Select.Root
-						selected={selectedState}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.state = s.value;
-								handleFilterChange();
-							}
-						}}
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Filter by state" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(states) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
-
-			<Field {form} name="type">
-				<Control let:attrs>
-					<Label>Type</Label>
-					<Select.Root
-						selected={selectedType}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.type = s.value;
-								handleFilterChange();
-							}
-						}}
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Filter by type" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(types) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
-
-			<Field {form} name="sort">
-				<Control let:attrs>
-					<Label>Sort</Label>
-					<Select.Root
-						selected={selectedSort}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.sort = s.value;
-								handleFilterChange();
-							}
-						}}
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Sort by" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(sortOptions) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
-
-			<Button variant="outline" size="icon" on:click={toggleSortOrder}>
-				{#if $formData.sort.includes('asc')}
-					<SortAsc class="h-4 w-4" />
-				{:else}
-					<SortDesc class="h-4 w-4" />
-				{/if}
-			</Button>
-		</form>
-
-		<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-			{#each items as item (item.id)}
-				<div
-					class="relative aspect-[2/3] overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-105"
+<div class="mt-32 h-full p-8 md:px-24 lg:px-32">
+	<form
+		method="POST"
+		use:enhance
+		on:submit|preventDefault={handleFilterChange}
+		class="mb-6 flex flex-wrap items-center gap-4"
+	>
+		<Field {form} name="state">
+			<Control let:attrs>
+				<Label>State</Label>
+				<Select.Root
+					selected={selectedState}
+					onSelectedChange={(s) => {
+						if (s) {
+							$formData.state = s.value;
+							handleFilterChange();
+						}
+					}}
 				>
-					<MediaItem data={item} />
-				</div>
-			{/each}
-		</div>
+					<Select.Input name={attrs.name} />
+					<Select.Trigger {...attrs} class="w-[180px]">
+						<Select.Value placeholder="Filter by state" />
+					</Select.Trigger>
+					<Select.Content>
+						{#each Object.entries(states) as [value, label]}
+							<Select.Item {value} {label} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</Control>
+			<FieldErrors />
+		</Field>
 
-		<div class="mt-8">
-			<Pagination.Root
-				count={$totalDataItems}
-				perPage={limit}
-				let:pages
-				let:currentPage
-				onPageChange={(page) => {
-					pageNumber = page;
-					fetchItems();
-				}}
+		<Field {form} name="type">
+			<Control let:attrs>
+				<Label>Type</Label>
+				<Select.Root
+					selected={selectedType}
+					onSelectedChange={(s) => {
+						if (s) {
+							$formData.type = s.value;
+							handleFilterChange();
+						}
+					}}
+				>
+					<Select.Input name={attrs.name} />
+					<Select.Trigger {...attrs} class="w-[180px]">
+						<Select.Value placeholder="Filter by type" />
+					</Select.Trigger>
+					<Select.Content>
+						{#each Object.entries(types) as [value, label]}
+							<Select.Item {value} {label} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</Control>
+			<FieldErrors />
+		</Field>
+
+		<Field {form} name="sort">
+			<Control let:attrs>
+				<Label>Sort</Label>
+				<Select.Root
+					selected={selectedSort}
+					onSelectedChange={(s) => {
+						if (s) {
+							$formData.sort = s.value;
+							handleFilterChange();
+						}
+					}}
+				>
+					<Select.Input name={attrs.name} />
+					<Select.Trigger {...attrs} class="w-[180px]">
+						<Select.Value placeholder="Sort by" />
+					</Select.Trigger>
+					<Select.Content>
+						{#each Object.entries(sortOptions) as [value, label]}
+							<Select.Item {value} {label} />
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</Control>
+			<FieldErrors />
+		</Field>
+
+		<Button variant="outline" size="icon" on:click={toggleSortOrder}>
+			{#if $formData.sort.includes('asc')}
+				<SortAsc class="h-4 w-4" />
+			{:else}
+				<SortDesc class="h-4 w-4" />
+			{/if}
+		</Button>
+	</form>
+
+	<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+		{#each items as item (item.id)}
+			<div
+				class="relative aspect-[2/3] overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-105"
 			>
-				<Pagination.Content class="flex items-center justify-center space-x-2">
-					<Pagination.Item>
-						<Pagination.PrevButton
-							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-						/>
-					</Pagination.Item>
-					{#each pages as page (page.key)}
-						{#if page.type === 'ellipsis'}
-							<Pagination.Item>
-								<Pagination.Ellipsis class="px-4 py-2" />
-							</Pagination.Item>
-						{:else}
-							<Pagination.Item>
-								<Pagination.Link
-									{page}
-									isActive={currentPage === page.value}
-									class="rounded-md px-4 py-2"
-								>
-									{page.value}
-								</Pagination.Link>
-							</Pagination.Item>
-						{/if}
-					{/each}
-					<Pagination.Item>
-						<Pagination.NextButton
-							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-						/>
-					</Pagination.Item>
-				</Pagination.Content>
-			</Pagination.Root>
-		</div>
-	</main>
+				<MediaItem data={item} />
+			</div>
+		{/each}
+	</div>
+
+	<div class="mt-8">
+		<Pagination.Root
+			count={$totalDataItems}
+			perPage={limit}
+			let:pages
+			let:currentPage
+			onPageChange={(page) => {
+				pageNumber = page;
+				fetchItems();
+			}}
+		>
+			<Pagination.Content class="flex items-center justify-center space-x-2">
+				<Pagination.Item>
+					<Pagination.PrevButton class="rounded-md bg-primary px-4 py-2 text-primary-foreground" />
+				</Pagination.Item>
+				{#each pages as page (page.key)}
+					{#if page.type === 'ellipsis'}
+						<Pagination.Item>
+							<Pagination.Ellipsis class="px-4 py-2" />
+						</Pagination.Item>
+					{:else}
+						<Pagination.Item>
+							<Pagination.Link
+								{page}
+								isActive={currentPage === page.value}
+								class="rounded-md px-4 py-2"
+							>
+								{page.value}
+							</Pagination.Link>
+						</Pagination.Item>
+					{/if}
+				{/each}
+				<Pagination.Item>
+					<Pagination.NextButton class="rounded-md bg-primary px-4 py-2 text-primary-foreground" />
+				</Pagination.Item>
+			</Pagination.Content>
+		</Pagination.Root>
+	</div>
 </div>
