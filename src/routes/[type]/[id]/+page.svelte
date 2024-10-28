@@ -67,11 +67,8 @@
 					.some((resolution) => item.parsed_data.resolution === resolution)
 			: true
 	);
-	let selectedResolutionFilter: Selected<string>[];
-	$: selectedResolutionFilter = [];
-	let scrapedItemsAvailability: { [key: string]: any } | undefined = {};
-	$: scrapedItemsAvailability
-
+	let selectedResolutionFilter: Selected<string>[] = [];
+	let scrapedItemsAvailability: { [key: string]: any } = {};
 	let selectedScrapedItem: ScrapedTorrent | undefined;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -195,7 +192,10 @@
 		scrapedItems = responseData.sort((a, b) => b.rank - a.rank);
 	}
 
-	async function getCachedStatusForScrapedItems() {
+	async function getCachedStatusForScrapedItems(isRetry: boolean = false) {
+		if (scrapedItems.length === 0) {
+			return
+		}
 		const { data: responseData, error } = await ScrapeService.getCachedStatus({
 			query: {
 				infohashes: scrapedItems.map((item) => item.infohash).join(',')
@@ -204,6 +204,13 @@
 		if (error) {
 			toast.error((error as string) ?? 'Error while getting cached status');
 			return;
+		}
+		if (Object.keys(responseData).length === 0) {
+			if (!isRetry) {
+				getCachedStatusForScrapedItems(true)
+			} else {
+				toast.error('No response while retrying getting cached status');
+			}
 		}
 		scrapedItemsAvailability = responseData;
 	}
