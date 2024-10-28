@@ -71,6 +71,8 @@
 	let scrapedItemsAvailability: { [key: string]: any } = {};
 	let selectedScrapedItem: ScrapedTorrent | undefined;
 
+	let isScrapedItemsDialogOpen = false
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -533,7 +535,7 @@
 						{/if}
 						<Tooltip.Root>
 							<Tooltip.Trigger>
-								<Dialog.Root>
+								<Dialog.Root bind:open={isScrapedItemsDialogOpen}>
 									<Dialog.Trigger asChild let:builder>
 										<Button
 											builders={[builder]}
@@ -542,6 +544,7 @@
 											on:click={async () => {
 												scrapeForItem().then(() => {
 													getCachedStatusForScrapedItems();
+													isScrapedItemsDialogOpen = true
 												});
 											}}
 										>
@@ -706,6 +709,7 @@
 																						data.details.external_ids.imdb_id,
 																						item.infohash
 																					);
+																					isScrapedItemsDialogOpen = false
 																				}}
 																				size="sm"
 																				class="flex-1"
