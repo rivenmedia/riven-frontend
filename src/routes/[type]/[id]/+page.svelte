@@ -537,7 +537,7 @@
 									<Dialog.Trigger asChild let:builder>
 										<Button
 											builders={[builder]}
-											class="flex w-full items-center gap-1"
+											class="flex items-center gap-1"
 											variant="default"
 											on:click={async () => {
 												scrapeForItem().then(() => {
@@ -671,7 +671,7 @@
 																							</Dialog.Trigger>
 																							<Dialog.Content class="max-w-[80%]">
 																								<Dialog.Header>
-																									<Dialog.Title>
+																									<Dialog.Title style="overflow-wrap: anywhere;">
 																										Files of {selectedScrapedItem?.raw_title}
 																									</Dialog.Title>
 																									<Dialog.Description
