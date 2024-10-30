@@ -112,6 +112,7 @@
 		}
 		if (magnetLoading) return;
 		magnetLoading = true;
+		console.log(selectedMagnetItem);
 		const idToSet = isShow ? parseInt(selectedMagnetItem.value.id) : id;
 		const { error } = await ItemsService.setTorrentRdMagnet({
 			path: {
@@ -290,7 +291,13 @@
 											</Select.Trigger>
 											<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
 												<Select.Group>
-													{#each data.riven.seasons as season}
+													<Select.Label>All seasons</Select.Label>
+													<Select.Item value={data.riven}>
+														 S{data.riven.seasons[0].number}-{data.riven.seasons[data.riven.seasons.length - 1].number}
+													</Select.Item>
+												</Select.Group>
+												{#each data.riven.seasons as season}
+													<Select.Group>
 														<Select.Label>Season {season.number}</Select.Label>
 														<Select.Item value={season}>
 															All episodes in season {season.number}
@@ -303,8 +310,9 @@
 																{episode.title}
 															</Select.Item>
 														{/each}
-													{/each}
-												</Select.Group>
+													</Select.Group>
+													<Select.Separator />
+												{/each}
 											</Select.Content>
 											<Select.Input name="favoriteFruit" />
 										</Select.Root>
