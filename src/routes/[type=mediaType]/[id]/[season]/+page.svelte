@@ -105,7 +105,11 @@
 											<div
 												class="ml-auto mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
 											>
-												{formatDate(episode.air_date, 'short')}
+												{#if episode.air_date}
+													{formatDate(episode.air_date, 'short')}
+												{:else}
+													TBD
+												{/if}
 											</div>
 										</div>
 									</div>

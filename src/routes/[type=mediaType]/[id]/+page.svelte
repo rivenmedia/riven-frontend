@@ -235,15 +235,20 @@
 										{/if}
 
 										<div class="mt-1"></div>
-
-										{#if isRivenShow(data.riven)}
+										{#if data.riven && isRivenShow(data.riven)}
 											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
 												<Select.Trigger>
 													<Select.Value placeholder="Select a season/episode" />
 												</Select.Trigger>
 												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
 													<Select.Group>
-														{#each data.riven.seasons as season}
+														<Select.Label>All seasons</Select.Label>
+														<Select.Item value={data.riven}>
+															S{data.riven.seasons[0].number}-{data.riven.seasons[data.riven.seasons.length - 1].number}
+														</Select.Item>
+													</Select.Group>
+													{#each data.riven.seasons as season}
+														<Select.Group>
 															<Select.Label>Season {season.number}</Select.Label>
 															<Select.Item value={season}>
 																All episodes in season {season.number}
@@ -255,14 +260,22 @@
 																		.padStart(2, '0')}
 																	{episode.title}
 																</Select.Item>
+																{#each season.episodes as episode}
+																	<Select.Item value={episode}>
+																		S{season.number.toString().padStart(2, '0')}E{episode.number
+																			.toString()
+																			.padStart(2, '0')}
+																		{episode.title}
+																	</Select.Item>
+																{/each}
 															{/each}
-														{/each}
-													</Select.Group>
+														</Select.Group>
+														<Select.Separator />
+													{/each}
 												</Select.Content>
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
-
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
