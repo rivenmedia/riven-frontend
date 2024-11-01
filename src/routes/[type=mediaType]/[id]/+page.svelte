@@ -51,7 +51,7 @@
 
 		if (!response.error) {
 			toast.success('Media deleted successfully');
-			goto('/library');
+			invalidateAll();
 		} else {
 			toast.error('An error occurred while deleting the media');
 		}
