@@ -1,14 +1,33 @@
 import { superValidate } from 'sveltekit-superforms/client';
 import { schema } from '$lib/schema/browse';
-import { ItemsService } from '$lib/client';
+import { ItemsService, type States } from '$lib/client';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { PageLoad } from '../$types';
 import type { RivenGetItemsResponse } from '$lib/types';
 
-export const load = (async () => {
+export const load = (async ({ url }) => {
 	const form = await superValidate({}, zod(schema));
-	const page = 1;
-	const limit = 12;
+	let page = 1;
+	const limit = 24;
+
+	if (url.searchParams.has('page')) {
+		page = parseInt(url.searchParams.get('page') as string);
+	}
+	if (url.searchParams.has('sort')) {
+		form.data.sort = url.searchParams.get('sort') as
+			| 'date_desc'
+			| 'date_asc'
+			| 'title_asc'
+			| 'title_desc';
+	}
+	if (url.searchParams.has('type')) {
+		form.data.type = url.searchParams.get('type')?.split(',') as ['movie', 'show'];
+	}
+	if (url.searchParams.has('state')) {
+		form.data.state = url.searchParams.get('state')?.split(',') as States[];
+	} else {
+		form.data.state = [''];
+	}
 
 	async function getItems(): Promise<RivenGetItemsResponse> {
 		try {
@@ -17,8 +36,8 @@ export const load = (async () => {
 					page,
 					sort: form.data.sort,
 					limit,
-					type: form.data.type,
-					states: form.data.state
+					type: form.data.type.join(','),
+					states: form.data.state.join(',')
 				}
 			});
 
