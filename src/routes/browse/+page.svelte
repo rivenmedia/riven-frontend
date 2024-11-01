@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import Header from '$lib/components/header.svelte';
 	import * as Pagination from '$lib/components/ui/pagination';
 	import { ItemsService } from '$lib/client';
@@ -12,12 +14,15 @@
 
 	import { states, types, sortOptions } from '$lib/schema/browse';
 	import type { RivenItem } from '$lib/types';
+	import type { Selected } from 'bits-ui';
 
 	export let data;
 
 	let items = data.itemsData.items;
 	let totalItems = data.itemsData.total_items;
-	let pageNumber = data.page;
+	let pageNumber = $page.url.searchParams.get('page')
+		? parseInt($page.url.searchParams.get('page')!)
+		: 1;
 	const limit = 24;
 
 	$: totalDataItems = writable(totalItems);
@@ -28,15 +33,32 @@
 
 	const { form: formData, enhance } = form;
 
-	$: selectedState = {
-		label: states[$formData.state],
-		value: $formData.state
-	};
+	// Initialize form data from URL params
+	$: {
+		const params = $page.url.searchParams;
+		$formData.state =
+			params
+				.get('state')
+				?.split(',')
+				.map((state) => state as keyof typeof states) || $formData.state;
+		$formData.type =
+			params
+				.get('type')
+				?.split(',')
+				.map((type) => type as keyof typeof types) || $formData.type;
+		$formData.sort = (params.get('sort') as keyof typeof sortOptions) || $formData.sort;
+	}
 
-	$: selectedType = {
-		label: types[$formData.type],
-		value: $formData.type
-	};
+	// Update selected values based on form data
+	$: selectedState = $formData.state.map((state) => ({
+		label: states[state],
+		value: state
+	}));
+
+	$: selectedType = $formData.type.map((type) => ({
+		label: types[type],
+		value: type
+	}));
 
 	$: selectedSort = {
 		label: sortOptions[$formData.sort],
@@ -44,13 +66,20 @@
 	};
 
 	async function fetchItems() {
+		const url = new URL(window.location.href);
+		url.searchParams.set('page', pageNumber.toString());
+		url.searchParams.set('state', $formData.state.join(','));
+		url.searchParams.set('type', $formData.type.join(','));
+		url.searchParams.set('sort', $formData.sort);
+		goto(url.toString(), { replaceState: true });
+
 		let { data } = await ItemsService.getItems({
 			query: {
 				page: pageNumber,
 				sort: $formData.sort,
 				limit,
-				type: $formData.type,
-				states: $formData.state
+				type: $formData.type.join(','),
+				states: $formData.state.join(',')
 			}
 		});
 
@@ -58,8 +87,6 @@
 			items = data.items as unknown as RivenItem[];
 			totalItems = data.total_items;
 			$totalDataItems = totalItems;
-		} else {
-			//pass
 		}
 	}
 
@@ -73,6 +100,20 @@
 			? ($formData.sort.replace('asc', 'desc') as keyof typeof sortOptions)
 			: ($formData.sort.replace('desc', 'asc') as keyof typeof sortOptions);
 		fetchItems();
+	}
+
+	function mapSelectedStates(selectedStates: Selected<string>[]) {
+		return selectedStates
+			.values()
+			.map((v) => v.value as keyof typeof states)
+			.toArray();
+	}
+
+	function mapSelectedTypes(selectedTypes: Selected<string>[]) {
+		return selectedTypes
+			.values()
+			.map((v) => v.value as keyof typeof types)
+			.toArray();
 	}
 </script>
 
@@ -97,10 +138,11 @@
 						selected={selectedState}
 						onSelectedChange={(s) => {
 							if (s) {
-								$formData.state = s.value;
+								$formData.state = mapSelectedStates(s);
 								handleFilterChange();
 							}
 						}}
+						multiple
 					>
 						<Select.Input name={attrs.name} />
 						<Select.Trigger {...attrs} class="w-[180px]">
@@ -123,10 +165,11 @@
 						selected={selectedType}
 						onSelectedChange={(s) => {
 							if (s) {
-								$formData.type = s.value;
+								$formData.type = mapSelectedTypes(s);
 								handleFilterChange();
 							}
 						}}
+						multiple
 					>
 						<Select.Input name={attrs.name} />
 						<Select.Trigger {...attrs} class="w-[180px]">
@@ -187,10 +230,11 @@
 			{/each}
 		</div>
 
-		<div class="mt-8">
+		<div class="my-8">
 			<Pagination.Root
 				count={$totalDataItems}
 				perPage={limit}
+				page={pageNumber}
 				let:pages
 				let:currentPage
 				onPageChange={(page) => {
