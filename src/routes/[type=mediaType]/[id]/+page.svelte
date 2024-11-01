@@ -23,7 +23,7 @@
 	import clsx from 'clsx';
 	import Ytembed from '$lib/components/ytembed.svelte';
 	import { toast } from 'svelte-sonner';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import ItemRequest from '$lib/components/item-request.svelte';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
@@ -244,7 +244,9 @@
 													<Select.Group>
 														<Select.Label>All seasons</Select.Label>
 														<Select.Item value={data.riven}>
-															S{data.riven.seasons[0].number}-{data.riven.seasons[data.riven.seasons.length - 1].number}
+															S{data.riven.seasons[0].number}-{data.riven.seasons[
+																data.riven.seasons.length - 1
+															].number}
 														</Select.Item>
 													</Select.Group>
 													{#each data.riven.seasons as season}
