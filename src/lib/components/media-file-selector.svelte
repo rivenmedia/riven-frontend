@@ -349,88 +349,92 @@
 				</Card.Header>
 				<Card.Content class="flex-1 overflow-y-auto p-4">
 					<div class="grid gap-4">
-						{#each streams as { magnet, stream }}
-							<button
-								class="w-full text-left"
-								on:click={() => (stream.is_cached ? startSession(magnet) : null)}
-							>
-								<Card.Root
-									class={cn(
-										'relative cursor-pointer transition-all duration-200',
-										stream.is_cached && 'hover:rotate-0.5 hover:scale-[1.02] hover:bg-accent',
-										!stream.is_cached && 'cursor-not-allowed bg-unavailable opacity-75'
-									)}
+						{#if streams.length === 0}
+							<div class="text-center">No streams available</div>
+						{:else}
+							{#each streams as { magnet, stream }}
+								<button
+									class="w-full text-left"
+									on:click={() => (stream.is_cached ? startSession(magnet) : null)}
 								>
-									<Card.Content class="pt-4">
-										<Badge
-											class={cn(
-												'absolute right-4 top-4',
-												stream.rank > 0
-													? 'bg-green-500 hover:bg-green-600'
-													: 'bg-red-500 hover:bg-red-600'
-											)}>{stream.rank}</Badge
-										>
+									<Card.Root
+										class={cn(
+											'relative cursor-pointer transition-all duration-200',
+											stream.is_cached && 'hover:rotate-0.5 hover:scale-[1.02] hover:bg-accent',
+											!stream.is_cached && 'cursor-not-allowed bg-unavailable opacity-75'
+										)}
+									>
+										<Card.Content class="pt-4">
+											<Badge
+												class={cn(
+													'absolute right-4 top-4',
+													stream.rank > 0
+														? 'bg-green-500 hover:bg-green-600'
+														: 'bg-red-500 hover:bg-red-600'
+												)}>{stream.rank}</Badge
+											>
 
-										<div class="pr-16">
-											<div class="mb-2">{stream.raw_title}</div>
-											<div class="flex flex-row flex-wrap gap-2">
-												{#each ['resolution', 'quality', 'hdr', 'audio', 'codec', 'languages'] as key}
-													{#if stream.parsed_data[key]}
-														{#if Array.isArray(stream.parsed_data[key])}
-															{#each stream.parsed_data[key] as value}
+											<div class="pr-16">
+												<div class="mb-2">{stream.raw_title}</div>
+												<div class="flex flex-row flex-wrap gap-2">
+													{#each ['resolution', 'quality', 'hdr', 'audio', 'codec', 'languages'] as key}
+														{#if stream.parsed_data[key]}
+															{#if Array.isArray(stream.parsed_data[key])}
+																{#each stream.parsed_data[key] as value}
+																	<Badge
+																		class={`text-nowrap font-medium ${
+																			key === 'resolution'
+																				? getResolutionColor(value)
+																				: 'bg-secondary/50 uppercase'
+																		}`}
+																	>
+																		{value}
+																	</Badge>
+																{/each}
+															{:else}
 																<Badge
 																	class={`text-nowrap font-medium ${
 																		key === 'resolution'
-																			? getResolutionColor(value)
+																			? getResolutionColor(stream.parsed_data[key])
 																			: 'bg-secondary/50 uppercase'
 																	}`}
 																>
-																	{value}
+																	{stream.parsed_data[key]}
 																</Badge>
-															{/each}
-														{:else}
-															<Badge
-																class={`text-nowrap font-medium ${
-																	key === 'resolution'
-																		? getResolutionColor(stream.parsed_data[key])
-																		: 'bg-secondary/50 uppercase'
-																}`}
-															>
-																{stream.parsed_data[key]}
-															</Badge>
+															{/if}
 														{/if}
-													{/if}
-												{/each}
-												<Badge
-													class={`text-nowrap font-medium ${
-														stream.is_cached
-															? 'bg-green-500 hover:bg-green-600'
-															: 'bg-red-500 hover:bg-red-600'
-													}`}
-												>
-													{stream.is_cached ? 'Cached' : 'Uncached'}
+													{/each}
+													<Badge
+														class={`text-nowrap font-medium ${
+															stream.is_cached
+																? 'bg-green-500 hover:bg-green-600'
+																: 'bg-red-500 hover:bg-red-600'
+														}`}
+													>
+														{stream.is_cached ? 'Cached' : 'Uncached'}
 
-													<!-- {(scrapedItemsAvailability[item.infohash]?.length ||
-														0) > 0
-														? `Cached (${
-															getFilenamesOfScrapedItem(item).size
-															} file${getFilenamesOfScrapedItem(item).size > 1 ? 's' : ''})`
-														: 'Uncached'} -->
-												</Badge>
+														<!-- {(scrapedItemsAvailability[item.infohash]?.length ||
+															0) > 0
+															? `Cached (${
+																getFilenamesOfScrapedItem(item).size
+																} file${getFilenamesOfScrapedItem(item).size > 1 ? 's' : ''})`
+															: 'Uncached'} -->
+													</Badge>
+												</div>
+												<!-- <div class="mt-2">{item.infohash}</div> -->
 											</div>
-											<!-- <div class="mt-2">{item.infohash}</div> -->
-										</div>
-										{#if !stream.is_cached}
-											<div class="absolute inset-0 flex items-center justify-center">
-												<Badge variant="destructive" class="pointer-events-none">
-													Uncached support coming soon!
-												</Badge>
-											</div>
-										{/if}
-									</Card.Content>
-								</Card.Root>
-							</button>
-						{/each}
+											{#if !stream.is_cached}
+												<div class="absolute inset-0 flex items-center justify-center">
+													<Badge variant="destructive" class="pointer-events-none">
+														Uncached support coming soon!
+													</Badge>
+												</div>
+											{/if}
+										</Card.Content>
+									</Card.Root>
+								</button>
+							{/each}
+						{/if}
 					</div>
 				</Card.Content>
 			</div>
