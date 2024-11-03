@@ -80,7 +80,6 @@
 			{formData}
 			isForGroup={true}
 		/>
-		<CheckboxField {form} name="annatar_enabled" label="Annatar" {formData} isForGroup={true} />
 		<CheckboxField {form} name="orionoid_enabled" label="Orionoid" {formData} isForGroup={true} />
 		<CheckboxField {form} name="jackett_enabled" label="Jackett" {formData} isForGroup={true} />
 		<CheckboxField
@@ -146,36 +145,6 @@
 
 		<div transition:slide>
 			<CheckboxField {form} name="knightcrawler_ratelimit" {formData} />
-		</div>
-	{/if}
-
-	{#if $formData.annatar_enabled}
-		<div transition:slide>
-			<TextField {form} name="annatar_url" {formData} />
-		</div>
-
-		<div transition:slide>
-			<NumberField
-				{form}
-				name="annatar_limit"
-				{formData}
-				stepValue={1}
-				fieldDescription="Search results limit"
-			/>
-		</div>
-
-		<div transition:slide>
-			<NumberField
-				{form}
-				name="annatar_timeout"
-				{formData}
-				stepValue={1}
-				fieldDescription="Timeout in seconds"
-			/>
-		</div>
-
-		<div transition:slide>
-			<CheckboxField {form} name="annatar_ratelimit" {formData} />
 		</div>
 	{/if}
 
