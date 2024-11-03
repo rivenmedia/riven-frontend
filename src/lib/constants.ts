@@ -21,7 +21,6 @@ export const servicesObject: Record<string, string> = {
 	mdblist: 'MDB List',
 	trakt: 'Trakt',
 	scraping: 'Scraping',
-	annatar: 'Annatar',
 	torrentio: 'Torrentio',
 	knightcrawler: 'Knightcrawler',
 	orionoid: 'Orionoid',
@@ -53,7 +52,6 @@ export const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listr
 export const scrapingServices = [
 	'torrentio',
 	'knightcrawler',
-	'annatar',
 	'jackett',
 	'orionoid',
 	'mediafusion',

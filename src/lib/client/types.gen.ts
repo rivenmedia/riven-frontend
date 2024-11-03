@@ -7,14 +7,6 @@ export type AllDebridModel = {
     proxy_url?: string;
 };
 
-export type AnnatarConfig = {
-    enabled?: boolean;
-    url?: string;
-    limit?: number;
-    timeout?: number;
-    ratelimit?: boolean;
-};
-
 export type AppModel = {
     version?: string;
     api_key?: string;
@@ -381,7 +373,6 @@ export type ScraperModel = {
     jackett?: JackettConfig;
     prowlarr?: ProwlarrConfig;
     orionoid?: OrionoidConfig;
-    annatar?: AnnatarConfig;
     torbox_scraper?: TorBoxScraperConfig;
     mediafusion?: MediafusionConfig;
     zilean?: ZileanConfig;

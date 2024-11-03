@@ -27,38 +27,6 @@ export const AllDebridModelSchema = {
     title: 'AllDebridModel'
 } as const;
 
-export const AnnatarConfigSchema = {
-    properties: {
-        enabled: {
-            type: 'boolean',
-            title: 'Enabled',
-            default: false
-        },
-        url: {
-            type: 'string',
-            title: 'Url',
-            default: 'http://annatar.elfhosted.com'
-        },
-        limit: {
-            type: 'integer',
-            title: 'Limit',
-            default: 2000
-        },
-        timeout: {
-            type: 'integer',
-            title: 'Timeout',
-            default: 30
-        },
-        ratelimit: {
-            type: 'boolean',
-            title: 'Ratelimit',
-            default: true
-        }
-    },
-    type: 'object',
-    title: 'AnnatarConfig'
-} as const;
-
 export const AppModelSchema = {
     properties: {
         version: {
@@ -247,13 +215,6 @@ export const AppModelSchema = {
                     },
                     ratelimit: true,
                     timeout: 30
-                },
-                annatar: {
-                    enabled: false,
-                    limit: 2000,
-                    ratelimit: true,
-                    timeout: 30,
-                    url: 'http://annatar.elfhosted.com'
                 },
                 torbox_scraper: {
                     enabled: false,
@@ -2478,16 +2439,6 @@ export const ScraperModelSchema = {
                     video3d: 'false',
                     videoquality: 'sd_hd8k'
                 },
-                timeout: 30,
-                ratelimit: true
-            }
-        },
-        annatar: {
-            '$ref': '#/components/schemas/AnnatarConfig',
-            default: {
-                enabled: false,
-                url: 'http://annatar.elfhosted.com',
-                limit: 2000,
                 timeout: 30,
                 ratelimit: true
             }
