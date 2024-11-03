@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.17.0](https://github.com/rivenmedia/riven-frontend/compare/v0.16.3...v0.17.0) (2024-11-03)
+
+
+### Features
+
+* add cached status and resolution filter ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* add manual torrent adding ([#121](https://github.com/rivenmedia/riven-frontend/issues/121)) ([26ccefa](https://github.com/rivenmedia/riven-frontend/commit/26ccefa95d0745f2f69f8113af4dd0929111aa03))
+* add popular items page for movies and shows ([#153](https://github.com/rivenmedia/riven-frontend/issues/153)) ([a6cc1a7](https://github.com/rivenmedia/riven-frontend/commit/a6cc1a7939794fc2f06c79b163cd1b70d7c9e013))
+* add remove file button in media file selector ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* check item exists on request ([d56cf6c](https://github.com/rivenmedia/riven-frontend/commit/d56cf6c6f01340fc8ccddbe334477fa785e55607))
+* close popup on torrent selection ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* connect page, apikey and v1 generation ([#134](https://github.com/rivenmedia/riven-frontend/issues/134)) ([7469bd9](https://github.com/rivenmedia/riven-frontend/commit/7469bd9597268a67352833a511c71d7efe387373))
+* enhance media file selector ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* filesize filter settings ([#155](https://github.com/rivenmedia/riven-frontend/issues/155)) ([50ba5a9](https://github.com/rivenmedia/riven-frontend/commit/50ba5a9b5ba183a1a013a68f16cdeadeb13e5dbf))
+* improve the keyboard navigation of the search window ([#157](https://github.com/rivenmedia/riven-frontend/issues/157)) ([261b69b](https://github.com/rivenmedia/riven-frontend/commit/261b69b85b20ab7c83c0a48474f8be104da2f8c7))
+* list filenames of cached files ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* manual scraping for results ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* search component and browse rework ([c118a4d](https://github.com/rivenmedia/riven-frontend/commit/c118a4d5f604353993ad0679d37bb91435f65f74))
+* search component and browse rework ([1148d20](https://github.com/rivenmedia/riven-frontend/commit/1148d2039a15e125d0669d157e95257ef4b98102))
+* show amount of cached files when scraping ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* update browse page to support multiple states and types ([#162](https://github.com/rivenmedia/riven-frontend/issues/162)) ([cc3bcdd](https://github.com/rivenmedia/riven-frontend/commit/cc3bcdddbb83a624013c0f81183cf7c0a39afb3c))
+* update browse schema and page to support multiple states and types ([cc3bcdd](https://github.com/rivenmedia/riven-frontend/commit/cc3bcdddbb83a624013c0f81183cf7c0a39afb3c))
+* update media file selector to handle uncached streams and improve UI feedback ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* update media file selector to support imdb id ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+
+
+### Bug Fixes
+
+* add info if no streams are found ([#167](https://github.com/rivenmedia/riven-frontend/issues/167)) ([7b69166](https://github.com/rivenmedia/riven-frontend/commit/7b6916691656e736ce3bb1f747201b4e3eba60ab))
+* better path catching and added type list routes ([490f5de](https://github.com/rivenmedia/riven-frontend/commit/490f5dee741aae19acca1cce5c175eddcc7059b5))
+* date shown invalid on season-episode page and adding whole season replace torrent ([fa71404](https://github.com/rivenmedia/riven-frontend/commit/fa7140457c40cd7c2c8513da2b68baf27a9c55d7))
+* handle special cases for responses ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* lint errors ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* minor changes to /connect page and removed outdated settings ([#146](https://github.com/rivenmedia/riven-frontend/issues/146)) ([4118e74](https://github.com/rivenmedia/riven-frontend/commit/4118e74862b5f600cb2d9eb693a071d06708d9e6))
+* remove confirmation in browse page ([3c6bf42](https://github.com/rivenmedia/riven-frontend/commit/3c6bf42bbb221671afb9c29a39cf5add4d73f674))
+* remove unused variable ([d7d4789](https://github.com/rivenmedia/riven-frontend/commit/d7d478964f0f4ca0bc73143cad59de6658b020ac))
+* requesting items on homepage not working ([#154](https://github.com/rivenmedia/riven-frontend/issues/154)) ([b874092](https://github.com/rivenmedia/riven-frontend/commit/b874092c109dd7ad1b56b3a65ff53e5490c6e438))
+* small styling issues ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* state not shown in item page ([c527ced](https://github.com/rivenmedia/riven-frontend/commit/c527ced35a26754a31b542586b3c77e30319af4a))
+* switch to use folder for config ([b81fb14](https://github.com/rivenmedia/riven-frontend/commit/b81fb14c9bd07b204b42394348bd247341d8a7e7))
+* update media deletion flow to invalidate cache on success ([#163](https://github.com/rivenmedia/riven-frontend/issues/163)) ([652a6c4](https://github.com/rivenmedia/riven-frontend/commit/652a6c4a0167cfb509aefa888e550177a747562a))
+* width of view files button ([b295113](https://github.com/rivenmedia/riven-frontend/commit/b295113482fdf7182b8ab60a4bd9c134c8d2273c))
+* wrong message when adding an item manually ([#156](https://github.com/rivenmedia/riven-frontend/issues/156)) ([d3abcda](https://github.com/rivenmedia/riven-frontend/commit/d3abcda2abef46846596abb9b29f538d5c1aed26))
+
 ## [0.16.3](https://github.com/rivenmedia/riven-frontend/compare/v0.16.2...v0.16.3) (2024-10-19)
 
 
