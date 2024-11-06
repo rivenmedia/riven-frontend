@@ -40,11 +40,13 @@
 			params
 				.get('state')
 				?.split(',')
+				.filter((state) => state in states)
 				.map((state) => state as keyof typeof states) || $formData.state;
 		$formData.type =
 			params
 				.get('type')
 				?.split(',')
+				.filter((type) => type in types)
 				.map((type) => type as keyof typeof types) || $formData.type;
 		$formData.sort = (params.get('sort') as keyof typeof sortOptions) || $formData.sort;
 	}
