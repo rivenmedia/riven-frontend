@@ -91,7 +91,7 @@
 			navigator.clipboard.writeText(String(response?.data?.url));
 			toast.success('Logs uploaded successfully and link copied to clipboard');
 		} else {
-			toast.error('Failed to upload logs');
+			toast.error(`Failed to upload logs: ${response.error}`);
 		}
 	}
 </script>
@@ -195,12 +195,18 @@
 				<AlertDialog.Trigger>
 					<Tooltip.Root>
 						<Tooltip.Trigger asChild let:builder>
-							<Button builders={[builder]} type="button" variant="outline" size="sm">
+							<Button
+								builders={[builder]}
+								type="button"
+								variant="outline"
+								size="sm"
+								aria-label="Upload application logs"
+							>
 								Upload Logs
 							</Button>
 						</Tooltip.Trigger>
 						<Tooltip.Content>
-							<p>Upload logs of upto 50MB and 100 days retention</p>
+							<p>Upload logs of upto 50MB and 180 days retention</p>
 						</Tooltip.Content>
 					</Tooltip.Root>
 				</AlertDialog.Trigger>
