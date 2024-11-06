@@ -393,7 +393,7 @@ export async function getCredits(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetch: any,
 	language: string = 'en-US',
-	mediaId: number,
+	mediaId: string,
 	mediaType: string
 ) {
 	const params = { language };
