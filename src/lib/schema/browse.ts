@@ -4,7 +4,7 @@ export const schema = z.object({
 	state: z
 		.array(
 			z.enum([
-				'',
+				'All',
 				'Unknown',
 				'Unreleased',
 				'Ongoing',
@@ -18,13 +18,13 @@ export const schema = z.object({
 				'Failed'
 			])
 		)
-		.default([]),
+		.default(['All']),
 	type: z.array(z.enum(['movie', 'show'])).default(['movie', 'show']),
 	sort: z.enum(['date_desc', 'date_asc', 'title_asc', 'title_desc']).default('date_desc')
 });
 
 export const states = {
-	'': 'Any State',
+	All: 'Any State',
 	Unknown: 'Unknown',
 	Unreleased: 'Unreleased',
 	Ongoing: 'Ongoing',

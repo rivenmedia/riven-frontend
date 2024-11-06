@@ -26,7 +26,7 @@ export const load = (async ({ url }) => {
 	if (url.searchParams.has('state')) {
 		form.data.state = url.searchParams.get('state')?.split(',') as States[];
 	} else {
-		form.data.state = [''];
+		form.data.state = ['All'];
 	}
 
 	async function getItems(): Promise<RivenGetItemsResponse> {
