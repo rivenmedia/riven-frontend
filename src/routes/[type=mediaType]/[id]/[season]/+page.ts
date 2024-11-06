@@ -6,23 +6,23 @@ import { ItemsService } from '$lib/client';
 
 export const load = (async ({ fetch, params }) => {
 	const type = params.type;
-	const id = Number(params.id);
+	const id = String(params.id);
 	const season = Number(params.season);
 
 	if (type === 'movie') {
 		error(404, 'No seasons or episodes for movies');
 	}
 
-	async function getDetails(tvID: number, seasonNumber: number) {
+	async function getDetails(tvID: string, seasonNumber: number) {
 		return await getTVSeasonDetails(fetch, 'en-US', null, tvID, seasonNumber);
 	}
 
 	// not using parent data since it will be fetched again with useless data
-	async function mediaDetails(tvID: number) {
+	async function mediaDetails(tvID: string) {
 		return await getTVDetails(fetch, 'en-US', null, tvID);
 	}
 
-	async function getMediaItemDetails(tvID: number): Promise<any[]> {
+	async function getMediaItemDetails(tvID: string): Promise<any[]> {
 		const { data } = await ItemsService.getItem({
 			path: {
 				id: tvID

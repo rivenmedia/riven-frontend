@@ -115,7 +115,7 @@ export async function getMovieDetails(
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
-	movieId: number
+	movieId: string
 ) {
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
@@ -190,7 +190,7 @@ export async function getTVDetails(
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
-	tvId: number
+	tvId: string
 ) {
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
@@ -209,7 +209,7 @@ export async function getTVSeasonDetails(
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
-	tvId: number,
+	tvId: string,
 	seasonNumber: number
 ) {
 	const params = { language, append_to_response };

@@ -5,7 +5,7 @@ import type { RivenItem } from '$lib/types';
 
 export const load = (async ({ fetch, params }) => {
 	const type = params.type;
-	const id = Number(params.id);
+	const id = String(params.id);
 
 	const { data } = await ItemsService.getItem({
 		path: {
@@ -16,7 +16,7 @@ export const load = (async ({ fetch, params }) => {
 		}
 	});
 
-	async function getDetails(type: string, id: number) {
+	async function getDetails(type: string, id: string) {
 		switch (type) {
 			case 'movie':
 				// TODO: Remove the ones that are not needed in future
