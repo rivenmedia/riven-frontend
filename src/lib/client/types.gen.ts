@@ -11,6 +11,7 @@ export type AppModel = {
     version?: string;
     api_key?: string;
     debug?: boolean;
+    debug_database?: boolean;
     log?: boolean;
     force_refresh?: boolean;
     map_metadata?: boolean;
@@ -337,17 +338,17 @@ export type RealDebridModel = {
 
 export type RemoveResponse = {
     message: string;
-    ids: Array<(number)>;
+    ids: Array<(string)>;
 };
 
 export type ResetResponse = {
     message: string;
-    ids: Array<(number)>;
+    ids: Array<(string)>;
 };
 
 export type RetryResponse = {
     message: string;
-    ids: Array<(number)>;
+    ids: Array<(string)>;
 };
 
 export type RootResponse = {
@@ -515,10 +516,19 @@ export type TraktModel = {
     fetch_most_watched?: boolean;
     most_watched_period?: string;
     most_watched_count?: number;
+    oauth?: TraktOauthModel;
 };
 
 export type TraktOAuthInitiateResponse = {
     auth_url: string;
+};
+
+export type TraktOauthModel = {
+    oauth_client_id?: string;
+    oauth_client_secret?: string;
+    oauth_redirect_uri?: string;
+    access_token?: string;
+    refresh_token?: string;
 };
 
 export type UpdateAttributesResponse = {
@@ -530,6 +540,14 @@ export type UpdatersModel = {
     plex?: PlexLibraryModel;
     jellyfin?: JellyfinLibraryModel;
     emby?: EmbyLibraryModel;
+};
+
+export type UploadLogsResponse = {
+    success: boolean;
+    /**
+     * URL to the uploaded log file. 50M Filesize limit. 180 day retention.
+     */
+    url: string;
 };
 
 export type ValidationError = {
@@ -608,6 +626,10 @@ export type MountResponse = ({
 
 export type MountError = (unknown);
 
+export type UploadLogsResponse2 = (UploadLogsResponse);
+
+export type UploadLogsError = (unknown);
+
 export type OverseerrApiV1WebhookOverseerrPostResponse = ({
     [key: string]: unknown;
 });
@@ -647,7 +669,7 @@ export type AddItemsError = (unknown | HTTPValidationError);
 
 export type GetItemData = {
     path: {
-        id: number;
+        id: string;
     };
     query?: {
         use_tmdb_id?: (boolean | null);
@@ -704,7 +726,7 @@ export type RemoveItemError = (unknown | HTTPValidationError);
 
 export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
     path: {
-        item_id: number;
+        item_id: string;
     };
 };
 
@@ -714,7 +736,7 @@ export type GetItemStreamsApiV1ItemsItemIdStreamsGetError = (unknown | HTTPValid
 
 export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
     path: {
-        item_id: number;
+        item_id: string;
         stream_id: number;
     };
 };
@@ -725,7 +747,7 @@ export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostError = (
 
 export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData = {
     path: {
-        item_id: number;
+        item_id: string;
         stream_id: number;
     };
 };

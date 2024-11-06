@@ -32,7 +32,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.16.2'
+            default: '0.18.0'
         },
         api_key: {
             type: 'string',
@@ -43,6 +43,11 @@ export const AppModelSchema = {
             type: 'boolean',
             title: 'Debug',
             default: true
+        },
+        debug_database: {
+            type: 'boolean',
+            title: 'Debug Database',
+            default: false
         },
         log: {
             type: 'boolean',
@@ -159,6 +164,13 @@ export const AppModelSchema = {
                     fetch_trending: false,
                     most_watched_count: 10,
                     most_watched_period: 'weekly',
+                    oauth: {
+                        access_token: '',
+                        oauth_client_id: '',
+                        oauth_client_secret: '',
+                        oauth_redirect_uri: '',
+                        refresh_token: ''
+                    },
                     popular_count: 10,
                     trending_count: 10,
                     update_interval: 86400,
@@ -786,7 +798,14 @@ export const ContentModelSchema = {
                 popular_count: 10,
                 fetch_most_watched: false,
                 most_watched_period: 'weekly',
-                most_watched_count: 10
+                most_watched_count: 10,
+                oauth: {
+                    access_token: '',
+                    oauth_client_id: '',
+                    oauth_client_secret: '',
+                    oauth_redirect_uri: '',
+                    refresh_token: ''
+                }
             }
         }
     },
@@ -2276,7 +2295,7 @@ export const RemoveResponseSchema = {
         },
         ids: {
             items: {
-                type: 'integer'
+                type: 'string'
             },
             type: 'array',
             title: 'Ids'
@@ -2295,7 +2314,7 @@ export const ResetResponseSchema = {
         },
         ids: {
             items: {
-                type: 'integer'
+                type: 'string'
             },
             type: 'array',
             title: 'Ids'
@@ -2314,7 +2333,7 @@ export const RetryResponseSchema = {
         },
         ids: {
             items: {
-                type: 'integer'
+                type: 'string'
             },
             type: 'array',
             title: 'Ids'
@@ -2916,6 +2935,16 @@ export const TraktModelSchema = {
             type: 'integer',
             title: 'Most Watched Count',
             default: 10
+        },
+        oauth: {
+            '$ref': '#/components/schemas/TraktOauthModel',
+            default: {
+                oauth_client_id: '',
+                oauth_client_secret: '',
+                oauth_redirect_uri: '',
+                access_token: '',
+                refresh_token: ''
+            }
         }
     },
     type: 'object',
@@ -2932,6 +2961,38 @@ export const TraktOAuthInitiateResponseSchema = {
     type: 'object',
     required: ['auth_url'],
     title: 'TraktOAuthInitiateResponse'
+} as const;
+
+export const TraktOauthModelSchema = {
+    properties: {
+        oauth_client_id: {
+            type: 'string',
+            title: 'Oauth Client Id',
+            default: ''
+        },
+        oauth_client_secret: {
+            type: 'string',
+            title: 'Oauth Client Secret',
+            default: ''
+        },
+        oauth_redirect_uri: {
+            type: 'string',
+            title: 'Oauth Redirect Uri',
+            default: ''
+        },
+        access_token: {
+            type: 'string',
+            title: 'Access Token',
+            default: ''
+        },
+        refresh_token: {
+            type: 'string',
+            title: 'Refresh Token',
+            default: ''
+        }
+    },
+    type: 'object',
+    title: 'TraktOauthModel'
 } as const;
 
 export const UpdateAttributesResponseSchema = {
@@ -2980,6 +3041,26 @@ export const UpdatersModelSchema = {
     },
     type: 'object',
     title: 'UpdatersModel'
+} as const;
+
+export const UploadLogsResponseSchema = {
+    properties: {
+        success: {
+            type: 'boolean',
+            title: 'Success'
+        },
+        url: {
+            type: 'string',
+            maxLength: 2083,
+            minLength: 1,
+            format: 'uri',
+            title: 'Url',
+            description: 'URL to the uploaded log file. 50M Filesize limit. 180 day retention.'
+        }
+    },
+    type: 'object',
+    required: ['success', 'url'],
+    title: 'UploadLogsResponse'
 } as const;
 
 export const ValidationErrorSchema = {

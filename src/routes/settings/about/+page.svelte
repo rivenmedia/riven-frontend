@@ -5,6 +5,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Loader2, MoveUpRight } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog';
+	import { DefaultService } from '$lib/client';
 
 	export let data: PageData;
 
@@ -78,6 +81,17 @@
 			toast.warning('A new frontend version is available! Checkout the changelog on GitHub.');
 		} else {
 			toast.success('You are running the latest frontend version.');
+		}
+	}
+
+	async function uploadLogs() {
+		const response = await DefaultService.uploadLogs();
+
+		if (!response.error) {
+			navigator.clipboard.writeText(String(response?.data?.url));
+			toast.success('Logs uploaded successfully and link copied to clipboard');
+		} else {
+			toast.error('Failed to upload logs');
 		}
 	}
 </script>
@@ -176,6 +190,39 @@
 				</div>
 			</div>
 		{/each}
+		<div class="mt-2 flex">
+			<AlertDialog.Root>
+				<AlertDialog.Trigger>
+					<Tooltip.Root>
+						<Tooltip.Trigger asChild let:builder>
+							<Button builders={[builder]} type="button" variant="outline" size="sm">
+								Upload Logs
+							</Button>
+						</Tooltip.Trigger>
+						<Tooltip.Content>
+							<p>Upload logs of upto 50MB and 100 days retention</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</AlertDialog.Trigger>
+				<AlertDialog.Content>
+					<AlertDialog.Header>
+						<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+						<AlertDialog.Description>
+							This action will upload your recent logs to <a
+								class="underline underline-offset-4"
+								href="https://paste.c-net.org"
+								target="_blank"
+								rel="noopener noreferrer">paste.c-net.org</a
+							> and provide you with a link to share with the community.
+						</AlertDialog.Description>
+					</AlertDialog.Header>
+					<AlertDialog.Footer>
+						<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+						<AlertDialog.Action on:click={uploadLogs}>Continue</AlertDialog.Action>
+					</AlertDialog.Footer>
+				</AlertDialog.Content>
+			</AlertDialog.Root>
+		</div>
 	</div>
 
 	<h2 class="text-xl font-medium md:text-2xl">Contributors</h2>
