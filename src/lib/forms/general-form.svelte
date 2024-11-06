@@ -141,7 +141,7 @@
 		name="movie_filesize_mb_min"
 		stepValue={1}
 		{formData}
-		fieldDescription="In MB, -1 for disabled"
+		fieldDescription="In MB"
 	/>
 	<NumberField
 		{form}
@@ -155,7 +155,7 @@
 		name="episode_filesize_mb_min"
 		stepValue={1}
 		{formData}
-		fieldDescription="In MB, -1 for disabled"
+		fieldDescription="In MB"
 	/>
 	<NumberField
 		{form}
