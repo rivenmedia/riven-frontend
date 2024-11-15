@@ -1,11 +1,81 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
-	import { Star } from 'lucide-svelte';
+	import { Star, CirclePower, RotateCcw } from 'lucide-svelte';
 	import { formatDate } from '$lib/helpers';
 	import { statesName } from '$lib/constants';
+	import { ItemsService } from '$lib/client';
+	import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
+
+	let selectedEpisodeNumber: number | null = null;
+	let isResetting = false;
+	let isRetrying = false;
+
+	async function handleMediaAction(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		action: (id: string) => Promise<any>,
+		successMessage: string,
+		errorMessage: string,
+		id: string,
+		loadingState: { set: (value: boolean) => void }
+	) {
+		loadingState.set(true);
+		try {
+			const response = await action(id);
+
+			if (!response.error) {
+				toast.success(successMessage);
+				selectedEpisodeNumber = null;
+				invalidateAll();
+			} else {
+				toast.error(errorMessage);
+			}
+		} catch (error) {
+			console.error('Network or unexpected error:', error);
+			toast.error('Network error occurred. Please check your connection and try again.');
+			throw error;
+		} finally {
+			loadingState.set(false);
+		}
+	}
+
+	async function resetItem(id: string) {
+		try {
+			return await handleMediaAction(
+				(id) => ItemsService.resetItems({ query: { ids: id.toString() } }),
+				'Media reset successfully',
+				'An error occurred while resetting the media',
+				id,
+				{ set: (value) => (isResetting = value) }
+			);
+		} catch (error) {
+			console.error('Reset operation failed:', error);
+		}
+	}
+
+	async function retryItem(id: string) {
+		try {
+			return await handleMediaAction(
+				(id) => ItemsService.retryItems({ query: { ids: id.toString() } }),
+				'Media retried successfully',
+				'An error occurred while retrying the media',
+				id,
+				{ set: (value) => (isRetrying = value) }
+			);
+		} catch (error) {
+			console.error('Retry operation failed:', error);
+		}
+	}
+
+	const handleEpisodeClick = (episodeNumber: number) =>
+		(selectedEpisodeNumber = selectedEpisodeNumber === episodeNumber ? null : episodeNumber);
+
+	const mediaItemDetailsMap = new Map<number, (typeof data.mediaItemDetails)[0]>(
+		data.mediaItemDetails.map((item) => [item.number, item])
+	);
 </script>
 
 <svelte:head>
@@ -75,14 +145,32 @@
 
 					<div class="relative flex w-full cursor-pointer flex-wrap">
 						{#each data.details.episodes as episode}
-							<div class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3">
+							<div
+								class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3"
+								role="button"
+								tabindex="0"
+								on:click={() => handleEpisodeClick(episode.episode_number)}
+								on:keydown={(e) => {
+									if (e.key === 'Enter' || e.key === ' ') {
+										e.preventDefault();
+										handleEpisodeClick(episode.episode_number);
+									}
+								}}
+								aria-label="Episode {episode.episode_number}{episode.name
+									? `: ${episode.name}`
+									: ''}"
+								aria-pressed={selectedEpisodeNumber === episode.episode_number}
+								aria-expanded={selectedEpisodeNumber === episode.episode_number}
+							>
 								<div class="h-full w-full overflow-hidden rounded-lg bg-white/10 shadow-xl">
 									<img
 										alt={episode.id}
 										src={episode.still_path
 											? `https://www.themoviedb.org/t/p/w780${episode.still_path}`
 											: 'https://via.placeholder.com/198x228.png?text=No+thumbnail'}
-										class=" h-full w-full object-cover brightness-75 transition-all duration-300 ease-in-out group-hover:scale-105"
+										class="h-full w-full object-cover brightness-75 transition-all duration-300 ease-in-out"
+										class:animate-blur-in={selectedEpisodeNumber === episode.episode_number}
+										class:animate-blur-out={selectedEpisodeNumber !== episode.episode_number}
 										loading="lazy"
 									/>
 									<div class="absolute left-0 top-0 flex h-full w-full flex-col px-4 py-3">
@@ -91,14 +179,38 @@
 										>
 											Episode {episode.episode_number}
 										</div>
+
+										<!-- Action buttons - only show when episode is selected -->
+										{#if selectedEpisodeNumber === episode.episode_number && mediaItemDetailsMap.has(episode.episode_number)}
+											<div
+												class="absolute inset-0 m-2 flex items-center justify-center gap-4 rounded-md bg-black/40 transition-all duration-300 ease-in-out"
+											>
+												<button
+													class="flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
+													on:click|stopPropagation={() => resetItem(episode.id)}
+													disabled={isResetting || isRetrying}
+												>
+													<CirclePower class={`size-4 ${isResetting ? 'animate-spin' : ''}`} />
+													{isResetting ? 'Resetting...' : 'Reset'}
+												</button>
+												<button
+													class="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+													on:click|stopPropagation={() => retryItem(episode.id)}
+													disabled={isResetting || isRetrying}
+												>
+													<RotateCcw class={`size-4 ${isRetrying ? 'animate-spin' : ''}`} />
+													{isRetrying ? 'Retrying...' : 'Retry'}
+												</button>
+											</div>
+										{/if}
+
 										<div class="mt-auto flex w-full justify-between">
-											{#if data.mediaItemDetails.find((x) => x.number == episode.episode_number)}
+											{#if mediaItemDetailsMap.has(episode.episode_number)}
 												<div
 													class="mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
 												>
 													{statesName[
-														data.mediaItemDetails.find((x) => x.number == episode.episode_number)
-															?.state ?? 'Unknown'
+														mediaItemDetailsMap.get(episode.episode_number)?.state ?? 'Unknown'
 													]}
 												</div>
 											{/if}
