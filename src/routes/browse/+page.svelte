@@ -105,11 +105,20 @@
 	}
 
 	function mapSelectedStates(selectedStates: Selected<string>[]) {
-		return [...selectedStates.values()].map((v) => v.value as keyof typeof states);
+		try {
+			return [...(selectedStates?.values() ?? [])].map((v) => v?.value as keyof typeof states);
+		} catch (error) {
+			console.error('Error mapping selected states:', error);
+			return [];
+		}
 	}
-
 	function mapSelectedTypes(selectedTypes: Selected<string>[]) {
-		return [...selectedTypes.values()].map((v) => v.value as keyof typeof types);
+		try {
+			return [...(selectedTypes?.values() ?? [])].map((v) => v?.value as keyof typeof types);
+		} catch (error) {
+			console.error('Error mapping selected types:', error);
+			return [];
+		}
 	}
 </script>
 
