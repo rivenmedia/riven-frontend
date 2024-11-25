@@ -153,6 +153,7 @@
 					...extractSeasonEpisode(containerFile.filename)
 				};
 			});
+		validateMappings();
 		step = 4;
 	}
 	function extractSeasonEpisode(filename: string): { season?: number; episode?: number } {
@@ -166,16 +167,24 @@
 		return {};
 	}
 
-	function validateMappings(): boolean {
-		if (mediaType === 'movie') return true;
+	let isValidMapping = false;
 
-		return selectedFilesMappings.every(
+	function validateMappings(): boolean {
+		if (mediaType === 'movie') {
+			isValidMapping = true;
+			return true;
+		}
+
+		const isValid = selectedFilesMappings.every(
 			(file) =>
 				typeof file.season === 'number' &&
 				typeof file.episode === 'number' &&
 				file.season > 0 &&
 				file.episode > 0
 		);
+
+		isValidMapping = isValid;
+		return isValid;
 	}
 
 	async function updateAttributes() {
@@ -484,7 +493,7 @@
 									<Card.Root class="w-full min-w-0">
 										<Card.Content class="p-4">
 											<div class="grid gap-4">
-												<div class="flex items-center gap-2">
+												<div class="flex items-center gap-2 overflow-auto">
 													<FileIcon class="h-4 w-4 flex-shrink-0" />
 													<span class="flex-1 truncate">{file.filename}</span>
 													<button
@@ -492,6 +501,7 @@
 															selectedFilesMappings = selectedFilesMappings.filter(
 																(f) => f.id !== file.id
 															);
+															validateMappings();
 														}}
 													>
 														<CircleX
@@ -530,7 +540,7 @@
 
 							<Button
 								on:click={updateAttributes}
-								disabled={loading || !validateMappings()}
+								disabled={loading || !isValidMapping}
 								class="mt-4 w-full"
 							>
 								{#if loading}

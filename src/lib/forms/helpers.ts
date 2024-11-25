@@ -531,3 +531,420 @@ export function contentSettingsToSet(form: SuperValidated<Infer<ContentSettingsS
 		}
 	];
 }
+
+// Ranking Settings -----------------------------------------------------------------------------------
+
+export const rankingSettingsToGet: string[] = ['ranking'];
+
+export const rankingSettingsSchema = z.object({
+	profile: z.enum(['default', 'best']).default('default'),
+	require: z.array(z.string()).default([]),
+	exclude: z.array(z.string()).default([]),
+	preferred: z.array(z.string()).default([]),
+	resolution_2160p: z.boolean().default(false),
+	resolution_1080p: z.boolean().default(false),
+	resolution_720p: z.boolean().default(false),
+	resolution_480p: z.boolean().default(false),
+	resolution_360p: z.boolean().default(false),
+	resolution_unknown: z.boolean().default(false),
+	title_similarity: z.coerce.number().min(0).max(1).default(0.85),
+	remove_all_trash: z.boolean().default(false),
+	remove_ranks_under: z.coerce.number().default(-10000),
+	remove_unknown_languages: z.boolean().default(false),
+	allow_english_in_languages: z.boolean().default(false),
+	languages_required: z.array(z.string()).default([]),
+	languages_exclude: z.array(z.string()).default([]),
+	languages_preferred: z.array(z.string()).default([]),
+	// Quality settings
+	quality_av1_fetch: z.boolean().default(false),
+	quality_av1_use_custom_rank: z.boolean().default(false),
+	quality_av1_rank: z.coerce.number().default(0),
+	quality_avc_fetch: z.boolean().default(false),
+	quality_avc_use_custom_rank: z.boolean().default(false),
+	quality_avc_rank: z.coerce.number().default(0),
+	quality_bluray_fetch: z.boolean().default(false),
+	quality_bluray_use_custom_rank: z.boolean().default(false),
+	quality_bluray_rank: z.coerce.number().default(0),
+	quality_dvd_fetch: z.boolean().default(false),
+	quality_dvd_use_custom_rank: z.boolean().default(false),
+	quality_dvd_rank: z.coerce.number().default(0),
+	quality_hdtv_fetch: z.boolean().default(false),
+	quality_hdtv_use_custom_rank: z.boolean().default(false),
+	quality_hdtv_rank: z.coerce.number().default(0),
+	quality_hevc_fetch: z.boolean().default(false),
+	quality_hevc_use_custom_rank: z.boolean().default(false),
+	quality_hevc_rank: z.number().default(0),
+	quality_mpeg_fetch: z.boolean().default(false),
+	quality_mpeg_use_custom_rank: z.boolean().default(false),
+	quality_mpeg_rank: z.coerce.number().default(0),
+	quality_remux_fetch: z.boolean().default(false),
+	quality_remux_use_custom_rank: z.boolean().default(false),
+	quality_remux_rank: z.coerce.number().default(0),
+	quality_vhs_fetch: z.boolean().default(false),
+	quality_vhs_use_custom_rank: z.boolean().default(false),
+	quality_vhs_rank: z.coerce.number().default(0),
+	quality_web_fetch: z.boolean().default(false),
+	quality_web_use_custom_rank: z.boolean().default(false),
+	quality_web_rank: z.coerce.number().default(0),
+	quality_webdl_fetch: z.boolean().default(false),
+	quality_webdl_use_custom_rank: z.boolean().default(false),
+	quality_webdl_rank: z.coerce.number().default(0),
+	quality_webmux_fetch: z.boolean().default(false),
+	quality_webmux_use_custom_rank: z.boolean().default(false),
+	quality_webmux_rank: z.coerce.number().default(0),
+	quality_xvid_fetch: z.boolean().default(false),
+	quality_xvid_use_custom_rank: z.boolean().default(false),
+	quality_xvid_rank: z.coerce.number().default(0),
+	// Rips settings
+	rips_bdrip_fetch: z.boolean().default(false),
+	rips_bdrip_use_custom_rank: z.boolean().default(false),
+	rips_bdrip_rank: z.coerce.number().default(0),
+	rips_brrip_fetch: z.boolean().default(false),
+	rips_brrip_use_custom_rank: z.boolean().default(false),
+	rips_brrip_rank: z.coerce.number().default(0),
+	rips_dvdrip_fetch: z.boolean().default(false),
+	rips_dvdrip_use_custom_rank: z.boolean().default(false),
+	rips_dvdrip_rank: z.coerce.number().default(0),
+	rips_hdrip_fetch: z.boolean().default(false),
+	rips_hdrip_use_custom_rank: z.boolean().default(false),
+	rips_hdrip_rank: z.coerce.number().default(0),
+	rips_ppvrip_fetch: z.boolean().default(false),
+	rips_ppvrip_use_custom_rank: z.boolean().default(false),
+	rips_ppvrip_rank: z.coerce.number().default(0),
+	rips_satrip_fetch: z.boolean().default(false),
+	rips_satrip_use_custom_rank: z.boolean().default(false),
+	rips_satrip_rank: z.coerce.number().default(0),
+	rips_tvrip_fetch: z.boolean().default(false),
+	rips_tvrip_use_custom_rank: z.boolean().default(false),
+	rips_tvrip_rank: z.coerce.number().default(0),
+	rips_uhdrip_fetch: z.boolean().default(false),
+	rips_uhdrip_use_custom_rank: z.boolean().default(false),
+	rips_uhdrip_rank: z.coerce.number().default(0),
+	rips_vhsrip_fetch: z.boolean().default(false),
+	rips_vhsrip_use_custom_rank: z.boolean().default(false),
+	rips_vhsrip_rank: z.coerce.number().default(0),
+	rips_webdlrip_fetch: z.boolean().default(false),
+	rips_webdlrip_use_custom_rank: z.boolean().default(false),
+	rips_webdlrip_rank: z.coerce.number().default(0),
+	rips_webrip_fetch: z.boolean().default(false),
+	rips_webrip_use_custom_rank: z.boolean().default(false),
+	rips_webrip_rank: z.coerce.number().default(0),
+	// HDR settings
+	hdr_10bit_fetch: z.boolean().default(false),
+	hdr_10bit_use_custom_rank: z.boolean().default(false),
+	hdr_10bit_rank: z.coerce.number().default(0),
+	hdr_dolby_vision_fetch: z.boolean().default(false),
+	hdr_dolby_vision_use_custom_rank: z.boolean().default(false),
+	hdr_dolby_vision_rank: z.coerce.number().default(0),
+	hdr_hdr_fetch: z.boolean().default(false),
+	hdr_hdr_use_custom_rank: z.boolean().default(false),
+	hdr_hdr_rank: z.coerce.number().default(0),
+	hdr_hdr10plus_fetch: z.boolean().default(false),
+	hdr_hdr10plus_use_custom_rank: z.boolean().default(false),
+	hdr_hdr10plus_rank: z.coerce.number().default(0),
+	hdr_sdr_fetch: z.boolean().default(false),
+	hdr_sdr_use_custom_rank: z.boolean().default(false),
+	hdr_sdr_rank: z.coerce.number().default(0),
+	// Audio settings
+	audio_aac_fetch: z.boolean().default(false),
+	audio_aac_use_custom_rank: z.boolean().default(false),
+	audio_aac_rank: z.coerce.number().default(0),
+	audio_ac3_fetch: z.boolean().default(false),
+	audio_ac3_use_custom_rank: z.boolean().default(false),
+	audio_ac3_rank: z.coerce.number().default(0),
+	audio_atmos_fetch: z.boolean().default(false),
+	audio_atmos_use_custom_rank: z.boolean().default(false),
+	audio_atmos_rank: z.coerce.number().default(0),
+	audio_dolby_digital_fetch: z.boolean().default(false),
+	audio_dolby_digital_use_custom_rank: z.boolean().default(false),
+	audio_dolby_digital_rank: z.coerce.number().default(0),
+	audio_dolby_digital_plus_fetch: z.boolean().default(false),
+	audio_dolby_digital_plus_use_custom_rank: z.boolean().default(false),
+	audio_dolby_digital_plus_rank: z.coerce.number().default(0),
+	audio_dts_lossy_fetch: z.boolean().default(false),
+	audio_dts_lossy_use_custom_rank: z.boolean().default(false),
+	audio_dts_lossy_rank: z.coerce.number().default(0),
+	audio_dts_lossless_fetch: z.boolean().default(false),
+	audio_dts_lossless_use_custom_rank: z.boolean().default(false),
+	audio_dts_lossless_rank: z.coerce.number().default(0),
+	audio_eac3_fetch: z.boolean().default(false),
+	audio_eac3_use_custom_rank: z.boolean().default(false),
+	audio_eac3_rank: z.coerce.number().default(0),
+	audio_flac_fetch: z.boolean().default(false),
+	audio_flac_use_custom_rank: z.boolean().default(false),
+	audio_flac_rank: z.coerce.number().default(0),
+	audio_mono_fetch: z.boolean().default(false),
+	audio_mono_use_custom_rank: z.boolean().default(false),
+	audio_mono_rank: z.coerce.number().default(0),
+	audio_mp3_fetch: z.boolean().default(false),
+	audio_mp3_use_custom_rank: z.boolean().default(false),
+	audio_mp3_rank: z.coerce.number().default(0),
+	audio_stereo_fetch: z.boolean().default(false),
+	audio_stereo_use_custom_rank: z.boolean().default(false),
+	audio_stereo_rank: z.coerce.number().default(0),
+	audio_surround_fetch: z.boolean().default(false),
+	audio_surround_use_custom_rank: z.boolean().default(false),
+	audio_surround_rank: z.coerce.number().default(0),
+	audio_truehd_fetch: z.boolean().default(false),
+	audio_truehd_use_custom_rank: z.boolean().default(false),
+	audio_truehd_rank: z.coerce.number().default(0),
+	// Extras settings
+	extras_3d_fetch: z.boolean().default(false),
+	extras_3d_use_custom_rank: z.boolean().default(false),
+	extras_3d_rank: z.coerce.number().default(0),
+	extras_converted_fetch: z.boolean().default(false),
+	extras_converted_use_custom_rank: z.boolean().default(false),
+	extras_converted_rank: z.coerce.number().default(0),
+	extras_documentary_fetch: z.boolean().default(false),
+	extras_documentary_use_custom_rank: z.boolean().default(false),
+	extras_documentary_rank: z.coerce.number().default(0),
+	extras_dubbed_fetch: z.boolean().default(false),
+	extras_dubbed_use_custom_rank: z.boolean().default(false),
+	extras_dubbed_rank: z.coerce.number().default(0),
+	extras_edition_fetch: z.boolean().default(false),
+	extras_edition_use_custom_rank: z.boolean().default(false),
+	extras_edition_rank: z.coerce.number().default(0),
+	extras_hardcoded_fetch: z.boolean().default(false),
+	extras_hardcoded_use_custom_rank: z.boolean().default(false),
+	extras_hardcoded_rank: z.coerce.number().default(0),
+	extras_network_fetch: z.boolean().default(false),
+	extras_network_use_custom_rank: z.boolean().default(false),
+	extras_network_rank: z.coerce.number().default(0),
+	extras_proper_fetch: z.boolean().default(false),
+	extras_proper_use_custom_rank: z.boolean().default(false),
+	extras_proper_rank: z.coerce.number().default(0),
+	extras_repack_fetch: z.boolean().default(false),
+	extras_repack_use_custom_rank: z.boolean().default(false),
+	extras_repack_rank: z.coerce.number().default(0),
+	extras_retail_fetch: z.boolean().default(false),
+	extras_retail_use_custom_rank: z.boolean().default(false),
+	extras_retail_rank: z.coerce.number().default(0),
+	extras_site_fetch: z.boolean().default(false),
+	extras_site_use_custom_rank: z.boolean().default(false),
+	extras_site_rank: z.coerce.number().default(0),
+	extras_subbed_fetch: z.boolean().default(false),
+	extras_subbed_use_custom_rank: z.boolean().default(false),
+	extras_subbed_rank: z.coerce.number().default(0),
+	extras_upscaled_fetch: z.boolean().default(false),
+	extras_upscaled_use_custom_rank: z.boolean().default(false),
+	extras_upscaled_rank: z.coerce.number().default(0),
+	// Trash settings
+	trash_cam_fetch: z.boolean().default(false),
+	trash_cam_use_custom_rank: z.boolean().default(false),
+	trash_cam_rank: z.coerce.number().default(0),
+	trash_clean_audio_fetch: z.boolean().default(false),
+	trash_clean_audio_use_custom_rank: z.boolean().default(false),
+	trash_clean_audio_rank: z.coerce.number().default(0),
+	trash_pdtv_fetch: z.boolean().default(false),
+	trash_pdtv_use_custom_rank: z.boolean().default(false),
+	trash_pdtv_rank: z.coerce.number().default(0),
+	trash_r5_fetch: z.boolean().default(false),
+	trash_r5_use_custom_rank: z.boolean().default(false),
+	trash_r5_rank: z.coerce.number().default(0),
+	trash_screener_fetch: z.boolean().default(false),
+	trash_screener_use_custom_rank: z.boolean().default(false),
+	trash_screener_rank: z.coerce.number().default(0),
+	trash_size_fetch: z.boolean().default(false),
+	trash_size_use_custom_rank: z.boolean().default(false),
+	trash_size_rank: z.coerce.number().default(0),
+	trash_telecine_fetch: z.boolean().default(false),
+	trash_telecine_use_custom_rank: z.boolean().default(false),
+	trash_telecine_rank: z.coerce.number().default(0),
+	trash_telesync_fetch: z.boolean().default(false),
+	trash_telesync_use_custom_rank: z.boolean().default(false),
+	trash_telesync_rank: z.coerce.number().default(0)
+});
+
+export type RankingSettingsSchema = typeof rankingSettingsSchema;
+
+type CustomRank = {
+	fetch: boolean;
+	use_custom_rank: boolean;
+	rank: number;
+};
+
+type Ranks = {
+	[key: string]: CustomRank;
+};
+
+type CustomRanks = {
+	quality: Ranks;
+	rips: Ranks;
+	hdr: Ranks;
+	audio: Ranks;
+	extras: Ranks;
+	trash: Ranks;
+};
+
+export type RankingData = {
+	ranking: {
+		custom_ranks: CustomRanks;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		[key: string]: any;
+	};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[key: string]: any;
+};
+
+export function rankingSettingsToPass(data: RankingData) {
+	return {
+		profile: data.ranking.profile,
+		require: data.ranking.require,
+		exclude: data.ranking.exclude,
+		preferred: data.ranking.preferred,
+		resolution_2160p: data.ranking.resolutions['2160p'],
+		resolution_1080p: data.ranking.resolutions['1080p'],
+		resolution_720p: data.ranking.resolutions['720p'],
+		resolution_480p: data.ranking.resolutions['480p'],
+		resolution_360p: data.ranking.resolutions['360p'],
+		resolution_unknown: data.ranking.resolutions.unknown,
+		title_similarity: data.ranking.options.title_similarity,
+		remove_all_trash: data.ranking.options.remove_all_trash,
+		remove_ranks_under: data.ranking.options.remove_ranks_under,
+		remove_unknown_languages: data.ranking.options.remove_unknown_languages,
+		allow_english_in_languages: data.ranking.options.allow_english_in_languages,
+		languages_required: data.ranking.languages.required,
+		languages_exclude: data.ranking.languages.exclude,
+		languages_preferred: data.ranking.languages.preferred,
+		// Quality
+		...Object.entries(data.ranking.custom_ranks.quality).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`quality_${key}_fetch`]: value.fetch,
+				[`quality_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`quality_${key}_rank`]: value.rank
+			}),
+			{}
+		),
+		// Rips
+		...Object.entries(data.ranking.custom_ranks.rips).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`rips_${key}_fetch`]: value.fetch,
+				[`rips_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`rips_${key}_rank`]: value.rank
+			}),
+			{}
+		),
+		// HDR
+		...Object.entries(data.ranking.custom_ranks.hdr).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`hdr_${key}_fetch`]: value.fetch,
+				[`hdr_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`hdr_${key}_rank`]: value.rank
+			}),
+			{}
+		),
+		// Audio
+		...Object.entries(data.ranking.custom_ranks.audio).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`audio_${key}_fetch`]: value.fetch,
+				[`audio_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`audio_${key}_rank`]: value.rank
+			}),
+			{}
+		),
+		// Extras
+		...Object.entries(data.ranking.custom_ranks.extras).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`extras_${key}_fetch`]: value.fetch,
+				[`extras_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`extras_${key}_rank`]: value.rank
+			}),
+			{}
+		),
+		// Trash
+		...Object.entries(data.ranking.custom_ranks.trash).reduce(
+			(acc, [key, value]: [string, CustomRank]) => ({
+				...acc,
+				[`trash_${key}_fetch`]: value.fetch,
+				[`trash_${key}_use_custom_rank`]: value.use_custom_rank,
+				[`trash_${key}_rank`]: value.rank
+			}),
+			{}
+		)
+	};
+}
+
+export function rankingSettingsToSet(form: SuperValidated<Infer<RankingSettingsSchema>>) {
+	// Helper function to group related settings
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	function groupCustomRanks(prefix: string, data: Record<string, any>) {
+		const grouped: Record<string, { fetch: boolean; use_custom_rank: boolean; rank: number }> = {};
+
+		Object.keys(data)
+			.filter((key) => key.startsWith(prefix))
+			.forEach((key) => {
+				// Remove the prefix first
+				let baseName = key.replace(`${prefix}_`, '');
+
+				// Remove the known suffixes
+				baseName = baseName
+					.replace('_fetch', '')
+					.replace('_use_custom_rank', '')
+					.replace('_rank', '');
+
+				if (!grouped[baseName]) {
+					grouped[baseName] = {
+						fetch: false,
+						use_custom_rank: false,
+						rank: 0
+					};
+				}
+
+				// Now check which suffix the original key had
+				if (key.endsWith('_fetch')) {
+					grouped[baseName].fetch = data[key];
+				} else if (key.endsWith('_use_custom_rank')) {
+					grouped[baseName].use_custom_rank = data[key];
+				} else if (key.endsWith('_rank')) {
+					grouped[baseName].rank = data[key];
+				}
+			});
+
+		return grouped;
+	}
+
+	return [
+		{
+			key: 'ranking',
+			value: {
+				profile: form.data.profile,
+				require: form.data.require,
+				exclude: form.data.exclude,
+				preferred: form.data.preferred,
+				resolutions: {
+					'2160p': form.data.resolution_2160p,
+					'1080p': form.data.resolution_1080p,
+					'720p': form.data.resolution_720p,
+					'480p': form.data.resolution_480p,
+					'360p': form.data.resolution_360p,
+					unknown: form.data.resolution_unknown
+				},
+				options: {
+					title_similarity: form.data.title_similarity,
+					remove_all_trash: form.data.remove_all_trash,
+					remove_ranks_under: form.data.remove_ranks_under,
+					remove_unknown_languages: form.data.remove_unknown_languages,
+					allow_english_in_languages: form.data.allow_english_in_languages
+				},
+				languages: {
+					required: form.data.languages_required,
+					exclude: form.data.languages_exclude,
+					preferred: form.data.languages_preferred
+				},
+				custom_ranks: {
+					quality: groupCustomRanks('quality', form.data),
+					rips: groupCustomRanks('rips', form.data),
+					hdr: groupCustomRanks('hdr', form.data),
+					audio: groupCustomRanks('audio', form.data),
+					extras: groupCustomRanks('extras', form.data),
+					trash: groupCustomRanks('trash', form.data)
+				}
+			}
+		}
+	];
+}
