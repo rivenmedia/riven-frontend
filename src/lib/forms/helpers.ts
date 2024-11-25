@@ -917,11 +917,11 @@ export function rankingSettingsToSet(form: SuperValidated<Infer<RankingSettingsS
 				exclude: form.data.exclude,
 				preferred: form.data.preferred,
 				resolutions: {
-					'r2160p': form.data.resolution_2160p,
-					'r1080p': form.data.resolution_1080p,
-					'r720p': form.data.resolution_720p,
-					'r480p': form.data.resolution_480p,
-					'r360p': form.data.resolution_360p,
+					r2160p: form.data.resolution_2160p,
+					r1080p: form.data.resolution_1080p,
+					r720p: form.data.resolution_720p,
+					r480p: form.data.resolution_480p,
+					r360p: form.data.resolution_360p,
 					unknown: form.data.resolution_unknown
 				},
 				options: {
