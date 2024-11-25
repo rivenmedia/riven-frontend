@@ -105,17 +105,11 @@
 	}
 
 	function mapSelectedStates(selectedStates: Selected<string>[]) {
-		return selectedStates
-			.values()
-			.map((v) => v.value as keyof typeof states)
-			.toArray();
+		return selectedStates.map((selectedState) => selectedState.value as keyof typeof states);
 	}
 
 	function mapSelectedTypes(selectedTypes: Selected<string>[]) {
-		return selectedTypes
-			.values()
-			.map((v) => v.value as keyof typeof types)
-			.toArray();
+		return selectedTypes.map((selectedType) => selectedType.value as keyof typeof types);
 	}
 </script>
 
