@@ -11,5 +11,8 @@ vite.config.ts.timestamp-*
 .idea
 /.vs
 /package-lock.json
+bun.lockb
 .vscode
 /config
+server-config.json
+openapi*.log
