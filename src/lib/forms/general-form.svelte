@@ -50,6 +50,14 @@
 
 <form method="POST" action={actionUrl} use:enhance class="my-8 flex flex-col gap-2">
 	<CheckboxField {form} name="debug" {formData} fieldDescription="Requires restart" />
+	<CheckboxField {form} name="debug_database" {formData} fieldDescription="Requires restart" />
+	<CheckboxField {form} name="force_refresh" {formData} fieldDescription="Requires restart" />
+	<CheckboxField
+		{form}
+		name="map_metadata"
+		{formData}
+		fieldDescription="Requires restart, inits an empty database based on the symlinked files"
+	/>
 	<CheckboxField {form} name="log" {formData} fieldDescription="Requires restart" />
 	<TextField {form} name="rclone_path" {formData} />
 	<TextField {form} name="library_path" {formData} />
@@ -71,6 +79,53 @@
 		fieldDescription="In seconds"
 	/>
 
+	<ArrayField {form} name="video_extensions" {formData}>
+		{#each $formData.video_extensions as _, i}
+			<Form.ElementField {form} name="video_extensions[{i}]">
+				<Form.Control let:attrs>
+					<div class="flex items-center gap-2">
+						<Input
+							type="text"
+							spellcheck="false"
+							autocomplete="false"
+							{...attrs}
+							bind:value={$formData.video_extensions[i]}
+						/>
+
+						<div class="flex items-center gap-2">
+							<Form.Button
+								type="button"
+								size="sm"
+								variant="destructive"
+								on:click={() => {
+									removeField('video_extensions', i);
+								}}
+							>
+								<Trash2 class="h-4 w-4" />
+							</Form.Button>
+						</div>
+					</div>
+				</Form.Control>
+			</Form.ElementField>
+		{/each}
+
+		<div class="flex w-full items-center justify-between gap-2">
+			<p class="text-sm text-muted-foreground">Add Video Extension</p>
+			<Form.Button
+				type="button"
+				size="sm"
+				variant="outline"
+				on:click={() => {
+					addField('video_extensions');
+				}}
+			>
+				<Plus class="h-4 w-4" />
+			</Form.Button>
+		</div>
+	</ArrayField>
+
+	<CheckboxField {form} name="prefer_speed_over_quality" {formData} />
+
 	<GroupCheckboxField
 		fieldTitle="Downloaders"
 		fieldDescription="Enable only one downloader at a time"
@@ -82,19 +137,19 @@
 			{formData}
 			isForGroup={true}
 		/>
-		<CheckboxField
-			{form}
-			name="alldebrid_enabled"
-			label="All-Debrid"
-			{formData}
-			isForGroup={true}
-		/>
-		<CheckboxField {form} name="torbox_enabled" label="Torbox" {formData} isForGroup={true} />
+		<CheckboxField {form} name="alldebrid_enabled" label="AllDebrid" {formData} isForGroup={true} />
+		<CheckboxField {form} name="torbox_enabled" label="TorBox" {formData} isForGroup={true} />
 	</GroupCheckboxField>
 
 	{#if $formData.realdebrid_enabled}
 		<div transition:slide>
-			<TextField {form} name="realdebrid_api_key" {formData} isProtected={true} />
+			<TextField
+				{form}
+				name="realdebrid_api_key"
+				label="Real-Debrid API Key"
+				{formData}
+				isProtected={true}
+			/>
 		</div>
 
 		<div transition:slide>
@@ -109,29 +164,63 @@
 
 		{#if $formData.realdebrid_proxy_enabled}
 			<div transition:slide>
-				<TextField {form} name="realdebrid_proxy_url" {formData} />
+				<TextField {form} name="realdebrid_proxy_url" label="Real-Debrid Proxy URL" {formData} />
 			</div>
 		{/if}
 	{/if}
 
 	{#if $formData.alldebrid_enabled}
 		<div transition:slide>
-			<TextField {form} name="alldebrid_api_key" {formData} isProtected={true} />
+			<TextField
+				{form}
+				name="alldebrid_api_key"
+				label="AllDebrid API Key"
+				{formData}
+				isProtected={true}
+			/>
 		</div>
 
 		<div transition:slide>
 			<CheckboxField
 				{form}
 				name="alldebrid_proxy_enabled"
-				label="All-Debrid Proxy"
+				label="AllDebrid Proxy"
 				{formData}
-				fieldDescription="Use proxy for All-Debrid API"
+				fieldDescription="Use proxy for AllDebrid API"
 			/>
 		</div>
 
 		{#if $formData.alldebrid_proxy_enabled}
 			<div transition:slide>
-				<TextField {form} name="alldebrid_proxy_url" {formData} />
+				<TextField {form} name="alldebrid_proxy_url" label="AllDebrid Proxy URL" {formData} />
+			</div>
+		{/if}
+	{/if}
+
+	{#if $formData.torbox_enabled}
+		<div transition:slide>
+			<TextField
+				{form}
+				name="torbox_api_key"
+				label="TorBox API Key"
+				{formData}
+				isProtected={true}
+			/>
+		</div>
+
+		<div transition:slide>
+			<CheckboxField
+				{form}
+				name="torbox_proxy_enabled"
+				label="TorBox Proxy"
+				{formData}
+				fieldDescription="Use proxy for TorBox API"
+			/>
+		</div>
+
+		{#if $formData.torbox_proxy_enabled}
+			<div transition:slide>
+				<TextField {form} name="torbox_proxy_url" label="TorBox Proxy URL" {formData} />
 			</div>
 		{/if}
 	{/if}
@@ -164,12 +253,6 @@
 		{formData}
 		fieldDescription="In MB, -1 for unlimited"
 	/>
-
-	{#if $formData.torbox_enabled}
-		<div transition:slide>
-			<TextField {form} name="torbox_api_key" {formData} />
-		</div>
-	{/if}
 
 	<CheckboxField {form} name="notifications_enabled" label="Notifications" {formData} />
 
