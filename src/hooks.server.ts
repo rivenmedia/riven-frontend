@@ -26,6 +26,24 @@ const configureClientMiddleware: Handle = async ({ event, resolve }) => {
 		if (!event.locals.backendUrl || !event.locals.apiKey) {
 			throw redirect(307, '/connect');
 		}
+
+		let hasConnection;
+
+		try {
+			await fetch(event.locals.backendUrl + '/api/v1/health')
+				.then(() => {
+					hasConnection = true;
+				})
+				.catch(() => {
+					hasConnection = false;
+				});
+		} catch {
+			hasConnection = false;
+		}
+
+		if (!hasConnection) {
+			throw redirect(307, '/connect');
+		}
 	}
 
 	return resolve(event);
