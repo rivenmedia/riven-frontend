@@ -267,14 +267,6 @@
 																		.padStart(2, '0')}
 																	{episode.title}
 																</Select.Item>
-																{#each season.episodes as episode}
-																	<Select.Item value={episode}>
-																		S{season.number.toString().padStart(2, '0')}E{episode.number
-																			.toString()
-																			.padStart(2, '0')}
-																		{episode.title}
-																	</Select.Item>
-																{/each}
 															{/each}
 														</Select.Group>
 														<Select.Separator />
