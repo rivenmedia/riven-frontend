@@ -4,7 +4,11 @@ import { z } from 'zod';
 // General Settings -----------------------------------------------------------------------------------
 export const generalSettingsToGet: string[] = [
 	'debug',
+	'debug_database',
 	'log',
+	'force_refresh',
+	'map_metadata',
+	'tracemalloc',
 	'symlink',
 	'downloaders',
 	'database',
@@ -15,26 +19,28 @@ export const generalSettingsToGet: string[] = [
 
 export const generalSettingsSchema = z.object({
 	debug: z.boolean().default(true),
+	debug_database: z.boolean().default(false),
 	log: z.boolean().default(true),
+	force_refresh: z.boolean().default(false),
+	map_metadata: z.boolean().default(false),
+	tracemalloc: z.boolean().default(false),
 	rclone_path: z.string().min(1),
 	library_path: z.string().min(1),
 	separate_anime_dirs: z.boolean().default(false),
 	repair_symlinks: z.boolean().default(false),
 	repair_interval: z.coerce.number().gte(0).int().optional().default(6),
+	video_extensions: z.string().array().optional().default([]),
 	movie_filesize_mb_min: z.coerce.number().gte(0).int().optional().default(0),
 	movie_filesize_mb_max: z.coerce.number().gte(-1).int().optional().default(-1),
 	episode_filesize_mb_min: z.coerce.number().gte(0).int().optional().default(0),
 	episode_filesize_mb_max: z.coerce.number().gte(-1).int().optional().default(-1),
+	proxy_url: z.string().optional().default(''),
 	realdebrid_enabled: z.boolean().default(false),
 	realdebrid_api_key: z.string().optional().default(''),
-	realdebrid_proxy_enabled: z.boolean().default(false),
-	realdebrid_proxy_url: z.string().optional().default(''),
 	torbox_enabled: z.boolean().default(false),
 	torbox_api_key: z.string().optional().default(''),
 	alldebrid_enabled: z.boolean().default(false),
 	alldebrid_api_key: z.string().optional().default(''),
-	alldebrid_proxy_enabled: z.boolean().default(false),
-	alldebrid_proxy_url: z.string().optional().default(''),
 	database_host: z
 		.string()
 		.optional()
@@ -59,7 +65,13 @@ export type GeneralSettingsSchema = typeof generalSettingsSchema;
 export function generalSettingsToPass(data: any) {
 	return {
 		debug: data.debug,
+		debug_database: data.debug_database,
 		log: data.log,
+		force_refresh: data.force_refresh,
+		map_metadata: data.map_metadata,
+		tracemalloc: data.tracemalloc,
+		video_extensions: data.downloaders.video_extensions,
+		prefer_speed_over_quality: data.downloaders.prefer_speed_over_quality,
 		rclone_path: data.symlink.rclone_path,
 		library_path: data.symlink.library_path,
 		separate_anime_dirs: data.symlink.separate_anime_dirs,
@@ -69,35 +81,32 @@ export function generalSettingsToPass(data: any) {
 		movie_filesize_mb_max: data.downloaders.movie_filesize_mb_max,
 		episode_filesize_mb_min: data.downloaders.episode_filesize_mb_min,
 		episode_filesize_mb_max: data.downloaders.episode_filesize,
+		proxy_url: data.downloaders.proxy_url,
 		realdebrid_enabled: data.downloaders.real_debrid.enabled,
 		realdebrid_api_key: data.downloaders.real_debrid?.api_key,
-		realdebrid_proxy_enabled: data.downloaders.real_debrid?.proxy_enabled,
-		realdebrid_proxy_url: data.downloaders.real_debrid?.proxy_url,
 		torbox_enabled: data.downloaders.torbox.enabled,
-		torbox_api_key: data.downloaders.torbox?.api_key,
+		torbox_api_key: data.downloaders.torbox.api_key,
 		alldebrid_enabled: data.downloaders.all_debrid.enabled,
-		alldebrid_api_key: data.downloaders.all_debrid?.api_key,
-		alldebrid_proxy_enabled: data.downloaders.all_debrid?.proxy_enabled,
-		alldebrid_proxy_url: data.downloaders.all_debrid?.proxy_url,
+		alldebrid_api_key: data.downloaders.all_debrid.api_key,
 		database_host: data.database.host,
 		notifications_enabled: data.notifications.enabled,
 		notifications_title: data.notifications.title,
 		notifications_on_item_type: data.notifications.on_item_type,
 		notifications_service_urls: data.notifications.service_urls,
 		subliminal_enabled: data.post_processing.subliminal.enabled,
-		subliminal_languages: data.post_processing.subliminal?.languages,
+		subliminal_languages: data.post_processing.subliminal.languages,
 		subliminal_providers_opensubtitles_enabled:
-			data.post_processing.subliminal?.providers.opensubtitles.enabled,
+			data.post_processing.subliminal.providers.opensubtitles.enabled,
 		subliminal_providers_opensubtitles_username:
-			data.post_processing.subliminal?.providers.opensubtitles.username,
+			data.post_processing.subliminal.providers.opensubtitles.username,
 		subliminal_providers_opensubtitles_password:
-			data.post_processing.subliminal?.providers.opensubtitles.password,
+			data.post_processing.subliminal.providers.opensubtitles.password,
 		subliminal_providers_opensubtitlescom_enabled:
-			data.post_processing.subliminal?.providers.opensubtitlescom.enabled,
+			data.post_processing.subliminal.providers.opensubtitlescom.enabled,
 		subliminal_providers_opensubtitlescom_username:
-			data.post_processing.subliminal?.providers.opensubtitlescom.username,
+			data.post_processing.subliminal.providers.opensubtitlescom.username,
 		subliminal_providers_opensubtitlescom_password:
-			data.post_processing.subliminal?.providers.opensubtitlescom.password,
+			data.post_processing.subliminal.providers.opensubtitlescom.password,
 		indexer_update_interval: data.indexer.update_interval
 	};
 }
@@ -109,8 +118,24 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 			value: form.data.debug
 		},
 		{
+			key: 'debug_database',
+			value: form.data.debug_database
+		},
+		{
 			key: 'log',
 			value: form.data.log
+		},
+		{
+			key: 'force_refresh',
+			value: form.data.force_refresh
+		},
+		{
+			key: 'map_metadata',
+			value: form.data.map_metadata
+		},
+		{
+			key: 'tracemalloc',
+			value: form.data.tracemalloc
 		},
 		{
 			key: 'symlink',
@@ -125,21 +150,19 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 		{
 			key: 'downloaders',
 			value: {
+				video_extensions: form.data.video_extensions,
 				movie_filesize_mb_min: form.data.movie_filesize_mb_min,
 				movie_filesize_mb_max: form.data.movie_filesize_mb_max,
 				episode_filesize_mb_min: form.data.episode_filesize_mb_min,
 				episode_filesize_mb_max: form.data.episode_filesize_mb_max,
+				proxy_url: form.data.proxy_url,
 				real_debrid: {
 					enabled: form.data.realdebrid_enabled,
-					api_key: form.data.realdebrid_api_key,
-					proxy_enabled: form.data.realdebrid_proxy_enabled,
-					proxy_url: form.data.realdebrid_proxy_url
+					api_key: form.data.realdebrid_api_key
 				},
 				all_debrid: {
 					enabled: form.data.alldebrid_enabled,
-					api_key: form.data.alldebrid_api_key,
-					proxy_enabled: form.data.alldebrid_proxy_enabled,
-					proxy_url: form.data.alldebrid_proxy_url
+					api_key: form.data.alldebrid_api_key
 				},
 				torbox: {
 					enabled: form.data.torbox_enabled,
@@ -201,7 +224,13 @@ export const mediaServerSettingsSchema = z.object({
 	update_interval: z.coerce.number().gte(0).int().optional().default(120),
 	plex_enabled: z.boolean().default(false),
 	plex_token: z.string().optional().default(''),
-	plex_url: z.string().optional().default('')
+	plex_url: z.string().optional().default(''),
+	jellyfin_enabled: z.boolean().default(false),
+	jellyfin_token: z.string().optional().default(''),
+	jellyfin_url: z.string().optional().default(''),
+	emby_enabled: z.boolean().default(false),
+	emby_token: z.string().optional().default(''),
+	emby_url: z.string().optional().default('')
 });
 export type MediaServerSettingsSchema = typeof mediaServerSettingsSchema;
 
@@ -211,7 +240,13 @@ export function mediaServerSettingsToPass(data: any) {
 		update_interval: data.updaters.update_interval,
 		plex_token: data.updaters.plex.token,
 		plex_url: data.updaters.plex.url,
-		plex_enabled: data.updaters.plex.enabled
+		plex_enabled: data.updaters.plex.enabled,
+		jellyfin_token: data.updaters.jellyfin.token,
+		jellyfin_url: data.updaters.jellyfin.url,
+		jellyfin_enabled: data.updaters.jellyfin.enabled,
+		emby_token: data.updaters.emby.token,
+		emby_url: data.updaters.emby.url,
+		emby_enabled: data.updaters.emby.enabled
 	};
 }
 
@@ -225,6 +260,16 @@ export function mediaServerSettingsToSet(form: SuperValidated<Infer<MediaServerS
 					enabled: form.data.plex_enabled,
 					token: form.data.plex_token,
 					url: form.data.plex_url
+				},
+				jellyfin: {
+					enabled: form.data.jellyfin_enabled,
+					token: form.data.jellyfin_token,
+					url: form.data.jellyfin_url
+				},
+				emby: {
+					enabled: form.data.emby_enabled,
+					token: form.data.emby_token,
+					url: form.data.emby_url
 				}
 			}
 		}
@@ -239,6 +284,8 @@ export const scrapersSettingsSchema = z.object({
 	after_2: z.coerce.number().gte(0).int().default(0.5),
 	after_5: z.coerce.number().gte(0).int().default(2),
 	after_10: z.coerce.number().gte(0).int().default(24),
+	enable_aliases: z.boolean().default(false),
+	bucket_limit: z.coerce.number().gte(0).lte(20).int().optional().default(5),
 	torrentio_enabled: z.boolean().default(false),
 	torrentio_url: z.string().optional().default('https://torrentio.strem.fun'),
 	torrentio_timeout: z.coerce.number().gte(0).int().optional().default(30),
@@ -259,7 +306,10 @@ export const scrapersSettingsSchema = z.object({
 	orionoid_api_key: z.string().optional().default(''),
 	orionoid_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	orionoid_ratelimit: z.boolean().default(true),
-	orionoid_limitcount: z.coerce.number().gte(0).int().optional().default(5),
+	orionoid_cached_results_only: z.boolean().default(false),
+	orionoid_parameters_video3d: z.boolean().default(false),
+	orionoid_parameters_videoquality: z.string().optional().default('sd_hd8k'),
+	orionoid_parameters_limitcount: z.coerce.number().gte(0).int().optional().default(5),
 	jackett_enabled: z.boolean().default(false),
 	jackett_url: z.string().optional().default('http://localhost:9117'),
 	jackett_timeout: z.coerce.number().gte(0).int().optional().default(10),
@@ -269,7 +319,6 @@ export const scrapersSettingsSchema = z.object({
 	mediafusion_url: z.string().optional().default('https://mediafusion.elfhosted.com'),
 	mediafusion_timeout: z.coerce.number().gte(0).int().optional().default(10),
 	mediafusion_ratelimit: z.boolean().default(true),
-	mediafusion_catalogs: z.array(z.string()).optional().default([]),
 	prowlarr_enabled: z.boolean().default(false),
 	prowlarr_url: z.string().optional().default('http://localhost:9696'),
 	prowlarr_timeout: z.coerce.number().gte(0).int().optional().default(10),
@@ -297,49 +346,53 @@ export function scrapersSettingsToPass(data: any) {
 		after_2: data.scraping.after_2,
 		after_5: data.scraping.after_5,
 		after_10: data.scraping.after_10,
-		torrentio_url: data.scraping.torrentio?.url,
+		enable_aliases: data.scraping.enable_aliases,
+		bucket_limit: data.scraping.bucket_limit,
+		torrentio_url: data.scraping.torrentio.url,
 		torrentio_enabled: data.scraping.torrentio.enabled,
-		torrentio_filter: data.scraping.torrentio?.filter,
-		torrentio_timeout: data.scraping.torrentio?.timeout,
-		torrentio_ratelimit: data.scraping.torrentio?.ratelimit,
-		knightcrawler_url: data.scraping.knightcrawler?.url,
+		torrentio_filter: data.scraping.torrentio.filter,
+		torrentio_timeout: data.scraping.torrentio.timeout,
+		torrentio_ratelimit: data.scraping.torrentio.ratelimit,
+		knightcrawler_url: data.scraping.knightcrawler.url,
 		knightcrawler_enabled: data.scraping.knightcrawler.enabled,
-		knightcrawler_filter: data.scraping.knightcrawler?.filter,
-		knightcrawler_timeout: data.scraping.knightcrawler?.timeout,
-		knightcrawler_ratelimit: data.scraping.knightcrawler?.ratelimit,
+		knightcrawler_filter: data.scraping.knightcrawler.filter,
+		knightcrawler_timeout: data.scraping.knightcrawler.timeout,
+		knightcrawler_ratelimit: data.scraping.knightcrawler.ratelimit,
 		orionoid_enabled: data.scraping.orionoid.enabled,
-		orionoid_api_key: data.scraping.orionoid?.api_key,
-		orionoid_limitcount: data.scraping.orionoid?.limitcount,
-		orionoid_timeout: data.scraping.orionoid?.timeout,
-		orionoid_ratelimit: data.scraping.orionoid?.ratelimit,
+		orionoid_api_key: data.scraping.orionoid.api_key,
+		orionoid_timeout: data.scraping.orionoid.timeout,
+		orionoid_ratelimit: data.scraping.orionoid.ratelimit,
+		orionoid_cached_results_only: data.scraping.orionoid.cached_results_only,
+		orionoid_parameters_video3d: data.scraping.orionoid.parameters.video3d,
+		orionoid_parameters_videoquality: data.scraping.orionoid.parameters.videoquality,
+		orionoid_parameters_limitcount: data.scraping.orionoid.parameters.limitcount,
 		jackett_enabled: data.scraping.jackett.enabled,
-		jackett_url: data.scraping.jackett?.url,
-		jackett_api_key: data.scraping.jackett?.api_key,
-		jackett_timeout: data.scraping.jackett?.timeout,
-		jackett_ratelimit: data.scraping.jackett?.ratelimit,
-		mediafusion_url: data.scraping.mediafusion?.url,
+		jackett_url: data.scraping.jackett.url,
+		jackett_api_key: data.scraping.jackett.api_key,
+		jackett_timeout: data.scraping.jackett.timeout,
+		jackett_ratelimit: data.scraping.jackett.ratelimit,
+		mediafusion_url: data.scraping.mediafusion.url,
 		mediafusion_enabled: data.scraping.mediafusion.enabled,
-		mediafusion_catalogs: data.scraping.mediafusion.catalogs,
-		mediafusion_timeout: data.scraping.mediafusion?.timeout,
-		mediafusion_ratelimit: data.scraping.mediafusion?.ratelimit,
-		prowlarr_enabled: data.scraping.prowlarr?.enabled,
-		prowlarr_url: data.scraping.prowlarr?.url,
-		prowlarr_api_key: data.scraping.prowlarr?.api_key,
-		prowlarr_timeout: data.scraping.prowlarr?.timeout,
-		prowlarr_ratelimit: data.scraping.prowlarr?.ratelimit,
-		prowlarr_limiter_seconds: data.scraping.prowlarr?.limiter_seconds,
-		torbox_scraper_enabled: data.scraping.torbox_scraper?.enabled,
-		torbox_scraper_timeout: data.scraping.torbox_scraper?.timeout,
-		torbox_scraper_ratelimit: data.scraping.torbox_scraper?.ratelimit,
-		zilean_enabled: data.scraping.zilean?.enabled,
-		zilean_url: data.scraping.zilean?.url,
-		zilean_timeout: data.scraping.zilean?.timeout,
-		zilean_ratelimit: data.scraping.zilean?.ratelimit,
-		comet_enabled: data.scraping.comet?.enabled,
-		comet_url: data.scraping.comet?.url,
-		comet_indexers: data.scraping.comet?.indexers,
-		comet_timeout: data.scraping.comet?.timeout,
-		comet_ratelimit: data.scraping.comet?.ratelimit
+		mediafusion_timeout: data.scraping.mediafusion.timeout,
+		mediafusion_ratelimit: data.scraping.mediafusion.ratelimit,
+		prowlarr_enabled: data.scraping.prowlarr.enabled,
+		prowlarr_url: data.scraping.prowlarr.url,
+		prowlarr_api_key: data.scraping.prowlarr.api_key,
+		prowlarr_timeout: data.scraping.prowlarr.timeout,
+		prowlarr_ratelimit: data.scraping.prowlarr.ratelimit,
+		prowlarr_limiter_seconds: data.scraping.prowlarr.limiter_seconds,
+		torbox_scraper_enabled: data.scraping.torbox_scraper.enabled,
+		torbox_scraper_timeout: data.scraping.torbox_scraper.timeout,
+		torbox_scraper_ratelimit: data.scraping.torbox_scraper.ratelimit,
+		zilean_enabled: data.scraping.zilean.enabled,
+		zilean_url: data.scraping.zilean.url,
+		zilean_timeout: data.scraping.zilean.timeout,
+		zilean_ratelimit: data.scraping.zilean.ratelimit,
+		comet_enabled: data.scraping.comet.enabled,
+		comet_url: data.scraping.comet.url,
+		comet_indexers: data.scraping.comet.indexers,
+		comet_timeout: data.scraping.comet.timeout,
+		comet_ratelimit: data.scraping.comet.ratelimit
 	};
 }
 
@@ -351,6 +404,8 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				after_2: form.data.after_2,
 				after_5: form.data.after_5,
 				after_10: form.data.after_10,
+				enable_aliases: form.data.enable_aliases,
+				bucket_limit: form.data.bucket_limit,
 				torrentio: {
 					enabled: form.data.torrentio_enabled,
 					url: form.data.torrentio_url,
@@ -368,7 +423,11 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				orionoid: {
 					enabled: form.data.orionoid_enabled,
 					api_key: form.data.orionoid_api_key,
-					limitcount: form.data.orionoid_limitcount,
+					parameters: {
+						video3d: form.data.orionoid_parameters_video3d,
+						videoquality: form.data.orionoid_parameters_videoquality,
+						limitcount: form.data.orionoid_parameters_limitcount
+					},
 					timeout: form.data.orionoid_timeout,
 					ratelimit: form.data.orionoid_ratelimit
 				},
@@ -382,7 +441,6 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				mediafusion: {
 					enabled: form.data.mediafusion_enabled,
 					url: form.data.mediafusion_url,
-					catalogs: form.data.mediafusion_catalogs,
 					timeout: form.data.mediafusion_timeout,
 					ratelimit: form.data.mediafusion_ratelimit
 				},
@@ -448,7 +506,13 @@ export const contentSettingsSchema = z.object({
 	trakt_fetch_trending: z.boolean().default(false),
 	trakt_fetch_popular: z.boolean().default(false),
 	trakt_trending_count: z.coerce.number().gte(0).int().optional().default(10),
-	trakt_popular_count: z.coerce.number().gte(0).int().optional().default(10)
+	trakt_popular_count: z.coerce.number().gte(0).int().optional().default(10),
+	trakt_fetch_most_watched: z.boolean().default(false),
+	trakt_most_watched_count: z.coerce.number().gte(0).int().optional().default(10),
+	trakt_most_watched_period: z
+		.enum(['daily', 'weekly', 'monthly', 'yearly', 'all'])
+		.optional()
+		.default('weekly')
 });
 export type ContentSettingsSchema = typeof contentSettingsSchema;
 
@@ -481,7 +545,10 @@ export function contentSettingsToPass(data: any) {
 		trakt_fetch_trending: data.content.trakt?.fetch_trending,
 		trakt_fetch_popular: data.content.trakt?.fetch_popular,
 		trakt_trending_count: data.content.trakt?.trending_count,
-		trakt_popular_count: data.content.trakt?.popular_count
+		trakt_popular_count: data.content.trakt?.popular_count,
+		trakt_fetch_most_watched: data.content.trakt.fetch_most_watched,
+		trakt_most_watched_count: data.content.trakt.most_watched_count,
+		trakt_most_watched_period: data.content.trakt.most_watched_period
 	};
 }
 
@@ -525,7 +592,10 @@ export function contentSettingsToSet(form: SuperValidated<Infer<ContentSettingsS
 					fetch_trending: form.data.trakt_fetch_trending,
 					fetch_popular: form.data.trakt_fetch_popular,
 					trending_count: form.data.trakt_trending_count,
-					popular_count: form.data.trakt_popular_count
+					popular_count: form.data.trakt_popular_count,
+					fetch_most_watched: form.data.trakt_fetch_most_watched,
+					most_watched_count: form.data.trakt_most_watched_count,
+					most_watched_period: form.data.trakt_most_watched_period
 				}
 			}
 		}

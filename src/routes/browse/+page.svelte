@@ -108,7 +108,6 @@
 		try {
 			return [...(selectedStates?.values() ?? [])].map((v) => v?.value as keyof typeof states);
 		} catch (error) {
-			console.error('Error mapping selected states:', error);
 			return [];
 		}
 	}
@@ -116,7 +115,6 @@
 		try {
 			return [...(selectedTypes?.values() ?? [])].map((v) => v?.value as keyof typeof types);
 		} catch (error) {
-			console.error('Error mapping selected types:', error);
 			return [];
 		}
 	}
