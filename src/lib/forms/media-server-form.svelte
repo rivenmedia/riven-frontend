@@ -122,6 +122,14 @@
 		fieldDescription="Choose the updater services you want to enable"
 	>
 		<CheckboxField {form} name="plex_enabled" label="Plex Updater" {formData} isForGroup={true} />
+		<CheckboxField
+			{form}
+			name="jellyfin_enabled"
+			label="Jellyfin Updater"
+			{formData}
+			isForGroup={true}
+		/>
+		<CheckboxField {form} name="emby_enabled" label="Emby Updater" {formData} isForGroup={true} />
 	</GroupCheckboxField>
 
 	{#if $formData.plex_enabled}
@@ -165,6 +173,30 @@
 					</div>
 				</Form.Control>
 			</Form.Field>
+		</div>
+	{/if}
+
+	{#if $formData.jellyfin_enabled}
+		<div transition:slide>
+			<TextField {form} name="jellyfin_url" label="Jellyfin URL" {formData} />
+		</div>
+		<div transition:slide>
+			<TextField
+				{form}
+				name="jellyfin_token"
+				label="Jellyfin Token"
+				{formData}
+				isProtected={true}
+			/>
+		</div>
+	{/if}
+
+	{#if $formData.emby_enabled}
+		<div transition:slide>
+			<TextField {form} name="emby_url" label="Emby URL" {formData} />
+		</div>
+		<div transition:slide>
+			<TextField {form} name="emby_token" label="Emby Token" {formData} isProtected={true} />
 		</div>
 	{/if}
 

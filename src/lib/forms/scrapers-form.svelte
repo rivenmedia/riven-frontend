@@ -71,6 +71,22 @@
 		fieldDescription="Time to wait after 10 failed attempts in hours"
 	/>
 
+	<CheckboxField
+		{form}
+		name="enable_aliases"
+		label="Enable aliases"
+		{formData}
+		fieldDescription="Enable title aliases (e.g. Harry Potter and the Philosopher's Stone -> Harry Potter und der Stein der Weisen)"
+	/>
+
+	<NumberField
+		{form}
+		name="bucket_limit"
+		{formData}
+		stepValue={1}
+		fieldDescription="Limit the number of torrents that get taken per resolution bucket in each run"
+	/>
+
 	<GroupCheckboxField fieldTitle="Scrapers" fieldDescription="Enable the scrapers you want to use">
 		<CheckboxField {form} name="torrentio_enabled" label="Torrentio" {formData} isForGroup={true} />
 		<CheckboxField
@@ -154,9 +170,21 @@
 		</div>
 
 		<div transition:slide>
+			<CheckboxField {form} name="orionoid_cached_results_only" {formData} />
+		</div>
+
+		<div transition:slide>
+			<CheckboxField {form} name="orionoid_parameters_video3d" {formData} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="orionoid_parameters_videoquality" {formData} isProtected={true} />
+		</div>
+
+		<div transition:slide>
 			<NumberField
 				{form}
-				name="orionoid_limitcount"
+				name="orionoid_parameters_limitcount"
 				{formData}
 				stepValue={1}
 				fieldDescription="Search results limit"
@@ -205,53 +233,6 @@
 	{#if $formData.mediafusion_enabled}
 		<div transition:slide>
 			<TextField {form} name="mediafusion_url" {formData} />
-		</div>
-
-		<div transition:slide>
-			<ArrayField {form} name="mediafusion_catalogs" {formData}>
-				{#each $formData.mediafusion_catalogs as _, i}
-					<Form.ElementField {form} name="mediafusion_catalogs[{i}]">
-						<Form.Control let:attrs>
-							<div class="flex items-center gap-2">
-								<Input
-									type="text"
-									spellcheck="false"
-									autocomplete="false"
-									{...attrs}
-									bind:value={$formData.mediafusion_catalogs[i]}
-								/>
-
-								<div class="flex items-center gap-2">
-									<Form.Button
-										type="button"
-										size="sm"
-										variant="destructive"
-										on:click={() => {
-											removeField('mediafusion_catalogs', i);
-										}}
-									>
-										<Trash2 class="h-4 w-4" />
-									</Form.Button>
-								</div>
-							</div>
-						</Form.Control>
-					</Form.ElementField>
-				{/each}
-
-				<div class="flex w-full items-center justify-between gap-2">
-					<p class="text-sm text-muted-foreground">Add catalogs</p>
-					<Form.Button
-						type="button"
-						size="sm"
-						variant="outline"
-						on:click={() => {
-							addField('mediafusion_catalogs');
-						}}
-					>
-						<Plus class="h-4 w-4" />
-					</Form.Button>
-				</div>
-			</ArrayField>
 		</div>
 
 		<div transition:slide>

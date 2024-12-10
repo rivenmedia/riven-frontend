@@ -469,6 +469,17 @@
 				<NumberField {form} name="trakt_popular_count" {formData} stepValue={1} />
 			</div>
 		{/if}
+
+		<div transition:slide>
+			<CheckboxField {form} name="trakt_fetch_most_watched" {formData} />
+		</div>
+
+		{#if $formData.trakt_fetch_most_watched}
+			<div transition:slide>
+				<NumberField {form} name="trakt_most_watched_count" {formData} stepValue={1} />
+				<TextField {form} name="trakt_most_watched_period" {formData} />
+			</div>
+		{/if}
 	{/if}
 
 	<Separator class="mt-4" />
