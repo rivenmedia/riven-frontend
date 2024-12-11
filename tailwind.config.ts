@@ -1,5 +1,6 @@
 import { fontFamily } from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
+import { blur } from 'svelte/transition';
 
 const config: Config = {
 	darkMode: ['class'],
@@ -85,6 +86,20 @@ const config: Config = {
 					transparent 10px,
 					transparent 20px
 					)`
+			},
+			keyframes: {
+				'blur-in': {
+					'0%': { filter: 'blur(0px)' },
+					'100%': { filter: 'blur(4px)' }
+				},
+				'blur-out': {
+					'0%': { filter: 'blur(4px)' },
+					'100%': { filter: 'blur(0px)' }
+				}
+			},
+			animation: {
+				'blur-in': 'blur-in 0.5s forwards',
+				'blur-out': 'blur-out 0.5s forwards'
 			}
 		}
 	}
