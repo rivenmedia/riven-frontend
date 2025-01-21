@@ -11,16 +11,6 @@ export const AllDebridModelSchema = {
             type: 'string',
             title: 'Api Key',
             default: ''
-        },
-        proxy_enabled: {
-            type: 'boolean',
-            title: 'Proxy Enabled',
-            default: false
-        },
-        proxy_url: {
-            type: 'string',
-            title: 'Proxy Url',
-            default: ''
         }
     },
     type: 'object',
@@ -32,7 +22,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.18.0'
+            default: '0.20.1'
         },
         api_key: {
             type: 'string',
@@ -104,24 +94,16 @@ export const AppModelSchema = {
             '$ref': '#/components/schemas/DownloadersModel',
             default: {
                 video_extensions: ['mp4', 'mkv', 'avi'],
-                prefer_speed_over_quality: true,
-                movie_filesize_mb_min: -1,
+                movie_filesize_mb_min: 0,
                 movie_filesize_mb_max: -1,
-                episode_filesize_mb_min: -1,
+                episode_filesize_mb_min: 0,
                 episode_filesize_mb_max: -1,
+                proxy_url: '',
                 real_debrid: {
                     api_key: '',
-                    enabled: false,
-                    proxy_enabled: false,
-                    proxy_url: ''
+                    enabled: false
                 },
                 all_debrid: {
-                    api_key: '',
-                    enabled: false,
-                    proxy_enabled: false,
-                    proxy_url: ''
-                },
-                torbox: {
                     api_key: '',
                     enabled: false
                 }
@@ -187,6 +169,7 @@ export const AppModelSchema = {
                 after_10: 24,
                 parse_debug: false,
                 enable_aliases: true,
+                bucket_limit: 5,
                 torrentio: {
                     enabled: false,
                     filter: 'sort=qualitysize%7Cqualityfilter=480p,scr,cam',
@@ -228,12 +211,7 @@ export const AppModelSchema = {
                     ratelimit: true,
                     timeout: 30
                 },
-                torbox_scraper: {
-                    enabled: false,
-                    timeout: 30
-                },
                 mediafusion: {
-                    catalogs: ['prowlarr_streams', 'torrentio_streams', 'zilean_dmm_streams'],
                     enabled: false,
                     ratelimit: true,
                     timeout: 30,
@@ -271,13 +249,15 @@ export const AppModelSchema = {
                 },
                 options: {
                     allow_english_in_languages: false,
+                    enable_fetch_speed_mode: true,
+                    remove_adult_content: true,
                     remove_all_trash: true,
                     remove_ranks_under: -10000,
                     remove_unknown_languages: false,
                     title_similarity: 0.85
                 },
                 languages: {
-                    exclude: [],
+                    exclude: ['ar', 'hi', 'fr', 'es', 'de', 'ru', 'pt', 'it'],
                     preferred: [],
                     required: []
                 },
@@ -405,6 +385,11 @@ export const AppModelSchema = {
                             rank: 0,
                             use_custom_rank: false
                         },
+                        scene: {
+                            fetch: true,
+                            rank: 0,
+                            use_custom_rank: false
+                        },
                         site: {
                             fetch: false,
                             rank: 0,
@@ -422,13 +407,13 @@ export const AppModelSchema = {
                         }
                     },
                     hdr: {
-                        '10bit': {
+                        bit10: {
                             fetch: true,
                             rank: 0,
                             use_custom_rank: false
                         },
                         dolby_vision: {
-                            fetch: true,
+                            fetch: false,
                             rank: 0,
                             use_custom_rank: false
                         },
@@ -522,7 +507,7 @@ export const AppModelSchema = {
                             use_custom_rank: false
                         },
                         brrip: {
-                            fetch: false,
+                            fetch: true,
                             rank: 0,
                             use_custom_rank: false
                         },
@@ -532,7 +517,7 @@ export const AppModelSchema = {
                             use_custom_rank: false
                         },
                         hdrip: {
-                            fetch: false,
+                            fetch: true,
                             rank: 0,
                             use_custom_rank: false
                         },
@@ -662,6 +647,56 @@ export const AppModelSchema = {
     },
     type: 'object',
     title: 'AppModel'
+} as const;
+
+export const AudioRankModelSchema = {
+    properties: {
+        aac: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        ac3: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        atmos: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dolby_digital: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dolby_digital_plus: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dts_lossy: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dts_lossless: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        eac3: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        flac: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        mono: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        mp3: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        stereo: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        surround: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        truehd: {
+            '$ref': '#/components/schemas/CustomRank'
+        }
+    },
+    type: 'object',
+    title: 'AudioRankModel',
+    description: 'Ranking configuration for audio attributes.'
 } as const;
 
 export const CometConfigSchema = {
@@ -836,6 +871,32 @@ export const CustomRankSchema = {
     description: 'Custom Ranks used in SettingsModel.'
 } as const;
 
+export const CustomRanksConfigSchema = {
+    properties: {
+        quality: {
+            '$ref': '#/components/schemas/QualityRankModel'
+        },
+        rips: {
+            '$ref': '#/components/schemas/RipsRankModel'
+        },
+        hdr: {
+            '$ref': '#/components/schemas/HdrRankModel'
+        },
+        audio: {
+            '$ref': '#/components/schemas/AudioRankModel'
+        },
+        extras: {
+            '$ref': '#/components/schemas/ExtrasRankModel'
+        },
+        trash: {
+            '$ref': '#/components/schemas/TrashRankModel'
+        }
+    },
+    type: 'object',
+    title: 'CustomRanksConfig',
+    description: 'Configuration for custom ranks.'
+} as const;
+
 export const DatabaseModelSchema = {
     properties: {
         host: {
@@ -848,6 +909,47 @@ export const DatabaseModelSchema = {
     title: 'DatabaseModel'
 } as const;
 
+export const DebridFileSchema = {
+    properties: {
+        file_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'File Id'
+        },
+        filename: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filename'
+        },
+        filesize: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filesize'
+        }
+    },
+    type: 'object',
+    title: 'DebridFile',
+    description: 'Represents a file in from a debrid service'
+} as const;
+
 export const DownloadersModelSchema = {
     properties: {
         video_extensions: {
@@ -858,15 +960,10 @@ export const DownloadersModelSchema = {
             title: 'Video Extensions',
             default: ['mp4', 'mkv', 'avi']
         },
-        prefer_speed_over_quality: {
-            type: 'boolean',
-            title: 'Prefer Speed Over Quality',
-            default: true
-        },
         movie_filesize_mb_min: {
             type: 'integer',
             title: 'Movie Filesize Mb Min',
-            default: -1
+            default: 0
         },
         movie_filesize_mb_max: {
             type: 'integer',
@@ -876,33 +973,27 @@ export const DownloadersModelSchema = {
         episode_filesize_mb_min: {
             type: 'integer',
             title: 'Episode Filesize Mb Min',
-            default: -1
+            default: 0
         },
         episode_filesize_mb_max: {
             type: 'integer',
             title: 'Episode Filesize Mb Max',
             default: -1
         },
+        proxy_url: {
+            type: 'string',
+            title: 'Proxy Url',
+            default: ''
+        },
         real_debrid: {
             '$ref': '#/components/schemas/RealDebridModel',
             default: {
                 enabled: false,
-                api_key: '',
-                proxy_enabled: false,
-                proxy_url: ''
+                api_key: ''
             }
         },
         all_debrid: {
             '$ref': '#/components/schemas/AllDebridModel',
-            default: {
-                enabled: false,
-                api_key: '',
-                proxy_enabled: false,
-                proxy_url: ''
-            }
-        },
-        torbox: {
-            '$ref': '#/components/schemas/TorboxModel',
             default: {
                 enabled: false,
                 api_key: ''
@@ -947,24 +1038,54 @@ export const EventResponseSchema = {
     title: 'EventResponse'
 } as const;
 
-export const EventUpdateSchema = {
+export const ExtrasRankModelSchema = {
     properties: {
-        item_id: {
-            type: 'integer',
-            title: 'Item Id'
+        '3d': {
+            '$ref': '#/components/schemas/CustomRank'
         },
-        emitted_by: {
-            type: 'string',
-            title: 'Emitted By'
+        converted: {
+            '$ref': '#/components/schemas/CustomRank'
         },
-        run_at: {
-            type: 'string',
-            title: 'Run At'
+        documentary: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dubbed: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        edition: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hardcoded: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        network: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        proper: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        repack: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        retail: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        site: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        subbed: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        upscaled: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        scene: {
+            '$ref': '#/components/schemas/CustomRank'
         }
     },
     type: 'object',
-    required: ['item_id', 'emitted_by', 'run_at'],
-    title: 'EventUpdate'
+    title: 'ExtrasRankModel',
+    description: 'Ranking configuration for extras attributes.'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -979,6 +1100,29 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const HdrRankModelSchema = {
+    properties: {
+        bit10: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dolby_vision: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hdr: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hdr10plus: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        sdr: {
+            '$ref': '#/components/schemas/CustomRank'
+        }
+    },
+    type: 'object',
+    title: 'HdrRankModel',
+    description: 'Ranking configuration for HDR attributes.'
 } as const;
 
 export const IndexerModelSchema = {
@@ -1114,6 +1258,36 @@ export const KnightcrawlerConfigSchema = {
     title: 'KnightcrawlerConfig'
 } as const;
 
+export const LanguagesConfigSchema = {
+    properties: {
+        required: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Required'
+        },
+        exclude: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Exclude',
+            default: ['ar', 'hi', 'fr', 'es', 'de', 'ru', 'pt', 'it']
+        },
+        preferred: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Preferred'
+        }
+    },
+    type: 'object',
+    title: 'LanguagesConfig',
+    description: 'Configuration for which languages are enabled.'
+} as const;
+
 export const ListrrModelSchema = {
     properties: {
         update_interval: {
@@ -1210,14 +1384,6 @@ export const MediafusionConfigSchema = {
             type: 'boolean',
             title: 'Ratelimit',
             default: true
-        },
-        catalogs: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Catalogs',
-            default: ['prowlarr_streams', 'torrentio_streams', 'zilean_dmm_streams']
         }
     },
     type: 'object',
@@ -1267,6 +1433,49 @@ export const NotificationsModelSchema = {
     },
     type: 'object',
     title: 'NotificationsModel'
+} as const;
+
+export const OptionsConfigSchema = {
+    properties: {
+        title_similarity: {
+            type: 'number',
+            title: 'Title Similarity',
+            default: 0.85
+        },
+        remove_all_trash: {
+            type: 'boolean',
+            title: 'Remove All Trash',
+            default: true
+        },
+        remove_ranks_under: {
+            type: 'integer',
+            title: 'Remove Ranks Under',
+            default: -10000
+        },
+        remove_unknown_languages: {
+            type: 'boolean',
+            title: 'Remove Unknown Languages',
+            default: false
+        },
+        allow_english_in_languages: {
+            type: 'boolean',
+            title: 'Allow English In Languages',
+            default: false
+        },
+        enable_fetch_speed_mode: {
+            type: 'boolean',
+            title: 'Enable Fetch Speed Mode',
+            default: true
+        },
+        remove_adult_content: {
+            type: 'boolean',
+            title: 'Remove Adult Content',
+            default: true
+        }
+    },
+    type: 'object',
+    title: 'OptionsConfig',
+    description: 'Configuration for various options.'
 } as const;
 
 export const OrionoidConfigSchema = {
@@ -1362,6 +1571,11 @@ export const ParsedDataSchema = {
         trash: {
             type: 'boolean',
             title: 'Trash',
+            default: false
+        },
+        adult: {
+            type: 'boolean',
+            title: 'Adult',
             default: false
         },
         year: {
@@ -1683,6 +1897,11 @@ export const ParsedDataSchema = {
             type: 'boolean',
             title: 'Torrent',
             default: false
+        },
+        scene: {
+            type: 'boolean',
+            title: 'Scene',
+            default: false
         }
     },
     type: 'object',
@@ -1801,6 +2020,53 @@ export const ProwlarrConfigSchema = {
     title: 'ProwlarrConfig'
 } as const;
 
+export const QualityRankModelSchema = {
+    properties: {
+        av1: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        avc: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        bluray: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dvd: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hdtv: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hevc: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        mpeg: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        remux: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        vhs: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        web: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        webdl: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        webmux: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        xvid: {
+            '$ref': '#/components/schemas/CustomRank'
+        }
+    },
+    type: 'object',
+    title: 'QualityRankModel',
+    description: 'Ranking configuration for quality attributes.'
+} as const;
+
 export const RDUserSchema = {
     properties: {
         id: {
@@ -1850,6 +2116,7 @@ export const RTNSettingsModelSchema = {
         profile: {
             type: 'string',
             title: 'Profile',
+            description: 'Identifier for the settings profile',
             default: 'default'
         },
         require: {
@@ -1858,7 +2125,7 @@ export const RTNSettingsModelSchema = {
             },
             type: 'array',
             title: 'Require',
-            default: []
+            description: 'Patterns torrents must match to be considered'
         },
         exclude: {
             items: {
@@ -1866,7 +2133,7 @@ export const RTNSettingsModelSchema = {
             },
             type: 'array',
             title: 'Exclude',
-            default: []
+            description: 'Patterns that, if matched, result in torrent exclusion'
         },
         preferred: {
             items: {
@@ -1874,386 +2141,23 @@ export const RTNSettingsModelSchema = {
             },
             type: 'array',
             title: 'Preferred',
-            default: []
+            description: 'Patterns indicating preferred attributes in torrents'
         },
         resolutions: {
-            additionalProperties: {
-                type: 'boolean'
-            },
-            type: 'object',
-            title: 'Resolutions',
-            default: {
-                '2160p': false,
-                '1080p': true,
-                '720p': true,
-                '480p': false,
-                '360p': false,
-                unknown: true
-            }
+            '$ref': '#/components/schemas/ResolutionConfig',
+            description: 'Configuration for enabled resolutions'
         },
         options: {
-            type: 'object',
-            title: 'Options',
-            default: {
-                title_similarity: 0.85,
-                remove_all_trash: true,
-                remove_ranks_under: -10000,
-                remove_unknown_languages: false,
-                allow_english_in_languages: false
-            }
+            '$ref': '#/components/schemas/OptionsConfig',
+            description: 'General options for torrent filtering and ranking'
         },
         languages: {
-            type: 'object',
-            title: 'Languages',
-            default: {
-                required: [],
-                exclude: [],
-                preferred: []
-            }
+            '$ref': '#/components/schemas/LanguagesConfig',
+            description: 'Language preferences and restrictions'
         },
         custom_ranks: {
-            additionalProperties: {
-                additionalProperties: {
-                    '$ref': '#/components/schemas/CustomRank'
-                },
-                type: 'object'
-            },
-            type: 'object',
-            title: 'Custom Ranks',
-            default: {
-                quality: {
-                    av1: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    avc: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    bluray: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dvd: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hdtv: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hevc: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    mpeg: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    remux: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    vhs: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    web: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    webdl: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    webmux: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    xvid: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                },
-                rips: {
-                    bdrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    brrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dvdrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hdrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    ppvrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    satrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    tvrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    uhdrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    vhsrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    webdlrip: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    webrip: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                },
-                hdr: {
-                    '10bit': {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dolby_vision: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hdr: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hdr10plus: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    sdr: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                },
-                audio: {
-                    aac: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    ac3: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    atmos: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dolby_digital: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dolby_digital_plus: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dts_lossless: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dts_lossy: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    eac3: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    flac: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    mono: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    mp3: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    stereo: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    surround: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    truehd: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                },
-                extras: {
-                    '3d': {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    converted: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    documentary: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    dubbed: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    edition: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    hardcoded: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    network: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    proper: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    repack: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    retail: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    site: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    subbed: {
-                        fetch: true,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    upscaled: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                },
-                trash: {
-                    cam: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    clean_audio: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    pdtv: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    r5: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    screener: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    size: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    telecine: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    },
-                    telesync: {
-                        fetch: false,
-                        rank: 0,
-                        use_custom_rank: false
-                    }
-                }
-            }
+            '$ref': '#/components/schemas/CustomRanksConfig',
+            description: 'Custom ranking configurations for specific attributes'
         }
     },
     type: 'object',
@@ -2270,16 +2174,6 @@ export const RealDebridModelSchema = {
         api_key: {
             type: 'string',
             title: 'Api Key',
-            default: ''
-        },
-        proxy_enabled: {
-            type: 'boolean',
-            title: 'Proxy Enabled',
-            default: false
-        },
-        proxy_url: {
-            type: 'string',
-            title: 'Proxy Url',
             default: ''
         }
     },
@@ -2325,6 +2219,44 @@ export const ResetResponseSchema = {
     title: 'ResetResponse'
 } as const;
 
+export const ResolutionConfigSchema = {
+    properties: {
+        '2160p': {
+            type: 'boolean',
+            title: '2160P',
+            default: false
+        },
+        '1080p': {
+            type: 'boolean',
+            title: '1080P',
+            default: true
+        },
+        '720p': {
+            type: 'boolean',
+            title: '720P',
+            default: true
+        },
+        '480p': {
+            type: 'boolean',
+            title: '480P',
+            default: false
+        },
+        '360p': {
+            type: 'boolean',
+            title: '360P',
+            default: false
+        },
+        unknown: {
+            type: 'boolean',
+            title: 'Unknown',
+            default: true
+        }
+    },
+    type: 'object',
+    title: 'ResolutionConfig',
+    description: 'Configuration for which resolutions are enabled.'
+} as const;
+
 export const RetryResponseSchema = {
     properties: {
         message: {
@@ -2342,6 +2274,47 @@ export const RetryResponseSchema = {
     type: 'object',
     required: ['message', 'ids'],
     title: 'RetryResponse'
+} as const;
+
+export const RipsRankModelSchema = {
+    properties: {
+        bdrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        brrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        dvdrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        hdrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        ppvrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        satrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        tvrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        uhdrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        vhsrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        webdlrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        webrip: {
+            '$ref': '#/components/schemas/CustomRank'
+        }
+    },
+    type: 'object',
+    title: 'RipsRankModel',
+    description: 'Ranking configuration for rips attributes.'
 } as const;
 
 export const RootResponseSchema = {
@@ -2406,6 +2379,13 @@ export const ScraperModelSchema = {
             title: 'Enable Aliases',
             default: true
         },
+        bucket_limit: {
+            type: 'integer',
+            maximum: 20,
+            minimum: 0,
+            title: 'Bucket Limit',
+            default: 5
+        },
         torrentio: {
             '$ref': '#/components/schemas/TorrentioConfig',
             default: {
@@ -2462,21 +2442,13 @@ export const ScraperModelSchema = {
                 ratelimit: true
             }
         },
-        torbox_scraper: {
-            '$ref': '#/components/schemas/TorBoxScraperConfig',
-            default: {
-                enabled: false,
-                timeout: 30
-            }
-        },
         mediafusion: {
             '$ref': '#/components/schemas/MediafusionConfig',
             default: {
                 enabled: false,
                 url: 'https://mediafusion.elfhosted.com',
                 timeout: 30,
-                ratelimit: true,
-                catalogs: ['prowlarr_streams', 'torrentio_streams', 'zilean_dmm_streams']
+                ratelimit: true
             }
         },
         zilean: {
@@ -2585,14 +2557,13 @@ export const StartSessionResponseSchema = {
             title: 'Torrent Id'
         },
         torrent_info: {
-            type: 'object',
-            title: 'Torrent Info'
+            '$ref': '#/components/schemas/TorrentInfo'
         },
         containers: {
             anyOf: [
                 {
                     items: {
-                        type: 'object'
+                        '$ref': '#/components/schemas/TorrentContainer'
                     },
                     type: 'array'
                 },
@@ -2678,6 +2649,9 @@ export const StatsResponseSchema = {
         states: {
             additionalProperties: {
                 type: 'integer'
+            },
+            propertyNames: {
+                '$ref': '#/components/schemas/States'
             },
             type: 'object',
             title: 'States'
@@ -2793,38 +2767,100 @@ export const SymlinkModelSchema = {
     title: 'SymlinkModel'
 } as const;
 
-export const TorBoxScraperConfigSchema = {
+export const TorrentContainerSchema = {
     properties: {
-        enabled: {
-            type: 'boolean',
-            title: 'Enabled',
-            default: false
+        infohash: {
+            type: 'string',
+            title: 'Infohash'
         },
-        timeout: {
-            type: 'integer',
-            title: 'Timeout',
-            default: 30
+        files: {
+            items: {
+                '$ref': '#/components/schemas/DebridFile'
+            },
+            type: 'array',
+            title: 'Files'
         }
     },
     type: 'object',
-    title: 'TorBoxScraperConfig'
+    required: ['infohash'],
+    title: 'TorrentContainer',
+    description: 'Represents a collection of files from an infohash from a debrid service'
 } as const;
 
-export const TorboxModelSchema = {
+export const TorrentInfoSchema = {
     properties: {
-        enabled: {
-            type: 'boolean',
-            title: 'Enabled',
-            default: false
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'string'
+                }
+            ],
+            title: 'Id'
         },
-        api_key: {
+        name: {
             type: 'string',
-            title: 'Api Key',
-            default: ''
+            title: 'Name'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        infohash: {
+            type: 'string',
+            title: 'Infohash'
+        },
+        progress: {
+            type: 'number',
+            title: 'Progress'
+        },
+        bytes: {
+            type: 'integer',
+            title: 'Bytes'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        expires_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Expires At'
+        },
+        completed_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Completed At'
+        },
+        alternative_filename: {
+            type: 'string',
+            title: 'Alternative Filename'
+        },
+        files: {
+            additionalProperties: {
+                additionalProperties: {
+                    anyOf: [
+                        {
+                            type: 'integer'
+                        },
+                        {
+                            type: 'string'
+                        }
+                    ]
+                },
+                type: 'object'
+            },
+            type: 'object',
+            title: 'Files'
         }
     },
     type: 'object',
-    title: 'TorboxModel'
+    required: ['id', 'name'],
+    title: 'TorrentInfo',
+    description: 'Torrent information from a debrid service'
 } as const;
 
 export const TorrentioConfigSchema = {
@@ -2993,6 +3029,38 @@ export const TraktOauthModelSchema = {
     },
     type: 'object',
     title: 'TraktOauthModel'
+} as const;
+
+export const TrashRankModelSchema = {
+    properties: {
+        cam: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        clean_audio: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        pdtv: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        r5: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        screener: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        size: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        telecine: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        telesync: {
+            '$ref': '#/components/schemas/CustomRank'
+        }
+    },
+    type: 'object',
+    title: 'TrashRankModel',
+    description: 'Ranking configuration for trash attributes.'
 } as const;
 
 export const UpdateAttributesResponseSchema = {

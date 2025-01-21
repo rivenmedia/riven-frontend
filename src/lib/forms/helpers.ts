@@ -37,8 +37,6 @@ export const generalSettingsSchema = z.object({
 	proxy_url: z.string().optional().default(''),
 	realdebrid_enabled: z.boolean().default(false),
 	realdebrid_api_key: z.string().optional().default(''),
-	torbox_enabled: z.boolean().default(false),
-	torbox_api_key: z.string().optional().default(''),
 	alldebrid_enabled: z.boolean().default(false),
 	alldebrid_api_key: z.string().optional().default(''),
 	database_host: z
@@ -84,8 +82,6 @@ export function generalSettingsToPass(data: any) {
 		proxy_url: data.downloaders.proxy_url,
 		realdebrid_enabled: data.downloaders.real_debrid.enabled,
 		realdebrid_api_key: data.downloaders.real_debrid?.api_key,
-		torbox_enabled: data.downloaders.torbox.enabled,
-		torbox_api_key: data.downloaders.torbox.api_key,
 		alldebrid_enabled: data.downloaders.all_debrid.enabled,
 		alldebrid_api_key: data.downloaders.all_debrid.api_key,
 		database_host: data.database.host,
@@ -163,10 +159,6 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 				all_debrid: {
 					enabled: form.data.alldebrid_enabled,
 					api_key: form.data.alldebrid_api_key
-				},
-				torbox: {
-					enabled: form.data.torbox_enabled,
-					api_key: form.data.torbox_api_key
 				}
 			}
 		},
@@ -325,9 +317,6 @@ export const scrapersSettingsSchema = z.object({
 	prowlarr_ratelimit: z.boolean().default(true),
 	prowlarr_limiter_seconds: z.coerce.number().gte(0).int().optional().default(60),
 	prowlarr_api_key: z.string().optional().default(''),
-	torbox_scraper_enabled: z.boolean().default(false),
-	torbox_scraper_timeout: z.coerce.number().gte(0).int().optional().default(30),
-	torbox_scraper_ratelimit: z.boolean().default(true),
 	zilean_enabled: z.boolean().default(false),
 	zilean_url: z.string().optional().default('http://localhost:8181'),
 	zilean_timeout: z.coerce.number().gte(0).int().optional().default(30),
@@ -381,9 +370,6 @@ export function scrapersSettingsToPass(data: any) {
 		prowlarr_timeout: data.scraping.prowlarr.timeout,
 		prowlarr_ratelimit: data.scraping.prowlarr.ratelimit,
 		prowlarr_limiter_seconds: data.scraping.prowlarr.limiter_seconds,
-		torbox_scraper_enabled: data.scraping.torbox_scraper.enabled,
-		torbox_scraper_timeout: data.scraping.torbox_scraper.timeout,
-		torbox_scraper_ratelimit: data.scraping.torbox_scraper.ratelimit,
 		zilean_enabled: data.scraping.zilean.enabled,
 		zilean_url: data.scraping.zilean.url,
 		zilean_timeout: data.scraping.zilean.timeout,
@@ -451,11 +437,6 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 					timeout: form.data.prowlarr_timeout,
 					ratelimit: form.data.prowlarr_ratelimit,
 					limiter_seconds: form.data.prowlarr_limiter_seconds
-				},
-				torbox_scraper: {
-					enabled: form.data.torbox_scraper_enabled,
-					timeout: form.data.torbox_scraper_timeout,
-					ratelimit: form.data.torbox_scraper_ratelimit
 				},
 				zilean: {
 					enabled: form.data.zilean_enabled,

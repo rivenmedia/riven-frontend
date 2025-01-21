@@ -3,8 +3,6 @@
 export type AllDebridModel = {
     enabled?: boolean;
     api_key?: string;
-    proxy_enabled?: boolean;
-    proxy_url?: string;
 };
 
 export type AppModel = {
@@ -26,6 +24,26 @@ export type AppModel = {
     database?: DatabaseModel;
     notifications?: NotificationsModel;
     post_processing?: PostProcessing;
+};
+
+/**
+ * Ranking configuration for audio attributes.
+ */
+export type AudioRankModel = {
+    aac?: CustomRank;
+    ac3?: CustomRank;
+    atmos?: CustomRank;
+    dolby_digital?: CustomRank;
+    dolby_digital_plus?: CustomRank;
+    dts_lossy?: CustomRank;
+    dts_lossless?: CustomRank;
+    eac3?: CustomRank;
+    flac?: CustomRank;
+    mono?: CustomRank;
+    mp3?: CustomRank;
+    stereo?: CustomRank;
+    surround?: CustomRank;
+    truehd?: CustomRank;
 };
 
 export type CometConfig = {
@@ -80,20 +98,40 @@ export type CustomRank = {
     rank?: number;
 };
 
+/**
+ * Configuration for custom ranks.
+ */
+export type CustomRanksConfig = {
+    quality?: QualityRankModel;
+    rips?: RipsRankModel;
+    hdr?: HdrRankModel;
+    audio?: AudioRankModel;
+    extras?: ExtrasRankModel;
+    trash?: TrashRankModel;
+};
+
 export type DatabaseModel = {
     host?: string;
 };
 
+/**
+ * Represents a file in from a debrid service
+ */
+export type DebridFile = {
+    file_id?: (number | null);
+    filename?: (string | null);
+    filesize?: (number | null);
+};
+
 export type DownloadersModel = {
     video_extensions?: Array<(string)>;
-    prefer_speed_over_quality?: boolean;
     movie_filesize_mb_min?: number;
     movie_filesize_mb_max?: number;
     episode_filesize_mb_min?: number;
     episode_filesize_mb_max?: number;
+    proxy_url?: string;
     real_debrid?: RealDebridModel;
     all_debrid?: AllDebridModel;
-    torbox?: TorboxModel;
 };
 
 export type EmbyLibraryModel = {
@@ -108,14 +146,39 @@ export type EventResponse = {
     };
 };
 
-export type EventUpdate = {
-    item_id: number;
-    emitted_by: string;
-    run_at: string;
+/**
+ * Ranking configuration for extras attributes.
+ */
+export type ExtrasRankModel = {
+    '3d'?: CustomRank;
+    converted?: CustomRank;
+    documentary?: CustomRank;
+    dubbed?: CustomRank;
+    edition?: CustomRank;
+    hardcoded?: CustomRank;
+    network?: CustomRank;
+    proper?: CustomRank;
+    repack?: CustomRank;
+    retail?: CustomRank;
+    site?: CustomRank;
+    subbed?: CustomRank;
+    upscaled?: CustomRank;
+    scene?: CustomRank;
 };
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
+};
+
+/**
+ * Ranking configuration for HDR attributes.
+ */
+export type HdrRankModel = {
+    bit10?: CustomRank;
+    dolby_vision?: CustomRank;
+    hdr?: CustomRank;
+    hdr10plus?: CustomRank;
+    sdr?: CustomRank;
 };
 
 export type IndexerModel = {
@@ -155,6 +218,15 @@ export type KnightcrawlerConfig = {
     ratelimit?: boolean;
 };
 
+/**
+ * Configuration for which languages are enabled.
+ */
+export type LanguagesConfig = {
+    required?: Array<(string)>;
+    exclude?: Array<(string)>;
+    preferred?: Array<(string)>;
+};
+
 export type ListrrModel = {
     update_interval?: number;
     enabled?: boolean;
@@ -175,7 +247,6 @@ export type MediafusionConfig = {
     url?: string;
     timeout?: number;
     ratelimit?: boolean;
-    catalogs?: Array<(string)>;
 };
 
 export type MessageResponse = {
@@ -187,6 +258,19 @@ export type NotificationsModel = {
     title?: string;
     on_item_type?: Array<(string)>;
     service_urls?: Array<(string)>;
+};
+
+/**
+ * Configuration for various options.
+ */
+export type OptionsConfig = {
+    title_similarity?: number;
+    remove_all_trash?: boolean;
+    remove_ranks_under?: number;
+    remove_unknown_languages?: boolean;
+    allow_english_in_languages?: boolean;
+    enable_fetch_speed_mode?: boolean;
+    remove_adult_content?: boolean;
 };
 
 export type OrionoidConfig = {
@@ -219,6 +303,7 @@ export type ParsedData = {
     parsed_title?: string;
     normalized_title?: string;
     trash?: boolean;
+    adult?: boolean;
     year?: (number | null);
     resolution?: string;
     seasons?: Array<(number)>;
@@ -259,6 +344,7 @@ export type ParsedData = {
     extension?: (string | null);
     extras?: Array<(string)>;
     torrent?: boolean;
+    scene?: boolean;
 };
 
 export type PlexLibraryModel = {
@@ -286,6 +372,25 @@ export type ProwlarrConfig = {
     limiter_seconds?: number;
 };
 
+/**
+ * Ranking configuration for quality attributes.
+ */
+export type QualityRankModel = {
+    av1?: CustomRank;
+    avc?: CustomRank;
+    bluray?: CustomRank;
+    dvd?: CustomRank;
+    hdtv?: CustomRank;
+    hevc?: CustomRank;
+    mpeg?: CustomRank;
+    remux?: CustomRank;
+    vhs?: CustomRank;
+    web?: CustomRank;
+    webdl?: CustomRank;
+    webmux?: CustomRank;
+    xvid?: CustomRank;
+};
+
 export type RDUser = {
     id: number;
     username: string;
@@ -309,31 +414,43 @@ export type RDUser = {
 export type type = 'free' | 'premium';
 
 export type RTNSettingsModel = {
+    /**
+     * Identifier for the settings profile
+     */
     profile?: string;
+    /**
+     * Patterns torrents must match to be considered
+     */
     require?: Array<(string)>;
+    /**
+     * Patterns that, if matched, result in torrent exclusion
+     */
     exclude?: Array<(string)>;
+    /**
+     * Patterns indicating preferred attributes in torrents
+     */
     preferred?: Array<(string)>;
-    resolutions?: {
-        [key: string]: (boolean);
-    };
-    options?: {
-        [key: string]: unknown;
-    };
-    languages?: {
-        [key: string]: unknown;
-    };
-    custom_ranks?: {
-        [key: string]: {
-            [key: string]: CustomRank;
-        };
-    };
+    /**
+     * Configuration for enabled resolutions
+     */
+    resolutions?: ResolutionConfig;
+    /**
+     * General options for torrent filtering and ranking
+     */
+    options?: OptionsConfig;
+    /**
+     * Language preferences and restrictions
+     */
+    languages?: LanguagesConfig;
+    /**
+     * Custom ranking configurations for specific attributes
+     */
+    custom_ranks?: CustomRanksConfig;
 };
 
 export type RealDebridModel = {
     enabled?: boolean;
     api_key?: string;
-    proxy_enabled?: boolean;
-    proxy_url?: string;
 };
 
 export type RemoveResponse = {
@@ -346,9 +463,38 @@ export type ResetResponse = {
     ids: Array<(string)>;
 };
 
+/**
+ * Configuration for which resolutions are enabled.
+ */
+export type ResolutionConfig = {
+    '2160p'?: boolean;
+    '1080p'?: boolean;
+    '720p'?: boolean;
+    '480p'?: boolean;
+    '360p'?: boolean;
+    unknown?: boolean;
+};
+
 export type RetryResponse = {
     message: string;
     ids: Array<(string)>;
+};
+
+/**
+ * Ranking configuration for rips attributes.
+ */
+export type RipsRankModel = {
+    bdrip?: CustomRank;
+    brrip?: CustomRank;
+    dvdrip?: CustomRank;
+    hdrip?: CustomRank;
+    ppvrip?: CustomRank;
+    satrip?: CustomRank;
+    tvrip?: CustomRank;
+    uhdrip?: CustomRank;
+    vhsrip?: CustomRank;
+    webdlrip?: CustomRank;
+    webrip?: CustomRank;
 };
 
 export type RootResponse = {
@@ -369,12 +515,12 @@ export type ScraperModel = {
     after_10?: number;
     parse_debug?: boolean;
     enable_aliases?: boolean;
+    bucket_limit?: number;
     torrentio?: TorrentioConfig;
     knightcrawler?: KnightcrawlerConfig;
     jackett?: JackettConfig;
     prowlarr?: ProwlarrConfig;
     orionoid?: OrionoidConfig;
-    torbox_scraper?: TorBoxScraperConfig;
     mediafusion?: MediafusionConfig;
     zilean?: ZileanConfig;
     comet?: CometConfig;
@@ -420,12 +566,8 @@ export type StartSessionResponse = {
     message: string;
     session_id: string;
     torrent_id: string;
-    torrent_info: {
-        [key: string]: unknown;
-    };
-    containers: (Array<{
-    [key: string]: unknown;
-}> | null);
+    torrent_info: TorrentInfo;
+    containers: (Array<TorrentContainer> | null);
     expires_at: string;
 };
 
@@ -481,14 +623,33 @@ export type SymlinkModel = {
     repair_interval?: number;
 };
 
-export type TorBoxScraperConfig = {
-    enabled?: boolean;
-    timeout?: number;
+/**
+ * Represents a collection of files from an infohash from a debrid service
+ */
+export type TorrentContainer = {
+    infohash: string;
+    files?: Array<DebridFile>;
 };
 
-export type TorboxModel = {
-    enabled?: boolean;
-    api_key?: string;
+/**
+ * Torrent information from a debrid service
+ */
+export type TorrentInfo = {
+    id: (number | string);
+    name: string;
+    status?: string;
+    infohash?: string;
+    progress?: number;
+    bytes?: number;
+    created_at?: string;
+    expires_at?: string;
+    completed_at?: string;
+    alternative_filename?: string;
+    files?: {
+        [key: string]: {
+            [key: string]: (number | string);
+        };
+    };
 };
 
 export type TorrentioConfig = {
@@ -529,6 +690,20 @@ export type TraktOauthModel = {
     oauth_redirect_uri?: string;
     access_token?: string;
     refresh_token?: string;
+};
+
+/**
+ * Ranking configuration for trash attributes.
+ */
+export type TrashRankModel = {
+    cam?: CustomRank;
+    clean_audio?: CustomRank;
+    pdtv?: CustomRank;
+    r5?: CustomRank;
+    screener?: CustomRank;
+    size?: CustomRank;
+    telecine?: CustomRank;
+    telesync?: CustomRank;
 };
 
 export type UpdateAttributesResponse = {
@@ -582,10 +757,6 @@ export type GenerateapikeyResponse = (MessageResponse);
 
 export type GenerateapikeyError = (unknown);
 
-export type TorboxResponse = (unknown);
-
-export type TorboxError = (unknown);
-
 export type ServicesResponse = ({
     [key: string]: (boolean);
 });
@@ -615,7 +786,7 @@ export type LogsResponse = (string);
 export type LogsError = (unknown);
 
 export type EventsResponse = ({
-    [key: string]: Array<EventUpdate>;
+    [key: string]: Array<(string)>;
 });
 
 export type EventsError = (unknown);
