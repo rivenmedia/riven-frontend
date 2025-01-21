@@ -20,29 +20,6 @@ export interface RDUserResponse {
 	data: RDData;
 	downloader: string;
 }
-interface TorboxData {
-	id: number;
-	created_at: string;
-	updated_at: string;
-	email: string;
-	plan: number;
-	total_downloaded: number;
-	customer: string;
-	server: number;
-	is_subscribed: boolean;
-	premium_expires_at: string;
-	cooldown_until: string;
-	auth_id: string;
-	user_referral: string;
-	base_email: string;
-}
-
-export interface TorboxUserResponse {
-	success: boolean;
-	detail: string;
-	data: TorboxData;
-	downloader: string;
-}
 
 export interface RivenSubtitle {
 	id: number;

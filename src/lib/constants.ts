@@ -27,7 +27,6 @@ export const servicesObject: Record<string, string> = {
 	jackett: 'Jackett',
 	realdebrid: 'Real Debrid',
 	alldebrid: 'All Debrid',
-	torbox: 'Torbox',
 	mediafusion: 'Media Fusion',
 	prowlarr: 'Prowlarr',
 	zilean: 'Zilean',
@@ -47,7 +46,7 @@ export const coreServices = [
 	'post_processing',
 	'subliminal'
 ];
-export const downloaderServices = ['realdebrid', 'alldebrid', 'torbox'];
+export const downloaderServices = ['realdebrid', 'alldebrid'];
 export const contentServices = ['mdblist', 'overseerr', 'plex_watchlist', 'listrr', 'trakt'];
 export const scrapingServices = [
 	'torrentio',
@@ -57,6 +56,5 @@ export const scrapingServices = [
 	'mediafusion',
 	'prowlarr',
 	'zilean',
-	'torbox',
 	'comet'
 ];

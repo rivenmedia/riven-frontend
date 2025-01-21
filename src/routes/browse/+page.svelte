@@ -107,14 +107,14 @@
 	function mapSelectedStates(selectedStates: Selected<string>[]) {
 		try {
 			return [...(selectedStates?.values() ?? [])].map((v) => v?.value as keyof typeof states);
-		} catch (error) {
+		} catch {
 			return [];
 		}
 	}
 	function mapSelectedTypes(selectedTypes: Selected<string>[]) {
 		try {
 			return [...(selectedTypes?.values() ?? [])].map((v) => v?.value as keyof typeof types);
-		} catch (error) {
+		} catch {
 			return [];
 		}
 	}

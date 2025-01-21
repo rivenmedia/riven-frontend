@@ -106,13 +106,6 @@
 			isForGroup={true}
 		/>
 		<CheckboxField {form} name="prowlarr_enabled" label="Prowlarr" {formData} isForGroup={true} />
-		<CheckboxField
-			{form}
-			name="torbox_scraper_enabled"
-			label="Torbox"
-			{formData}
-			isForGroup={true}
-		/>
 		<CheckboxField {form} name="zilean_enabled" label="Zilean" {formData} isForGroup={true} />
 		<CheckboxField {form} name="comet_enabled" label="Comet" {formData} isForGroup={true} />
 	</GroupCheckboxField>
@@ -282,22 +275,6 @@
 
 		<div transition:slide>
 			<CheckboxField {form} name="prowlarr_ratelimit" {formData} />
-		</div>
-	{/if}
-
-	{#if $formData.torbox_scraper_enabled}
-		<div transition:slide>
-			<NumberField
-				{form}
-				name="torbox_scraper_timeout"
-				{formData}
-				stepValue={1}
-				fieldDescription="in seconds"
-			/>
-		</div>
-
-		<div transition:slide>
-			<CheckboxField {form} name="torbox_scraper_ratelimit" {formData} />
 		</div>
 	{/if}
 
