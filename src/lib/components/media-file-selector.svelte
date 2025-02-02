@@ -10,7 +10,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { LoaderCircle, AlertCircle, FileIcon, CircleX } from 'lucide-svelte';
 	import { ScrapeService } from '$lib/client';
-	import type { Stream, ContainerFile, Container, StartSessionResponse } from '$lib/client';
+	import type { Stream, StartSessionResponse, DebridFile, ScrapeItemResponse } from '$lib/client';
 	import { cn } from '$lib/utils';
 
 	export let mediaId: string;
@@ -22,7 +22,7 @@
 	let step = 1;
 	let streams: { magnet: string; stream: CustomStream }[] = [];
 	let sessionId: string | null = null;
-	let sessionData: (StartSessionResponse & { containers: Array<Container> }) | null = null;
+	let sessionData: StartSessionResponse | null = null;
 	let loading = false;
 	let error: string | null = null;
 
@@ -74,7 +74,7 @@
 		try {
 			loading = true;
 			error = null;
-			const response = await ScrapeService.startManualSessionApiV1ScrapeScrapeStartSessionPost({
+			const response = await ScrapeService.startManualSession({
 				query: {
 					item_id: mediaId,
 					magnet
@@ -83,7 +83,7 @@
 
 			if (response.data) {
 				sessionId = response.data.session_id;
-				sessionData = response.data as StartSessionResponse & { containers: Array<Container> };
+				sessionData = response.data;
 				step = 3;
 			} else {
 				if ('message' in response.error) {
@@ -99,7 +99,7 @@
 		}
 	}
 
-	async function selectFiles(files: Container) {
+	async function selectFiles(files: DebridFile[]) {
 		try {
 			loading = true;
 			error = null;
@@ -109,7 +109,7 @@
 				path: {
 					session_id: sessionId
 				},
-				body: files
+				body: Object.fromEntries(files.map((item) => [String(item.file_id), item]))
 			});
 
 			if (response.data) {
@@ -138,21 +138,19 @@
 
 	let selectedFilesMappings: FileMapping[] = [];
 
-	function handleFileSelection(files: Container) {
+	function handleFileSelection(files: DebridFile[]) {
 		// Convert selected files to mappings array for easier manipulation
-		selectedFilesMappings = Object.entries(files.root)
-			.filter(([_, file]) => file !== 'undefined')
-			.map(([id, file]) => {
-				const containerFile = file as unknown as ContainerFile;
+		selectedFilesMappings = files.map((file) => {
+			const containerFile = file as unknown as DebridFile;
 
-				return {
-					id,
-					filename: containerFile.filename,
-					filesize: containerFile.filesize || undefined,
-					// Try to extract season/episode from filename
-					...extractSeasonEpisode(containerFile.filename)
-				};
-			});
+			return {
+				id: String(containerFile.file_id),
+				filename: containerFile.filename || undefined,
+				filesize: containerFile.filesize || undefined,
+				// Try to extract season/episode from filename
+				...extractSeasonEpisode(containerFile.filename!)
+			};
+		});
 		validateMappings();
 		step = 4;
 	}
@@ -250,7 +248,7 @@
 	async function abortSession() {
 		if (sessionId) {
 			try {
-				await ScrapeService.abortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPost({
+				await ScrapeService.abortManualSession({
 					path: { session_id: sessionId }
 				});
 			} catch (err) {
@@ -458,34 +456,40 @@
 					<div class="grid gap-4">
 						{#if step === 3 && sessionData?.containers}
 							{#each sessionData.containers as container}
-								<button
-									class="w-full text-left"
-									on:click={() => {
-										selectFiles(container);
-										const filename = container.filename + '';
-										handleFileSelection({ root: { ...container, filename } });
-									}}
-								>
-									<Card.Root
-										class="w-full min-w-0 cursor-pointer transition-colors hover:bg-accent"
+								{#if !container.files}
+									<div class="text-center">No files available</div>
+								{:else if container.files.length === 0}
+									<div class="text-center">No files available</div>
+								{:else}
+									<button
+										class="w-full text-left"
+										on:click={() => {
+											if (!container.files) return;
+											selectFiles(container.files);
+											handleFileSelection(container.files);
+										}}
 									>
-										<Card.Content class="p-4">
-											<div class="grid gap-2">
-												{#each Object.entries(container) as [_id, file]}
-													<div class="flex items-center gap-2 rounded border p-2">
-														<FileIcon class="h-4 w-4" />
-														<span class="flex-1 truncate">{file.filename}</span>
-														{#if file.filesize}
-															<Badge variant="outline">
-																{(file.filesize / (1024 * 1024 * 1024)).toFixed(2)} GB
-															</Badge>
-														{/if}
-													</div>
-												{/each}
-											</div>
-										</Card.Content>
-									</Card.Root>
-								</button>
+										<Card.Root
+											class="w-full min-w-0 cursor-pointer transition-colors hover:bg-accent"
+										>
+											<Card.Content class="p-4">
+												<div class="grid gap-2">
+													{#each container.files as file}
+														<div class="flex items-center gap-2 rounded border p-2">
+															<FileIcon class="h-4 w-4" />
+															<span class="flex-1 truncate">{file.filename}</span>
+															{#if file.filesize}
+																<Badge variant="outline">
+																	{(file.filesize / (1024 * 1024 * 1024)).toFixed(2)} GB
+																</Badge>
+															{/if}
+														</div>
+													{/each}
+												</div>
+											</Card.Content>
+										</Card.Root>
+									</button>
+								{/if}
 							{/each}
 						{:else if step === 4}
 							<div class="grid gap-4">

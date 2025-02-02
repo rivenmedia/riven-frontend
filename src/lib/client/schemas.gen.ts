@@ -736,7 +736,7 @@ export const CometConfigSchema = {
 
 export const ContainerSchema = {
     additionalProperties: {
-        '$ref': '#/components/schemas/ContainerFile'
+        '$ref': '#/components/schemas/DebridFile'
     },
     type: 'object',
     title: 'Container',
@@ -753,30 +753,6 @@ Example:
         "filesize": 25573181861
     }
 }`
-} as const;
-
-export const ContainerFileSchema = {
-    properties: {
-        filename: {
-            type: 'string',
-            title: 'Filename'
-        },
-        filesize: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Filesize'
-        }
-    },
-    type: 'object',
-    required: ['filename'],
-    title: 'ContainerFile',
-    description: 'Individual file entry in a container'
 } as const;
 
 export const ContentModelSchema = {
@@ -947,7 +923,7 @@ export const DebridFileSchema = {
     },
     type: 'object',
     title: 'DebridFile',
-    description: 'Represents a file in from a debrid service'
+    description: 'Represents a file from a debrid service'
 } as const;
 
 export const DownloadersModelSchema = {
@@ -2522,7 +2498,7 @@ export const SetSettingsSchema = {
 export const ShowFileDataSchema = {
     additionalProperties: {
         additionalProperties: {
-            '$ref': '#/components/schemas/ContainerFile'
+            '$ref': '#/components/schemas/DebridFile'
         },
         type: 'object'
     },
