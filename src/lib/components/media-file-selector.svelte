@@ -140,17 +140,13 @@
 
 	function handleFileSelection(files: DebridFile[]) {
 		// Convert selected files to mappings array for easier manipulation
-		selectedFilesMappings = files.map((file) => {
-			const containerFile = file as unknown as DebridFile;
-
-			return {
-				id: String(containerFile.file_id),
-				filename: containerFile.filename || undefined,
-				filesize: containerFile.filesize || undefined,
-				// Try to extract season/episode from filename
-				...extractSeasonEpisode(containerFile.filename!)
-			};
-		});
+		selectedFilesMappings = files.map((file) => ({
+			id: String(file.file_id),
+			filename: file.filename || undefined,
+			filesize: file.filesize || undefined,
+			// Try to extract season/episode from filename
+			...extractSeasonEpisode(file.filename!)
+		}));
 		validateMappings();
 		step = 4;
 	}
