@@ -25,7 +25,6 @@
 	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
-	console.log(data)
 
 	async function deleteItem(id: number) {
 		const response = await ItemsService.removeItem({
