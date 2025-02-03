@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getMovieDetails, getTVDetails } from '$lib/tmdb';
+import { getMovieDetails, getTVDetails, TMDB_LANGUAGE } from '$lib/tmdb';
 import { ItemsService } from '$lib/client';
 import type { RivenItem } from '$lib/types';
 
@@ -22,17 +22,19 @@ export const load = (async ({ fetch, params }) => {
 				// TODO: Remove the ones that are not needed in future
 				return await getMovieDetails(
 					fetch,
-					'en-US',
+					TMDB_LANGUAGE,
 					'credits,external_ids,recommendations,similar,videos,keywords',
 					id
 				);
 			case 'tv':
-				return await getTVDetails(
+				const result = await getTVDetails(
 					fetch,
-					'en-US',
+					TMDB_LANGUAGE,
 					'credits,external_ids,recommendations,similar,videos,keywords',
 					id
 				);
+				console.log(result);
+				return result;
 		}
 	}
 

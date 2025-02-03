@@ -1,11 +1,11 @@
 import type { PageLoad } from './$types';
-import { getPerson } from '$lib/tmdb';
+import { getPerson, TMDB_LANGUAGE } from '$lib/tmdb';
 
 export const load = (async ({ fetch, params }) => {
 	const id = Number(params.id);
 
 	async function getDetails(id: number) {
-		return await getPerson(fetch, 'en-US', 'combined_credits', id);
+		return await getPerson(fetch, TMDB_LANGUAGE, 'combined_credits', id);
 	}
 
 	return {
