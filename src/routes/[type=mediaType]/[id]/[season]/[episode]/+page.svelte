@@ -6,6 +6,7 @@
 	import { statesName } from '$lib/constants';
 
 	export let data: PageData;
+	console.log(data);
 </script>
 
 <svelte:head>
@@ -39,7 +40,7 @@
 					>
 						<img
 							alt={data.details.id}
-							src="https://www.themoviedb.org/t/p/w780{data.details.poster_path}"
+							src="https://www.themoviedb.org/t/p/w780{data.details.still_path}"
 							class="h-full w-full object-cover object-center"
 						/>
 					</div>
@@ -57,6 +58,9 @@
 							<span class="text-base font-thin text-zinc-200">
 								{data.details.vote_average}
 							</span>
+							<div class="ml-4 text-base font-thin text-zinc-200">
+								{data.details.runtime} min
+							</div>
 						</div>
 					{/if}
 					{#if data.details.overview}
@@ -66,59 +70,6 @@
 					{/if}
 				</div>
 			</div>
-
-			{#if data.details.episodes}
-				<div
-					class="mb-32 mt-16 flex w-full select-none flex-col gap-4 rounded-lg bg-zinc-50/10 p-8"
-				>
-					<h3 class="text-2xl text-zinc-100">Episodes</h3>
-
-					<div class="relative flex w-full cursor-pointer flex-wrap">
-						{#each data.details.episodes as episode}
-							<a href="/tv/{data.mediaID}/{data.seasonNumber}/{episode.episode_number}" class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3">
-								<div class="h-full w-full overflow-hidden rounded-lg bg-white/10 shadow-xl">
-									<img
-										alt={episode.id}
-										src={episode.still_path
-											? `https://www.themoviedb.org/t/p/w780${episode.still_path}`
-											: 'https://via.placeholder.com/198x228.png?text=No+thumbnail'}
-										class=" h-full w-full object-cover brightness-75 transition-all duration-300 ease-in-out group-hover:scale-105"
-										loading="lazy"
-									/>
-									<div class="absolute left-0 top-0 flex h-full w-full flex-col px-4 py-3">
-										<div
-											class="line-clamp-2 w-fit rounded-md bg-zinc-900/60 px-2 text-sm font-medium capitalize text-white sm:text-base"
-										>
-											Episode {episode.episode_number}
-										</div>
-										<div class="mt-auto flex w-full justify-between">
-											{#if data.mediaItemDetails.find((x) => x.number == episode.episode_number)}
-												<div
-													class="mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-												>
-													{statesName[
-														data.mediaItemDetails.find((x) => x.number == episode.episode_number)
-															?.state ?? 'Unknown'
-													]}
-												</div>
-											{/if}
-											<div
-												class="ml-auto mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-											>
-												{#if episode.air_date}
-													{formatDate(episode.air_date, 'short')}
-												{:else}
-													TBD
-												{/if}
-											</div>
-										</div>
-									</div>
-								</div>
-							</a>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</div>
 	</div>
 </div>
