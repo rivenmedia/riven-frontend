@@ -100,6 +100,14 @@
 		if (!(data.riven && 'seasons' in data.riven)) return;
 		return data.riven.seasons.find((s) => s.number === season);
 	}
+
+	function getSymlinkCount(item: any): number {
+		return item.seasons.map((s) => s.episodes.filter((e) => e.symlinked).length).reduce((a, b) => a + b, 0);
+	}
+
+	function getEpisodeCount(item: any): number {
+		return item.seasons.map((s) => s.episodes.length).reduce((a, b) => a + b, 0);
+	}
 </script>
 
 <svelte:head>
@@ -229,7 +237,13 @@
 										{#if data.riven.requested_at}
 											<p>Requested at: {getTime(data.riven.requested_at)}</p>
 										{/if}
-										<p>Symlinked: {data.riven.symlinked}</p>
+										{#if isRivenShow(data.riven)}
+											<p>Symlinked: {data.riven.seasons.every((s) => s.episodes.every((e) => e.symlinked))
+												? 'All'
+												: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}</p>
+										{:else}
+											<p>SymLinked: {data.riven.symlinked}</p>
+										{/if}
 										{#if data.riven.folder}
 											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}

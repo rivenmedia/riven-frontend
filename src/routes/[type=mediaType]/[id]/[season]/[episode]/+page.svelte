@@ -179,7 +179,7 @@
 										{#if data.riven.requested_at}
 											<p>Requested at: {getTime(data.riven.requested_at)}</p>
 										{/if}
-										<p>Symlinked: {data.riven.symlinked}</p>
+										<p>Symlinked: {data.riven.symlinked ? 'Yes' : 'No'}</p>
 										{#if data.riven.folder}
 											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}

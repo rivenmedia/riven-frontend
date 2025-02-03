@@ -22,7 +22,7 @@ export const load = (async ({ fetch, params }) => {
 		return await getTVDetails(fetch, TMDB_LANGUAGE, null, tvID);
 	}
 
-	async function getMediaItemDetails(tvID: string): Promise<any[]> {
+	async function getMediaItemDetails(tvID: string): Promise<any> {
 		const { data } = await ItemsService.getItem({
 			path: {
 				id: tvID
@@ -32,10 +32,10 @@ export const load = (async ({ fetch, params }) => {
 			}
 		});
 		if (!data) {
-			return Promise.resolve([]);
+			return Promise.resolve(null);
 		}
 		const anyData = data as any;
-		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season).episodes;
+		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season);
 	}
 
 	return {
@@ -44,6 +44,6 @@ export const load = (async ({ fetch, params }) => {
 		mediaType: type,
 		mediaID: id,
 		seasonNumber: season,
-		mediaItemDetails: await getMediaItemDetails(id)
+		riven: await getMediaItemDetails(id)
 	};
 }) satisfies PageLoad;
