@@ -27,14 +27,12 @@ export const load = (async ({ fetch, params }) => {
 					id
 				);
 			case 'tv':
-				const result = await getTVDetails(
+				return await getTVDetails(
 					fetch,
 					TMDB_LANGUAGE,
 					'credits,external_ids,recommendations,similar,videos,keywords',
 					id
 				);
-				console.log(result);
-				return result;
 		}
 	}
 
