@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import type { TMDBSearchResponse } from './types';
 
 const TMDB_READ_ACCESS_TOKEN: string =
@@ -7,6 +8,7 @@ const HEADERS: Record<string, string> = {
 	'Content-Type': 'application/json;charset=utf-8'
 };
 const TMDB_BASE_URL: string = 'https://api.themoviedb.org/3';
+export const TMDB_LANGUAGE: string = env.PUBLIC_TMDB_LANGUAGE || 'en-US';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dictToQueryString(params: Record<string, any>): string {

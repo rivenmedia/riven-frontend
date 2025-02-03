@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PageLoad } from './$types';
-import { getTVSeasonDetails, getTVDetails } from '$lib/tmdb';
+import { getTVSeasonDetails, getTVDetails, TMDB_LANGUAGE } from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
 import { ItemsService } from '$lib/client';
 
@@ -14,12 +14,12 @@ export const load = (async ({ fetch, params }) => {
 	}
 
 	async function getDetails(tvID: string, seasonNumber: number) {
-		return await getTVSeasonDetails(fetch, 'en-US', null, tvID, seasonNumber);
+		return await getTVSeasonDetails(fetch, TMDB_LANGUAGE, null, tvID, seasonNumber);
 	}
 
 	// not using parent data since it will be fetched again with useless data
 	async function mediaDetails(tvID: string) {
-		return await getTVDetails(fetch, 'en-US', null, tvID);
+		return await getTVDetails(fetch, TMDB_LANGUAGE, null, tvID);
 	}
 
 	async function getMediaItemDetails(tvID: string): Promise<any[]> {
