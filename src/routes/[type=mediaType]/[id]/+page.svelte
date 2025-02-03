@@ -231,7 +231,7 @@
 										{/if}
 										<p>Symlinked: {data.riven.symlinked}</p>
 										{#if data.riven.folder}
-											<p>Folder: {data.riven.folder}</p>
+											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}
 										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
 											<p>Selected item file: {selectedMagnetItem.value.file}</p>
