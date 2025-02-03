@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { isRivenShow } from '$lib/utils.js';
+	import { getFormattedTime, isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -87,18 +87,17 @@
 		}
 	}
 
-	function getTime(time: string) {
-		const date = new Date(time);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
-	}
-
 	function getRivenSeason(season: number) {
 		if (!(data.riven && 'seasons' in data.riven)) return;
 		return data.riven.seasons.find((s) => s.number === season);
+	}
+
+	function getSymlinkCount(item: any): number {
+		return item.seasons.map((s) => s.episodes.filter((e) => e.symlinked).length).reduce((a, b) => a + b, 0);
+	}
+
+	function getEpisodeCount(item: any): number {
+		return item.seasons.map((s) => s.episodes.length).reduce((a, b) => a + b, 0);
 	}
 </script>
 
@@ -227,11 +226,17 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at)}</p>
+											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
-										<p>Symlinked: {data.riven.symlinked}</p>
+										{#if isRivenShow(data.riven)}
+											<p>Symlinked: {data.riven.seasons.every((s) => s.episodes.every((e) => e.symlinked))
+												? 'All'
+												: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}</p>
+										{:else}
+											<p>SymLinked: {data.riven.symlinked}</p>
+										{/if}
 										{#if data.riven.folder}
-											<p>Folder: {data.riven.folder}</p>
+											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}
 										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
 											<p>Selected item file: {selectedMagnetItem.value.file}</p>
@@ -627,7 +632,7 @@
 										>
 											Season {season.season_number}
 										</div>
-										{#if data.riven?.state == 'Completed'}
+										{#if !data.riven || data.riven?.state == 'Completed'}
 											<div
 												class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
 											>
