@@ -8,6 +8,7 @@ export const statesName: Record<string, string> = {
 	Completed: 'Completed',
 	PartiallyCompleted: 'Partially Completed',
 	Failed: 'Failed',
+	Paused: 'Paused',
 	Ongoing: 'Ongoing',
 	Unreleased: 'Unreleased'
 };
