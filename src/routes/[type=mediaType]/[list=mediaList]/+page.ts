@@ -1,5 +1,12 @@
 import type { PageLoad } from './$types';
-import { getTVPopular, getMoviesPopular, getTrending, MediaType, TimeWindow, TMDB_LANGUAGE } from '$lib/tmdb';
+import {
+	getTVPopular,
+	getMoviesPopular,
+	getTrending,
+	MediaType,
+	TimeWindow,
+	TMDB_LANGUAGE
+} from '$lib/tmdb';
 
 export const load = (async ({ fetch, params, url }) => {
 	const { list, type } = params;
