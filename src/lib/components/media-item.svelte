@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { statesName } from '$lib/constants';
 	import type { RivenItem } from '$lib/types';
+	import { Trash2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { ItemsService } from '$lib/client';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: RivenItem;
 
@@ -10,6 +14,21 @@
 		movie: 'movie',
 		show: 'tv'
 	};
+
+	async function deleteItem(id: number) {
+		const response = await ItemsService.removeItem({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media deleted successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while deleting the media');
+		}
+	}
 </script>
 
 <a
@@ -28,6 +47,18 @@
 		<h3 class="mb-1 line-clamp-2 text-lg font-semibold text-white">{data.title}</h3>
 		<div class="flex items-center justify-between text-sm text-gray-300">
 			<span class="capitalize">{data.type}</span>
+			<button
+				on:click={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					if (data) {
+						deleteItem(data.id);
+					}
+				}}
+				class="rounded-lg bg-destructive/80 p-1 hover:bg-primary"
+			>
+				<Trash2 class="h-4 w-4 text-primary-foreground" />
+			</button>
 			<span class="rounded-full bg-primary/80 px-2 py-1 text-xs text-primary-foreground">
 				{data.state === 'PartiallyCompleted' ? 'Partial' : statesName[data.state]}
 			</span>
