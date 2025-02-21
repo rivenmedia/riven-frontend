@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/rivenmedia/riven-frontend/compare/v0.18.0...v0.18.1) (2025-02-21)
+
+
+### Bug Fixes
+
+* extend ranking settings schema to include 'custom' profile option ([90cbdae](https://github.com/rivenmedia/riven-frontend/commit/90cbdae05d159535608daca0f41c633f55d6fef3))
+
 ## [0.18.0](https://github.com/rivenmedia/riven-frontend/compare/v0.17.0...v0.18.0) (2025-02-20)
 
 
