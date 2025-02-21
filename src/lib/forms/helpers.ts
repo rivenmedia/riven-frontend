@@ -588,7 +588,7 @@ export function contentSettingsToSet(form: SuperValidated<Infer<ContentSettingsS
 export const rankingSettingsToGet: string[] = ['ranking'];
 
 export const rankingSettingsSchema = z.object({
-	profile: z.enum(['default', 'best']).default('default'),
+	profile: z.enum(['default', 'best', 'custom']).default('default'),
 	require: z.array(z.string()).default([]),
 	exclude: z.array(z.string()).default([]),
 	preferred: z.array(z.string()).default([]),
