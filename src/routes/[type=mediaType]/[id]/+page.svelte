@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { isRivenShow } from '$lib/utils.js';
+	import { getFormattedTime, isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -85,15 +85,6 @@
 		} else {
 			toast.error('An error occurred while resetting the media');
 		}
-	}
-
-	function getTime(time: string) {
-		const date = new Date(time);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
 	}
 
 	function getRivenSeason(season: number) {
@@ -235,7 +226,7 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at)}</p>
+											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
 										{#if isRivenShow(data.riven)}
 											<p>Symlinked: {data.riven.seasons.every((s) => s.episodes.every((e) => e.symlinked))
@@ -641,7 +632,7 @@
 										>
 											Season {season.season_number}
 										</div>
-										{#if data.riven?.state == 'Completed'}
+										{#if !data.riven || data.riven?.state == 'Completed'}
 											<div
 												class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
 											>

@@ -24,6 +24,7 @@
 	import { toast } from 'svelte-sonner';
 	import { Badge } from '$lib/components/ui/badge';
 	import ItemRequest from '$lib/components/item-request.svelte';
+	import { getFormattedTime } from '$lib/utils';
 
 	export let data: PageData;
 
@@ -70,15 +71,6 @@
 		} else {
 			toast.error('An error occurred while resetting the media');
 		}
-	}
-
-	function getTime(time: string) {
-		const date = new Date(time);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
 	}
 </script>
 
@@ -176,7 +168,7 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at)}</p>
+											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
 										<p>Symlinked: {data.riven.symlinked ? 'Yes' : 'No'}</p>
 										{#if data.riven.folder}

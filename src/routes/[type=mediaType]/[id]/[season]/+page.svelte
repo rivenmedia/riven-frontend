@@ -23,6 +23,7 @@
 	import { toast } from 'svelte-sonner';
 	import { ItemsService } from '$lib/client';
 	import { invalidateAll } from '$app/navigation';
+	import { getFormattedTime } from '$lib/utils';
 
 	export let data: PageData;
 
@@ -69,15 +70,6 @@
 		} else {
 			toast.error('An error occurred while resetting the media');
 		}
-	}
-
-	function getTime(time: string) {
-		const date = new Date(time);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
 	}
 
 	function getSymlinkCount(episodes: any): number {
@@ -175,7 +167,7 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at)}</p>
+											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
 										<p>Symlinked: {data.riven.episodes.every((x) => x.symlinked) ? 'All' : getSymlinkCount(data.riven.episodes) + '/' + data.riven.episodes.length}</p>
 										{#if data.riven.folder}
