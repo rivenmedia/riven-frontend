@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.18.0](https://github.com/rivenmedia/riven-frontend/compare/v0.17.0...v0.18.0) (2025-02-20)
+
+
+### Features
+
+* add all backend settings to the forms ([#184](https://github.com/rivenmedia/riven-frontend/issues/184)) ([634e2a0](https://github.com/rivenmedia/riven-frontend/commit/634e2a01e18602f5243e4956ca168063266648a7))
+* add season states to the item details ([#173](https://github.com/rivenmedia/riven-frontend/issues/173)) ([bf69c12](https://github.com/rivenmedia/riven-frontend/commit/bf69c12c1be49cb8ff98043a1494c108fedc108c))
+* add upload logs button ([30bb07c](https://github.com/rivenmedia/riven-frontend/commit/30bb07c2fcf420a74b28221963bd49e4092cf699))
+* **media-item:** add delete functionality for media items ([275df12](https://github.com/rivenmedia/riven-frontend/commit/275df1298c25bfdae4384bcb9360134a7b7a0876))
+* ranking settings ([#174](https://github.com/rivenmedia/riven-frontend/issues/174)) ([dffdc7b](https://github.com/rivenmedia/riven-frontend/commit/dffdc7b467d1626c2a8c37333103f092ecde31b5))
+* use dynamic TMDB language setting across API calls ([#189](https://github.com/rivenmedia/riven-frontend/issues/189)) ([0f160f7](https://github.com/rivenmedia/riven-frontend/commit/0f160f7842fefd2d2c82ea5e2c699833bd91c131))
+
+
+### Bug Fixes
+
+* improve mapping validation logic ([#180](https://github.com/rivenmedia/riven-frontend/issues/180)) ([3a9c5e1](https://github.com/rivenmedia/riven-frontend/commit/3a9c5e13310893c3dd79349648643f3d4108e437))
+* remove deplicate episodes from selection ([#186](https://github.com/rivenmedia/riven-frontend/issues/186)) ([2072cb9](https://github.com/rivenmedia/riven-frontend/commit/2072cb96cd4fb50b16573cd83aeace8d8529caa2))
+* remove TorBox integration ([9bc20b8](https://github.com/rivenmedia/riven-frontend/commit/9bc20b879f18e86989bbba5d0b0a0b865dd581fa))
+* svelte-check errors ([f0a50eb](https://github.com/rivenmedia/riven-frontend/commit/f0a50eb2cb1235b5550720933dc98dfcbae8db15))
+* svelte-check errors ([29f4ebd](https://github.com/rivenmedia/riven-frontend/commit/29f4ebdd9ba7d363fea14ddc07ed8124a5d409b6))
+* update default state to 'All' and filter valid states in browse logic ([#171](https://github.com/rivenmedia/riven-frontend/issues/171)) ([af4b2fb](https://github.com/rivenmedia/riven-frontend/commit/af4b2fb8dc54f0a8f5f8e176d3b42906d3b704ec))
+* update filesize minimum validation and descriptions ([#172](https://github.com/rivenmedia/riven-frontend/issues/172)) ([dd9cf98](https://github.com/rivenmedia/riven-frontend/commit/dd9cf986d0826cfebf443a4f07b5413d429e8d6a))
+* update resolution keys in ranking settings to include 'r' prefix ([#181](https://github.com/rivenmedia/riven-frontend/issues/181)) ([efba13e](https://github.com/rivenmedia/riven-frontend/commit/efba13e5bdf32d0ea3e25742110ccc3d199a677b))
+
 ## [0.17.0](https://github.com/rivenmedia/riven-frontend/compare/v0.16.3...v0.17.0) (2024-11-03)
 
 
