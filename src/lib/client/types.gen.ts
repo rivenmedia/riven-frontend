@@ -559,7 +559,7 @@ export type StartSessionResponse = {
     session_id: string;
     torrent_id: string;
     torrent_info: TorrentInfo;
-    containers: (Array<TorrentContainer> | null);
+    containers: (TorrentContainer | null);
     expires_at: string;
 };
 
