@@ -70,15 +70,7 @@ export type CometConfig = {
  * }
  */
 export type Container = {
-    [key: string]: ContainerFile;
-};
-
-/**
- * Individual file entry in a container
- */
-export type ContainerFile = {
-    filename: string;
-    filesize?: (number | null);
+    [key: string]: DebridFile;
 };
 
 export type ContentModel = {
@@ -115,7 +107,7 @@ export type DatabaseModel = {
 };
 
 /**
- * Represents a file in from a debrid service
+ * Represents a file from a debrid service
  */
 export type DebridFile = {
     file_id?: (number | null);
@@ -558,7 +550,7 @@ export type SetSettings = {
  */
 export type ShowFileData = {
     [key: string]: {
-        [key: string]: ContainerFile;
+        [key: string]: DebridFile;
     };
 };
 
@@ -567,7 +559,7 @@ export type StartSessionResponse = {
     session_id: string;
     torrent_id: string;
     torrent_info: TorrentInfo;
-    containers: (Array<TorrentContainer> | null);
+    containers: (TorrentContainer | null);
     expires_at: string;
 };
 
@@ -937,16 +929,16 @@ export type ScrapeItemResponse2 = (ScrapeItemResponse);
 
 export type ScrapeItemError = (HTTPValidationError);
 
-export type StartManualSessionApiV1ScrapeScrapeStartSessionPostData = {
+export type StartManualSessionData = {
     query: {
         item_id: string;
         magnet: string;
     };
 };
 
-export type StartManualSessionApiV1ScrapeScrapeStartSessionPostResponse = (StartSessionResponse);
+export type StartManualSessionResponse = (StartSessionResponse);
 
-export type StartManualSessionApiV1ScrapeScrapeStartSessionPostError = (HTTPValidationError);
+export type StartManualSessionError = (HTTPValidationError);
 
 export type ManualSelectData = {
     body: Container;
@@ -960,7 +952,7 @@ export type ManualSelectResponse = (SelectFilesResponse);
 export type ManualSelectError = (HTTPValidationError);
 
 export type ManualUpdateAttributesData = {
-    body: (ContainerFile | ShowFileData);
+    body: (DebridFile | ShowFileData);
     path: {
         session_id: unknown;
     };
@@ -970,15 +962,15 @@ export type ManualUpdateAttributesResponse = (UpdateAttributesResponse);
 
 export type ManualUpdateAttributesError = (HTTPValidationError);
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostData = {
+export type AbortManualSessionData = {
     path: {
         session_id: string;
     };
 };
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostResponse = (SessionResponse);
+export type AbortManualSessionResponse = (SessionResponse);
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostError = (HTTPValidationError);
+export type AbortManualSessionError = (HTTPValidationError);
 
 export type CompleteManualSessionData = {
     path: {
