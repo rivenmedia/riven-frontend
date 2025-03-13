@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { isRivenShow } from '$lib/utils.js';
+	import { getFormattedTime, isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
@@ -11,7 +11,9 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard
+		Clipboard,
+		CirclePause,
+		CirclePlay
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -65,6 +67,36 @@
 		}
 	}
 
+	async function pauseItem(id: number) {
+		const response = await ItemsService.pauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media paused successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while pausing the media');
+		}
+	}
+
+	async function resumeItem(id: number) {
+		const response = await ItemsService.unpauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media resumed successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while resuming the media');
+		}
+	}
+
 	async function retryItems(ids: string[]) {
 		const response = await ItemsService.retryItems({
 			query: {
@@ -95,18 +127,19 @@
 		}
 	}
 
-	function getTime(time: string) {
-		const date = new Date(time);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
-	}
-
 	function getRivenSeason(season: number) {
 		if (!(data.riven && 'seasons' in data.riven)) return;
 		return data.riven.seasons.find((s) => s.number === season);
+	}
+
+	function getSymlinkCount(item: any): number {
+		return item.seasons
+			.map((s) => s.episodes.filter((e) => e.symlinked).length)
+			.reduce((a, b) => a + b, 0);
+	}
+
+	function getEpisodeCount(item: any): number {
+		return item.seasons.map((s) => s.episodes.length).reduce((a, b) => a + b, 0);
 	}
 </script>
 
@@ -235,7 +268,21 @@
 											<p>Requested by: {data.riven.requested_by}</p>
 										{/if}
 										{#if data.riven.requested_at}
-											<p>Requested at: {getTime(data.riven.requested_at)}</p>
+											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
+										{/if}
+										{#if isRivenShow(data.riven)}
+											<p>
+												Symlinked: {data.riven.seasons.every((s) =>
+													s.episodes.every((e) => e.symlinked)
+												)
+													? 'All'
+													: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}
+											</p>
+										{:else}
+											<p>Symlinked: {data.riven.symlinked}</p>
+										{/if}
+										{#if data.riven.folder}
+											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}
 										<!-- {#if selectedIds.size > 0}
 											<p>Selected items: {selectedIds.size}</p>
@@ -280,6 +327,57 @@
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
+
+										{#if data.riven.state !== 'Completed'}
+											<Tooltip.Root>
+												<Tooltip.Trigger>
+													<AlertDialog.Root>
+														<AlertDialog.Trigger asChild let:builder>
+															<Button
+																builders={[builder]}
+																class="flex w-full items-center gap-1"
+																variant="destructive"
+															>
+																{#if data.riven.state === 'Paused'}
+																	<CirclePlay class="size-4" />
+																{:else}
+																	<CirclePause class="size-4" />
+																{/if}
+																<span>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'}</span>
+															</Button>
+														</AlertDialog.Trigger>
+														<AlertDialog.Content>
+															<AlertDialog.Header>
+																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+																<AlertDialog.Description>
+																	This action will {data.riven.state === 'Paused'
+																		? 'resume'
+																		: 'pause'} the media
+																</AlertDialog.Description>
+															</AlertDialog.Header>
+															<AlertDialog.Footer>
+																<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+																<AlertDialog.Action
+																	on:click={async () => {
+																		if (data.riven) {
+																			if (data.riven.state === 'Paused') {
+																				await resumeItem(data.riven.id);
+																			} else {
+																				await pauseItem(data.riven.id);
+																			}
+																		}
+																	}}>Continue</AlertDialog.Action
+																>
+															</AlertDialog.Footer>
+														</AlertDialog.Content>
+													</AlertDialog.Root>
+												</Tooltip.Trigger>
+												<Tooltip.Content>
+													<p>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'} the media</p>
+												</Tooltip.Content>
+											</Tooltip.Root>
+										{/if}
+
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
