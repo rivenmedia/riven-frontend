@@ -28,7 +28,7 @@ export interface RivenSubtitle {
 }
 
 export interface RivenBaseItem {
-	id: number;
+	id: string;
 	title: string;
 	imdb_id: string | null;
 	tvdb_id: number | null;
