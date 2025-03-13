@@ -30,12 +30,22 @@
 	import { ItemsService } from '$lib/client';
 	import MediaFileSelector from '$lib/components/media-file-selector.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import type { RivenShow } from '$lib/types';
+	import MediaItem from '$lib/components/media-item.svelte';
 
 	export let data: PageData;
 
 	let productionCompanies = 4;
 	let isShow = data.details.media_type === 'tv';
-	let selectedMagnetItem: Selected<{ id: string; file?: string; folder?: string }>;
+	let selectedItems: Selected<MediaItem>[] = [];
+
+	$: selectedIds = getSelectedIds(selectedItems);
+	$: console.log("Selected IDs:", selectedIds);
+	
+
+	const getSelectedIds = (selectedItems: Selected<MediaItem>[]): Set<string> =>
+		new Set(selectedItems.map(selected => selected.value.id))
+	
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -43,10 +53,10 @@
 		return seasons.filter((season: any) => season.season_number !== 0);
 	}
 
-	async function deleteItem(id: number) {
+	async function deleteItems(ids: string[]) {
 		const response = await ItemsService.removeItem({
 			query: {
-				ids: id.toString()
+				ids: ids.join(',')
 			}
 		});
 
@@ -58,10 +68,10 @@
 		}
 	}
 
-	async function retryItem(id: number) {
+	async function retryItems(ids: string[]) {
 		const response = await ItemsService.retryItems({
 			query: {
-				ids: id.toString()
+				ids: ids.join(',')
 			}
 		});
 
@@ -73,10 +83,10 @@
 		}
 	}
 
-	async function resetItem(id: number) {
+	async function resetItems(ids: string[]) {
 		const response = await ItemsService.resetItems({
 			query: {
-				ids: id.toString()
+				ids: ids.join(',')
 			}
 		});
 
@@ -230,15 +240,16 @@
 										{#if data.riven.requested_at}
 											<p>Requested at: {getTime(data.riven.requested_at)}</p>
 										{/if}
-										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
-											<p>Selected item file: {selectedMagnetItem.value.file}</p>
-										{:else if isShow && selectedMagnetItem && selectedMagnetItem.value.folder}
-											<p>Selected item folder: {selectedMagnetItem.value.folder}</p>
-										{/if}
+										<!-- {#if selectedIds.size > 0}
+											<p>Selected items: {selectedIds.size}</p>
+											{#each selectedIds as id}
+												<p>{id}</p>
+											{/each}
+										{/if} -->
 
 										<div class="mt-1"></div>
 										{#if data.riven && isRivenShow(data.riven)}
-											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
+											<Select.Root portal={null} multiple={true} bind:selected={selectedItems}>
 												<Select.Trigger>
 													<Select.Value placeholder="Select a season/episode" />
 												</Select.Trigger>
@@ -296,9 +307,7 @@
 															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 															<AlertDialog.Action
 																on:click={async () => {
-																	if (data.riven) {
-																		await retryItem(data.riven.id);
-																	}
+																	await retryItems(selectedIds.size > 0 ? Array.from(selectedIds) : [data.riven.id]);
 																}}>Continue</AlertDialog.Action
 															>
 														</AlertDialog.Footer>
@@ -336,7 +345,7 @@
 															<AlertDialog.Action
 																on:click={async () => {
 																	if (data.riven) {
-																		await resetItem(data.riven.id);
+																		await resetItems(selectedIds.size > 0 ? Array.from(selectedIds) : [data.riven.id]);
 																	}
 																}}>Continue</AlertDialog.Action
 															>
@@ -384,7 +393,7 @@
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<MediaFileSelector
-										mediaId={data.riven.id.toString()}
+										mediaId={data.riven.id}
 										mediaType={data.mediaType == 'movie' ? 'movie' : 'tv'}
 									/>
 								</Tooltip.Trigger>
@@ -418,7 +427,7 @@
 												<AlertDialog.Action
 													on:click={async () => {
 														if (data.riven) {
-															await deleteItem(data.riven.id);
+															await deleteItems([data.riven.id]);
 														}
 													}}>Continue</AlertDialog.Action
 												>

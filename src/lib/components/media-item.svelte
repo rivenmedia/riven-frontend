@@ -15,10 +15,10 @@
 		show: 'tv'
 	};
 
-	async function deleteItem(id: number) {
+	async function deleteItem(id: string) {
 		const response = await ItemsService.removeItem({
 			query: {
-				ids: id.toString()
+				ids: id
 			}
 		});
 
