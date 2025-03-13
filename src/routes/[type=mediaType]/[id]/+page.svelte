@@ -40,12 +40,9 @@
 	let selectedItems: Selected<MediaItem>[] = [];
 
 	$: selectedIds = getSelectedIds(selectedItems);
-	$: console.log("Selected IDs:", selectedIds);
 	
-
 	const getSelectedIds = (selectedItems: Selected<MediaItem>[]): Set<string> =>
 		new Set(selectedItems.map(selected => selected.value.id))
-	
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
