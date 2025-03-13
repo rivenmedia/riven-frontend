@@ -11,6 +11,7 @@
 	import { Field, Control, Label, FieldErrors } from 'formsnap';
 	import { Button } from '$lib/components/ui/button';
 	import { SortAsc, SortDesc } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	import { states, types, sortOptions } from '$lib/schema/browse';
 	import type { RivenItem } from '$lib/types';
@@ -118,6 +119,20 @@
 			return [];
 		}
 	}
+
+	async function retryLibrary() {
+		let { data } = await ItemsService.retryLibraryItems();
+		if (data) {
+			toast.success(data.message);
+		}
+	}
+
+	async function updateOngoing() {
+		let { data } = await ItemsService.updateOngoingItems();
+		if (data) {
+			toast.success(data.message);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -222,6 +237,23 @@
 				{/if}
 			</Button>
 		</form>
+
+		<div class="mb-8 mt-4 flex items-center justify-start gap-4">
+			<Button
+				on:click={async () => {
+					await retryLibrary();
+				}}
+				variant="outline"
+				size="sm">Retry Library</Button
+			>
+			<Button
+				on:click={async () => {
+					await updateOngoing();
+				}}
+				variant="outline"
+				size="sm">Update Ongoing</Button
+			>
+		</div>
 
 		<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 			{#each items as item (item.id)}

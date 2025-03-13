@@ -95,7 +95,7 @@
 				}
 			}
 		} catch (err) {
-			console.error(err)
+			console.error(err);
 			error = 'Failed to start session';
 		} finally {
 			loading = false;
@@ -267,15 +267,15 @@
 	function getDialogWidth(currentStep: number): string {
 		switch (currentStep) {
 			case 1:
-				return 'max-w-[50vw]';
+				return 'lg:max-w-[60dvw]';
 			case 2:
-				return 'max-w-[60vw]';
+				return 'lg:max-w-[70dvw]';
 			case 3:
-				return 'max-w-[70vw]';
+				return 'lg:max-w-[80dvw]';
 			case 4:
-				return 'max-w-[70vw]';
+				return 'lg:max-w-[90dvw]';
 			default:
-				return 'max-w-[50vw]';
+				return 'lg:max-w-[60dvw]';
 		}
 	}
 
@@ -315,7 +315,7 @@
 <Button on:click={() => (isOpen = true)}>Scrape Manually</Button>
 
 <Dialog.Root bind:open={isOpen}>
-	<Dialog.Content class={`fixed ${dialogWidth} flex h-[70vh] flex-col overflow-hidden`}>
+	<Dialog.Content class={cn(`fixed w-dvw ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}>
 		{#if error}
 			<Alert.Root variant="destructive" class="mb-4">
 				<AlertCircle class="h-4 w-4" />
@@ -359,10 +359,7 @@
 							<div class="text-center">No streams available</div>
 						{:else}
 							{#each streams as { magnet, stream }}
-								<button
-									class="w-full text-left"
-									on:click={() => startSession(magnet)}
-								>
+								<button class="w-full text-left" on:click={() => startSession(magnet)}>
 									<Card.Root
 										class={cn(
 											'relative cursor-pointer transition-all duration-200',

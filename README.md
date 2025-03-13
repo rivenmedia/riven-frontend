@@ -34,25 +34,7 @@ To run the frontend, you need to have the backend running. You can find the back
 
 Make sure you have docker and docker-compose installed on your system.
 
-Edit the `docker-compose.yml` (make sure to replace the environment variables with your own) file to match your setup:
-
-> [!IMPORTANT]  
-> It is very important to set the `ORIGIN` and `BACKEND_URL` environment variables correctly to make the frontend work properly. Read more about them [here](#environment-variables).
-
-```yml
-services:
-  riven-frontend:
-    image: ghcr.io/rivenmedia/riven-frontend:latest
-    container_name: riven-frontend
-    restart: unless-stopped
-    tty: true
-    environment:
-      - ORIGIN=http://localhost:3000 # No trailing slash, read more below
-      - BACKEND_URL=http://127.0.0.1:8080 # No trailing slash, read more below
-      - TZ=America/New_York
-    ports:
-      - '3000:3000'
-```
+Edit the [`docker-compose.yml`](./docker-compose.yml) (make sure to replace the environment variables with your own) file to match your setup:
 
 Then run the following command:
 
@@ -83,16 +65,17 @@ It will build the frontend in the `build` directory.
 Then run the following command:
 
 ```bash
-ORIGIN=http://localhost:3000 BACKEND_URL=http://127.0.0.1:8080 node build
+ORIGIN=http://localhost:3000 node build
 ```
 
 It will start the frontend on port `3000`.
 
 ### Environment variables
 
-- `ORIGIN`: It's the URL you will use to access the frontend. If running behind a reverse proxy, you should set it to the URL of the reverse proxy, like `https://riven.example.com`. If running locally, you can let it be `http://localhost:3000` or you local server IP address like `http://192.168.1.45:3000`.
+> [!IMPORTANT]  
+> `ORIGIN` is optional and is not required if you are using reverse proxy, which usually forwards the `x-forwarded-proto` and `x-forwarded-host` headers. If you are running the frontend directly, you should set the `ORIGIN` environment variable to the URL you will use to access the frontend.
 
-- `BACKEND_URL`: The URL of the backend. Default should work in most cases. You can also replace it with container name of backend if you are using docker-compose.
+`ORIGIN`: It's the URL you will use to access the frontend. If running behind a reverse proxy, you should set it to the URL of the reverse proxy, like `https://riven.example.com`. If running locally, you can let it be `http://localhost:3000` or you local server IP address like `http://192.168.1.45:3000`.
 
 ---
 

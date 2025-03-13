@@ -29,6 +29,7 @@
 	import type { Selected } from 'bits-ui';
 	import { ItemsService } from '$lib/client';
 	import MediaFileSelector from '$lib/components/media-file-selector.svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
 
 	export let data: PageData;
 
@@ -229,10 +230,6 @@
 										{#if data.riven.requested_at}
 											<p>Requested at: {getTime(data.riven.requested_at)}</p>
 										{/if}
-										<p>Symlinked: {data.riven.symlinked}</p>
-										{#if data.riven.folder}
-											<p>Folder: {data.riven.folder}</p>
-										{/if}
 										{#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
 											<p>Selected item file: {selectedMagnetItem.value.file}</p>
 										{:else if isShow && selectedMagnetItem && selectedMagnetItem.value.folder}
@@ -352,17 +349,30 @@
 											</Tooltip.Content>
 										</Tooltip.Root>
 
-										<Button
-											class="flex w-full items-center gap-1"
-											variant="destructive"
-											on:click={() => {
-												navigator.clipboard.writeText(JSON.stringify(data.riven, null, 2));
-												toast.success('Item data copied to clipboard');
-											}}
-										>
-											<Clipboard class="size-4" />
-											<span>Copy item data</span>
-										</Button>
+										<Dialog.Root>
+											<Dialog.Trigger>
+												<Button class="flex w-full items-center gap-1">
+													<Clipboard class="size-4" />
+													<span>Item data</span>
+												</Button>
+											</Dialog.Trigger>
+											<Dialog.Content class="p-4">
+												<Dialog.Header>
+													<Dialog.Title>{data.riven.title}</Dialog.Title>
+												</Dialog.Header>
+												<Button
+													on:click={() => {
+														navigator.clipboard.writeText(JSON.stringify(data.riven, null, 2));
+														toast.success('Item data copied to clipboard');
+													}}
+												>
+													Copy json
+												</Button>
+												<div class="mt-4 max-h-[400px] overflow-auto rounded bg-zinc-800 p-2">
+													<pre class="whitespace-pre-wrap break-all text-sm text-zinc-100">{JSON.stringify(data.riven, null, 2)}</pre>
+												</div>
+											</Dialog.Content>
+										</Dialog.Root>
 									</Sheet.Description>
 								</Sheet.Content>
 							</Sheet.Root>
@@ -627,32 +637,27 @@
 										>
 											Season {season.season_number}
 										</div>
-										{#if data.riven?.state == 'Completed'}
-											<div
-												class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-											>
-												{season.episode_count ? season.episode_count : 'N/A'} episodes
-											</div>
-										{:else}
-											<div class="mt-auto flex w-full justify-between">
+
+										<div class="mt-auto flex w-full justify-between">
+											{#if data.riven}
 												<div>
 													{#if getRivenSeason(season.season_number)?.state == 'Completed'}
 														<Badge class="bg-green-500 font-medium">Completed</Badge>
-														<!-- {:else if getRivenSeason(season.season_number)?.state == 'Downloaded' || getRivenSeason(season.season_number)?.state == 'PartiallyCompleted'}
-													<Badge class="bg-yellow-500 font-medium">Downloaded</Badge> -->
+													{:else if getRivenSeason(season.season_number)?.state == 'Downloaded' || getRivenSeason(season.season_number)?.state == 'PartiallyCompleted'}
+														<Badge class="bg-yellow-500 font-medium">Downloaded</Badge>
 													{:else}
 														<Badge class="font-medium"
 															>{getRivenSeason(season.season_number)?.state}</Badge
 														>
 													{/if}
 												</div>
-												<div
-													class="self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-												>
-													{season.episode_count ? season.episode_count : 'N/A'} episodes
-												</div>
+											{/if}
+											<div
+												class="self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
+											>
+												{season.episode_count ? season.episode_count : 'N/A'} episodes
 											</div>
-										{/if}
+										</div>
 									</div>
 								</div>
 							</a>
