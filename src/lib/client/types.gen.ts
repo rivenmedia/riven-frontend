@@ -1029,15 +1029,15 @@ export type ManualUpdateAttributesResponse = (UpdateAttributesResponse);
 
 export type ManualUpdateAttributesError = (HTTPValidationError);
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostData = {
+export type AbortManualSessionData = {
     path: {
         session_id: string;
     };
 };
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostResponse = (SessionResponse);
+export type AbortManualSessionResponse = (SessionResponse);
 
-export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostError = (HTTPValidationError);
+export type AbortManualSessionError = (HTTPValidationError);
 
 export type CompleteManualSessionData = {
     path: {
