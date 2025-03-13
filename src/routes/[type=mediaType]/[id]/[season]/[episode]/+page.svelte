@@ -170,10 +170,10 @@
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
-							<MediaFileSelector
+							<!-- <MediaFileSelector
 								mediaId={data.details.external_ids.imdb_id}
 								mediaType={'tv'}
-							/>
+							/> -->
 						{/if}
 						{#if data.riven}
 							<Sheet.Root>

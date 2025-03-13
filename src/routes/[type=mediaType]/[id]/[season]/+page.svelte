@@ -169,10 +169,10 @@
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
-							<MediaFileSelector
+							<!-- <MediaFileSelector
 								mediaId={data.details.external_ids.imdb_id}
 								mediaType={'tv'}
-							/>
+							/> -->
 						{/if}
 						{#if data.riven}
 							<Sheet.Root>
@@ -429,7 +429,7 @@
 											Episode {episode.episode_number}
 										</div>
 										<div class="mt-auto flex w-full justify-between">
-											{#if data.riven.episodes.find((x) => x.number == episode.episode_number)}
+											{#if data.riven && data.riven.episodes.find((x) => x.number == episode.episode_number)}
 												<div
 													class="mt-1 line-clamp-1 rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
 												>

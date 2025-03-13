@@ -126,7 +126,9 @@
 	}
 
 	function getSymlinkCount(item: any): number {
-		return item.seasons.map((s) => s.episodes.filter((e) => e.symlinked).length).reduce((a, b) => a + b, 0);
+		return item.seasons
+			.map((s) => s.episodes.filter((e) => e.symlinked).length)
+			.reduce((a, b) => a + b, 0);
 	}
 
 	function getEpisodeCount(item: any): number {
@@ -262,9 +264,13 @@
 											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
 										{#if isRivenShow(data.riven)}
-											<p>Symlinked: {data.riven.seasons.every((s) => s.episodes.every((e) => e.symlinked))
-												? 'All'
-												: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}</p>
+											<p>
+												Symlinked: {data.riven.seasons.every((s) =>
+													s.episodes.every((e) => e.symlinked)
+												)
+													? 'All'
+													: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}
+											</p>
 										{:else}
 											<p>Symlinked: {data.riven.symlinked}</p>
 										{/if}
@@ -314,7 +320,7 @@
 											</Select.Root>
 										{/if}
 
-										{#if data.riven.state !== "Completed"}
+										{#if data.riven.state !== 'Completed'}
 											<Tooltip.Root>
 												<Tooltip.Trigger>
 													<AlertDialog.Root>
@@ -324,19 +330,21 @@
 																class="flex w-full items-center gap-1"
 																variant="destructive"
 															>
-																{#if data.riven.state === "Paused"}
+																{#if data.riven.state === 'Paused'}
 																	<CirclePlay class="size-4" />
 																{:else}
 																	<CirclePause class="size-4" />
 																{/if}
-																<span>{data.riven.state === "Paused" ? "Resume" : "Pause"}</span>
+																<span>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'}</span>
 															</Button>
 														</AlertDialog.Trigger>
 														<AlertDialog.Content>
 															<AlertDialog.Header>
 																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
 																<AlertDialog.Description>
-																	This action will {data.riven.state === "Paused" ? "resume" : "pause"} the media
+																	This action will {data.riven.state === 'Paused'
+																		? 'resume'
+																		: 'pause'} the media
 																</AlertDialog.Description>
 															</AlertDialog.Header>
 															<AlertDialog.Footer>
@@ -344,7 +352,7 @@
 																<AlertDialog.Action
 																	on:click={async () => {
 																		if (data.riven) {
-																			if (data.riven.state === "Paused") {
+																			if (data.riven.state === 'Paused') {
 																				await resumeItem(data.riven.id);
 																			} else {
 																				await pauseItem(data.riven.id);
@@ -357,7 +365,7 @@
 													</AlertDialog.Root>
 												</Tooltip.Trigger>
 												<Tooltip.Content>
-													<p>{data.riven.state === "Paused" ? "Resume" : "Pause"} the media</p>
+													<p>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'} the media</p>
 												</Tooltip.Content>
 											</Tooltip.Root>
 										{/if}
@@ -732,14 +740,9 @@
 										>
 											Season {season.season_number}
 										</div>
-										{#if !data.riven || data.riven?.state == 'Completed'}
-											<div
-												class="mt-auto line-clamp-1 self-end rounded-md bg-zinc-900/60 px-2 text-xs text-white sm:text-sm"
-											>
-												{season.episode_count ? season.episode_count : 'N/A'} episodes
-											</div>
-										{:else}
-											<div class="mt-auto flex w-full justify-between">
+
+										<div class="mt-auto flex w-full justify-between">
+											{#if data.riven}
 												<div>
 													{#if getRivenSeason(season.season_number)?.state == 'Completed'}
 														<Badge class="bg-green-500 font-medium">Completed</Badge>
