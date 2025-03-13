@@ -11,7 +11,9 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard
+		Clipboard,
+		CirclePause,
+		CirclePlay
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -55,6 +57,36 @@
 			invalidateAll();
 		} else {
 			toast.error('An error occurred while deleting the media');
+		}
+	}
+
+	async function pauseItem(id: number) {
+		const response = await ItemsService.pauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media paused successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while pausing the media');
+		}
+	}
+
+	async function resumeItem(id: number) {
+		const response = await ItemsService.unpauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media resumed successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while resuming the media');
 		}
 	}
 
@@ -281,6 +313,55 @@
 												<Select.Input name="favoriteFruit" />
 											</Select.Root>
 										{/if}
+
+										{#if data.riven.state !== "Completed"}
+											<Tooltip.Root>
+												<Tooltip.Trigger>
+													<AlertDialog.Root>
+														<AlertDialog.Trigger asChild let:builder>
+															<Button
+																builders={[builder]}
+																class="flex w-full items-center gap-1"
+																variant="destructive"
+															>
+																{#if data.riven.state === "Paused"}
+																	<CirclePlay class="size-4" />
+																{:else}
+																	<CirclePause class="size-4" />
+																{/if}
+																<span>{data.riven.state === "Paused" ? "Resume" : "Pause"}</span>
+															</Button>
+														</AlertDialog.Trigger>
+														<AlertDialog.Content>
+															<AlertDialog.Header>
+																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+																<AlertDialog.Description>
+																	This action will {data.riven.state === "Paused" ? "resume" : "pause"} the media
+																</AlertDialog.Description>
+															</AlertDialog.Header>
+															<AlertDialog.Footer>
+																<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+																<AlertDialog.Action
+																	on:click={async () => {
+																		if (data.riven) {
+																			if (data.riven.state === "Paused") {
+																				await resumeItem(data.riven.id);
+																			} else {
+																				await pauseItem(data.riven.id);
+																			}
+																		}
+																	}}>Continue</AlertDialog.Action
+																>
+															</AlertDialog.Footer>
+														</AlertDialog.Content>
+													</AlertDialog.Root>
+												</Tooltip.Trigger>
+												<Tooltip.Content>
+													<p>{data.riven.state === "Paused" ? "Resume" : "Pause"} the media</p>
+												</Tooltip.Content>
+											</Tooltip.Root>
+										{/if}
+
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
