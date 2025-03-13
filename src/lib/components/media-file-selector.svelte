@@ -184,6 +184,25 @@
 		return isValid;
 	}
 
+	$: {
+		if (selectedFilesMappings.length > 0) {
+			validateMappings();
+		}
+	}
+
+	function handleNumberInput(event: Event, fileId: string, field: 'season' | 'episode') {
+		const value = (event.target as HTMLInputElement).value;
+		const numValue = value === '' ? undefined : parseInt(value);
+
+		// Find and update the correct file mapping
+		selectedFilesMappings = selectedFilesMappings.map((file) => {
+			if (file.id === fileId) {
+				return { ...file, [field]: numValue };
+			}
+			return file;
+		});
+	}
+
 	async function updateAttributes() {
 		try {
 			loading = true;
@@ -491,7 +510,8 @@
 															<Input
 																id={`season-${file.id}`}
 																type="number"
-																bind:value={file.season}
+																value={file.season === undefined ? '' : file.season}
+																on:input={(e) => handleNumberInput(e, file.id, 'season')}
 																placeholder="Season number"
 															/>
 														</div>
@@ -500,7 +520,8 @@
 															<Input
 																id={`episode-${file.id}`}
 																type="number"
-																bind:value={file.episode}
+																value={file.episode === undefined ? '' : file.episode}
+																on:input={(e) => handleNumberInput(e, file.id, 'episode')}
 																placeholder="Episode number"
 															/>
 														</div>
