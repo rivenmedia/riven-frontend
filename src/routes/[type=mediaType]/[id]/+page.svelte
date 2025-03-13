@@ -233,7 +233,7 @@
 												? 'All'
 												: getSymlinkCount(data.riven) + '/' + getEpisodeCount(data.riven)}</p>
 										{:else}
-											<p>SymLinked: {data.riven.symlinked}</p>
+											<p>Symlinked: {data.riven.symlinked}</p>
 										{/if}
 										{#if data.riven.folder}
 											<p class="break-words">Folder: {data.riven.folder}</p>
