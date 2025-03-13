@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.1](https://github.com/rivenmedia/riven-frontend/compare/v0.18.0...v0.18.1) (2025-03-13)
+
+
+### Bug Fixes
+
+* extend ranking settings schema to include 'custom' profile option ([90cbdae](https://github.com/rivenmedia/riven-frontend/commit/90cbdae05d159535608daca0f41c633f55d6fef3))
+* manual scraping working with new models ([#188](https://github.com/rivenmedia/riven-frontend/issues/188)) ([c354265](https://github.com/rivenmedia/riven-frontend/commit/c354265a8b3ccf1ffcf307779fdc0d23a0f35230))
+* minor QoL improvements and updated documentation and compose files ([#193](https://github.com/rivenmedia/riven-frontend/issues/193)) ([851f25a](https://github.com/rivenmedia/riven-frontend/commit/851f25aa1f1f1c538ef72440f6c9259d11f8a66d))
+
 ## [0.18.0](https://github.com/rivenmedia/riven-frontend/compare/v0.17.0...v0.18.0) (2025-02-20)
 
 
