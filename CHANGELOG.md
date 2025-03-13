@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.19.0](https://github.com/rivenmedia/riven-frontend/compare/v0.18.1...v0.19.0) (2025-03-13)
+
+
+### Features
+
+* add action buttons to season page ([91fcb72](https://github.com/rivenmedia/riven-frontend/commit/91fcb72fa357180f72b8e121e822d0044a7866d1))
+* add episode page ([#194](https://github.com/rivenmedia/riven-frontend/issues/194)) ([91fcb72](https://github.com/rivenmedia/riven-frontend/commit/91fcb72fa357180f72b8e121e822d0044a7866d1))
+* add getFormattedTime utility function and update media pages to use it ([91fcb72](https://github.com/rivenmedia/riven-frontend/commit/91fcb72fa357180f72b8e121e822d0044a7866d1))
+* add pause and resume functionality ([#196](https://github.com/rivenmedia/riven-frontend/issues/196)) ([d142587](https://github.com/rivenmedia/riven-frontend/commit/d1425875922cf8394e5034ac8a19f73af9d20b02))
+* enhance symlink status ([91fcb72](https://github.com/rivenmedia/riven-frontend/commit/91fcb72fa357180f72b8e121e822d0044a7866d1))
+
+
+### Bug Fixes
+
+* episode and season page ([8290f9d](https://github.com/rivenmedia/riven-frontend/commit/8290f9ddfc1bfdf25c01d3012b0cbb3859c42f2a))
+* number input handling for manual file mappings ([#195](https://github.com/rivenmedia/riven-frontend/issues/195)) ([de38fc7](https://github.com/rivenmedia/riven-frontend/commit/de38fc7b83b2d538c64bfc19951534a817b8d26e))
+
 ## [0.18.1](https://github.com/rivenmedia/riven-frontend/compare/v0.18.0...v0.18.1) (2025-03-13)
 
 
