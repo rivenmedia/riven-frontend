@@ -5,6 +5,7 @@ const config: Config = {
 	darkMode: ['class'],
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	safelist: ['dark'],
+	plugins: [require('@tailwindcss/container-queries')],
 	theme: {
 		container: {
 			center: true,

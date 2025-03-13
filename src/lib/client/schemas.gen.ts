@@ -22,7 +22,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.20.1'
+            default: '0.21.5'
         },
         api_key: {
             type: 'string',
@@ -94,9 +94,9 @@ export const AppModelSchema = {
             '$ref': '#/components/schemas/DownloadersModel',
             default: {
                 video_extensions: ['mp4', 'mkv', 'avi'],
-                movie_filesize_mb_min: 0,
+                movie_filesize_mb_min: 700,
                 movie_filesize_mb_max: -1,
-                episode_filesize_mb_min: 0,
+                episode_filesize_mb_min: 100,
                 episode_filesize_mb_max: -1,
                 proxy_url: '',
                 real_debrid: {
@@ -170,9 +170,12 @@ export const AppModelSchema = {
                 parse_debug: false,
                 enable_aliases: true,
                 bucket_limit: 5,
+                max_failed_attempts: 0,
+                dubbed_anime_only: false,
                 torrentio: {
                     enabled: false,
                     filter: 'sort=qualitysize%7Cqualityfilter=480p,scr,cam',
+                    proxy_url: '',
                     ratelimit: true,
                     timeout: 30,
                     url: 'http://torrentio.strem.fun'
@@ -240,15 +243,15 @@ export const AppModelSchema = {
                 exclude: [],
                 preferred: [],
                 resolutions: {
-                    '1080p': true,
-                    '2160p': false,
-                    '360p': false,
-                    '480p': false,
-                    '720p': true,
+                    r1080p: true,
+                    r2160p: false,
+                    r360p: false,
+                    r480p: false,
+                    r720p: true,
                     unknown: true
                 },
                 options: {
-                    allow_english_in_languages: false,
+                    allow_english_in_languages: true,
                     enable_fetch_speed_mode: true,
                     remove_adult_content: true,
                     remove_all_trash: true,
@@ -257,7 +260,7 @@ export const AppModelSchema = {
                     title_similarity: 0.85
                 },
                 languages: {
-                    exclude: ['ar', 'hi', 'fr', 'es', 'de', 'ru', 'pt', 'it'],
+                    exclude: [],
                     preferred: [],
                     required: []
                 },
@@ -939,7 +942,7 @@ export const DownloadersModelSchema = {
         movie_filesize_mb_min: {
             type: 'integer',
             title: 'Movie Filesize Mb Min',
-            default: 0
+            default: 700
         },
         movie_filesize_mb_max: {
             type: 'integer',
@@ -949,7 +952,7 @@ export const DownloadersModelSchema = {
         episode_filesize_mb_min: {
             type: 'integer',
             title: 'Episode Filesize Mb Min',
-            default: 0
+            default: 100
         },
         episode_filesize_mb_max: {
             type: 'integer',
@@ -1241,7 +1244,8 @@ export const LanguagesConfigSchema = {
                 type: 'string'
             },
             type: 'array',
-            title: 'Required'
+            title: 'Required',
+            default: []
         },
         exclude: {
             items: {
@@ -1249,14 +1253,15 @@ export const LanguagesConfigSchema = {
             },
             type: 'array',
             title: 'Exclude',
-            default: ['ar', 'hi', 'fr', 'es', 'de', 'ru', 'pt', 'it']
+            default: []
         },
         preferred: {
             items: {
                 type: 'string'
             },
             type: 'array',
-            title: 'Preferred'
+            title: 'Preferred',
+            default: []
         }
     },
     type: 'object',
@@ -1436,7 +1441,7 @@ export const OptionsConfigSchema = {
         allow_english_in_languages: {
             type: 'boolean',
             title: 'Allow English In Languages',
-            default: false
+            default: true
         },
         enable_fetch_speed_mode: {
             type: 'boolean',
@@ -1886,6 +1891,25 @@ export const ParsedDataSchema = {
     description: 'Parsed data model for a torrent title.'
 } as const;
 
+export const PauseResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        ids: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Ids'
+        }
+    },
+    type: 'object',
+    required: ['message', 'ids'],
+    title: 'PauseResponse'
+} as const;
+
 export const PlexLibraryModelSchema = {
     properties: {
         enabled: {
@@ -2176,6 +2200,18 @@ export const RemoveResponseSchema = {
     title: 'RemoveResponse'
 } as const;
 
+export const RepairSymlinksResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'RepairSymlinksResponse'
+} as const;
+
 export const ResetResponseSchema = {
     properties: {
         message: {
@@ -2197,29 +2233,29 @@ export const ResetResponseSchema = {
 
 export const ResolutionConfigSchema = {
     properties: {
-        '2160p': {
+        r2160p: {
             type: 'boolean',
-            title: '2160P',
+            title: 'R2160P',
             default: false
         },
-        '1080p': {
+        r1080p: {
             type: 'boolean',
-            title: '1080P',
+            title: 'R1080P',
             default: true
         },
-        '720p': {
+        r720p: {
             type: 'boolean',
-            title: '720P',
+            title: 'R720P',
             default: true
         },
-        '480p': {
+        r480p: {
             type: 'boolean',
-            title: '480P',
+            title: 'R480P',
             default: false
         },
-        '360p': {
+        r360p: {
             type: 'boolean',
-            title: '360P',
+            title: 'R360P',
             default: false
         },
         unknown: {
@@ -2336,12 +2372,12 @@ export const ScraperModelSchema = {
             default: 2
         },
         after_5: {
-            type: 'integer',
+            type: 'number',
             title: 'After 5',
             default: 6
         },
         after_10: {
-            type: 'integer',
+            type: 'number',
             title: 'After 10',
             default: 24
         },
@@ -2362,6 +2398,18 @@ export const ScraperModelSchema = {
             title: 'Bucket Limit',
             default: 5
         },
+        max_failed_attempts: {
+            type: 'integer',
+            maximum: 10,
+            minimum: 0,
+            title: 'Max Failed Attempts',
+            default: 0
+        },
+        dubbed_anime_only: {
+            type: 'boolean',
+            title: 'Dubbed Anime Only',
+            default: false
+        },
         torrentio: {
             '$ref': '#/components/schemas/TorrentioConfig',
             default: {
@@ -2369,7 +2417,8 @@ export const ScraperModelSchema = {
                 filter: 'sort=qualitysize%7Cqualityfilter=480p,scr,cam',
                 url: 'http://torrentio.strem.fun',
                 timeout: 30,
-                ratelimit: true
+                ratelimit: true,
+                proxy_url: ''
             }
         },
         knightcrawler: {
@@ -2538,16 +2587,12 @@ export const StartSessionResponseSchema = {
         containers: {
             anyOf: [
                 {
-                    items: {
-                        '$ref': '#/components/schemas/TorrentContainer'
-                    },
-                    type: 'array'
+                    '$ref': '#/components/schemas/TorrentContainer'
                 },
                 {
                     type: 'null'
                 }
-            ],
-            title: 'Containers'
+            ]
         },
         expires_at: {
             type: 'string',
@@ -2580,7 +2625,7 @@ export const StateResponseSchema = {
 
 export const StatesSchema = {
     type: 'string',
-    enum: ['Unknown', 'Unreleased', 'Ongoing', 'Requested', 'Indexed', 'Scraped', 'Downloaded', 'Symlinked', 'Completed', 'PartiallyCompleted', 'Failed'],
+    enum: ['Unknown', 'Unreleased', 'Ongoing', 'Requested', 'Indexed', 'Scraped', 'Downloaded', 'Symlinked', 'Completed', 'PartiallyCompleted', 'Failed', 'Paused'],
     title: 'States'
 } as const;
 
@@ -2781,38 +2826,94 @@ export const TorrentInfoSchema = {
             title: 'Name'
         },
         status: {
-            type: 'string',
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Status'
         },
         infohash: {
-            type: 'string',
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Infohash'
         },
         progress: {
-            type: 'number',
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Progress'
         },
         bytes: {
-            type: 'integer',
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Bytes'
         },
         created_at: {
-            type: 'string',
-            format: 'date-time',
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Created At'
         },
         expires_at: {
-            type: 'string',
-            format: 'date-time',
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Expires At'
         },
         completed_at: {
-            type: 'string',
-            format: 'date-time',
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Completed At'
         },
         alternative_filename: {
-            type: 'string',
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Alternative Filename'
         },
         files: {
@@ -2866,6 +2967,11 @@ export const TorrentioConfigSchema = {
             title: 'Ratelimit',
             default: true,
             deprecated: true
+        },
+        proxy_url: {
+            type: 'string',
+            title: 'Proxy Url',
+            default: ''
         }
     },
     type: 'object',
@@ -3049,6 +3155,25 @@ export const UpdateAttributesResponseSchema = {
     type: 'object',
     required: ['message'],
     title: 'UpdateAttributesResponse'
+} as const;
+
+export const UpdateOngoingResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        updated_items: {
+            items: {
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Updated Items'
+        }
+    },
+    type: 'object',
+    required: ['message', 'updated_items'],
+    title: 'UpdateOngoingResponse'
 } as const;
 
 export const UpdatersModelSchema = {

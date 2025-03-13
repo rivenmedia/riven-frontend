@@ -7,5 +7,4 @@ else
     export ORIGIN=${ORIGIN}
 fi
 
-export BACKEND_URL=${BACKEND_URL}
 exec "$@"
