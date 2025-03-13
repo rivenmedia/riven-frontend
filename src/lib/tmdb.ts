@@ -234,7 +234,7 @@ export async function getTVEpisodeDetails(
 	fetch: any,
 	language: string = 'en-US',
 	append_to_response: string | null = null,
-	tvId: number,
+	tvId: string,
 	seasonNumber: number,
 	episodeNumber: number
 ) {
