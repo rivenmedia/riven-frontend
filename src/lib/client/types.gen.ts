@@ -339,6 +339,11 @@ export type ParsedData = {
     scene?: boolean;
 };
 
+export type PauseResponse = {
+    message: string;
+    ids: Array<(string)>;
+};
+
 export type PlexLibraryModel = {
     enabled?: boolean;
     token?: string;
@@ -450,6 +455,10 @@ export type RemoveResponse = {
     ids: Array<(string)>;
 };
 
+export type RepairSymlinksResponse = {
+    message: string;
+};
+
 export type ResetResponse = {
     message: string;
     ids: Array<(string)>;
@@ -459,11 +468,11 @@ export type ResetResponse = {
  * Configuration for which resolutions are enabled.
  */
 export type ResolutionConfig = {
-    '2160p'?: boolean;
-    '1080p'?: boolean;
-    '720p'?: boolean;
-    '480p'?: boolean;
-    '360p'?: boolean;
+    r2160p?: boolean;
+    r1080p?: boolean;
+    r720p?: boolean;
+    r480p?: boolean;
+    r360p?: boolean;
     unknown?: boolean;
 };
 
@@ -508,6 +517,8 @@ export type ScraperModel = {
     parse_debug?: boolean;
     enable_aliases?: boolean;
     bucket_limit?: number;
+    max_failed_attempts?: number;
+    dubbed_anime_only?: boolean;
     torrentio?: TorrentioConfig;
     knightcrawler?: KnightcrawlerConfig;
     jackett?: JackettConfig;
@@ -568,7 +579,7 @@ export type StateResponse = {
     states: Array<(string)>;
 };
 
-export type States = 'Unknown' | 'Unreleased' | 'Ongoing' | 'Requested' | 'Indexed' | 'Scraped' | 'Downloaded' | 'Symlinked' | 'Completed' | 'PartiallyCompleted' | 'Failed';
+export type States = 'Unknown' | 'Unreleased' | 'Ongoing' | 'Requested' | 'Indexed' | 'Scraped' | 'Downloaded' | 'Symlinked' | 'Completed' | 'PartiallyCompleted' | 'Failed' | 'Paused';
 
 export type StatsResponse = {
     total_items: number;
@@ -629,14 +640,14 @@ export type TorrentContainer = {
 export type TorrentInfo = {
     id: (number | string);
     name: string;
-    status?: string;
-    infohash?: string;
-    progress?: number;
-    bytes?: number;
-    created_at?: string;
-    expires_at?: string;
-    completed_at?: string;
-    alternative_filename?: string;
+    status?: (string | null);
+    infohash?: (string | null);
+    progress?: (number | null);
+    bytes?: (number | null);
+    created_at?: (string | null);
+    expires_at?: (string | null);
+    completed_at?: (string | null);
+    alternative_filename?: (string | null);
     files?: {
         [key: string]: {
             [key: string]: (number | string);
@@ -653,6 +664,7 @@ export type TorrentioConfig = {
      * @deprecated
      */
     ratelimit?: boolean;
+    proxy_url?: string;
 };
 
 export type TraktModel = {
@@ -700,6 +712,13 @@ export type TrashRankModel = {
 
 export type UpdateAttributesResponse = {
     message: string;
+};
+
+export type UpdateOngoingResponse = {
+    message: string;
+    updated_items: Array<{
+        [key: string]: unknown;
+    }>;
 };
 
 export type UpdatersModel = {
@@ -877,6 +896,24 @@ export type RetryItemsResponse = (RetryResponse);
 
 export type RetryItemsError = (unknown | HTTPValidationError);
 
+export type RetryLibraryItemsResponse = (RetryResponse);
+
+export type RetryLibraryItemsError = (unknown);
+
+export type UpdateOngoingItemsResponse = (UpdateOngoingResponse);
+
+export type UpdateOngoingItemsError = (unknown);
+
+export type RepairSymlinksData = {
+    query?: {
+        directory?: (string | null);
+    };
+};
+
+export type RepairSymlinksResponse2 = (RepairSymlinksResponse);
+
+export type RepairSymlinksError = (unknown | HTTPValidationError);
+
 export type RemoveItemData = {
     query: {
         ids: string;
@@ -919,6 +956,36 @@ export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostRespo
 
 export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError = (unknown | HTTPValidationError);
 
+export type ResetItemStreamsData = {
+    path: {
+        item_id: string;
+    };
+};
+
+export type ResetItemStreamsResponse = (unknown);
+
+export type ResetItemStreamsError = (unknown | HTTPValidationError);
+
+export type PauseItemsData = {
+    query: {
+        ids: string;
+    };
+};
+
+export type PauseItemsResponse = (PauseResponse);
+
+export type PauseItemsError = (unknown | HTTPValidationError);
+
+export type UnpauseItemsData = {
+    query: {
+        ids: string;
+    };
+};
+
+export type UnpauseItemsResponse = (PauseResponse);
+
+export type UnpauseItemsError = (unknown | HTTPValidationError);
+
 export type ScrapeItemData = {
     path: {
         id: string;
@@ -943,7 +1010,7 @@ export type StartManualSessionError = (HTTPValidationError);
 export type ManualSelectData = {
     body: Container;
     path: {
-        session_id: unknown;
+        session_id: string;
     };
 };
 
@@ -962,15 +1029,15 @@ export type ManualUpdateAttributesResponse = (UpdateAttributesResponse);
 
 export type ManualUpdateAttributesError = (HTTPValidationError);
 
-export type AbortManualSessionData = {
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostData = {
     path: {
         session_id: string;
     };
 };
 
-export type AbortManualSessionResponse = (SessionResponse);
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostResponse = (SessionResponse);
 
-export type AbortManualSessionError = (HTTPValidationError);
+export type AbortManualSessionApiV1ScrapeScrapeAbortSessionSessionIdPostError = (HTTPValidationError);
 
 export type CompleteManualSessionData = {
     path: {
