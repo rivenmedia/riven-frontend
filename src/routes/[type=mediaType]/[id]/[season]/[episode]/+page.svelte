@@ -9,7 +9,9 @@
 		Wrench,
 		RotateCcw,
 		CirclePower,
-		Clipboard
+		Clipboard,
+		CirclePause,
+		CirclePlay
 	} from 'lucide-svelte';
 	import { formatDate } from '$lib/helpers';
 	import { statesName } from '$lib/constants';
@@ -55,6 +57,36 @@
 			invalidateAll();
 		} else {
 			toast.error('An error occurred while retrying the media');
+		}
+	}
+
+	async function pauseItem(id: number) {
+		const response = await ItemsService.pauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media paused successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while pausing the media');
+		}
+	}
+
+	async function resumeItem(id: number) {
+		const response = await ItemsService.unpauseItems({
+			query: {
+				ids: id.toString()
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media resumed successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while resuming the media');
 		}
 	}
 
@@ -177,48 +209,57 @@
 										{#if data.riven.file}
 											<p class="break-words">File: {data.riven.file}</p>
 										{/if}
-										<!-- {#if isShow && selectedMagnetItem && selectedMagnetItem.value.file}
-											<p>Selected item file: {selectedMagnetItem.value.file}</p>
-										{:else if isShow && selectedMagnetItem && selectedMagnetItem.value.folder}
-											<p>Selected item folder: {selectedMagnetItem.value.folder}</p>
-										{/if} -->
 
 										<div class="mt-1"></div>
-										<!-- {#if data.riven && isRivenShow(data.riven)}
-											<Select.Root portal={null} bind:selected={selectedMagnetItem}>
-												<Select.Trigger>
-													<Select.Value placeholder="Select a season/episode" />
-												</Select.Trigger>
-												<Select.Content class="max-h-[600px] overflow-y-scroll sm:max-h-[300px]">
-													<Select.Group>
-														<Select.Label>All seasons</Select.Label>
-														<Select.Item value={data.riven}>
-															S{data.riven.seasons[0].number}-{data.riven.seasons[
-																data.riven.seasons.length - 1
-															].number}
-														</Select.Item>
-													</Select.Group>
-													{#each data.riven.seasons as season}
-														<Select.Group>
-															<Select.Label>Season {season.number}</Select.Label>
-															<Select.Item value={season}>
-																All episodes in season {season.number}
-															</Select.Item>
-															{#each season.episodes as episode}
-																<Select.Item value={episode}>
-																	S{season.number.toString().padStart(2, '0')}E{episode.number
-																		.toString()
-																		.padStart(2, '0')}
-																	{episode.title}
-																</Select.Item>
-															{/each}
-														</Select.Group>
-														<Select.Separator />
-													{/each}
-												</Select.Content>
-												<Select.Input name="favoriteFruit" />
-											</Select.Root>
-										{/if} -->
+
+										{#if data.riven.state !== "Completed"}
+											<Tooltip.Root>
+												<Tooltip.Trigger>
+													<AlertDialog.Root>
+														<AlertDialog.Trigger asChild let:builder>
+															<Button
+																builders={[builder]}
+																class="flex w-full items-center gap-1"
+																variant="destructive"
+															>
+																{#if data.riven.state === "Paused"}
+																	<CirclePlay class="size-4" />
+																{:else}
+																	<CirclePause class="size-4" />
+																{/if}
+																<span>{data.riven.state === "Paused" ? "Resume" : "Pause"}</span>
+															</Button>
+														</AlertDialog.Trigger>
+														<AlertDialog.Content>
+															<AlertDialog.Header>
+																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+																<AlertDialog.Description>
+																	This action will {data.riven.state === "Paused" ? "resume" : "pause"} the media
+																</AlertDialog.Description>
+															</AlertDialog.Header>
+															<AlertDialog.Footer>
+																<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+																<AlertDialog.Action
+																	on:click={async () => {
+																		if (data.riven) {
+																			if (data.riven.state === "Paused") {
+																				await resumeItem(data.riven.id);
+																			} else {
+																				await pauseItem(data.riven.id);
+																			}
+																		}
+																	}}>Continue</AlertDialog.Action
+																>
+															</AlertDialog.Footer>
+														</AlertDialog.Content>
+													</AlertDialog.Root>
+												</Tooltip.Trigger>
+												<Tooltip.Content>
+													<p>{data.riven.state === "Paused" ? "Resume" : "Pause"} the media</p>
+												</Tooltip.Content>
+											</Tooltip.Root>
+										{/if}
+
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												<AlertDialog.Root>
