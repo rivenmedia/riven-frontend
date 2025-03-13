@@ -10,7 +10,7 @@ export const statesName: Record<string, string> = {
 	Failed: 'Failed',
 	Ongoing: 'Ongoing',
 	Unreleased: 'Unreleased',
-	Paused: 'Paused',
+	Paused: 'Paused'
 };
 
 export const servicesObject: Record<string, string> = {

@@ -369,7 +369,12 @@
 													Copy json
 												</Button>
 												<div class="mt-4 max-h-[400px] overflow-auto rounded bg-zinc-800 p-2">
-													<pre class="whitespace-pre-wrap break-all text-sm text-zinc-100">{JSON.stringify(data.riven, null, 2)}</pre>
+													<pre
+														class="whitespace-pre-wrap break-all text-sm text-zinc-100">{JSON.stringify(
+															data.riven,
+															null,
+															2
+														)}</pre>
 												</div>
 											</Dialog.Content>
 										</Dialog.Root>

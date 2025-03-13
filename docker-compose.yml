@@ -9,7 +9,7 @@ services:
       - TZ=America/New_York
     expose:
       - 3000
-    
+
     # (Optional) Uncomment the following lines to bind the port to the host machine
     # ports:
     #   - 3000:3000
