@@ -13,6 +13,7 @@
 	import * as Drawer from '$lib/components/ui/drawer';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { searchContent, searchTMDB } from '$lib/utils/search';
+	import { formatDate } from '$lib/helpers';
 
 	const navItems: NavItem[] = [
 		{ name: 'Home', path: '/' },
@@ -26,6 +27,7 @@
 	let searchResults: Array<{
 		title: string;
 		path: string;
+		date: string;
 		media_type: string;
 		excerpt: string;
 		type: 'component' | 'media' | 'action';
@@ -243,11 +245,17 @@
 										</div>
 									{/if}
 									<div class="flex-1">
-										<div class="font-medium">{result.title}</div>
-										<div class="text-sm text-muted-foreground">{result.excerpt}</div>
-										<div class="test-secondary">
+										<h3 class="font-medium">{result.title}</h3>
+										<p class="text-sm text-muted-foreground">{result.excerpt}</p>
+										<p class="test-secondary">
 											{result.media_type}
-										</div>
+											{#if result.date}
+												&middot;
+												<span>
+													{formatDate(result.date, 'short')}
+												</span>
+											{/if}
+										</p>
 									</div>
 								</div>
 							</button>
