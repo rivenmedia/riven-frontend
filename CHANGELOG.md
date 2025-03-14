@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.19.1) (2025-03-14)
+
+
+### Bug Fixes
+
+* add year in tmdb search results ([bb58d45](https://github.com/rivenmedia/riven-frontend/commit/bb58d450d0330f611b445f63f5ba1ea0b0ea2315))
+
 ## [0.19.0](https://github.com/rivenmedia/riven-frontend/compare/v0.18.1...v0.19.0) (2025-03-13)
 
 
