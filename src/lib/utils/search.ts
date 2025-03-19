@@ -10,6 +10,7 @@ interface ComponentInfo {
 export interface SearchResult {
 	title: string;
 	media_type: string;
+	date: string;
 	path: string;
 	excerpt: string;
 	type: 'component' | 'media' | 'action';
@@ -123,6 +124,7 @@ export async function searchContent(query: string): Promise<SearchResult[]> {
 		{
 			title: `Search as media: "${query}"`,
 			media_type: '',
+			date: '',
 			path: '#',
 			excerpt: `Search for "${query}" in TMDB`,
 			type: 'action'
@@ -140,6 +142,7 @@ export async function searchContent(query: string): Promise<SearchResult[]> {
 		.map((result) => ({
 			title: result.title,
 			media_type: '',
+			date: '',
 			path: result.path,
 			excerpt: result.content.substring(0, 100) + '...',
 			type: 'component' as const
@@ -158,6 +161,7 @@ export async function searchTMDB(query: string): Promise<SearchResult[]> {
 			.map((item) => ({
 				title: item.title || item.name || '',
 				media_type: item.media_type === 'tv' ? 'Show' : 'Movie',
+				date: item.first_air_date || item.release_date || '',
 				path: `/${item.media_type}/${item.id}`,
 				excerpt: item.overview
 					? item.overview.substring(0, 100) + '...'
