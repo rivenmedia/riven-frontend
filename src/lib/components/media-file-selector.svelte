@@ -335,7 +335,7 @@
 <Button on:click={() => (isOpen = true)}>Scrape Manually</Button>
 
 <Dialog.Root bind:open={isOpen}>
-	<Dialog.Content class={cn(`fixed w-dvw ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}>
+	<Dialog.Content class={cn(`fixed w-dvw max-w-full ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}>
 		{#if step !== 1}
 			<div class="absolute left-0 top-0 p-2">
 				<Button variant="icon" on:click={() => (step === 1 ? (isOpen = false) : step--)}>
@@ -476,7 +476,7 @@
 												{#each sessionData.containers.files as file}
 													<div class="flex items-center gap-2 rounded border p-2">
 														<FileIcon class="h-4 w-4" />
-														<span class="flex-1 truncate">{file.filename}</span>
+														<span class="flex-1 break-words">{file.filename}</span>
 														{#if file.filesize}
 															<Badge variant="outline">
 																{(file.filesize / (1024 * 1024 * 1024)).toFixed(2)} GB
@@ -495,9 +495,11 @@
 									<Card.Root class="w-full min-w-0">
 										<Card.Content class="p-4">
 											<div class="grid gap-4">
-												<div class="flex items-center gap-2 overflow-auto">
-													<FileIcon class="h-4 w-4 flex-shrink-0" />
-													<span class="flex-1 truncate">{file.filename}</span>
+												<div class="flex items-center justify-between gap-2 overflow-auto">
+													<div class="flex items-center gap-2 max-w-[80%]">
+														<FileIcon class="h-4 w-4 flex-shrink-0" />
+														<span class="flex-1 break-words max-w-full">{file.filename}</span>
+													</div>
 													<button
 														on:click={() => {
 															selectedFilesMappings = selectedFilesMappings.filter(
