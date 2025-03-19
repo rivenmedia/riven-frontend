@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-03-19)
+
+
+### Features
+
+* add back button to manual scrape popup ([#199](https://github.com/rivenmedia/riven-frontend/issues/199)) ([037a562](https://github.com/rivenmedia/riven-frontend/commit/037a5627a097ccb2551c94db45771f49a914bdee))
+* multi select for actions which should impact multiple items ([#197](https://github.com/rivenmedia/riven-frontend/issues/197)) ([a9e693c](https://github.com/rivenmedia/riven-frontend/commit/a9e693c928f50b4e48081be9485f5acc2c6c680f))
+
+
+### Bug Fixes
+
+* add repair symlinks button ([2fe398c](https://github.com/rivenmedia/riven-frontend/commit/2fe398c946250d8e18517ace0f1922a4200cf615))
+* add year in tmdb search results ([bb58d45](https://github.com/rivenmedia/riven-frontend/commit/bb58d450d0330f611b445f63f5ba1ea0b0ea2315))
+* manual scraping responsiveness ([ed9fc24](https://github.com/rivenmedia/riven-frontend/commit/ed9fc246ac07af8a593548fbdab0839b2b36590a))
+
 ## [0.19.0](https://github.com/rivenmedia/riven-frontend/compare/v0.18.1...v0.19.0) (2025-03-13)
 
 
