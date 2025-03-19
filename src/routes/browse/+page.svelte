@@ -133,6 +133,13 @@
 			toast.success(data.message);
 		}
 	}
+
+	async function handleSymlinkRepair() {
+		let { data } = await ItemsService.repairSymlinks();
+		if (data) {
+			toast.success(data.message);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -251,7 +258,15 @@
 					await updateOngoing();
 				}}
 				variant="outline"
-				size="sm">Update Ongoing</Button
+				size="sm">Update Ongoing Metadata</Button
+			>
+
+			<Button
+				on:click={async () => {
+					await handleSymlinkRepair();
+				}}
+				variant="outline"
+				size="sm">Repair Symlinks</Button
 			>
 		</div>
 

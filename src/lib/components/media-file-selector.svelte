@@ -38,6 +38,7 @@
 
 			if (response.data) {
 				// Convert streams object to array of {magnet, stream} pairs
+				console.log(response.data.streams);
 				streams = Object.entries(response.data.streams).map(([magnet, stream]) => ({
 					magnet,
 					stream
@@ -336,15 +337,13 @@
 <Dialog.Root bind:open={isOpen}>
 	<Dialog.Content class={cn(`fixed w-dvw ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}>
 		{#if step !== 1}
-			<div class="absolute top-0 left-0 p-2">
-				<Button variant="icon" on:click={() => (
-					step === 1 ? isOpen = false : step--
-				)}>
+			<div class="absolute left-0 top-0 p-2">
+				<Button variant="icon" on:click={() => (step === 1 ? (isOpen = false) : step--)}>
 					<ArrowLeft class="h-6 w-6" />
 				</Button>
 			</div>
 		{/if}
-		
+
 		{#if error}
 			<Alert.Root variant="destructive" class="mb-4">
 				<AlertCircle class="h-4 w-4" />
