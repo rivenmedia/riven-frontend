@@ -233,10 +233,10 @@ export function mediaServerSettingsToPass(data: any) {
 		plex_token: data.updaters.plex.token,
 		plex_url: data.updaters.plex.url,
 		plex_enabled: data.updaters.plex.enabled,
-		jellyfin_token: data.updaters.jellyfin.token,
+		jellyfin_token: data.updaters.jellyfin.api_key,
 		jellyfin_url: data.updaters.jellyfin.url,
 		jellyfin_enabled: data.updaters.jellyfin.enabled,
-		emby_token: data.updaters.emby.token,
+		emby_token: data.updaters.emby.api_key,
 		emby_url: data.updaters.emby.url,
 		emby_enabled: data.updaters.emby.enabled
 	};
@@ -255,12 +255,12 @@ export function mediaServerSettingsToSet(form: SuperValidated<Infer<MediaServerS
 				},
 				jellyfin: {
 					enabled: form.data.jellyfin_enabled,
-					token: form.data.jellyfin_token,
+					api_key: form.data.jellyfin_token,
 					url: form.data.jellyfin_url
 				},
 				emby: {
 					enabled: form.data.emby_enabled,
-					token: form.data.emby_token,
+					api_key: form.data.emby_token,
 					url: form.data.emby_url
 				}
 			}
