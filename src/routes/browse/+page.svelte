@@ -245,7 +245,7 @@
 			</Button>
 		</form>
 
-		<div class="mb-8 mt-4 flex items-center justify-start gap-4">
+		<div class="mb-8 mt-4 flex items-center justify-start gap-4 flex-wrap">
 			<Button
 				on:click={async () => {
 					await retryLibrary();
@@ -292,34 +292,51 @@
 					fetchItems();
 				}}
 			>
-				<Pagination.Content class="flex items-center justify-center space-x-2">
-					<Pagination.Item>
+				<Pagination.Content class="flex flex-col items-center justify-center">
+					<!-- <Pagination.Item>
 						<Pagination.PrevButton
 							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
 						/>
-					</Pagination.Item>
-					{#each pages as page (page.key)}
-						{#if page.type === 'ellipsis'}
-							<Pagination.Item>
-								<Pagination.Ellipsis class="px-4 py-2" />
-							</Pagination.Item>
-						{:else}
-							<Pagination.Item>
-								<Pagination.Link
-									{page}
-									isActive={currentPage === page.value}
-									class="rounded-md px-4 py-2"
-								>
-									{page.value}
-								</Pagination.Link>
-							</Pagination.Item>
-						{/if}
-					{/each}
-					<Pagination.Item>
+					</Pagination.Item> -->
+
+					<div class="flex items-center justify-center space-x-2">
+						{#each pages as page (page.key)}
+							{#if page.type === 'ellipsis'}
+								<Pagination.Item>
+									<Pagination.Ellipsis class="px-4 py-2" />
+								</Pagination.Item>
+							{:else}
+								<Pagination.Item>
+									<Pagination.Link
+										{page}
+										isActive={currentPage === page.value}
+										class="rounded-md px-4 py-2"
+									>
+										{page.value}
+									</Pagination.Link>
+								</Pagination.Item>
+							{/if}
+						{/each}
+					</div>
+					<!-- <Pagination.Item>
 						<Pagination.NextButton
 							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
 						/>
-					</Pagination.Item>
+					</Pagination.Item> -->
+
+					<div class="flex items-start justify-center space-x-2 mt-2">
+						<Pagination.Item>
+							<Pagination.PrevButton
+								class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+							/>
+						</Pagination.Item>
+
+						<Pagination.Item>
+							<Pagination.NextButton
+								class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+							/>
+						</Pagination.Item>
+					</div>
 				</Pagination.Content>
 			</Pagination.Root>
 		</div>
