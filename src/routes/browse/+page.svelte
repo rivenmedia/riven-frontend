@@ -258,7 +258,7 @@
 					await updateOngoing();
 				}}
 				variant="outline"
-				size="sm">Update Ongoing Metadata</Button
+				size="sm">Update Release Status</Button
 			>
 
 			<Button
