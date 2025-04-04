@@ -22,7 +22,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.21.5'
+            default: '0.21.18'
         },
         api_key: {
             type: 'string',
@@ -228,10 +228,9 @@ export const AppModelSchema = {
                 },
                 comet: {
                     enabled: false,
-                    indexers: ['bitsearch', 'eztv', 'thepiratebay', 'therarbg', 'yts'],
                     ratelimit: true,
                     timeout: 30,
-                    url: 'http://localhost:8000'
+                    url: 'https://comet.elfhosted.com'
                 }
             }
         },
@@ -702,6 +701,19 @@ export const AudioRankModelSchema = {
     description: 'Ranking configuration for audio attributes.'
 } as const;
 
+export const CalendarResponseSchema = {
+    properties: {
+        data: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['data'],
+    title: 'CalendarResponse'
+} as const;
+
 export const CometConfigSchema = {
     properties: {
         enabled: {
@@ -712,15 +724,7 @@ export const CometConfigSchema = {
         url: {
             type: 'string',
             title: 'Url',
-            default: 'http://localhost:8000'
-        },
-        indexers: {
-            items: {
-                type: 'string'
-            },
-            type: 'array',
-            title: 'Indexers',
-            default: ['bitsearch', 'eztv', 'thepiratebay', 'therarbg', 'yts']
+            default: 'https://comet.elfhosted.com'
         },
         timeout: {
             type: 'integer',
@@ -1005,18 +1009,6 @@ export const EmbyLibraryModelSchema = {
     title: 'EmbyLibraryModel'
 } as const;
 
-export const EventResponseSchema = {
-    properties: {
-        data: {
-            type: 'object',
-            title: 'Data'
-        }
-    },
-    type: 'object',
-    required: ['data'],
-    title: 'EventResponse'
-} as const;
-
 export const ExtrasRankModelSchema = {
     properties: {
         '3d': {
@@ -1065,6 +1057,23 @@ export const ExtrasRankModelSchema = {
     type: 'object',
     title: 'ExtrasRankModel',
     description: 'Ranking configuration for extras attributes.'
+} as const;
+
+export const FfprobeResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        data: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['message', 'data'],
+    title: 'FfprobeResponse'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -1124,6 +1133,7 @@ export const ItemsResponseSchema = {
         },
         items: {
             items: {
+                additionalProperties: true,
                 type: 'object'
             },
             type: 'array',
@@ -1307,6 +1317,21 @@ export const ListrrModelSchema = {
     title: 'ListrrModel'
 } as const;
 
+export const LogsResponseSchema = {
+    properties: {
+        logs: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Logs'
+        }
+    },
+    type: 'object',
+    required: ['logs'],
+    title: 'LogsResponse'
+} as const;
+
 export const MdblistModelSchema = {
     properties: {
         update_interval: {
@@ -1381,6 +1406,21 @@ export const MessageResponseSchema = {
     type: 'object',
     required: ['message'],
     title: 'MessageResponse'
+} as const;
+
+export const MountResponseSchema = {
+    properties: {
+        files: {
+            additionalProperties: {
+                type: 'string'
+            },
+            type: 'object',
+            title: 'Files'
+        }
+    },
+    type: 'object',
+    required: ['files'],
+    title: 'MountResponse'
 } as const;
 
 export const NotificationsModelSchema = {
@@ -1477,6 +1517,7 @@ export const OrionoidConfigSchema = {
             default: false
         },
         parameters: {
+            additionalProperties: true,
             type: 'object',
             title: 'Parameters',
             default: {
@@ -1531,6 +1572,26 @@ export const OverseerrModelSchema = {
     },
     type: 'object',
     title: 'OverseerrModel'
+} as const;
+
+export const ParseTorrentTitleResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        },
+        data: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['message', 'data'],
+    title: 'ParseTorrentTitleResponse'
 } as const;
 
 export const ParsedDataSchema = {
@@ -2489,8 +2550,7 @@ export const ScraperModelSchema = {
             '$ref': '#/components/schemas/CometConfig',
             default: {
                 enabled: false,
-                url: 'http://localhost:8000',
-                indexers: ['bitsearch', 'eztv', 'thepiratebay', 'therarbg', 'yts'],
+                url: 'https://comet.elfhosted.com',
                 timeout: 30,
                 ratelimit: true
             }
@@ -2710,11 +2770,12 @@ export const StreamSchema = {
         },
         is_cached: {
             type: 'boolean',
-            title: 'Is Cached'
+            title: 'Is Cached',
+            default: false
         }
     },
     type: 'object',
-    required: ['infohash', 'raw_title', 'parsed_title', 'parsed_data', 'rank', 'lev_ratio', 'is_cached'],
+    required: ['infohash', 'raw_title', 'parsed_title', 'parsed_data', 'rank', 'lev_ratio'],
     title: 'Stream'
 } as const;
 
@@ -2734,6 +2795,7 @@ export const SubliminalConfigSchema = {
             default: ['eng']
         },
         providers: {
+            additionalProperties: true,
             type: 'object',
             title: 'Providers',
             default: {
@@ -3165,6 +3227,7 @@ export const UpdateOngoingResponseSchema = {
         },
         updated_items: {
             items: {
+                additionalProperties: true,
                 type: 'object'
             },
             type: 'array',
@@ -3288,4 +3351,35 @@ export const ZileanConfigSchema = {
     },
     type: 'object',
     title: 'ZileanConfig'
+} as const;
+
+export const routers__secure__default__EventResponseSchema = {
+    properties: {
+        events: {
+            additionalProperties: {
+                items: {
+                    type: 'string'
+                },
+                type: 'array'
+            },
+            type: 'object',
+            title: 'Events'
+        }
+    },
+    type: 'object',
+    required: ['events'],
+    title: 'EventResponse'
+} as const;
+
+export const routers__secure__stream__EventResponseSchema = {
+    properties: {
+        data: {
+            additionalProperties: true,
+            type: 'object',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['data'],
+    title: 'EventResponse'
 } as const;

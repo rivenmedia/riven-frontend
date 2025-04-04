@@ -46,10 +46,15 @@ export type AudioRankModel = {
     truehd?: CustomRank;
 };
 
+export type CalendarResponse = {
+    data: {
+        [key: string]: unknown;
+    };
+};
+
 export type CometConfig = {
     enabled?: boolean;
     url?: string;
-    indexers?: Array<(string)>;
     timeout?: number;
     ratelimit?: boolean;
 };
@@ -132,12 +137,6 @@ export type EmbyLibraryModel = {
     url?: string;
 };
 
-export type EventResponse = {
-    data: {
-        [key: string]: unknown;
-    };
-};
-
 /**
  * Ranking configuration for extras attributes.
  */
@@ -156,6 +155,13 @@ export type ExtrasRankModel = {
     subbed?: CustomRank;
     upscaled?: CustomRank;
     scene?: CustomRank;
+};
+
+export type FfprobeResponse = {
+    message: string;
+    data: {
+        [key: string]: unknown;
+    };
 };
 
 export type HTTPValidationError = {
@@ -227,6 +233,10 @@ export type ListrrModel = {
     api_key?: string;
 };
 
+export type LogsResponse = {
+    logs: Array<(string)>;
+};
+
 export type MdblistModel = {
     update_interval?: number;
     enabled?: boolean;
@@ -243,6 +253,12 @@ export type MediafusionConfig = {
 
 export type MessageResponse = {
     message: string;
+};
+
+export type MountResponse = {
+    files: {
+        [key: string]: (string);
+    };
 };
 
 export type NotificationsModel = {
@@ -285,6 +301,13 @@ export type OverseerrModel = {
     url?: string;
     api_key?: string;
     use_webhook?: boolean;
+};
+
+export type ParseTorrentTitleResponse = {
+    message: string;
+    data: Array<{
+        [key: string]: unknown;
+    }>;
 };
 
 /**
@@ -607,7 +630,7 @@ export type Stream = {
     parsed_data: ParsedData;
     rank: number;
     lev_ratio: number;
-    is_cached: boolean;
+    is_cached?: boolean;
 };
 
 export type SubliminalConfig = {
@@ -752,6 +775,18 @@ export type ZileanConfig = {
     ratelimit?: boolean;
 };
 
+export type routers__secure__default__EventResponse = {
+    events: {
+        [key: string]: Array<(string)>;
+    };
+};
+
+export type routers__secure__stream__EventResponse = {
+    data: {
+        [key: string]: unknown;
+    };
+};
+
 export type RootResponse2 = (RootResponse);
 
 export type RootError = unknown;
@@ -792,25 +827,25 @@ export type StatsResponse2 = (StatsResponse);
 
 export type StatsError = (unknown);
 
-export type LogsResponse = (string);
+export type LogsResponse2 = (LogsResponse);
 
 export type LogsError = (unknown);
 
-export type EventsResponse = ({
-    [key: string]: Array<(string)>;
-});
+export type EventsResponse = (routers__secure__default__EventResponse);
 
 export type EventsError = (unknown);
 
-export type MountResponse = ({
-    [key: string]: (string);
-});
+export type MountResponse2 = (MountResponse);
 
 export type MountError = (unknown);
 
 export type UploadLogsResponse2 = (UploadLogsResponse);
 
 export type UploadLogsError = (unknown);
+
+export type FetchCalendarResponse = (CalendarResponse);
+
+export type FetchCalendarError = (unknown);
 
 export type OverseerrApiV1WebhookOverseerrPostResponse = ({
     [key: string]: unknown;
@@ -986,6 +1021,16 @@ export type UnpauseItemsResponse = (PauseResponse);
 
 export type UnpauseItemsError = (unknown | HTTPValidationError);
 
+export type FfprobeMediaFilesData = {
+    query: {
+        id: string;
+    };
+};
+
+export type FfprobeMediaFilesResponse = (FfprobeResponse);
+
+export type FfprobeMediaFilesError = (unknown | HTTPValidationError);
+
 export type ScrapeItemData = {
     path: {
         id: string;
@@ -1049,6 +1094,14 @@ export type CompleteManualSessionResponse = (SessionResponse);
 
 export type CompleteManualSessionError = (HTTPValidationError);
 
+export type ParseTorrentTitlesData = {
+    body: Array<(string)>;
+};
+
+export type ParseTorrentTitlesResponse = (ParseTorrentTitleResponse);
+
+export type ParseTorrentTitlesError = (HTTPValidationError);
+
 export type GetSettingsSchemaResponse = ({
     [key: string]: unknown;
 });
@@ -1107,6 +1160,6 @@ export type StreamEventsApiV1StreamEventTypeGetData = {
     };
 };
 
-export type StreamEventsApiV1StreamEventTypeGetResponse = (EventResponse);
+export type StreamEventsApiV1StreamEventTypeGetResponse = (routers__secure__stream__EventResponse);
 
 export type StreamEventsApiV1StreamEventTypeGetError = (unknown | HTTPValidationError);
