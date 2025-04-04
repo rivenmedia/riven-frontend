@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
+
+
+### Features
+
+* add back button to manual scrape popup ([#199](https://github.com/rivenmedia/riven-frontend/issues/199)) ([037a562](https://github.com/rivenmedia/riven-frontend/commit/037a5627a097ccb2551c94db45771f49a914bdee))
+* add collection requestion ([dbff7d8](https://github.com/rivenmedia/riven-frontend/commit/dbff7d82020c3f1f8c91717d0aa412d5e6fe1063))
+* multi select for actions which should impact multiple items ([#197](https://github.com/rivenmedia/riven-frontend/issues/197)) ([a9e693c](https://github.com/rivenmedia/riven-frontend/commit/a9e693c928f50b4e48081be9485f5acc2c6c680f))
+
+
+### Bug Fixes
+
+* add repair symlinks button ([2fe398c](https://github.com/rivenmedia/riven-frontend/commit/2fe398c946250d8e18517ace0f1922a4200cf615))
+* add year in tmdb search results ([bb58d45](https://github.com/rivenmedia/riven-frontend/commit/bb58d450d0330f611b445f63f5ba1ea0b0ea2315))
+* browse page reactivity ([fe07923](https://github.com/rivenmedia/riven-frontend/commit/fe079237c16c6495a56c81a4e7725fbb531dff92))
+* clean and update deps ([9bee322](https://github.com/rivenmedia/riven-frontend/commit/9bee3227462ef6272c28656123f1e6b2b19c792a))
+* Emby & Jellyfin API_KEY setting ([#202](https://github.com/rivenmedia/riven-frontend/issues/202)) ([b692e91](https://github.com/rivenmedia/riven-frontend/commit/b692e91c1fc3cd5446fe400d7989f2b4d8dedb0d))
+* manual scraping responsiveness ([ed9fc24](https://github.com/rivenmedia/riven-frontend/commit/ed9fc246ac07af8a593548fbdab0839b2b36590a))
+
 ## [0.19.0](https://github.com/rivenmedia/riven-frontend/compare/v0.18.1...v0.19.0) (2025-03-13)
 
 
