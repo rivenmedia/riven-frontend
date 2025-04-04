@@ -293,12 +293,6 @@
 				}}
 			>
 				<Pagination.Content class="flex flex-col items-center justify-center">
-					<!-- <Pagination.Item>
-						<Pagination.PrevButton
-							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-						/>
-					</Pagination.Item> -->
-
 					<div class="flex items-center justify-center space-x-2">
 						{#each pages as page (page.key)}
 							{#if page.type === 'ellipsis'}
@@ -318,12 +312,6 @@
 							{/if}
 						{/each}
 					</div>
-					<!-- <Pagination.Item>
-						<Pagination.NextButton
-							class="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-						/>
-					</Pagination.Item> -->
-
 					<div class="flex items-start justify-center space-x-2 mt-2">
 						<Pagination.Item>
 							<Pagination.PrevButton
