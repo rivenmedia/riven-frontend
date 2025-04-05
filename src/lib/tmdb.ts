@@ -1,430 +1,482 @@
 import { env } from '$env/dynamic/public';
-import type { TMDBSearchResponse } from './types';
+
+export type TMDBItem = {
+    backdrop_path: string | null;
+    id: number;
+    title: string | null;
+    name: string | null;
+    original_title: string;
+    overview: string;
+    poster_path: string | null;
+    media_type: 'movie' | 'tv' | 'person';
+    adult: boolean;
+    original_language: string;
+    genre_ids: number[];
+    popularity: number;
+    release_date?: string;
+    first_air_date?: string;
+    video: boolean;
+    vote_average: number;
+    vote_count: number;
+};
+
+export interface TMDBSearchResponse {
+    page: number;
+    results: TMDBItem[];
+    total_pages: number;
+    total_results: number;
+}
 
 const TMDB_READ_ACCESS_TOKEN: string =
-	'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNTkxMmVmOWFhM2IxNzg2Zjk3ZTE1NWY1YmQ3ZjY1MSIsInN1YiI6IjY1M2NjNWUyZTg5NGE2MDBmZjE2N2FmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.xrIXsMFJpI1o1j5g2QpQcFP1X3AfRjFA5FlBFO5Naw8';
+    'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNTkxMmVmOWFhM2IxNzg2Zjk3ZTE1NWY1YmQ3ZjY1MSIsInN1YiI6IjY1M2NjNWUyZTg5NGE2MDBmZjE2N2FmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.xrIXsMFJpI1o1j5g2QpQcFP1X3AfRjFA5FlBFO5Naw8';
 const HEADERS: Record<string, string> = {
-	Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
-	'Content-Type': 'application/json;charset=utf-8'
+    Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json;charset=utf-8'
 };
 const TMDB_BASE_URL: string = 'https://api.themoviedb.org/3';
 export const TMDB_LANGUAGE: string = env.PUBLIC_TMDB_LANGUAGE || 'en-US';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dictToQueryString(params: Record<string, any>): string {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const filteredParams = Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null));
-	return new URLSearchParams(filteredParams).toString();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const filteredParams = Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null));
+    return new URLSearchParams(filteredParams).toString();
 }
 
 export enum MediaType {
-	All = 'all',
-	Movie = 'movie',
-	TV = 'tv',
-	Person = 'person'
+    All = 'all',
+    Movie = 'movie',
+    TV = 'tv',
+    Person = 'person'
 }
 
 export enum TimeWindow {
-	Day = 'day',
-	Week = 'week'
+    Day = 'day',
+    Week = 'week'
 }
 
-export async function getTrending(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	page: number = 1,
-	mediaType: MediaType = MediaType.Movie,
-	timeWindow: TimeWindow = TimeWindow.Week
-) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(
-		`${TMDB_BASE_URL}/trending/${mediaType}/${timeWindow}?${queryString}`,
-		{
-			headers: HEADERS
-		}
-	);
-	if (!response.ok) {
-		throw new Error('Failed to fetch trending');
-	}
-	return await response.json();
+// Base interface for common options
+interface BaseOptions {
+    language?: string;
+    page?: number;
 }
 
-export async function getMoviesNowPlaying(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	page: number = 1
-) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/movie/now_playing?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movies');
-	}
-	return await response.json();
+// Trending options
+interface TrendingOptions extends BaseOptions {
+    mediaType?: MediaType;
+    timeWindow?: TimeWindow;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesPopular(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/movie/popular?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movies');
-	}
-	return await response.json();
+// Movie details options
+interface MovieDetailsOptions extends BaseOptions {
+    movieId: string;
+    append_to_response?: string | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/movie/top_rated?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movies');
-	}
-	return await response.json();
+// TV details options
+interface TVDetailsOptions extends BaseOptions {
+    tvId: string;
+    append_to_response?: string | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesUpcoming(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/movie/upcoming?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movies');
-	}
-	return await response.json();
+interface TVSeasonOptions extends TVDetailsOptions {
+    seasonNumber: number;
 }
 
-export async function getMovieDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	movieId: string
-) {
-	const params = { language, append_to_response };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movie details');
-	}
-	return await response.json();
+interface TVEpisodeOptions extends TVSeasonOptions {
+    episodeNumber: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVAiringToday(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/tv/airing_today?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV shows');
-	}
-	return await response.json();
+// Search options
+interface SearchBaseOptions extends BaseOptions {
+    query: string;
+    include_adult?: boolean;
+    region?: string | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVOnTheAir(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/tv/on_the_air?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV shows');
-	}
-	return await response.json();
+interface MovieSearchOptions extends SearchBaseOptions {
+    primary_release_year?: number | null;
+    region?: string | null;
+    year?: number | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVPopular(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/tv/popular?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV shows');
-	}
-	return await response.json();
+interface TVSearchOptions extends SearchBaseOptions {
+    first_air_date_year?: number | null;
+    year?: number | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
-	const params = { language, page };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/tv/top_rated?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV shows');
-	}
-	return await response.json();
+interface ExternalIDOptions {
+    external_id: string;
+    external_source: string;
+    language?: string;
 }
 
-export async function getTVDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string
-) {
-	const params = { language, append_to_response };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(`${TMDB_BASE_URL}/tv/${tvId}?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV show details');
-	}
-	return await response.json();
+interface CollectionOptions {
+    collectionId: number;
+    language?: string;
 }
 
-export async function getTVSeasonDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string,
-	seasonNumber: number
-) {
-	const params = { language, append_to_response };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(
-		`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?${queryString}`,
-		{
-			headers: HEADERS
-		}
-	);
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV season details');
-	}
-	return await response.json();
+interface CreditsOptions {
+    mediaId: string;
+    mediaType: string;
+    language?: string;
 }
 
-export async function getTVEpisodeDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string,
-	seasonNumber: number,
-	episodeNumber: number
-) {
-	const params = { language, append_to_response };
-	const queryString = dictToQueryString(params);
-
-	const response = await fetch(
-		`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?${queryString}`,
-		{
-			headers: HEADERS
-		}
-	);
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV episode details');
-	}
-	return await response.json();
+interface PersonOptions {
+    personId: number;
+    language?: string;
+    append_to_response?: string | null;
 }
 
-export async function getFromExternalID(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	external_source: string,
-	external_id: string
-) {
-	const params = { language, external_source, external_id };
-	const queryString = dictToQueryString(params);
+// Fetch type definition
+type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
 
-	const response = await fetch(`${TMDB_BASE_URL}/find/${external_id}?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch external ID');
-	}
-	return await response.json();
+export async function getTrending(fetch: FetchFunction, options: TrendingOptions = {}) {
+    const {
+        language = TMDB_LANGUAGE,
+        page = 1,
+        mediaType = MediaType.Movie,
+        timeWindow = TimeWindow.Week
+    } = options;
+
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(
+        `${TMDB_BASE_URL}/trending/${mediaType}/${timeWindow}?${queryString}`,
+        { headers: HEADERS }
+    );
+    if (!response.ok) {
+        throw new Error('Failed to fetch trending');
+    }
+    return await response.json();
 }
 
-export async function getCollectionSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1,
-	region: string | null = null
-) {
-	const params = { query, include_adult, language, page, region };
-	const queryString = dictToQueryString(params);
+export async function getMoviesNowPlaying(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/search/collection?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch collection search');
-	}
-	return await response.json();
+    const response = await fetch(`${TMDB_BASE_URL}/movie/now_playing?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movies');
+    }
+    return await response.json();
+}
+
+export async function getMoviesPopular(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/movie/popular?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movies');
+    }
+    return await response.json();
+}
+
+export async function getMoviesTopRated(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/movie/top_rated?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movies');
+    }
+    return await response.json();
+}
+
+export async function getMoviesUpcoming(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/movie/upcoming?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movies');
+    }
+    return await response.json();
+}
+
+export async function getMovieDetails(fetch: FetchFunction, options: MovieDetailsOptions) {
+    const { language = TMDB_LANGUAGE, append_to_response = null, movieId } = options;
+    const params = { language, append_to_response };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/movie/${movieId}?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movie details');
+    }
+    return await response.json();
+}
+
+export async function getTVAiringToday(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/airing_today?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV shows');
+    }
+    return await response.json();
+}
+
+export async function getTVOnTheAir(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/on_the_air?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV shows');
+    }
+    return await response.json();
+}
+
+export async function getTVPopular(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/popular?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV shows');
+    }
+    return await response.json();
+}
+
+export async function getTVTopRated(fetch: FetchFunction, options: BaseOptions = {}) {
+    const { language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { language, page };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/top_rated?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV shows');
+    }
+    return await response.json();
+}
+
+export async function getTVDetails(fetch: FetchFunction, options: TVDetailsOptions) {
+    const { language = TMDB_LANGUAGE, append_to_response = null, tvId } = options;
+    const params = { language, append_to_response };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/${tvId}?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV show details');
+    }
+    return await response.json();
+}
+
+export async function getTVSeasonDetails(fetch: FetchFunction, options: TVSeasonOptions) {
+    const { language = TMDB_LANGUAGE, append_to_response = null, tvId, seasonNumber } = options;
+    const params = { language, append_to_response };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(
+        `${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?${queryString}`,
+        { headers: HEADERS }
+    );
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV season details');
+    }
+    return await response.json();
+}
+
+export async function getTVEpisodeDetails(fetch: FetchFunction, options: TVEpisodeOptions) {
+    const {
+        language = TMDB_LANGUAGE,
+        append_to_response = null,
+        tvId,
+        seasonNumber,
+        episodeNumber
+    } = options;
+    const params = { language, append_to_response };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(
+        `${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?${queryString}`,
+        { headers: HEADERS }
+    );
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV episode details');
+    }
+    return await response.json();
+}
+
+export async function getFromExternalID(fetch: FetchFunction, options: ExternalIDOptions) {
+    const { language = TMDB_LANGUAGE, external_source, external_id } = options;
+    const params = { language, external_source };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/find/${external_id}?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch external ID');
+    }
+    return await response.json();
+}
+
+export async function getCollectionSearch(fetch: FetchFunction, options: SearchBaseOptions) {
+    const { query, include_adult = false, language = TMDB_LANGUAGE, page = 1, region = null } = options;
+    const params = { query, include_adult, language, page, region };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/search/collection?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch collection search');
+    }
+    return await response.json();
 }
 
 export async function getMovieSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	primary_release_year: number | null = null,
-	page: number = 1,
-	region: string | null = null,
-	year: number | null = null
+    fetch: FetchFunction,
+    options: MovieSearchOptions
 ): Promise<TMDBSearchResponse> {
-	const params = { query, include_adult, language, primary_release_year, page, region, year };
-	const queryString = dictToQueryString(params);
+    const {
+        query,
+        include_adult = false,
+        language = TMDB_LANGUAGE,
+        primary_release_year = null,
+        page = 1,
+        region = null,
+        year = null
+    } = options;
 
-	const response = await fetch(`${TMDB_BASE_URL}/search/movie?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch movie search');
-	}
-	return await response.json();
+    const params = { query, include_adult, language, primary_release_year, page, region, year };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/search/movie?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch movie search');
+    }
+    return await response.json();
 }
 
 export async function getMultiSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1
+    fetch: FetchFunction,
+    options: SearchBaseOptions
 ): Promise<TMDBSearchResponse> {
-	const params = { query, include_adult, language, page };
-	const queryString = dictToQueryString(params);
+    const { query, include_adult = false, language = TMDB_LANGUAGE, page = 1 } = options;
+    const params = { query, include_adult, language, page };
+    const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/search/multi?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch multi search');
-	}
-	return await response.json();
+    const response = await fetch(`${TMDB_BASE_URL}/search/multi?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch multi search');
+    }
+    return await response.json();
 }
 
-export async function getTVSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	first_air_date_year: number | null = null,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1,
-	year: number | null = null
-) {
-	const params = { query, first_air_date_year, include_adult, language, page, year };
-	const queryString = dictToQueryString(params);
+export async function getTVSearch(fetch: FetchFunction, options: TVSearchOptions) {
+    const {
+        query,
+        first_air_date_year = null,
+        include_adult = false,
+        language = TMDB_LANGUAGE,
+        page = 1,
+        year = null
+    } = options;
 
-	const response = await fetch(`${TMDB_BASE_URL}/search/tv?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch TV search');
-	}
-	return await response.json();
+    const params = { query, first_air_date_year, include_adult, language, page, year };
+    const queryString = dictToQueryString(params);
+
+    const response = await fetch(`${TMDB_BASE_URL}/search/tv?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch TV search');
+    }
+    return await response.json();
 }
 
 export async function getExternalID(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	mediaType: string,
-	tmdb_id: number
+    fetch: FetchFunction,
+    options: { mediaType: string; tmdb_id: number }
 ) {
-	const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdb_id}/external_ids`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch external ID');
-	}
-	return await response.json();
+    const { mediaType, tmdb_id } = options;
+
+    const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdb_id}/external_ids`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch external ID');
+    }
+    return await response.json();
 }
 
-export async function getCollection(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	collectionId: number
-) {
-	const params = { language };
-	const queryString = dictToQueryString(params);
+export async function getCollection(fetch: FetchFunction, options: CollectionOptions) {
+    const { language = TMDB_LANGUAGE, collectionId } = options;
+    const params = { language };
+    const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/collection/${collectionId}?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch collection details');
-	}
-	return await response.json();
+    const response = await fetch(`${TMDB_BASE_URL}/collection/${collectionId}?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch collection details');
+    }
+    return await response.json();
 }
 
-export async function getCredits(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	mediaId: string,
-	mediaType: string
-) {
-	const params = { language };
-	const queryString = dictToQueryString(params);
+export async function getCredits(fetch: FetchFunction, options: CreditsOptions) {
+    const { language = TMDB_LANGUAGE, mediaId, mediaType } = options;
+    const params = { language };
+    const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${mediaId}/credits?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch credits');
-	}
-	return await response.json();
+    const response = await fetch(
+        `${TMDB_BASE_URL}/${mediaType}/${mediaId}/credits?${queryString}`,
+        {
+            headers: HEADERS
+        }
+    );
+    if (!response.ok) {
+        throw new Error('Failed to fetch credits');
+    }
+    return await response.json();
 }
 
-export async function getPerson(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	personId: number
-) {
-	const params = { language, append_to_response };
-	const queryString = dictToQueryString(params);
+export async function getPerson(fetch: FetchFunction, options: PersonOptions) {
+    const { language = TMDB_LANGUAGE, append_to_response = null, personId } = options;
+    const params = { language, append_to_response };
+    const queryString = dictToQueryString(params);
 
-	const response = await fetch(`${TMDB_BASE_URL}/person/${personId}?${queryString}`, {
-		headers: HEADERS
-	});
-	if (!response.ok) {
-		throw new Error('Failed to fetch person details');
-	}
-	return await response.json();
+    const response = await fetch(`${TMDB_BASE_URL}/person/${personId}?${queryString}`, {
+        headers: HEADERS
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch person details');
+    }
+    return await response.json();
 }
