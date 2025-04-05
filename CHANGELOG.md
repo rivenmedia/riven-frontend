@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/rivenmedia/riven-frontend/compare/v0.20.0...v0.21.0) (2025-04-05)
+
+
+### Features
+
+* use parse endpoint in manual scraping ([4eb17ff](https://github.com/rivenmedia/riven-frontend/commit/4eb17fff4beac3aea98719b0dd0505731e3e343d))
+
 ## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
 
 
