@@ -142,27 +142,52 @@
 
 	let selectedFilesMappings: FileMapping[] = [];
 
-	function handleFileSelection(files: DebridFile[]) {
-		// Convert selected files to mappings array for easier manipulation
-		selectedFilesMappings = files.map((file) => ({
-			id: String(file.file_id),
-			filename: file.filename || undefined,
-			filesize: file.filesize || undefined,
-			// Try to extract season/episode from filename
-			...extractSeasonEpisode(file.filename!)
-		}));
-		validateMappings();
-		step = 4;
-	}
-	function extractSeasonEpisode(filename: string): { season?: number; episode?: number } {
-		const match = filename.match(/s(\d+)e(\d+)/i);
-		if (match) {
-			return {
-				season: parseInt(match[1]),
-				episode: parseInt(match[2])
-			};
+	async function handleFileSelection(files: DebridFile[]) {
+		loading = true;
+		try {
+			const filenames = files.map((file) => file.filename).filter(Boolean) as string[];
+			const filenameMappings: Record<string, { season?: number; episode?: number }> = {};
+
+			if (filenames.length > 0) {
+				const res = await ScrapeService.parseTorrentTitles({
+					body: filenames
+				});
+
+				if (res.data && res.data.data) {
+					res.data.data.forEach((parsed, index) => {
+						const filename = filenames[index];
+						const parsed_data: { season?: number; episode?: number } = {};
+
+						if (parsed.seasons) {
+							parsed_data.season = parsed.seasons[0];
+						}
+
+						if (parsed.episodes) {
+							parsed_data.episode = parsed.episodes[0];
+						}
+
+						filenameMappings[filename] = parsed_data;
+					});
+				}
+			}
+
+			selectedFilesMappings = files.map((file) => {
+				const seasonEpisode = file.filename ? filenameMappings[file.filename] || {} : {};
+				return {
+					id: String(file.file_id),
+					filename: file.filename || undefined,
+					filesize: file.filesize || undefined,
+					...seasonEpisode
+				};
+			});
+
+			validateMappings();
+			step = 4;
+		} catch (error) {
+			console.error('Error handling file selection:', error);
+		} finally {
+			loading = false;
 		}
-		return {};
 	}
 
 	let isValidMapping = false;
@@ -335,7 +360,9 @@
 <Button on:click={() => (isOpen = true)}>Scrape Manually</Button>
 
 <Dialog.Root bind:open={isOpen}>
-	<Dialog.Content class={cn(`fixed w-dvw max-w-full ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}>
+	<Dialog.Content
+		class={cn(`fixed w-dvw max-w-full ${dialogWidth} flex h-[80dvh] flex-col overflow-hidden`)}
+	>
 		{#if step !== 1}
 			<div class="absolute left-0 top-0 p-2">
 				<Button variant="icon" on:click={() => (step === 1 ? (isOpen = false) : step--)}>
@@ -462,10 +489,10 @@
 							{:else}
 								<button
 									class="w-full text-left"
-									on:click={() => {
+									on:click={async () => {
 										if (!sessionData?.containers?.files) return;
-										selectFiles(sessionData.containers.files);
-										handleFileSelection(sessionData.containers.files);
+										await selectFiles(sessionData.containers.files);
+										await handleFileSelection(sessionData.containers.files);
 									}}
 								>
 									<Card.Root
@@ -496,9 +523,9 @@
 										<Card.Content class="p-4">
 											<div class="grid gap-4">
 												<div class="flex items-center justify-between gap-2 overflow-auto">
-													<div class="flex items-center gap-2 max-w-[80%]">
+													<div class="flex max-w-[80%] items-center gap-2">
 														<FileIcon class="h-4 w-4 flex-shrink-0" />
-														<span class="flex-1 break-words max-w-full">{file.filename}</span>
+														<span class="max-w-full flex-1 break-words">{file.filename}</span>
 													</div>
 													<button
 														on:click={() => {
