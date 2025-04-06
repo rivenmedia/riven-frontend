@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { PageProps } from './$types';
     import * as Carousel from '$lib/components/ui/carousel/index.js';
-    import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
     import { type CarouselAPI } from '$lib/components/ui/carousel/context.js';
     import Autoplay from 'embla-carousel-autoplay';
     import { roundOff } from '$lib/helpers';
@@ -86,7 +85,7 @@
             delay: 10000
         })
     ]}
-    class="h-screen lg:h-[60vh] overflow-hidden"
+    class="h-[80vh] overflow-hidden lg:h-[60vh]"
 >
     <Carousel.Content class="h-full">
         {#each data.nowPlaying.results as item}
@@ -97,7 +96,7 @@
                     <img
                         src="https://www.themoviedb.org/t/p/original{item.backdrop_path}"
                         alt={item.title || item.name || item.original_name}
-                        class="h-screen lg:h-[60vh] w-full select-none object-cover object-center"
+                        class="h-[80vh] w-full select-none object-cover object-center lg:h-[60vh]"
                         loading="lazy"
                     />
                     <div
@@ -132,7 +131,7 @@
                                 <Tooltip class="text-left">
                                     {#snippet trigger()}
                                         <p
-                                            class="line-clamp-3 text-base md:line-clamp-4 lg:line-clamp-5 xl:line-clamp-6"
+                                            class="line-clamp-4 text-base lg:line-clamp-5 xl:line-clamp-6"
                                         >
                                             {item.overview}
                                         </p>
@@ -160,24 +159,22 @@
                                 </Button>
                             </div>
 
-                            {#if carouselApi && carouselCount > 1}
-                                <div class="mt-8 flex items-center justify-center gap-1">
-                                    <RadioGroup.Root
-                                        value={carouselCurrent.toString()}
-                                        onValueChange={(value) => {
-                                            carouselApi!.scrollTo(parseInt(value) - 1);
-                                        }}
-                                        class="flex gap-2"
-                                    >
-                                        {#each Array.from({ length: carouselCount }) as _, index}
-                                            <RadioGroup.Item
-                                                class="size-2 md:size-3"
-                                                value={(index + 1).toString()}
-                                            />
-                                        {/each}
-                                    </RadioGroup.Root>
-                                </div>
-                            {/if}
+                            <div class="mt-8 flex items-center justify-center gap-1">
+                                <RadioGroup.Root
+                                    value={carouselCurrent.toString()}
+                                    onValueChange={(value) => {
+                                        carouselApi!.scrollTo(parseInt(value) - 1);
+                                    }}
+                                    class="flex gap-2"
+                                >
+                                    {#each Array.from({ length: carouselCount }) as _, index}
+                                        <RadioGroup.Item
+                                            class="size-2 md:size-3"
+                                            value={(index + 1).toString()}
+                                        />
+                                    {/each}
+                                </RadioGroup.Root>
+                            </div>
                         </div>
                     </div>
                 </div>
