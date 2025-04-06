@@ -33,6 +33,44 @@
             });
         }
     });
+
+    const lists = [
+        {
+            name: 'Trending Today',
+            list: data.trendingAllToday.results,
+            orientation: 'horizontal'
+        },
+        {
+            name: 'Trending Movies This Week',
+            list: data.trendingMovies.results,
+            orientation: 'vertical'
+        },
+        {
+            name: 'Trending Shows This Week',
+            list: data.trendingShows.results,
+            orientation: 'vertical'
+        },
+        {
+            name: 'Popular Movies',
+            list: data.popularMovies.results,
+            orientation: 'vertical'
+        },
+        {
+            name: 'Popular Shows',
+            list: data.popularShows.results,
+            orientation: 'vertical'
+        },
+        {
+            name: 'Top Rated Movies',
+            list: data.topRatedMovies.results,
+            orientation: 'vertical'
+        },
+        {
+            name: 'Top Rated Shows',
+            list: data.topRatedShows.results,
+            orientation: 'vertical'
+        }
+    ];
 </script>
 
 <svelte:head>
@@ -48,7 +86,7 @@
             delay: 10000
         })
     ]}
-    class="h-[100dvh] overflow-hidden"
+    class="h-screen lg:h-[60vh] overflow-hidden"
 >
     <Carousel.Content class="h-full">
         {#each data.nowPlaying.results as item}
@@ -59,7 +97,7 @@
                     <img
                         src="https://www.themoviedb.org/t/p/original{item.backdrop_path}"
                         alt={item.title || item.name || item.original_name}
-                        class="h-[100dvh] w-full select-none object-cover object-center"
+                        class="h-screen lg:h-[60vh] w-full select-none object-cover object-center"
                         loading="lazy"
                     />
                     <div
@@ -67,7 +105,7 @@
                     ></div>
                     <div class="absolute inset-0 z-[2] flex flex-col gap-4">
                         <div
-                            class="ml-4 flex h-full w-full flex-col justify-end gap-2 p-8 md:px-24"
+                            class="ml-4 flex h-full w-full flex-col justify-end gap-2 p-8 md:px-16"
                         >
                             <div class="w-full max-w-2xl select-none">
                                 <h1
@@ -123,7 +161,7 @@
                             </div>
 
                             {#if carouselApi && carouselCount > 1}
-                                <div class="mt-8 flex items-center justify-center gap-1 md:mt-28">
+                                <div class="mt-8 flex items-center justify-center gap-1">
                                     <RadioGroup.Root
                                         value={carouselCurrent.toString()}
                                         onValueChange={(value) => {
@@ -148,50 +186,8 @@
     </Carousel.Content>
 </Carousel.Root>
 
-<div class="mt-8 space-y-4 p-8 md:px-24">
-    <ListCarousel
-        list={data.trendingAllToday.results}
-        orientation="horizontal"
-        title="Trending Today"
-        class="flex w-full flex-col gap-2"
-    />
-
-    <ListCarousel
-        list={data.trendingMovies.results}
-        orientation="vertical"
-        title="Trending Movies This Week"
-        class="flex w-full flex-col gap-2"
-    />
-
-    <ListCarousel
-        list={data.trendingShows.results}
-        orientation="vertical"
-        title="Trending Shows This Week"
-        class="flex w-full flex-col gap-2"
-    />
-
-    <ListCarousel
-        list={data.popularMovies.results}
-        orientation="vertical"
-        title="Popular Movies"
-        class="flex w-full flex-col gap-2"
-    />
-    <ListCarousel
-        list={data.popularShows.results}
-        orientation="vertical"
-        title="Popular Shows"
-        class="flex w-full flex-col gap-2"
-    />
-    <ListCarousel
-        list={data.topRatedMovies.results}
-        orientation="vertical"
-        title="Top Rated Movies"
-        class="flex w-full flex-col gap-2"
-    />
-    <ListCarousel
-        list={data.topRatedShows.results}
-        orientation="vertical"
-        title="Top Rated Shows"
-        class="flex w-full flex-col gap-2"
-    />
+<div class="space-y-4 p-8 md:px-16">
+    {#each lists as { name, list, orientation }}
+        <ListCarousel {list} {orientation} title={name} class="flex w-full flex-col gap-2" />
+    {/each}
 </div>
