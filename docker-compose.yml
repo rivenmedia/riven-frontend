@@ -1,17 +1,17 @@
 services:
-  riven-frontend:
-    image: spoked/riven-frontend:latest # Tags: latest/dev/x.x.x
-    container_name: riven-frontend
-    restart: unless-stopped
-    tty: true
-    environment:
-      - ORIGIN=http://localhost:3000 # (Optional) No trailing slash, read more below
-      - TZ=America/New_York
-    expose:
-      - 3000
+    riven-frontend:
+        image: spoked/riven-frontend:latest # Tags: latest/dev/x.x.x
+        container_name: riven-frontend
+        restart: unless-stopped
+        tty: true
+        environment:
+            - ORIGIN=http://localhost:3000 # (Optional) No trailing slash, read more below
+            - TZ=America/New_York
+        expose:
+            - 3000
 
-    # (Optional) Uncomment the following lines to bind the port to the host machine
-    # ports:
-    #   - 3000:3000
-    volumes:
-      - ./config:/riven/config
+        # (Optional) Uncomment the following lines to bind the port to the host machine
+        # ports:
+        #   - 3000:3000
+        volumes:
+            - ./config:/riven/config
