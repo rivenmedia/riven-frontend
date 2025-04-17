@@ -28,6 +28,7 @@ export interface TMDBSearchResponse {
 }
 
 const TMDB_READ_ACCESS_TOKEN: string =
+    env.PUBLIC_TMDB_READ_ACCESS_TOKEN ||
     'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNTkxMmVmOWFhM2IxNzg2Zjk3ZTE1NWY1YmQ3ZjY1MSIsInN1YiI6IjY1M2NjNWUyZTg5NGE2MDBmZjE2N2FmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.xrIXsMFJpI1o1j5g2QpQcFP1X3AfRjFA5FlBFO5Naw8';
 const HEADERS: Record<string, string> = {
     Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
@@ -55,25 +56,21 @@ export enum TimeWindow {
     Week = 'week'
 }
 
-// Base interface for common options
 interface BaseOptions {
     language?: string;
     page?: number;
 }
 
-// Trending options
 interface TrendingOptions extends BaseOptions {
     mediaType?: MediaType;
     timeWindow?: TimeWindow;
 }
 
-// Movie details options
 interface MovieDetailsOptions extends BaseOptions {
     movieId: string;
     append_to_response?: string | null;
 }
 
-// TV details options
 interface TVDetailsOptions extends BaseOptions {
     tvId: string;
     append_to_response?: string | null;
@@ -87,7 +84,6 @@ interface TVEpisodeOptions extends TVSeasonOptions {
     episodeNumber: number;
 }
 
-// Search options
 interface SearchBaseOptions extends BaseOptions {
     query: string;
     include_adult?: boolean;
@@ -128,7 +124,6 @@ interface PersonOptions {
     append_to_response?: string | null;
 }
 
-// Fetch type definition
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
 
 export async function getTrending(fetch: FetchFunction, options: TrendingOptions = {}) {
@@ -343,7 +338,13 @@ export async function getFromExternalID(fetch: FetchFunction, options: ExternalI
 }
 
 export async function getCollectionSearch(fetch: FetchFunction, options: SearchBaseOptions) {
-    const { query, include_adult = false, language = TMDB_LANGUAGE, page = 1, region = null } = options;
+    const {
+        query,
+        include_adult = false,
+        language = TMDB_LANGUAGE,
+        page = 1,
+        region = null
+    } = options;
     const params = { query, include_adult, language, page, region };
     const queryString = dictToQueryString(params);
 

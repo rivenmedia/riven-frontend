@@ -1,7 +1,6 @@
 <script lang="ts">
     import * as Command from '$lib/components/ui/command/index.js';
     import { getContext } from 'svelte';
-    import { navItems } from '$lib/constants';
     import Search from '@lucide/svelte/icons/search';
 
     let commandState: any = getContext('commandState');
@@ -14,6 +13,11 @@
     }
 
     let value = $state('');
+    let search = $state('');
+
+    function searchTMDB(e: Event) {
+        console.log('searchTMDB', e);
+    }
 </script>
 
 <svelte:document onkeydown={handleKeydown} />
@@ -21,29 +25,13 @@
 <Command.Dialog
     bind:open={commandState.open}
     bind:value={() => value, (newValue) => (value = newValue)}
-    shouldFilter={false}
 >
-    <Command.Input placeholder="Type a command or search..." />
+    <Command.Input bind:value={search} onkeydown={searchTMDB} placeholder="Type a command or search..." />
     <Command.List>
-        <Command.Empty>No results found.</Command.Empty>
-        {#if value.length}
-            <Command.Group heading="Search TMDB">
-                <Command.Item>
-                    <Search class="mr-2 size-4" />
-                    <span>Search for "{value}"</span>
-                </Command.Item>
-            </Command.Group>
+        {#if search.length}
+            <p class="text-sm text-muted-foreground">
+                Results for <strong>{search}</strong>
+            </p>
         {/if}
-
-        <Command.Group heading="Navigations">
-            {#each navItems as item}
-                {#if item.href}
-                    <Command.LinkItem href={item.href}>
-                        <item.icon class="mr-2 size-4" />
-                        <span>{item.name}</span>
-                    </Command.LinkItem>
-                {/if}
-            {/each}
-        </Command.Group>
     </Command.List>
 </Command.Dialog>
