@@ -19,7 +19,7 @@ export type AppModel = {
     downloaders?: DownloadersModel;
     content?: ContentModel;
     scraping?: ScraperModel;
-    ranking?: RTNSettingsModel;
+    ranking?: RtnSettingsModel;
     indexer?: IndexerModel;
     database?: DatabaseModel;
     notifications?: NotificationsModel;
@@ -115,13 +115,13 @@ export type DatabaseModel = {
  * Represents a file from a debrid service
  */
 export type DebridFile = {
-    file_id?: (number | null);
-    filename?: (string | null);
-    filesize?: (number | null);
+    file_id?: number | null;
+    filename?: string | null;
+    filesize?: number | null;
 };
 
 export type DownloadersModel = {
-    video_extensions?: Array<(string)>;
+    video_extensions?: Array<string>;
     movie_filesize_mb_min?: number;
     movie_filesize_mb_max?: number;
     episode_filesize_mb_min?: number;
@@ -164,7 +164,7 @@ export type FfprobeResponse = {
     };
 };
 
-export type HTTPValidationError = {
+export type HttpValidationError = {
     detail?: Array<ValidationError>;
 };
 
@@ -220,28 +220,28 @@ export type KnightcrawlerConfig = {
  * Configuration for which languages are enabled.
  */
 export type LanguagesConfig = {
-    required?: Array<(string)>;
-    exclude?: Array<(string)>;
-    preferred?: Array<(string)>;
+    required?: Array<string>;
+    exclude?: Array<string>;
+    preferred?: Array<string>;
 };
 
 export type ListrrModel = {
     update_interval?: number;
     enabled?: boolean;
-    movie_lists?: Array<(string)>;
-    show_lists?: Array<(string)>;
+    movie_lists?: Array<string>;
+    show_lists?: Array<string>;
     api_key?: string;
 };
 
 export type LogsResponse = {
-    logs: Array<(string)>;
+    logs: Array<string>;
 };
 
 export type MdblistModel = {
     update_interval?: number;
     enabled?: boolean;
     api_key?: string;
-    lists?: Array<(string | number)>;
+    lists?: Array<string | number>;
 };
 
 export type MediafusionConfig = {
@@ -257,15 +257,15 @@ export type MessageResponse = {
 
 export type MountResponse = {
     files: {
-        [key: string]: (string);
+        [key: string]: string;
     };
 };
 
 export type NotificationsModel = {
     enabled?: boolean;
     title?: string;
-    on_item_type?: Array<(string)>;
-    service_urls?: Array<(string)>;
+    on_item_type?: Array<string>;
+    service_urls?: Array<string>;
 };
 
 /**
@@ -319,33 +319,33 @@ export type ParsedData = {
     normalized_title?: string;
     trash?: boolean;
     adult?: boolean;
-    year?: (number | null);
+    year?: number | null;
     resolution?: string;
-    seasons?: Array<(number)>;
-    episodes?: Array<(number)>;
+    seasons?: Array<number>;
+    episodes?: Array<number>;
     complete?: boolean;
-    volumes?: Array<(number)>;
-    languages?: Array<(string)>;
-    quality?: (string | null);
-    hdr?: Array<(string)>;
-    codec?: (string | null);
-    audio?: Array<(string)>;
-    channels?: Array<(string)>;
+    volumes?: Array<number>;
+    languages?: Array<string>;
+    quality?: string | null;
+    hdr?: Array<string>;
+    codec?: string | null;
+    audio?: Array<string>;
+    channels?: Array<string>;
     dubbed?: boolean;
     subbed?: boolean;
-    date?: (string | null);
-    group?: (string | null);
-    edition?: (string | null);
-    bit_depth?: (string | null);
-    bitrate?: (string | null);
-    network?: (string | null);
+    date?: string | null;
+    group?: string | null;
+    edition?: string | null;
+    bit_depth?: string | null;
+    bitrate?: string | null;
+    network?: string | null;
     extended?: boolean;
     converted?: boolean;
     hardcoded?: boolean;
-    region?: (string | null);
+    region?: string | null;
     ppv?: boolean;
-    site?: (string | null);
-    size?: (string | null);
+    site?: string | null;
+    size?: string | null;
     proper?: boolean;
     repack?: boolean;
     retail?: boolean;
@@ -353,18 +353,18 @@ export type ParsedData = {
     remastered?: boolean;
     unrated?: boolean;
     documentary?: boolean;
-    episode_code?: (string | null);
-    country?: (string | null);
-    container?: (string | null);
-    extension?: (string | null);
-    extras?: Array<(string)>;
+    episode_code?: string | null;
+    country?: string | null;
+    container?: string | null;
+    extension?: string | null;
+    extras?: Array<string>;
     torrent?: boolean;
     scene?: boolean;
 };
 
 export type PauseResponse = {
     message: string;
-    ids: Array<(string)>;
+    ids: Array<string>;
 };
 
 export type PlexLibraryModel = {
@@ -376,7 +376,7 @@ export type PlexLibraryModel = {
 export type PlexWatchlistModel = {
     update_interval?: number;
     enabled?: boolean;
-    rss?: Array<(string)>;
+    rss?: Array<string>;
 };
 
 export type PostProcessing = {
@@ -411,7 +411,7 @@ export type QualityRankModel = {
     xvid?: CustomRank;
 };
 
-export type RDUser = {
+export type RdUser = {
     id: number;
     username: string;
     email: string;
@@ -431,9 +431,7 @@ export type RDUser = {
     premium: number;
 };
 
-export type type = 'free' | 'premium';
-
-export type RTNSettingsModel = {
+export type RtnSettingsModel = {
     /**
      * Identifier for the settings profile
      */
@@ -441,15 +439,15 @@ export type RTNSettingsModel = {
     /**
      * Patterns torrents must match to be considered
      */
-    require?: Array<(string)>;
+    require?: Array<string>;
     /**
      * Patterns that, if matched, result in torrent exclusion
      */
-    exclude?: Array<(string)>;
+    exclude?: Array<string>;
     /**
      * Patterns indicating preferred attributes in torrents
      */
-    preferred?: Array<(string)>;
+    preferred?: Array<string>;
     /**
      * Configuration for enabled resolutions
      */
@@ -475,7 +473,7 @@ export type RealDebridModel = {
 
 export type RemoveResponse = {
     message: string;
-    ids: Array<(string)>;
+    ids: Array<string>;
 };
 
 export type RepairSymlinksResponse = {
@@ -484,7 +482,7 @@ export type RepairSymlinksResponse = {
 
 export type ResetResponse = {
     message: string;
-    ids: Array<(string)>;
+    ids: Array<string>;
 };
 
 /**
@@ -501,7 +499,7 @@ export type ResolutionConfig = {
 
 export type RetryResponse = {
     message: string;
-    ids: Array<(string)>;
+    ids: Array<string>;
 };
 
 /**
@@ -557,8 +555,6 @@ export type SelectFilesResponse = {
     download_type: 'cached' | 'uncached';
 };
 
-export type download_type = 'cached' | 'uncached';
-
 export type SessionResponse = {
     message: string;
 };
@@ -593,13 +589,13 @@ export type StartSessionResponse = {
     session_id: string;
     torrent_id: string;
     torrent_info: TorrentInfo;
-    containers: (TorrentContainer | null);
+    containers: TorrentContainer | null;
     expires_at: string;
 };
 
 export type StateResponse = {
     success: boolean;
-    states: Array<(string)>;
+    states: Array<string>;
 };
 
 export type States = 'Unknown' | 'Unreleased' | 'Ongoing' | 'Requested' | 'Indexed' | 'Scraped' | 'Downloaded' | 'Symlinked' | 'Completed' | 'PartiallyCompleted' | 'Failed' | 'Paused';
@@ -616,10 +612,10 @@ export type StatsResponse = {
      * Media item log string: number of retries
      */
     incomplete_retries: {
-        [key: string]: (number);
+        [key: string]: number;
     };
     states: {
-        [key: string]: (number);
+        [key: string]: number;
     };
 };
 
@@ -635,7 +631,7 @@ export type Stream = {
 
 export type SubliminalConfig = {
     enabled?: boolean;
-    languages?: Array<(string)>;
+    languages?: Array<string>;
     providers?: {
         [key: string]: unknown;
     };
@@ -661,19 +657,19 @@ export type TorrentContainer = {
  * Torrent information from a debrid service
  */
 export type TorrentInfo = {
-    id: (number | string);
+    id: number | string;
     name: string;
-    status?: (string | null);
-    infohash?: (string | null);
-    progress?: (number | null);
-    bytes?: (number | null);
-    created_at?: (string | null);
-    expires_at?: (string | null);
-    completed_at?: (string | null);
-    alternative_filename?: (string | null);
+    status?: string | null;
+    infohash?: string | null;
+    progress?: number | null;
+    bytes?: number | null;
+    created_at?: string | null;
+    expires_at?: string | null;
+    completed_at?: string | null;
+    alternative_filename?: string | null;
     files?: {
         [key: string]: {
-            [key: string]: (number | string);
+            [key: string]: number | string;
         };
     };
 };
@@ -694,9 +690,9 @@ export type TraktModel = {
     update_interval?: number;
     enabled?: boolean;
     api_key?: string;
-    watchlist?: Array<(string)>;
-    user_lists?: Array<(string)>;
-    collection?: Array<(string)>;
+    watchlist?: Array<string>;
+    user_lists?: Array<string>;
+    collection?: Array<string>;
     fetch_trending?: boolean;
     trending_count?: number;
     fetch_popular?: boolean;
@@ -760,7 +756,7 @@ export type UploadLogsResponse = {
 };
 
 export type ValidationError = {
-    loc: Array<(string | number)>;
+    loc: Array<string | number>;
     msg: string;
     type: string;
 };
@@ -775,391 +771,1313 @@ export type ZileanConfig = {
     ratelimit?: boolean;
 };
 
-export type routers__secure__default__EventResponse = {
+export type RoutersSecureDefaultEventResponse = {
     events: {
-        [key: string]: Array<(string)>;
+        [key: string]: Array<string>;
     };
 };
 
-export type routers__secure__stream__EventResponse = {
+export type RoutersSecureStreamEventResponse = {
     data: {
         [key: string]: unknown;
     };
 };
 
-export type RootResponse2 = (RootResponse);
+export type RootData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/';
+};
 
-export type RootError = unknown;
+export type RootResponses = {
+    /**
+     * Successful Response
+     */
+    200: RootResponse;
+};
 
-export type HealthResponse = (MessageResponse);
+export type RootResponse2 = RootResponses[keyof RootResponses];
 
-export type HealthError = (unknown);
+export type HealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/health';
+};
 
-export type RdResponse = (RDUser);
+export type HealthErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type RdError = (unknown);
+export type HealthResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
 
-export type GenerateapikeyResponse = (MessageResponse);
+export type HealthResponse = HealthResponses[keyof HealthResponses];
 
-export type GenerateapikeyError = (unknown);
+export type RdData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/rd';
+};
 
-export type ServicesResponse = ({
-    [key: string]: (boolean);
-});
+export type RdErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type ServicesError = (unknown);
+export type RdResponses = {
+    /**
+     * Successful Response
+     */
+    200: RdUser;
+};
 
-export type TraktOauthInitiateResponse = (TraktOAuthInitiateResponse);
+export type RdResponse = RdResponses[keyof RdResponses];
 
-export type TraktOauthInitiateError = (unknown);
+export type GenerateapikeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/generateapikey';
+};
+
+export type GenerateapikeyErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type GenerateapikeyResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type GenerateapikeyResponse = GenerateapikeyResponses[keyof GenerateapikeyResponses];
+
+export type ServicesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/services';
+};
+
+export type ServicesErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type ServicesResponses = {
+    /**
+     * Successful Response
+     */
+    200: {
+        [key: string]: boolean;
+    };
+};
+
+export type ServicesResponse = ServicesResponses[keyof ServicesResponses];
+
+export type TraktOauthInitiateData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/trakt/oauth/initiate';
+};
+
+export type TraktOauthInitiateErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type TraktOauthInitiateResponses = {
+    /**
+     * Successful Response
+     */
+    200: TraktOAuthInitiateResponse;
+};
+
+export type TraktOauthInitiateResponse = TraktOauthInitiateResponses[keyof TraktOauthInitiateResponses];
 
 export type TraktOauthCallbackData = {
+    body?: never;
+    path?: never;
     query: {
         code: string;
     };
+    url: '/api/v1/trakt/oauth/callback';
 };
 
-export type TraktOauthCallbackResponse = (MessageResponse);
+export type TraktOauthCallbackErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type TraktOauthCallbackError = (unknown | HTTPValidationError);
+export type TraktOauthCallbackError = TraktOauthCallbackErrors[keyof TraktOauthCallbackErrors];
 
-export type StatsResponse2 = (StatsResponse);
+export type TraktOauthCallbackResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
 
-export type StatsError = (unknown);
+export type TraktOauthCallbackResponse = TraktOauthCallbackResponses[keyof TraktOauthCallbackResponses];
 
-export type LogsResponse2 = (LogsResponse);
+export type StatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/stats';
+};
 
-export type LogsError = (unknown);
+export type StatsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type EventsResponse = (routers__secure__default__EventResponse);
+export type StatsResponses = {
+    /**
+     * Successful Response
+     */
+    200: StatsResponse;
+};
 
-export type EventsError = (unknown);
+export type StatsResponse2 = StatsResponses[keyof StatsResponses];
 
-export type MountResponse2 = (MountResponse);
+export type LogsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/logs';
+};
 
-export type MountError = (unknown);
+export type LogsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type UploadLogsResponse2 = (UploadLogsResponse);
+export type LogsResponses = {
+    /**
+     * Successful Response
+     */
+    200: LogsResponse;
+};
 
-export type UploadLogsError = (unknown);
+export type LogsResponse2 = LogsResponses[keyof LogsResponses];
 
-export type FetchCalendarResponse = (CalendarResponse);
+export type EventsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/events';
+};
 
-export type FetchCalendarError = (unknown);
+export type EventsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type OverseerrApiV1WebhookOverseerrPostResponse = ({
-    [key: string]: unknown;
-});
+export type EventsResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutersSecureDefaultEventResponse;
+};
 
-export type OverseerrApiV1WebhookOverseerrPostError = (unknown);
+export type EventsResponse = EventsResponses[keyof EventsResponses];
 
-export type GetStatesResponse = (StateResponse);
+export type MountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/mount';
+};
 
-export type GetStatesError = (unknown);
+export type MountErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type MountResponses = {
+    /**
+     * Successful Response
+     */
+    200: MountResponse;
+};
+
+export type MountResponse2 = MountResponses[keyof MountResponses];
+
+export type UploadLogsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/upload_logs';
+};
+
+export type UploadLogsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type UploadLogsResponses = {
+    /**
+     * Successful Response
+     */
+    200: UploadLogsResponse;
+};
+
+export type UploadLogsResponse2 = UploadLogsResponses[keyof UploadLogsResponses];
+
+export type FetchCalendarData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/calendar';
+};
+
+export type FetchCalendarErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type FetchCalendarResponses = {
+    /**
+     * Successful Response
+     */
+    200: CalendarResponse;
+};
+
+export type FetchCalendarResponse = FetchCalendarResponses[keyof FetchCalendarResponses];
+
+export type GetStatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/items/states';
+};
+
+export type GetStatesErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type GetStatesResponses = {
+    /**
+     * Successful Response
+     */
+    200: StateResponse;
+};
+
+export type GetStatesResponse = GetStatesResponses[keyof GetStatesResponses];
 
 export type GetItemsData = {
+    body?: never;
+    path?: never;
     query?: {
-        extended?: (boolean | null);
-        is_anime?: (boolean | null);
-        limit?: (number | null);
-        page?: (number | null);
-        search?: (string | null);
-        sort?: ('date_desc' | 'date_asc' | 'title_asc' | 'title_desc' | null);
-        states?: (string | null);
-        type?: (string | null);
+        limit?: number | null;
+        page?: number | null;
+        type?: string | null;
+        states?: string | null;
+        sort?: ('date_desc' | 'date_asc' | 'title_asc' | 'title_desc') | null;
+        search?: string | null;
+        extended?: boolean | null;
+        is_anime?: boolean | null;
     };
+    url: '/api/v1/items';
 };
 
-export type GetItemsResponse = (ItemsResponse);
+export type GetItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type GetItemsError = (unknown | HTTPValidationError);
+export type GetItemsError = GetItemsErrors[keyof GetItemsErrors];
+
+export type GetItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ItemsResponse;
+};
+
+export type GetItemsResponse = GetItemsResponses[keyof GetItemsResponses];
 
 export type AddItemsData = {
+    body?: never;
+    path?: never;
     query?: {
         imdb_ids?: string;
     };
+    url: '/api/v1/items/add';
 };
 
-export type AddItemsResponse = (MessageResponse);
+export type AddItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type AddItemsError = (unknown | HTTPValidationError);
+export type AddItemsError = AddItemsErrors[keyof AddItemsErrors];
+
+export type AddItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type AddItemsResponse = AddItemsResponses[keyof AddItemsResponses];
 
 export type GetItemData = {
+    body?: never;
     path: {
         id: string;
     };
     query?: {
-        use_tmdb_id?: (boolean | null);
+        use_tmdb_id?: boolean | null;
+    };
+    url: '/api/v1/items/{id}';
+};
+
+export type GetItemErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetItemError = GetItemErrors[keyof GetItemErrors];
+
+export type GetItemResponses = {
+    /**
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
     };
 };
 
-export type GetItemResponse = ({
-    [key: string]: unknown;
-});
-
-export type GetItemError = (unknown | HTTPValidationError);
+export type GetItemResponse = GetItemResponses[keyof GetItemResponses];
 
 export type GetItemsByImdbIdsData = {
+    body?: never;
     path: {
         imdb_ids: string;
     };
+    query?: never;
+    url: '/api/v1/items/imdb/{imdb_ids}';
 };
 
-export type GetItemsByImdbIdsResponse = (Array<{
-    [key: string]: unknown;
-}>);
+export type GetItemsByImdbIdsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type GetItemsByImdbIdsError = (unknown | HTTPValidationError);
+export type GetItemsByImdbIdsError = GetItemsByImdbIdsErrors[keyof GetItemsByImdbIdsErrors];
+
+export type GetItemsByImdbIdsResponses = {
+    /**
+     * Successful Response
+     */
+    200: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+export type GetItemsByImdbIdsResponse = GetItemsByImdbIdsResponses[keyof GetItemsByImdbIdsResponses];
 
 export type ResetItemsData = {
+    body?: never;
+    path?: never;
     query: {
         ids: string;
     };
+    url: '/api/v1/items/reset';
 };
 
-export type ResetItemsResponse = (ResetResponse);
+export type ResetItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ResetItemsError = (unknown | HTTPValidationError);
+export type ResetItemsError = ResetItemsErrors[keyof ResetItemsErrors];
+
+export type ResetItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ResetResponse;
+};
+
+export type ResetItemsResponse = ResetItemsResponses[keyof ResetItemsResponses];
 
 export type RetryItemsData = {
+    body?: never;
+    path?: never;
     query: {
         ids: string;
     };
+    url: '/api/v1/items/retry';
 };
 
-export type RetryItemsResponse = (RetryResponse);
+export type RetryItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type RetryItemsError = (unknown | HTTPValidationError);
+export type RetryItemsError = RetryItemsErrors[keyof RetryItemsErrors];
 
-export type RetryLibraryItemsResponse = (RetryResponse);
+export type RetryItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: RetryResponse;
+};
 
-export type RetryLibraryItemsError = (unknown);
+export type RetryItemsResponse = RetryItemsResponses[keyof RetryItemsResponses];
 
-export type UpdateOngoingItemsResponse = (UpdateOngoingResponse);
+export type RetryLibraryItemsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/items/retry_library';
+};
 
-export type UpdateOngoingItemsError = (unknown);
+export type RetryLibraryItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type RetryLibraryItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: RetryResponse;
+};
+
+export type RetryLibraryItemsResponse = RetryLibraryItemsResponses[keyof RetryLibraryItemsResponses];
+
+export type UpdateOngoingItemsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/items/update_ongoing';
+};
+
+export type UpdateOngoingItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type UpdateOngoingItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: UpdateOngoingResponse;
+};
+
+export type UpdateOngoingItemsResponse = UpdateOngoingItemsResponses[keyof UpdateOngoingItemsResponses];
 
 export type RepairSymlinksData = {
+    body?: never;
+    path?: never;
     query?: {
-        directory?: (string | null);
+        directory?: string | null;
     };
+    url: '/api/v1/items/repair_symlinks';
 };
 
-export type RepairSymlinksResponse2 = (RepairSymlinksResponse);
+export type RepairSymlinksErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type RepairSymlinksError = (unknown | HTTPValidationError);
+export type RepairSymlinksError = RepairSymlinksErrors[keyof RepairSymlinksErrors];
+
+export type RepairSymlinksResponses = {
+    /**
+     * Successful Response
+     */
+    200: RepairSymlinksResponse;
+};
+
+export type RepairSymlinksResponse2 = RepairSymlinksResponses[keyof RepairSymlinksResponses];
 
 export type RemoveItemData = {
+    body?: never;
+    path?: never;
     query: {
         ids: string;
     };
+    url: '/api/v1/items/remove';
 };
 
-export type RemoveItemResponse = (RemoveResponse);
+export type RemoveItemErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type RemoveItemError = (unknown | HTTPValidationError);
+export type RemoveItemError = RemoveItemErrors[keyof RemoveItemErrors];
+
+export type RemoveItemResponses = {
+    /**
+     * Successful Response
+     */
+    200: RemoveResponse;
+};
+
+export type RemoveItemResponse = RemoveItemResponses[keyof RemoveItemResponses];
 
 export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
+    body?: never;
     path: {
         item_id: string;
     };
+    query?: never;
+    url: '/api/v1/items/{item_id}/streams';
 };
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetResponse = (unknown);
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetError = (unknown | HTTPValidationError);
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetError = GetItemStreamsApiV1ItemsItemIdStreamsGetErrors[keyof GetItemStreamsApiV1ItemsItemIdStreamsGetErrors];
+
+export type GetItemStreamsApiV1ItemsItemIdStreamsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
+    body?: never;
     path: {
         item_id: string;
         stream_id: number;
     };
+    query?: never;
+    url: '/api/v1/items/{item_id}/streams/{stream_id}/blacklist';
 };
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostResponse = (unknown);
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostError = (unknown | HTTPValidationError);
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostError = BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors[keyof BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors];
+
+export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData = {
+    body?: never;
     path: {
         item_id: string;
         stream_id: number;
     };
+    query?: never;
+    url: '/api/v1/items/{item_id}/streams/{stream_id}/unblacklist';
 };
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostResponse = (unknown);
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError = (unknown | HTTPValidationError);
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError = UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors[keyof UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors];
+
+export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type ResetItemStreamsData = {
+    body?: never;
     path: {
         item_id: string;
     };
+    query?: never;
+    url: '/api/v1/items/{item_id}/streams/reset';
 };
 
-export type ResetItemStreamsResponse = (unknown);
+export type ResetItemStreamsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ResetItemStreamsError = (unknown | HTTPValidationError);
+export type ResetItemStreamsError = ResetItemStreamsErrors[keyof ResetItemStreamsErrors];
+
+export type ResetItemStreamsResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type PauseItemsData = {
+    body?: never;
+    path?: never;
     query: {
         ids: string;
     };
+    url: '/api/v1/items/pause';
 };
 
-export type PauseItemsResponse = (PauseResponse);
+export type PauseItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type PauseItemsError = (unknown | HTTPValidationError);
+export type PauseItemsError = PauseItemsErrors[keyof PauseItemsErrors];
+
+export type PauseItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PauseResponse;
+};
+
+export type PauseItemsResponse = PauseItemsResponses[keyof PauseItemsResponses];
 
 export type UnpauseItemsData = {
+    body?: never;
+    path?: never;
     query: {
         ids: string;
     };
+    url: '/api/v1/items/unpause';
 };
 
-export type UnpauseItemsResponse = (PauseResponse);
+export type UnpauseItemsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type UnpauseItemsError = (unknown | HTTPValidationError);
+export type UnpauseItemsError = UnpauseItemsErrors[keyof UnpauseItemsErrors];
+
+export type UnpauseItemsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PauseResponse;
+};
+
+export type UnpauseItemsResponse = UnpauseItemsResponses[keyof UnpauseItemsResponses];
 
 export type FfprobeMediaFilesData = {
+    body?: never;
+    path?: never;
     query: {
         id: string;
     };
+    url: '/api/v1/items/ffprobe';
 };
 
-export type FfprobeMediaFilesResponse = (FfprobeResponse);
+export type FfprobeMediaFilesErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type FfprobeMediaFilesError = (unknown | HTTPValidationError);
+export type FfprobeMediaFilesError = FfprobeMediaFilesErrors[keyof FfprobeMediaFilesErrors];
+
+export type FfprobeMediaFilesResponses = {
+    /**
+     * Successful Response
+     */
+    200: FfprobeResponse;
+};
+
+export type FfprobeMediaFilesResponse = FfprobeMediaFilesResponses[keyof FfprobeMediaFilesResponses];
 
 export type ScrapeItemData = {
+    body?: never;
     path: {
         id: string;
     };
+    query?: never;
+    url: '/api/v1/scrape/scrape/{id}';
 };
 
-export type ScrapeItemResponse2 = (ScrapeItemResponse);
+export type ScrapeItemErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ScrapeItemError = (HTTPValidationError);
+export type ScrapeItemError = ScrapeItemErrors[keyof ScrapeItemErrors];
+
+export type ScrapeItemResponses = {
+    /**
+     * Successful Response
+     */
+    200: ScrapeItemResponse;
+};
+
+export type ScrapeItemResponse2 = ScrapeItemResponses[keyof ScrapeItemResponses];
 
 export type StartManualSessionData = {
+    body?: never;
+    path?: never;
     query: {
         item_id: string;
         magnet: string;
     };
+    url: '/api/v1/scrape/scrape/start_session';
 };
 
-export type StartManualSessionResponse = (StartSessionResponse);
+export type StartManualSessionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type StartManualSessionError = (HTTPValidationError);
+export type StartManualSessionError = StartManualSessionErrors[keyof StartManualSessionErrors];
+
+export type StartManualSessionResponses = {
+    /**
+     * Successful Response
+     */
+    200: StartSessionResponse;
+};
+
+export type StartManualSessionResponse = StartManualSessionResponses[keyof StartManualSessionResponses];
 
 export type ManualSelectData = {
     body: Container;
     path: {
         session_id: string;
     };
+    query?: never;
+    url: '/api/v1/scrape/scrape/select_files/{session_id}';
 };
 
-export type ManualSelectResponse = (SelectFilesResponse);
+export type ManualSelectErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ManualSelectError = (HTTPValidationError);
+export type ManualSelectError = ManualSelectErrors[keyof ManualSelectErrors];
+
+export type ManualSelectResponses = {
+    /**
+     * Successful Response
+     */
+    200: SelectFilesResponse;
+};
+
+export type ManualSelectResponse = ManualSelectResponses[keyof ManualSelectResponses];
 
 export type ManualUpdateAttributesData = {
-    body: (DebridFile | ShowFileData);
+    body: DebridFile | ShowFileData;
     path: {
         session_id: unknown;
     };
+    query?: never;
+    url: '/api/v1/scrape/scrape/update_attributes/{session_id}';
 };
 
-export type ManualUpdateAttributesResponse = (UpdateAttributesResponse);
+export type ManualUpdateAttributesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ManualUpdateAttributesError = (HTTPValidationError);
+export type ManualUpdateAttributesError = ManualUpdateAttributesErrors[keyof ManualUpdateAttributesErrors];
+
+export type ManualUpdateAttributesResponses = {
+    /**
+     * Successful Response
+     */
+    200: UpdateAttributesResponse;
+};
+
+export type ManualUpdateAttributesResponse = ManualUpdateAttributesResponses[keyof ManualUpdateAttributesResponses];
 
 export type AbortManualSessionData = {
+    body?: never;
     path: {
         session_id: string;
     };
+    query?: never;
+    url: '/api/v1/scrape/scrape/abort_session/{session_id}';
 };
 
-export type AbortManualSessionResponse = (SessionResponse);
+export type AbortManualSessionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type AbortManualSessionError = (HTTPValidationError);
+export type AbortManualSessionError = AbortManualSessionErrors[keyof AbortManualSessionErrors];
+
+export type AbortManualSessionResponses = {
+    /**
+     * Successful Response
+     */
+    200: SessionResponse;
+};
+
+export type AbortManualSessionResponse = AbortManualSessionResponses[keyof AbortManualSessionResponses];
 
 export type CompleteManualSessionData = {
+    body?: never;
     path: {
         session_id: string;
     };
+    query?: never;
+    url: '/api/v1/scrape/scrape/complete_session/{session_id}';
 };
 
-export type CompleteManualSessionResponse = (SessionResponse);
+export type CompleteManualSessionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type CompleteManualSessionError = (HTTPValidationError);
+export type CompleteManualSessionError = CompleteManualSessionErrors[keyof CompleteManualSessionErrors];
+
+export type CompleteManualSessionResponses = {
+    /**
+     * Successful Response
+     */
+    200: SessionResponse;
+};
+
+export type CompleteManualSessionResponse = CompleteManualSessionResponses[keyof CompleteManualSessionResponses];
 
 export type ParseTorrentTitlesData = {
-    body: Array<(string)>;
+    body: Array<string>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/scrape/parse';
 };
 
-export type ParseTorrentTitlesResponse = (ParseTorrentTitleResponse);
+export type ParseTorrentTitlesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type ParseTorrentTitlesError = (HTTPValidationError);
+export type ParseTorrentTitlesError = ParseTorrentTitlesErrors[keyof ParseTorrentTitlesErrors];
 
-export type GetSettingsSchemaResponse = ({
-    [key: string]: unknown;
-});
+export type ParseTorrentTitlesResponses = {
+    /**
+     * Successful Response
+     */
+    200: ParseTorrentTitleResponse;
+};
 
-export type GetSettingsSchemaError = (unknown);
+export type ParseTorrentTitlesResponse = ParseTorrentTitlesResponses[keyof ParseTorrentTitlesResponses];
 
-export type LoadSettingsResponse = (MessageResponse);
+export type GetSettingsSchemaData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/schema';
+};
 
-export type LoadSettingsError = (unknown);
+export type GetSettingsSchemaErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
 
-export type SaveSettingsResponse = (MessageResponse);
+export type GetSettingsSchemaResponses = {
+    /**
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
 
-export type SaveSettingsError = (unknown);
+export type GetSettingsSchemaResponse = GetSettingsSchemaResponses[keyof GetSettingsSchemaResponses];
 
-export type GetAllSettingsResponse = (AppModel);
+export type LoadSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/load';
+};
 
-export type GetAllSettingsError = (unknown);
+export type LoadSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type LoadSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type LoadSettingsResponse = LoadSettingsResponses[keyof LoadSettingsResponses];
+
+export type SaveSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/save';
+};
+
+export type SaveSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type SaveSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type SaveSettingsResponse = SaveSettingsResponses[keyof SaveSettingsResponses];
+
+export type GetAllSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/get/all';
+};
+
+export type GetAllSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type GetAllSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: AppModel;
+};
+
+export type GetAllSettingsResponse = GetAllSettingsResponses[keyof GetAllSettingsResponses];
 
 export type GetSettingsData = {
+    body?: never;
     path: {
         paths: string;
     };
+    query?: never;
+    url: '/api/v1/settings/get/{paths}';
 };
 
-export type GetSettingsResponse = ({
-    [key: string]: unknown;
-});
+export type GetSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type GetSettingsError = (unknown | HTTPValidationError);
+export type GetSettingsError = GetSettingsErrors[keyof GetSettingsErrors];
+
+export type GetSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetSettingsResponse = GetSettingsResponses[keyof GetSettingsResponses];
 
 export type SetAllSettingsData = {
     body: {
         [key: string]: unknown;
     };
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/set/all';
 };
 
-export type SetAllSettingsResponse = (MessageResponse);
+export type SetAllSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type SetAllSettingsError = (unknown | HTTPValidationError);
+export type SetAllSettingsError = SetAllSettingsErrors[keyof SetAllSettingsErrors];
+
+export type SetAllSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type SetAllSettingsResponse = SetAllSettingsResponses[keyof SetAllSettingsResponses];
 
 export type SetSettingsData = {
     body: Array<SetSettings>;
+    path?: never;
+    query?: never;
+    url: '/api/v1/settings/set';
 };
 
-export type SetSettingsResponse = (MessageResponse);
+export type SetSettingsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
 
-export type SetSettingsError = (unknown | HTTPValidationError);
+export type SetSettingsError = SetSettingsErrors[keyof SetSettingsErrors];
 
-export type GetEventTypesApiV1StreamEventTypesGetResponse = (unknown);
+export type SetSettingsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
 
-export type GetEventTypesApiV1StreamEventTypesGetError = (unknown);
+export type SetSettingsResponse = SetSettingsResponses[keyof SetSettingsResponses];
 
-export type StreamEventsApiV1StreamEventTypeGetData = {
-    path: {
-        event_type: string;
+export type OverseerrApiV1WebhookOverseerrPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/webhook/overseerr';
+};
+
+export type OverseerrApiV1WebhookOverseerrPostErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type OverseerrApiV1WebhookOverseerrPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
     };
 };
 
-export type StreamEventsApiV1StreamEventTypeGetResponse = (routers__secure__stream__EventResponse);
+export type OverseerrApiV1WebhookOverseerrPostResponse = OverseerrApiV1WebhookOverseerrPostResponses[keyof OverseerrApiV1WebhookOverseerrPostResponses];
 
-export type StreamEventsApiV1StreamEventTypeGetError = (unknown | HTTPValidationError);
+export type GetEventTypesApiV1StreamEventTypesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/stream/event_types';
+};
+
+export type GetEventTypesApiV1StreamEventTypesGetErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type GetEventTypesApiV1StreamEventTypesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type StreamEventsApiV1StreamEventTypeGetData = {
+    body?: never;
+    path: {
+        event_type: string;
+    };
+    query?: never;
+    url: '/api/v1/stream/{event_type}';
+};
+
+export type StreamEventsApiV1StreamEventTypeGetErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type StreamEventsApiV1StreamEventTypeGetError = StreamEventsApiV1StreamEventTypeGetErrors[keyof StreamEventsApiV1StreamEventTypeGetErrors];
+
+export type StreamEventsApiV1StreamEventTypeGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutersSecureStreamEventResponse;
+};
+
+export type StreamEventsApiV1StreamEventTypeGetResponse = StreamEventsApiV1StreamEventTypeGetResponses[keyof StreamEventsApiV1StreamEventTypeGetResponses];
+
+export type ClientOptions = {
+    baseUrl: 'http://localhost:7105' | (string & {});
+};
