@@ -115,7 +115,7 @@
 </script>
 
 <form method="POST" action={actionUrl} use:enhance class="my-8 flex flex-col gap-2">
-	<NumberField {form} name="update_interval" {formData} stepValue={1} />
+	<NumberField {form} name="updater_interval" {formData} stepValue={1} />
 
 	<GroupCheckboxField
 		fieldTitle="Updaters"

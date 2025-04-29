@@ -212,8 +212,8 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 export const mediaServerSettingsToGet: string[] = ['updaters'];
 
 export const mediaServerSettingsSchema = z.object({
-	// update_interval: z.number().nonnegative().int().optional().default(120), // Moved to coerce due to https://github.com/huntabyte/shadcn-svelte/issues/574
-	update_interval: z.coerce.number().gte(0).int().optional().default(120),
+	// updater_interval: z.number().nonnegative().int().optional().default(120), // Moved to coerce due to https://github.com/huntabyte/shadcn-svelte/issues/574
+	updater_interval: z.coerce.number().gte(0).int().optional().default(120),
 	plex_enabled: z.boolean().default(false),
 	plex_token: z.string().optional().default(''),
 	plex_url: z.string().optional().default(''),
@@ -229,7 +229,7 @@ export type MediaServerSettingsSchema = typeof mediaServerSettingsSchema;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mediaServerSettingsToPass(data: any) {
 	return {
-		update_interval: data.updaters.update_interval,
+		updater_interval: data.updaters.updater_interval,
 		plex_token: data.updaters.plex.token,
 		plex_url: data.updaters.plex.url,
 		plex_enabled: data.updaters.plex.enabled,
@@ -247,7 +247,7 @@ export function mediaServerSettingsToSet(form: SuperValidated<Infer<MediaServerS
 		{
 			key: 'updaters',
 			value: {
-				update_interval: form.data.update_interval,
+				updater_interval: form.data.updater_interval,
 				plex: {
 					enabled: form.data.plex_enabled,
 					token: form.data.plex_token,
@@ -681,9 +681,9 @@ export const rankingSettingsSchema = z.object({
 	rips_webrip_use_custom_rank: z.boolean().default(false),
 	rips_webrip_rank: z.coerce.number().default(0),
 	// HDR settings
-	hdr_10bit_fetch: z.boolean().default(false),
-	hdr_10bit_use_custom_rank: z.boolean().default(false),
-	hdr_10bit_rank: z.coerce.number().default(0),
+	hdr_bit10_fetch: z.boolean().default(false),
+	hdr_bit10_use_custom_rank: z.boolean().default(false),
+	hdr_bit10_rank: z.coerce.number().default(0),
 	hdr_dolby_vision_fetch: z.boolean().default(false),
 	hdr_dolby_vision_use_custom_rank: z.boolean().default(false),
 	hdr_dolby_vision_rank: z.coerce.number().default(0),
@@ -740,9 +740,9 @@ export const rankingSettingsSchema = z.object({
 	audio_truehd_use_custom_rank: z.boolean().default(false),
 	audio_truehd_rank: z.coerce.number().default(0),
 	// Extras settings
-	extras_3d_fetch: z.boolean().default(false),
-	extras_3d_use_custom_rank: z.boolean().default(false),
-	extras_3d_rank: z.coerce.number().default(0),
+	extras_three_d_fetch: z.boolean().default(false),
+	extras_three_d_use_custom_rank: z.boolean().default(false),
+	extras_three_d_rank: z.coerce.number().default(0),
 	extras_converted_fetch: z.boolean().default(false),
 	extras_converted_use_custom_rank: z.boolean().default(false),
 	extras_converted_rank: z.coerce.number().default(0),

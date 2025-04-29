@@ -78,7 +78,7 @@
 		'webrip'
 	] as const;
 
-	const hdrTypes = ['10bit', 'dolby_vision', 'hdr', 'hdr10plus', 'sdr'] as const;
+	const hdrTypes = ['bit10', 'dolby_vision', 'hdr', 'hdr10plus', 'sdr'] as const;
 
 	const audioTypes = [
 		'aac',
@@ -98,7 +98,7 @@
 	] as const;
 
 	const extraTypes = [
-		'3d',
+		'three_d',
 		'converted',
 		'documentary',
 		'dubbed',
