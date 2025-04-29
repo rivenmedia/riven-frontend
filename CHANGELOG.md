@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.21.0](https://github.com/rivenmedia/riven-frontend/compare/v0.20.0...v0.21.0) (2025-04-29)
+
+
+### Features
+
+* use parse endpoint in manual scraping ([4eb17ff](https://github.com/rivenmedia/riven-frontend/commit/4eb17fff4beac3aea98719b0dd0505731e3e343d))
+
+
+### Bug Fixes
+
+* multiple settings not being read and set correctly ([#211](https://github.com/rivenmedia/riven-frontend/issues/211)) ([c5276d2](https://github.com/rivenmedia/riven-frontend/commit/c5276d2a0cb0a7f9be230c57ffb3f36a14d198a1))
+* ranking settings hevc field number coercion ([#210](https://github.com/rivenmedia/riven-frontend/issues/210)) ([677e870](https://github.com/rivenmedia/riven-frontend/commit/677e8703a9e06b7e28973da988f459956374e050))
+
 ## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
 
 
