@@ -624,7 +624,7 @@ export const rankingSettingsSchema = z.object({
 	quality_hdtv_rank: z.coerce.number().default(0),
 	quality_hevc_fetch: z.boolean().default(false),
 	quality_hevc_use_custom_rank: z.boolean().default(false),
-	quality_hevc_rank: z.number().default(0),
+	quality_hevc_rank: z.coerce.number().default(0),
 	quality_mpeg_fetch: z.boolean().default(false),
 	quality_mpeg_use_custom_rank: z.boolean().default(false),
 	quality_mpeg_rank: z.coerce.number().default(0),
