@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { WebAppManifest } from 'web-app-manifest';
 import type { RequestHandler } from '@sveltejs/kit';
 
-export const prerender = true;
+// export const prerender = true;
 
 interface CustomWebAppManifest extends WebAppManifest {
 	protocol_handlers: Array<{ protocol: string; url: string }>;
