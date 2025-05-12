@@ -201,7 +201,11 @@
 										{#if data.riven.requested_at}
 											<p>Requested at: {getFormattedTime(data.riven.requested_at)}</p>
 										{/if}
-										<p>Symlinked: {data.riven.episodes.every((x) => x.symlinked) ? 'All' : getSymlinkCount(data.riven.episodes) + '/' + data.riven.episodes.length}</p>
+										<p>
+											Symlinked: {data.riven.episodes.every((x) => x.symlinked)
+												? 'All'
+												: getSymlinkCount(data.riven.episodes) + '/' + data.riven.episodes.length}
+										</p>
 										{#if data.riven.folder}
 											<p class="break-words">Folder: {data.riven.folder}</p>
 										{/if}
@@ -210,8 +214,8 @@
 										{/if}
 
 										<div class="mt-1"></div>
-	
-										{#if data.riven.state !== "Completed"}
+
+										{#if data.riven.state !== 'Completed'}
 											<Tooltip.Root>
 												<Tooltip.Trigger>
 													<AlertDialog.Root>
@@ -221,19 +225,21 @@
 																class="flex w-full items-center gap-1"
 																variant="destructive"
 															>
-																{#if data.riven.state === "Paused"}
+																{#if data.riven.state === 'Paused'}
 																	<CirclePlay class="size-4" />
 																{:else}
 																	<CirclePause class="size-4" />
 																{/if}
-																<span>{data.riven.state === "Paused" ? "Resume" : "Pause"}</span>
+																<span>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'}</span>
 															</Button>
 														</AlertDialog.Trigger>
 														<AlertDialog.Content>
 															<AlertDialog.Header>
 																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
 																<AlertDialog.Description>
-																	This action will {data.riven.state === "Paused" ? "resume" : "pause"} the media
+																	This action will {data.riven.state === 'Paused'
+																		? 'resume'
+																		: 'pause'} the media
 																</AlertDialog.Description>
 															</AlertDialog.Header>
 															<AlertDialog.Footer>
@@ -241,7 +247,7 @@
 																<AlertDialog.Action
 																	on:click={async () => {
 																		if (data.riven) {
-																			if (data.riven.state === "Paused") {
+																			if (data.riven.state === 'Paused') {
 																				await resumeItem(data.riven.id);
 																			} else {
 																				await pauseItem(data.riven.id);
@@ -254,7 +260,7 @@
 													</AlertDialog.Root>
 												</Tooltip.Trigger>
 												<Tooltip.Content>
-													<p>{data.riven.state === "Paused" ? "Resume" : "Pause"} the media</p>
+													<p>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'} the media</p>
 												</Tooltip.Content>
 											</Tooltip.Root>
 										{/if}
@@ -352,10 +358,7 @@
 							</Sheet.Root>
 							<Tooltip.Root>
 								<Tooltip.Trigger>
-									<MediaFileSelector
-										mediaId={data.riven.id.toString()}
-										mediaType={'tv'}
-									/>
+									<MediaFileSelector mediaId={data.riven.id.toString()} mediaType={'tv'} />
 								</Tooltip.Trigger>
 								<Tooltip.Content>
 									<p>Scrapes torrents for the item</p>
@@ -412,7 +415,10 @@
 
 					<div class="relative flex w-full cursor-pointer flex-wrap">
 						{#each data.details.episodes as episode}
-							<a href="/tv/{data.mediaID}/{data.seasonNumber}/{episode.episode_number}" class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3">
+							<a
+								href="/tv/{data.mediaID}/{data.seasonNumber}/{episode.episode_number}"
+								class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3"
+							>
 								<div class="h-full w-full overflow-hidden rounded-lg bg-white/10 shadow-xl">
 									<img
 										alt={episode.id}

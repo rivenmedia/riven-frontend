@@ -166,7 +166,6 @@
 						</p>
 					{/if}
 
-
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
@@ -212,7 +211,7 @@
 
 										<div class="mt-1"></div>
 
-										{#if data.riven.state !== "Completed"}
+										{#if data.riven.state !== 'Completed'}
 											<Tooltip.Root>
 												<Tooltip.Trigger>
 													<AlertDialog.Root>
@@ -222,19 +221,21 @@
 																class="flex w-full items-center gap-1"
 																variant="destructive"
 															>
-																{#if data.riven.state === "Paused"}
+																{#if data.riven.state === 'Paused'}
 																	<CirclePlay class="size-4" />
 																{:else}
 																	<CirclePause class="size-4" />
 																{/if}
-																<span>{data.riven.state === "Paused" ? "Resume" : "Pause"}</span>
+																<span>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'}</span>
 															</Button>
 														</AlertDialog.Trigger>
 														<AlertDialog.Content>
 															<AlertDialog.Header>
 																<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
 																<AlertDialog.Description>
-																	This action will {data.riven.state === "Paused" ? "resume" : "pause"} the media
+																	This action will {data.riven.state === 'Paused'
+																		? 'resume'
+																		: 'pause'} the media
 																</AlertDialog.Description>
 															</AlertDialog.Header>
 															<AlertDialog.Footer>
@@ -242,7 +243,7 @@
 																<AlertDialog.Action
 																	on:click={async () => {
 																		if (data.riven) {
-																			if (data.riven.state === "Paused") {
+																			if (data.riven.state === 'Paused') {
 																				await resumeItem(data.riven.id);
 																			} else {
 																				await pauseItem(data.riven.id);
@@ -255,7 +256,7 @@
 													</AlertDialog.Root>
 												</Tooltip.Trigger>
 												<Tooltip.Content>
-													<p>{data.riven.state === "Paused" ? "Resume" : "Pause"} the media</p>
+													<p>{data.riven.state === 'Paused' ? 'Resume' : 'Pause'} the media</p>
 												</Tooltip.Content>
 											</Tooltip.Root>
 										{/if}
@@ -353,10 +354,7 @@
 							</Sheet.Root>
 							<Tooltip.Root>
 								<Tooltip.Trigger>
-									<MediaFileSelector
-										mediaId={data.riven.id.toString()}
-										mediaType={'tv'}
-									/>
+									<MediaFileSelector mediaId={data.riven.id.toString()} mediaType={'tv'} />
 								</Tooltip.Trigger>
 								<Tooltip.Content>
 									<p>Scrapes torrents for the item</p>

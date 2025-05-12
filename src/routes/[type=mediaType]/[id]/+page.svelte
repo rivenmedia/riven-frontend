@@ -42,9 +42,9 @@
 	let selectedItems: Selected<MediaItem>[] = [];
 
 	$: selectedIds = getSelectedIds(selectedItems);
-	
+
 	const getSelectedIds = (selectedItems: Selected<MediaItem>[]): Set<string> =>
-		new Set(selectedItems.map(selected => selected.value.id))
+		new Set(selectedItems.map((selected) => selected.value.id));
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	function filterSpecial(seasons: any) {
@@ -402,7 +402,9 @@
 															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 															<AlertDialog.Action
 																on:click={async () => {
-																	await retryItems(selectedIds.size > 0 ? Array.from(selectedIds) : [data.riven.id]);
+																	await retryItems(
+																		selectedIds.size > 0 ? Array.from(selectedIds) : [data.riven.id]
+																	);
 																}}>Continue</AlertDialog.Action
 															>
 														</AlertDialog.Footer>
@@ -440,7 +442,11 @@
 															<AlertDialog.Action
 																on:click={async () => {
 																	if (data.riven) {
-																		await resetItems(selectedIds.size > 0 ? Array.from(selectedIds) : [data.riven.id]);
+																		await resetItems(
+																			selectedIds.size > 0
+																				? Array.from(selectedIds)
+																				: [data.riven.id]
+																		);
 																	}
 																}}>Continue</AlertDialog.Action
 															>

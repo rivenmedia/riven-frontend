@@ -36,7 +36,9 @@ export const load = (async ({ fetch, params }) => {
 			return Promise.resolve(null);
 		}
 		const anyData = data as any;
-		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season).episodes.find((episodeItem: any) => episodeItem.number === episode);
+		return anyData.seasons
+			.find((seasonItem: any) => seasonItem.number === season)
+			.episodes.find((episodeItem: any) => episodeItem.number === episode);
 	}
 
 	return {

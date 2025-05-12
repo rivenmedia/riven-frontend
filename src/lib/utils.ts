@@ -74,13 +74,17 @@ export function isRivenEpisode(item: RivenItem): item is RivenEpisode {
 
 export function getFormattedTime(time: string) {
 	const date = new Date(time);
-	return date.toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-	}) + ' ' + date.toLocaleTimeString('en-US', {
-		hour: 'numeric',
-		minute: 'numeric',
-		second: 'numeric'
-	});
+	return (
+		date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		}) +
+		' ' +
+		date.toLocaleTimeString('en-US', {
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric'
+		})
+	);
 }

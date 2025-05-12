@@ -245,7 +245,7 @@
 			</Button>
 		</form>
 
-		<div class="mb-8 mt-4 flex items-center justify-start gap-4 flex-wrap">
+		<div class="mb-8 mt-4 flex flex-wrap items-center justify-start gap-4">
 			<Button
 				on:click={async () => {
 					await retryLibrary();
@@ -312,7 +312,7 @@
 							{/if}
 						{/each}
 					</div>
-					<div class="flex items-start justify-center space-x-2 mt-2">
+					<div class="mt-2 flex items-start justify-center space-x-2">
 						<Pagination.Item>
 							<Pagination.PrevButton
 								class="rounded-md bg-primary px-4 py-2 text-primary-foreground"

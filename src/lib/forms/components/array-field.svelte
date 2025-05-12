@@ -36,7 +36,7 @@
 			'md:items-center': !fieldDescription || !$formData[name].length
 		})}
 	>
-		<div class="flex w-full min-w-48 flex-col items-start gap-2 md:w-48 self-baseline">
+		<div class="flex w-full min-w-48 flex-col items-start gap-2 self-baseline md:w-48">
 			<Form.Legend>{legend}</Form.Legend>
 			{#if fieldDescription}
 				<p class="text-xs text-muted-foreground">{fieldDescription}</p>
