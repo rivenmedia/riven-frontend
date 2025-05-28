@@ -35,8 +35,14 @@ export const load = (async ({ fetch, params }) => {
 			return Promise.resolve(null);
 		}
 		const anyData = data as any;
-		return anyData.seasons.find((seasonItem: any) => seasonItem.number === season);
+		// Return both the current season and the full show data
+		return {
+			currentSeason: anyData.seasons.find((seasonItem: any) => seasonItem.number === season),
+			fullShow: anyData
+		};
 	}
+
+	const rivenData = await getMediaItemDetails(id);
 
 	return {
 		details: await getDetails(id, season),
@@ -44,6 +50,7 @@ export const load = (async ({ fetch, params }) => {
 		mediaType: type,
 		mediaID: id,
 		seasonNumber: season,
-		riven: await getMediaItemDetails(id)
+		riven: rivenData?.currentSeason || null,
+		rivenShow: rivenData?.fullShow || null
 	};
 }) satisfies PageLoad;

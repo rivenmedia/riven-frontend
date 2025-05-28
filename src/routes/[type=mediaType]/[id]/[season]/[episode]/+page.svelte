@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Header from '$lib/components/header.svelte';
+	import NavigationBreadcrumb from '$lib/components/navigation-breadcrumb.svelte';
+	import { buildBreadcrumbs } from '$lib/utils/breadcrumb';
 	import {
 		Star,
 		Trash2,
@@ -29,6 +31,19 @@
 	import { getFormattedTime } from '$lib/utils';
 
 	export let data: PageData;
+
+	// Build breadcrumb items
+	$: breadcrumbItems = buildBreadcrumbs({
+		mediaType: 'tv',
+		mediaId: data.mediaID,
+		mediaTitle: data.mediaDetails.name || data.mediaDetails.original_name,
+		seasonNumber: data.seasonNumber,
+		episodeNumber: data.episodeNumber,
+		episodeTitle: data.details.name,
+		allSeasons: data.mediaDetails.seasons,
+		allEpisodes: data.seasonDetails.episodes,
+		rivenData: data.rivenSeason || data.riven
+	});
 
 	async function deleteItem(id: number) {
 		const response = await ItemsService.removeItem({
@@ -130,6 +145,9 @@
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
 		<div class="mx-auto flex w-full max-w-7xl flex-col">
+			<div class="mb-6">
+				<NavigationBreadcrumb items={breadcrumbItems} />
+			</div>
 			<div class="flex w-full flex-col items-center md:flex-row md:items-start">
 				<div class="w-[180px] flex-shrink-0 overflow-hidden md:w-[25%]">
 					<div

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PageLoad } from './$types';
-import { getTVDetails, TMDB_LANGUAGE, getTVEpisodeDetails } from '$lib/tmdb';
+import { getTVDetails, TMDB_LANGUAGE, getTVEpisodeDetails, getTVSeasonDetails } from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
 import { ItemsService } from '$lib/client';
 
@@ -23,6 +23,10 @@ export const load = (async ({ fetch, params }) => {
 		return await getTVDetails(fetch, TMDB_LANGUAGE, null, tvID);
 	}
 
+	async function seasonDetails(tvID: string, seasonNumber: number) {
+		return await getTVSeasonDetails(fetch, TMDB_LANGUAGE, null, tvID, seasonNumber);
+	}
+
 	async function getMediaItemDetails(tvID: string): Promise<any> {
 		const { data } = await ItemsService.getItem({
 			path: {
@@ -36,18 +40,28 @@ export const load = (async ({ fetch, params }) => {
 			return Promise.resolve(null);
 		}
 		const anyData = data as any;
-		return anyData.seasons
-			.find((seasonItem: any) => seasonItem.number === season)
-			.episodes.find((episodeItem: any) => episodeItem.number === episode);
+		const currentSeason = anyData.seasons.find((seasonItem: any) => seasonItem.number === season);
+		const currentEpisode = currentSeason?.episodes.find((episodeItem: any) => episodeItem.number === episode);
+		
+		return {
+			currentEpisode,
+			currentSeason,
+			fullShow: anyData
+		};
 	}
+
+	const rivenData = await getMediaItemDetails(id);
 
 	return {
 		details: await getDetails(id, season, episode),
 		mediaDetails: await mediaDetails(id),
+		seasonDetails: await seasonDetails(id, season),
 		mediaType: type,
 		mediaID: id,
 		seasonNumber: season,
 		episodeNumber: episode,
-		riven: await getMediaItemDetails(id)
+		riven: rivenData?.currentEpisode || null,
+		rivenSeason: rivenData?.currentSeason || null,
+		rivenShow: rivenData?.fullShow || null
 	};
 }) satisfies PageLoad;
