@@ -16,3 +16,10 @@ bun.lockb
 /config
 server-config.json
 openapi*.log
+
+# Test scripts and temporary documentation
+setup-and-run.sh
+run-dev.sh
+*_BREADCRUMB*.md
+BREADCRUMB_*.md
+test-*.sh
