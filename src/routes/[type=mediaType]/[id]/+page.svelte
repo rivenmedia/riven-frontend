@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 	import { getFormattedTime, isRivenShow } from '$lib/utils.js';
 	import Header from '$lib/components/header.svelte';
+	import NavigationBreadcrumb from '$lib/components/navigation-breadcrumb.svelte';
+	import { buildBreadcrumbs } from '$lib/utils/breadcrumb';
 	import { Badge } from '$lib/components/ui/badge';
 	import {
 		Star,
@@ -42,6 +44,15 @@
 	let selectedItems: Selected<MediaItem>[] = [];
 
 	$: selectedIds = getSelectedIds(selectedItems);
+
+	// Build breadcrumb items
+	$: breadcrumbItems = buildBreadcrumbs({
+		mediaType: data.mediaType as 'movie' | 'tv',
+		mediaId: data.mediaID,
+		mediaTitle: data.details.title || data.details.name || data.details.original_name,
+		allSeasons: data.details.seasons,
+		rivenData: data.riven
+	});
 
 	const getSelectedIds = (selectedItems: Selected<MediaItem>[]): Set<string> =>
 		new Set(selectedItems.map((selected) => selected.value.id));
@@ -167,6 +178,9 @@
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
 		<div class="mx-auto flex w-full max-w-7xl flex-col">
+			<div class="mb-6">
+				<NavigationBreadcrumb items={breadcrumbItems} />
+			</div>
 			<div class="flex w-full flex-col items-center md:flex-row md:items-start">
 				<div class="w-[180px] flex-shrink-0 overflow-hidden md:w-[25%]">
 					<div
