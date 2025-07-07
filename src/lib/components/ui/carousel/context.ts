@@ -1,11 +1,13 @@
-import type { EmblaCarouselSvelteType } from 'embla-carousel-svelte';
-import type emblaCarouselSvelte from 'embla-carousel-svelte';
-import { getContext, hasContext, setContext } from 'svelte';
-import type { HTMLAttributes } from 'svelte/elements';
-import type { Readable, Writable } from 'svelte/store';
+import type { WithElementRef } from "$lib/utils.js";
+import type {
+	EmblaCarouselSvelteType,
+	default as emblaCarouselSvelte,
+} from "embla-carousel-svelte";
+import { getContext, hasContext, setContext } from "svelte";
+import type { HTMLAttributes } from "svelte/elements";
 
 export type CarouselAPI =
-	NonNullable<NonNullable<EmblaCarouselSvelteType['$$_attributes']>['on:emblaInit']> extends (
+	NonNullable<NonNullable<EmblaCarouselSvelteType["$$_attributes"]>["on:emblaInit"]> extends (
 		evt: CustomEvent<infer CarouselAPI>
 	) => void
 		? CarouselAPI
@@ -13,34 +15,34 @@ export type CarouselAPI =
 
 type EmblaCarouselConfig = NonNullable<Parameters<typeof emblaCarouselSvelte>[1]>;
 
-export type CarouselOptions = EmblaCarouselConfig['options'];
-export type CarouselPlugins = EmblaCarouselConfig['plugins'];
+export type CarouselOptions = EmblaCarouselConfig["options"];
+export type CarouselPlugins = EmblaCarouselConfig["plugins"];
 
 ////
 
 export type CarouselProps = {
 	opts?: CarouselOptions;
 	plugins?: CarouselPlugins;
-	api?: CarouselAPI;
-	orientation?: 'horizontal' | 'vertical';
-} & HTMLAttributes<HTMLDivElement>;
+	setApi?: (api: CarouselAPI | undefined) => void;
+	orientation?: "horizontal" | "vertical";
+} & WithElementRef<HTMLAttributes<HTMLDivElement>>;
 
-const EMBLA_CAROUSEL_CONTEXT = Symbol('EMBLA_CAROUSEL_CONTEXT');
+const EMBLA_CAROUSEL_CONTEXT = Symbol("EMBLA_CAROUSEL_CONTEXT");
 
-type EmblaContext = {
-	api: Writable<CarouselAPI | undefined>;
-	orientation: Writable<'horizontal' | 'vertical'>;
+export type EmblaContext = {
+	api: CarouselAPI | undefined;
+	orientation: "horizontal" | "vertical";
 	scrollNext: () => void;
 	scrollPrev: () => void;
-	canScrollNext: Readable<boolean>;
-	canScrollPrev: Readable<boolean>;
+	canScrollNext: boolean;
+	canScrollPrev: boolean;
 	handleKeyDown: (e: KeyboardEvent) => void;
-	options: Writable<CarouselOptions>;
-	plugins: Writable<CarouselPlugins>;
+	options: CarouselOptions;
+	plugins: CarouselPlugins;
 	onInit: (e: CustomEvent<CarouselAPI>) => void;
 	scrollTo: (index: number, jump?: boolean) => void;
-	scrollSnaps: Readable<number[]>;
-	selectedIndex: Readable<number>;
+	scrollSnaps: number[];
+	selectedIndex: number;
 };
 
 export function setEmblaContext(config: EmblaContext): EmblaContext {
@@ -48,7 +50,7 @@ export function setEmblaContext(config: EmblaContext): EmblaContext {
 	return config;
 }
 
-export function getEmblaContext(name = 'This component') {
+export function getEmblaContext(name = "This component") {
 	if (!hasContext(EMBLA_CAROUSEL_CONTEXT)) {
 		throw new Error(`${name} must be used within a <Carousel.Root> component`);
 	}

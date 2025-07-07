@@ -1,7 +1,34 @@
 import { env } from '$env/dynamic/public';
-import type { TMDBSearchResponse } from './types';
+
+export type TMDBItem = {
+	backdrop_path: string | null;
+	id: number;
+	title: string | null;
+	name: string | null;
+	original_title: string;
+	overview: string;
+	poster_path: string | null;
+	media_type: 'movie' | 'tv' | 'person';
+	adult: boolean;
+	original_language: string;
+	genre_ids: number[];
+	popularity: number;
+	release_date?: string;
+	first_air_date?: string;
+	video: boolean;
+	vote_average: number;
+	vote_count: number;
+};
+
+export interface TMDBSearchResponse {
+	page: number;
+	results: TMDBItem[];
+	total_pages: number;
+	total_results: number;
+}
 
 const TMDB_READ_ACCESS_TOKEN: string =
+	env.PUBLIC_TMDB_READ_ACCESS_TOKEN ||
 	'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNTkxMmVmOWFhM2IxNzg2Zjk3ZTE1NWY1YmQ3ZjY1MSIsInN1YiI6IjY1M2NjNWUyZTg5NGE2MDBmZjE2N2FmYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.xrIXsMFJpI1o1j5g2QpQcFP1X3AfRjFA5FlBFO5Naw8';
 const HEADERS: Record<string, string> = {
 	Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
@@ -29,22 +56,90 @@ export enum TimeWindow {
 	Week = 'week'
 }
 
-export async function getTrending(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	page: number = 1,
-	mediaType: MediaType = MediaType.Movie,
-	timeWindow: TimeWindow = TimeWindow.Week
-) {
+interface BaseOptions {
+	language?: string;
+	page?: number;
+}
+
+interface TrendingOptions extends BaseOptions {
+	mediaType?: MediaType;
+	timeWindow?: TimeWindow;
+}
+
+interface MovieDetailsOptions extends BaseOptions {
+	movieId: string;
+	append_to_response?: string | null;
+}
+
+interface TVDetailsOptions extends BaseOptions {
+	tvId: string;
+	append_to_response?: string | null;
+}
+
+interface TVSeasonOptions extends TVDetailsOptions {
+	seasonNumber: number;
+}
+
+interface TVEpisodeOptions extends TVSeasonOptions {
+	episodeNumber: number;
+}
+
+interface SearchBaseOptions extends BaseOptions {
+	query: string;
+	include_adult?: boolean;
+	region?: string | null;
+}
+
+interface MovieSearchOptions extends SearchBaseOptions {
+	primary_release_year?: number | null;
+	region?: string | null;
+	year?: number | null;
+}
+
+interface TVSearchOptions extends SearchBaseOptions {
+	first_air_date_year?: number | null;
+	year?: number | null;
+}
+
+interface ExternalIDOptions {
+	external_id: string;
+	external_source: string;
+	language?: string;
+}
+
+interface CollectionOptions {
+	collectionId: number;
+	language?: string;
+}
+
+interface CreditsOptions {
+	mediaId: string;
+	mediaType: string;
+	language?: string;
+}
+
+interface PersonOptions {
+	personId: number;
+	language?: string;
+	append_to_response?: string | null;
+}
+
+type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
+
+export async function getTrending(fetch: FetchFunction, options: TrendingOptions = {}) {
+	const {
+		language = TMDB_LANGUAGE,
+		page = 1,
+		mediaType = MediaType.Movie,
+		timeWindow = TimeWindow.Week
+	} = options;
+
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
 	const response = await fetch(
 		`${TMDB_BASE_URL}/trending/${mediaType}/${timeWindow}?${queryString}`,
-		{
-			headers: HEADERS
-		}
+		{ headers: HEADERS }
 	);
 	if (!response.ok) {
 		throw new Error('Failed to fetch trending');
@@ -52,12 +147,8 @@ export async function getTrending(
 	return await response.json();
 }
 
-export async function getMoviesNowPlaying(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	page: number = 1
-) {
+export async function getMoviesNowPlaying(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -70,8 +161,8 @@ export async function getMoviesNowPlaying(
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesPopular(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getMoviesPopular(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -84,8 +175,8 @@ export async function getMoviesPopular(fetch: any, language: string = 'en-US', p
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getMoviesTopRated(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -98,8 +189,8 @@ export async function getMoviesTopRated(fetch: any, language: string = 'en-US', 
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getMoviesUpcoming(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getMoviesUpcoming(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -112,13 +203,8 @@ export async function getMoviesUpcoming(fetch: any, language: string = 'en-US', 
 	return await response.json();
 }
 
-export async function getMovieDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	movieId: string
-) {
+export async function getMovieDetails(fetch: FetchFunction, options: MovieDetailsOptions) {
+	const { language = TMDB_LANGUAGE, append_to_response = null, movieId } = options;
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 
@@ -131,8 +217,8 @@ export async function getMovieDetails(
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVAiringToday(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getTVAiringToday(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -145,8 +231,8 @@ export async function getTVAiringToday(fetch: any, language: string = 'en-US', p
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVOnTheAir(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getTVOnTheAir(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -159,8 +245,8 @@ export async function getTVOnTheAir(fetch: any, language: string = 'en-US', page
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVPopular(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getTVPopular(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -173,8 +259,8 @@ export async function getTVPopular(fetch: any, language: string = 'en-US', page:
 	return await response.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getTVTopRated(fetch: any, language: string = 'en-US', page: number = 1) {
+export async function getTVTopRated(fetch: FetchFunction, options: BaseOptions = {}) {
+	const { language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { language, page };
 	const queryString = dictToQueryString(params);
 
@@ -187,13 +273,8 @@ export async function getTVTopRated(fetch: any, language: string = 'en-US', page
 	return await response.json();
 }
 
-export async function getTVDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string
-) {
+export async function getTVDetails(fetch: FetchFunction, options: TVDetailsOptions) {
+	const { language = TMDB_LANGUAGE, append_to_response = null, tvId } = options;
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 
@@ -206,22 +287,14 @@ export async function getTVDetails(
 	return await response.json();
 }
 
-export async function getTVSeasonDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string,
-	seasonNumber: number
-) {
+export async function getTVSeasonDetails(fetch: FetchFunction, options: TVSeasonOptions) {
+	const { language = TMDB_LANGUAGE, append_to_response = null, tvId, seasonNumber } = options;
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 
 	const response = await fetch(
 		`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?${queryString}`,
-		{
-			headers: HEADERS
-		}
+		{ headers: HEADERS }
 	);
 	if (!response.ok) {
 		throw new Error('Failed to fetch TV season details');
@@ -229,23 +302,20 @@ export async function getTVSeasonDetails(
 	return await response.json();
 }
 
-export async function getTVEpisodeDetails(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	tvId: string,
-	seasonNumber: number,
-	episodeNumber: number
-) {
+export async function getTVEpisodeDetails(fetch: FetchFunction, options: TVEpisodeOptions) {
+	const {
+		language = TMDB_LANGUAGE,
+		append_to_response = null,
+		tvId,
+		seasonNumber,
+		episodeNumber
+	} = options;
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 
 	const response = await fetch(
 		`${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?${queryString}`,
-		{
-			headers: HEADERS
-		}
+		{ headers: HEADERS }
 	);
 	if (!response.ok) {
 		throw new Error('Failed to fetch TV episode details');
@@ -253,14 +323,9 @@ export async function getTVEpisodeDetails(
 	return await response.json();
 }
 
-export async function getFromExternalID(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	external_source: string,
-	external_id: string
-) {
-	const params = { language, external_source, external_id };
+export async function getFromExternalID(fetch: FetchFunction, options: ExternalIDOptions) {
+	const { language = TMDB_LANGUAGE, external_source, external_id } = options;
+	const params = { language, external_source };
 	const queryString = dictToQueryString(params);
 
 	const response = await fetch(`${TMDB_BASE_URL}/find/${external_id}?${queryString}`, {
@@ -272,15 +337,14 @@ export async function getFromExternalID(
 	return await response.json();
 }
 
-export async function getCollectionSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1,
-	region: string | null = null
-) {
+export async function getCollectionSearch(fetch: FetchFunction, options: SearchBaseOptions) {
+	const {
+		query,
+		include_adult = false,
+		language = TMDB_LANGUAGE,
+		page = 1,
+		region = null
+	} = options;
 	const params = { query, include_adult, language, page, region };
 	const queryString = dictToQueryString(params);
 
@@ -294,16 +358,19 @@ export async function getCollectionSearch(
 }
 
 export async function getMovieSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	primary_release_year: number | null = null,
-	page: number = 1,
-	region: string | null = null,
-	year: number | null = null
+	fetch: FetchFunction,
+	options: MovieSearchOptions
 ): Promise<TMDBSearchResponse> {
+	const {
+		query,
+		include_adult = false,
+		language = TMDB_LANGUAGE,
+		primary_release_year = null,
+		page = 1,
+		region = null,
+		year = null
+	} = options;
+
 	const params = { query, include_adult, language, primary_release_year, page, region, year };
 	const queryString = dictToQueryString(params);
 
@@ -317,13 +384,10 @@ export async function getMovieSearch(
 }
 
 export async function getMultiSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1
+	fetch: FetchFunction,
+	options: SearchBaseOptions
 ): Promise<TMDBSearchResponse> {
+	const { query, include_adult = false, language = TMDB_LANGUAGE, page = 1 } = options;
 	const params = { query, include_adult, language, page };
 	const queryString = dictToQueryString(params);
 
@@ -336,16 +400,16 @@ export async function getMultiSearch(
 	return await response.json();
 }
 
-export async function getTVSearch(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	query: string,
-	first_air_date_year: number | null = null,
-	include_adult: boolean = false,
-	language: string = 'en-US',
-	page: number = 1,
-	year: number | null = null
-) {
+export async function getTVSearch(fetch: FetchFunction, options: TVSearchOptions) {
+	const {
+		query,
+		first_air_date_year = null,
+		include_adult = false,
+		language = TMDB_LANGUAGE,
+		page = 1,
+		year = null
+	} = options;
+
 	const params = { query, first_air_date_year, include_adult, language, page, year };
 	const queryString = dictToQueryString(params);
 
@@ -359,11 +423,11 @@ export async function getTVSearch(
 }
 
 export async function getExternalID(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	mediaType: string,
-	tmdb_id: number
+	fetch: FetchFunction,
+	options: { mediaType: string; tmdb_id: number }
 ) {
+	const { mediaType, tmdb_id } = options;
+
 	const response = await fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdb_id}/external_ids`, {
 		headers: HEADERS
 	});
@@ -373,12 +437,8 @@ export async function getExternalID(
 	return await response.json();
 }
 
-export async function getCollection(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	collectionId: number
-) {
+export async function getCollection(fetch: FetchFunction, options: CollectionOptions) {
+	const { language = TMDB_LANGUAGE, collectionId } = options;
 	const params = { language };
 	const queryString = dictToQueryString(params);
 
@@ -391,13 +451,8 @@ export async function getCollection(
 	return await response.json();
 }
 
-export async function getCredits(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	mediaId: string,
-	mediaType: string
-) {
+export async function getCredits(fetch: FetchFunction, options: CreditsOptions) {
+	const { language = TMDB_LANGUAGE, mediaId, mediaType } = options;
 	const params = { language };
 	const queryString = dictToQueryString(params);
 
@@ -410,13 +465,8 @@ export async function getCredits(
 	return await response.json();
 }
 
-export async function getPerson(
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetch: any,
-	language: string = 'en-US',
-	append_to_response: string | null = null,
-	personId: number
-) {
+export async function getPerson(fetch: FetchFunction, options: PersonOptions) {
+	const { language = TMDB_LANGUAGE, append_to_response = null, personId } = options;
 	const params = { language, append_to_response };
 	const queryString = dictToQueryString(params);
 

@@ -1,18 +1,26 @@
-.DS_Store
 node_modules
-/build
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
 /.svelte-kit
-/package
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
 .env
 .env.*
 !.env.example
+!.env.test
+
+# Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-.idea
-/.vs
-/package-lock.json
-bun.lockb
-.vscode
-/config
-server-config.json
-openapi*.log
+
+# SQLite
+*.db
