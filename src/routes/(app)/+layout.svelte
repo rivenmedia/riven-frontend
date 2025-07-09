@@ -1,13 +1,13 @@
 <script lang="ts">
-	import '../../app.css';
-	import type { LayoutProps } from './$types';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import Sidebar from '$lib/components/sidebar.svelte';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import { ModeWatcher } from 'mode-watcher';
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import NProgress from 'nprogress';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import Sidebar from '$lib/components/sidebar.svelte';
+	import '../../app.css';
+	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -29,16 +29,16 @@
 <ModeWatcher defaultMode={'dark'} />
 <Toaster richColors closeButton />
 
-<div class="bg-background flex min-h-screen">
+<div class="bg-background grid h-screen w-screen grid-cols-[auto_1fr] overflow-hidden">
 	<Sidebar user={data.user} />
-	<main class="ml-16 flex flex-1 flex-col">
-		<header class="bg-card flex h-18 items-center px-4">
+	<main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
+		<header class="bg-card flex h-18 w-full items-center px-4">
 			<div class="w-full">
 				<Input type="text" placeholder="Search..." class="h-9" />
 			</div>
 		</header>
 		<Separator class="w-full" />
-		<div class="flex-1">
+		<div class="size-full overflow-x-hidden overflow-y-auto">
 			{@render children?.()}
 		</div>
 	</main>
