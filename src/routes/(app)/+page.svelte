@@ -13,6 +13,7 @@
 	import Calender from '@lucide/svelte/icons/calendar';
 	import Tv from '@lucide/svelte/icons/tv';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -219,20 +220,24 @@
 		>
 			<Carousel.Content>
 				{#each trendingMovies.results as item}
-					<Carousel.Item class="basis-auto">
-						<img
-							src="{TMDB_IMAGE_BASE_URL}/w500{item.poster_path}"
-							alt={item.title || item.original_title}
-							class="size-full max-w-48 object-cover object-center transition-transform duration-300 select-none hover:scale-105"
-							loading="lazy"
-						/>
-						<!-- <a
+					<Carousel.Item class="basis-48 border">
+						<AspectRatio ratio={2 / 3}>
+							<img
+								src="{TMDB_IMAGE_BASE_URL}/w500{item.poster_path}"
+								alt={item.title || item.original_title}
+								class="object-cover object-center transition-transform duration-300 select-none hover:scale-105"
+								loading="lazy"
+							/>
+						</AspectRatio>
+						<a
 							href="/details/{item.id}"
-							class="mt-1 line-clamp-2 flex h-10 items-start text-sm font-semibold hover:underline"
+							class="mt-1 block h-10 text-sm font-semibold hover:underline"
 						>
-							{item.title || item.original_title}
+							<p class="line-clamp-2">
+								{item.title || item.original_title}
+							</p>
 						</a>
-						<div class="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+						<div class="mt-1 flex flex-wrap items-center justify-between">
 							<div class="flex items-center gap-0.5">
 								<Calender class="text-muted-foreground size-3" />
 								<p class="text-muted-foreground text-xs">
@@ -246,7 +251,7 @@
 									{item.media_type === 'movie' ? 'Movie' : 'TV Show'}
 								</p>
 							</div>
-						</div> -->
+						</div>
 					</Carousel.Item>
 				{/each}
 			</Carousel.Content>
