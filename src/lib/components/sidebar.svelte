@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import * as Avatar from '$lib/components/ui/avatar/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
 	import Home from '@lucide/svelte/icons/home';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
-	import Settings from '@lucide/svelte/icons/settings';
-	import User from '@lucide/svelte/icons/user';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Mountain from '@lucide/svelte/icons/mountain';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import Settings from '@lucide/svelte/icons/settings';
+	import User from '@lucide/svelte/icons/user';
 	import Tooltip from './tooltip.svelte';
-	import * as Avatar from '$lib/components/ui/avatar/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
 
 	const navItems = [
 		{ href: '/', icon: Home, label: 'Home' },
@@ -22,7 +22,7 @@
 </script>
 
 <aside
-	class="bg-card border-r-border fixed top-0 left-0 flex h-screen w-16 flex-col items-center border-r"
+	class="bg-card border-r-border top-0 left-0 flex h-screen w-16 flex-col items-center border-r"
 >
 	<div class="flex h-18 w-full items-center justify-center">
 		<div class="text-primary-foreground flex size-10 items-center justify-center">

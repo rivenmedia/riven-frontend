@@ -1,26 +1,116 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
-	import * as Carousel from '$lib/components/ui/carousel/index.js';
-	import { type CarouselAPI } from '$lib/components/ui/carousel/context.js';
-	import Autoplay from 'embla-carousel-autoplay';
-	import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from '$lib/tmdb';
-	import { browser } from '$app/environment';
-	import { getSeasonAndYear } from '$lib/helpers';
+	import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { type CarouselAPI } from '$lib/components/ui/carousel/context.js';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import { getSeasonAndYear } from '$lib/helpers';
+	import { TMDB_GENRES, TMDB_IMAGE_BASE_URL } from '$lib/tmdb';
 	import Calender from '@lucide/svelte/icons/calendar';
 	import Tv from '@lucide/svelte/icons/tv';
-	import * as Select from '$lib/components/ui/select/index.js';
-	import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
+	import Autoplay from 'embla-carousel-autoplay';
+	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let nowPlaying = $state<any | null>(null);
+	// Dummy data for testing
+	let nowPlaying = $state<any | null>({
+		results: [
+			{
+				id: 1,
+				title: 'Dune: Part Two',
+				original_title: 'Dune: Part Two',
+				backdrop_path: '/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
+				overview:
+					'Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family.',
+				release_date: '2024-02-28',
+				vote_average: 8.2,
+				original_language: 'en',
+				genre_ids: [878, 12, 28]
+			},
+			{
+				id: 2,
+				title: 'Spider-Man: Across the Spider-Verse',
+				original_title: 'Spider-Man: Across the Spider-Verse',
+				backdrop_path: '/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
+				overview:
+					"After reuniting with Gwen Stacy, Brooklyn's full-time, friendly neighborhood Spider-Man is catapulted across the Multiverse.",
+				release_date: '2023-05-31',
+				vote_average: 8.6,
+				original_language: 'en',
+				genre_ids: [16, 28, 12]
+			},
+			{
+				id: 3,
+				title: 'Oppenheimer',
+				original_title: 'Oppenheimer',
+				backdrop_path: '/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg',
+				overview:
+					"The story of J. Robert Oppenheimer's role in the development of the atomic bomb during World War II.",
+				release_date: '2023-07-19',
+				vote_average: 8.1,
+				original_language: 'en',
+				genre_ids: [18, 36]
+			}
+		]
+	});
 	let nowPlayingCarouselApi = $state<CarouselAPI>();
 
-	let trendingMovies = $state<any | null>(null);
+	let trendingMovies = $state<any | null>({
+		results: [
+			{
+				id: 4,
+				title: 'The Batman',
+				original_title: 'The Batman',
+				poster_path: '/74xTEgt7R36Fpooo50r9T25onhq.jpg',
+				release_date: '2022-03-01',
+				media_type: 'movie'
+			},
+			{
+				id: 5,
+				title: 'Top Gun: Maverick',
+				original_title: 'Top Gun: Maverick',
+				poster_path: '/62HCnUTziyWcpDaBO2i1DX17ljH.jpg',
+				release_date: '2022-05-24',
+				media_type: 'movie'
+			},
+			{
+				id: 6,
+				title: 'Avatar: The Way of Water',
+				original_title: 'Avatar: The Way of Water',
+				poster_path: '/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
+				release_date: '2022-12-14',
+				media_type: 'movie'
+			},
+			{
+				id: 7,
+				title: 'Black Panther: Wakanda Forever',
+				original_title: 'Black Panther: Wakanda Forever',
+				poster_path: '/sv1xJUazXeYqALzczSZ3O6nkH75.jpg',
+				release_date: '2022-11-09',
+				media_type: 'movie'
+			},
+			{
+				id: 8,
+				title: 'Everything Everywhere All at Once',
+				original_title: 'Everything Everywhere All at Once',
+				poster_path: '/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg',
+				release_date: '2022-03-24',
+				media_type: 'movie'
+			},
+			{
+				id: 9,
+				title: 'The Menu',
+				original_title: 'The Menu',
+				poster_path: '/v31MsWhF9WFh7Qooq6xSBbmJxoG.jpg',
+				release_date: '2022-11-17',
+				media_type: 'movie'
+			}
+		]
+	});
 	let trendingMoviesTimeWindow = $state<'day' | 'week'>('day');
 	let trendingMoviesCarouselApi = $state<CarouselAPI>();
 
@@ -29,6 +119,8 @@
 	let trendingShowsCarouselApi = $state<CarouselAPI>();
 
 	onMount(async () => {
+		// Commented out for testing with dummy data
+		/*
 		if (browser) {
 			try {
 				if (sessionStorage.getItem('getNowPlaying')) {
@@ -67,84 +159,84 @@
 				console.error('Error fetching now playing movies:', error);
 			}
 		}
+		*/
 	});
 
 	$inspect(trendingMoviesTimeWindow);
 </script>
 
-{#if nowPlaying}
-	<Carousel.Root
-		setApi={(emblaApi) => (nowPlayingCarouselApi = emblaApi)}
-		plugins={[
-			Autoplay({
-				delay: 5000
-			})
-		]}
-	>
-		<Carousel.Content>
-			{#each nowPlaying.results as item}
-				<Carousel.Item class="relative h-96 w-full">
-					<img
-						src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
-						alt={item.title || item.original_title}
-						class="w-full object-cover object-center select-none max-md:h-full"
-						loading="lazy"
-					/>
-					<div
-						class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none"
-					></div>
+<Carousel.Root
+	setApi={(emblaApi) => (nowPlayingCarouselApi = emblaApi)}
+	plugins={[
+		Autoplay({
+			delay: 5000
+		})
+	]}
+>
+	<Carousel.Content>
+		{#each nowPlaying.results as item}
+			<Carousel.Item class="relative h-96 w-full">
+				<img
+					src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
+					alt={item.title || item.original_title}
+					class="w-full object-cover object-center select-none max-md:h-full"
+					loading="lazy"
+				/>
+				<div
+					class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none"
+				></div>
 
-					<div class="absolute inset-0 z-[2] flex flex-col gap-4">
-						<div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
-							<div class="w-full max-w-2xl select-none">
-								<h1 class="text-3xl leading-tight font-medium break-words md:text-4xl">
-									{item.title || item.original_title}
-								</h1>
-								<div class="mt-2 flex items-center gap-1.5 select-none">
-									<p class="text-sm">Movie</p>
+				<div class="absolute inset-0 z-[2] flex flex-col gap-4">
+					<div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
+						<div class="w-full max-w-2xl select-none">
+							<h1 class="text-3xl leading-tight font-medium break-words md:text-4xl">
+								{item.title || item.original_title}
+							</h1>
+							<div class="mt-2 flex items-center gap-1.5 select-none">
+								<p class="text-sm">Movie</p>
 
-									<span class="text-muted-foreground text-sm">•</span>
+								<span class="text-muted-foreground text-sm">•</span>
 
-									<span class="text-sm">
-										{getSeasonAndYear(item.release_date || item.first_air_date)}
-									</span>
+								<span class="text-sm">
+									{getSeasonAndYear(item.release_date || item.first_air_date)}
+								</span>
 
-									<span class="text-muted-foreground text-sm">•</span>
+								<span class="text-muted-foreground text-sm">•</span>
 
-									<p class="text-sm">
-										{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'} / 10
-									</p>
-
-									<span class="text-muted-foreground text-sm">•</span>
-
-									<p class="text-sm">
-										{item.original_language.toUpperCase()}
-									</p>
-								</div>
-								<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">
-									{item.overview || 'No overview available.'}
+								<p class="text-sm">
+									{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'} / 10
 								</p>
-								<div class="mt-1.5 flex items-center">
-									{#each item.genre_ids as genreId}
-										{#if TMDB_GENRES[genreId]}
-											<Badge variant="outline" class="mt-2 mr-1">
-												{TMDB_GENRES[genreId]}
-											</Badge>
-										{/if}
-									{/each}
-								</div>
+
+								<span class="text-muted-foreground text-sm">•</span>
+
+								<p class="text-sm">
+									{item.original_language.toUpperCase()}
+								</p>
 							</div>
-							<div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
-								<Button href="/watch/{item.id}" class="w-full md:w-auto">Request</Button>
-								<Button variant="link" href="/details/{item.id}">View Details</Button>
+							<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">
+								{item.overview || 'No overview available.'}
+							</p>
+							<div class="mt-1.5 flex items-center">
+								{#each item.genre_ids as genreId}
+									{#if TMDB_GENRES[genreId]}
+										<Badge variant="outline" class="mt-2 mr-1">
+											{TMDB_GENRES[genreId]}
+										</Badge>
+									{/if}
+								{/each}
 							</div>
 						</div>
+						<div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
+							<Button href="/watch/{item.id}" class="w-full md:w-auto">Request</Button>
+							<Button variant="link" href="/details/{item.id}">View Details</Button>
+						</div>
 					</div>
-				</Carousel.Item>
-			{/each}
-		</Carousel.Content>
-	</Carousel.Root>
-{:else}
+				</div>
+			</Carousel.Item>
+		{/each}
+	</Carousel.Content>
+</Carousel.Root>
+{#if nowPlaying}{:else}
 	<div class="relative h-96 w-full">
 		<div
 			class="absolute inset-0 animate-pulse bg-gradient-to-t from-neutral-950 to-neutral-800"
