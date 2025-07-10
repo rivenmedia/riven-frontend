@@ -8,6 +8,10 @@
 	import NProgress from 'nprogress';
 	import '../../app.css';
 	import type { LayoutProps } from './$types';
+	import { SidebarStore, isMobileStore } from '$lib/stores/global.svelte';
+	import { setContext } from 'svelte';
+	import Menu from '@lucide/svelte/icons/menu';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -20,6 +24,33 @@
 	NProgress.configure({
 		showSpinner: false
 	});
+
+	setContext('sidebarStore', SidebarStore);
+	setContext('ismobilestore', isMobileStore);
+
+	$inspect(SidebarStore.isOpen, isMobileStore.isMobile);
+
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		const clickHandler = (event: MouseEvent) => {
+			const target = event.target as HTMLElement;
+			console.log('Click event:', {
+				target: target.tagName,
+				classes: target.className,
+				id: target.id,
+				text: target.textContent?.trim()
+			});
+		};
+
+		document.addEventListener('click', clickHandler, true); // useCapture: true logs early in capture phase
+		document.addEventListener('click', clickHandler, false); // bubbling phase
+
+		return () => {
+			document.removeEventListener('click', clickHandler, true);
+			document.removeEventListener('click', clickHandler, false);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -29,12 +60,21 @@
 <ModeWatcher defaultMode={'dark'} />
 <Toaster richColors closeButton />
 
-<div class="bg-background grid h-screen w-screen grid-cols-[auto_1fr] overflow-hidden">
+<div
+	class="bg-background grid h-screen w-screen grid-cols-1 overflow-hidden md:grid-cols-[auto_1fr]"
+>
 	<Sidebar user={data.user} />
 	<main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
-		<header class="bg-card flex h-18 w-full items-center px-4">
-			<div class="w-full">
+		<header class="bg-card flex h-18 w-full items-center px-2 md:px-4">
+			<div class="flex w-full items-center">
 				<Input type="text" placeholder="Search..." class="h-9" />
+				<Button
+					variant="ghost"
+					class="size-10 rounded-md md:hidden"
+					onclick={() => SidebarStore.toggle()}
+				>
+					<Menu class="size-5" />
+				</Button>
 			</div>
 		</header>
 		<Separator class="w-full" />

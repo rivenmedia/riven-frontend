@@ -184,7 +184,7 @@
 <div class="p-6 md:p-8 md:px-16">
 	<div class="flex items-center justify-between">
 		<div class="flex max-w-max items-center gap-2">
-			<h2 class="text-muted-foreground mb-4 text-2xl font-semibold">Trending Movies</h2>
+			<h2 class="text-muted-foreground mb-4 text-lg md:text-xl lg:text-2xl font-semibold max-w-max">Trending Movies</h2>
 			<Select.Root
 				bind:value={trendingMoviesTimeWindow}
 				onValueChange={(value) => {
@@ -197,7 +197,7 @@
 				}}
 				type="single"
 			>
-				<Select.Trigger class="w-44">
+				<Select.Trigger class="w-24">
 					{trendingMoviesTimeWindow === 'day' ? 'Today' : 'This Week'}
 				</Select.Trigger>
 				<Select.Content>
@@ -220,7 +220,7 @@
 		>
 			<Carousel.Content>
 				{#each trendingMovies.results as item}
-					<Carousel.Item class="basis-48 border">
+					<Carousel.Item class="basis-40">
 						<AspectRatio ratio={2 / 3}>
 							<img
 								src="{TMDB_IMAGE_BASE_URL}/w500{item.poster_path}"

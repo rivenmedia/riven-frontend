@@ -54,6 +54,7 @@
 		"tw-animate-css": "^1.3.5",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.35.1",
+		"vaul-svelte": "1.0.0-next.7",
 		"vite": "^6.3.5"
 	},
 	"dependencies": {
