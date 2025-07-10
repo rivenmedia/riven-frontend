@@ -29,28 +29,6 @@
 	setContext('ismobilestore', isMobileStore);
 
 	$inspect(SidebarStore.isOpen, isMobileStore.isMobile);
-
-	import { onMount } from 'svelte';
-
-	onMount(() => {
-		const clickHandler = (event: MouseEvent) => {
-			const target = event.target as HTMLElement;
-			console.log('Click event:', {
-				target: target.tagName,
-				classes: target.className,
-				id: target.id,
-				text: target.textContent?.trim()
-			});
-		};
-
-		document.addEventListener('click', clickHandler, true); // useCapture: true logs early in capture phase
-		document.addEventListener('click', clickHandler, false); // bubbling phase
-
-		return () => {
-			document.removeEventListener('click', clickHandler, true);
-			document.removeEventListener('click', clickHandler, false);
-		};
-	});
 </script>
 
 <svelte:head>
@@ -65,8 +43,8 @@
 >
 	<Sidebar user={data.user} />
 	<main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
-		<header class="bg-card flex h-18 w-full items-center px-2 md:px-4">
-			<div class="flex w-full items-center">
+		<header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
+			 <div class="flex w-full items-center">
 				<Input type="text" placeholder="Search..." class="h-9" />
 				<Button
 					variant="ghost"

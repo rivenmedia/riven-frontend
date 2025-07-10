@@ -60,23 +60,30 @@
 	</nav>
 
 	<div class="mt-auto flex flex-col items-center gap-4 pb-4">
-		<Tooltip>
-			{#snippet trigger()}
-				<Avatar.Root class="cursor-pointer">
-					<Avatar.Image src="https://github.com/ayushsehrawat.png" alt="@ayushsehrawat" />
-					<Avatar.Fallback>CN</Avatar.Fallback>
-				</Avatar.Root>
-			{/snippet}
-			{#snippet content()}
-				<p class="font-medium">
-					{user.username}
-				</p>
-			{/snippet}
-		</Tooltip>
+		{#if user}
+			<Tooltip>
+				{#snippet trigger()}
+					<Avatar.Root class="cursor-pointer">
+						<Avatar.Image src="https://github.com/ayushsehrawat.png" alt="@ayushsehrawat" />
+						<Avatar.Fallback>CN</Avatar.Fallback>
+					</Avatar.Root>
+				{/snippet}
+				{#snippet content()}
+					<p class="font-medium">
+						{user.username}
+					</p>
+				{/snippet}
+			</Tooltip>
 
-		<Button variant="ghost" size="icon" class="size-10 rounded-md" aria-label="Logout">
-			<LogOut class="h-5 w-5" />
-		</Button>
+			<Button variant="ghost" size="icon" class="size-10 rounded-md" aria-label="Logout">
+				<LogOut class="h-5 w-5" />
+			</Button>
+		{:else}
+			<Avatar.Root class="cursor-pointer">
+				<Avatar.Image src="https://avatar.iran.liara.run/public" alt="@guest" />
+				<Avatar.Fallback>G</Avatar.Fallback>
+			</Avatar.Root>
+		{/if}
 	</div>
 </aside>
 
@@ -84,26 +91,31 @@
 	<Drawer.Trigger class="hidden"></Drawer.Trigger>
 	<Drawer.Content>
 		<Drawer.Header class="flex flex-row items-center justify-between">
-			<div class="flex items-center gap-2">
-				<Avatar.Root class="cursor-pointer">
-					<Avatar.Image src="https://github.com/ayushsehrawat.png" alt="@ayushsehrawat" />
-					<Avatar.Fallback>CN</Avatar.Fallback>
-				</Avatar.Root>
-				<p class="font-medium">
-					{user.username}
-				</p>
-			</div>
+			{#if user}
+				<div class="flex items-center gap-2">
+					<Avatar.Root class="cursor-pointer">
+						<Avatar.Image src="https://github.com/ayushsehrawat.png" alt="@ayushsehrawat" />
+						<Avatar.Fallback>CN</Avatar.Fallback>
+					</Avatar.Root>
+					<p class="font-medium">
+						{user.username}
+					</p>
+				</div>
 
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-10 rounded-md"
-				aria-label="Logout"
-			>
-				<Drawer.Close class="text-muted-foreground">
-					<LogOut class="h-5 w-5" />
-				</Drawer.Close>
-			</Button>
+				<Button variant="ghost" size="icon" class="size-10 rounded-md" aria-label="Logout">
+					<Drawer.Close class="text-muted-foreground">
+						<LogOut class="h-5 w-5" />
+					</Drawer.Close>
+				</Button>
+			{:else}
+				<div class="flex items-center gap-2">
+					<Avatar.Root class="cursor-pointer">
+						<Avatar.Image src="https://avatar.iran.liara.run/public" alt="@guest" />
+						<Avatar.Fallback>G</Avatar.Fallback>
+					</Avatar.Root>
+					<p class="font-medium">Guest</p>
+				</div>
+			{/if}
 		</Drawer.Header>
 
 		<Separator class="my-2" />

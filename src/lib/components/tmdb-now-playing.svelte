@@ -1,0 +1,123 @@
+<script lang="ts">
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
+	import { type CarouselAPI } from '$lib/components/ui/carousel/context.js';
+	import Autoplay from 'embla-carousel-autoplay';
+	import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from '$lib/tmdb';
+	import { getSeasonAndYear } from '$lib/helpers';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+
+	let api = $state<CarouselAPI>();
+
+	let { data } = $props();
+</script>
+
+{#if data}
+	<Carousel.Root
+		setApi={(emblaApi) => (api = emblaApi)}
+		plugins={[
+			Autoplay({
+				delay: 5000
+			})
+		]}
+	>
+		<Carousel.Content>
+			{#each data.results as item}
+				<Carousel.Item class="relative h-96 w-full">
+					<img
+						src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
+						alt={item.title || item.original_title}
+						class="w-full object-cover object-center select-none max-md:h-full"
+						loading="lazy"
+					/>
+					<div
+						class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none"
+					></div>
+
+					<div class="absolute inset-0 z-[2] flex flex-col gap-4">
+						<div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
+							<div class="w-full max-w-2xl select-none">
+								<h1 class="text-3xl leading-tight font-medium break-words md:text-4xl">
+									{item.title || item.original_title}
+								</h1>
+								<div class="mt-2 flex items-center gap-1.5 select-none">
+									<p class="text-sm">Movie</p>
+
+									<span class="text-muted-foreground text-sm">•</span>
+
+									<span class="text-sm">
+										{getSeasonAndYear(item.release_date || item.first_air_date)}
+									</span>
+
+									<span class="text-muted-foreground text-sm">•</span>
+
+									<p class="text-sm">
+										{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'} / 10
+									</p>
+
+									<span class="text-muted-foreground text-sm">•</span>
+
+									<p class="text-sm">
+										{item.original_language.toUpperCase()}
+									</p>
+								</div>
+								<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">
+									{item.overview || 'No overview available.'}
+								</p>
+								<div class="mt-1.5 flex items-center">
+									{#each item.genre_ids as genreId}
+										{#if TMDB_GENRES[genreId]}
+											<Badge variant="outline" class="mt-2 mr-1">
+												{TMDB_GENRES[genreId]}
+											</Badge>
+										{/if}
+									{/each}
+								</div>
+							</div>
+							<div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
+								<Button href="/watch/{item.id}" class="w-full md:w-auto">Request</Button>
+								<Button variant="link" href="/details/{item.id}">View Details</Button>
+							</div>
+						</div>
+					</div>
+				</Carousel.Item>
+			{/each}
+		</Carousel.Content>
+	</Carousel.Root>
+{:else}
+	<div class="relative h-96 w-full">
+		<div
+			class="absolute inset-0 animate-pulse bg-gradient-to-t from-neutral-950 to-neutral-800"
+		></div>
+
+		<div class="absolute inset-0 z-[2] flex flex-col gap-4">
+			<div class="flex h-full w-full flex-col justify-end gap-2 p-8 md:px-16">
+				<div class="w-full max-w-2xl">
+					<Skeleton class="mb-2 h-9 w-3/4" />
+
+					<div class="mt-2 flex items-center gap-4">
+						<Skeleton class="h-4 w-12" />
+						<Skeleton class="h-4 w-24" />
+						<Skeleton class="h-4 w-16" />
+						<Skeleton class="h-4 w-8" />
+					</div>
+
+					<Skeleton class="mt-3 mb-1 h-4 w-full" />
+					<Skeleton class="mb-3 h-4 w-5/6" />
+
+					<div class="mt-1.5 flex items-center gap-2">
+						<Skeleton class="h-6 w-16 rounded-full" />
+						<Skeleton class="h-6 w-20 rounded-full" />
+						<Skeleton class="h-6 w-14 rounded-full" />
+					</div>
+
+					<div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
+						<Skeleton class="h-10 w-28" />
+						<Skeleton class="h-10 w-28" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}

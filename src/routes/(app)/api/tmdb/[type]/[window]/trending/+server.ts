@@ -14,6 +14,8 @@ export const GET: RequestHandler = async ({ fetch, params }) => {
 		error(400, 'Invalid time window');
 	}
 
+	console.log(`Fetching trending ${type} for window ${window}`);
+
 	try {
 		const trending = await getTrending(fetch, {
 			mediaType: type as MediaType,
