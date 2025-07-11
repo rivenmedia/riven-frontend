@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json, error } from '@sveltejs/kit';
 
-import { getMoviesNowPlaying } from '$lib/tmdb';
+import { getMoviesNowPlaying } from '$lib/providers/tmdb';
 
 export const GET: RequestHandler = async ({ fetch }) => {
 	try {

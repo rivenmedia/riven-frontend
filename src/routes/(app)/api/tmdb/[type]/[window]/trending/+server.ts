@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json, error } from '@sveltejs/kit';
 
-import { MediaType, TimeWindow, getTrending } from '$lib/tmdb';
+import { MediaType, TimeWindow, getTrending } from '$lib/providers/tmdb';
 
 export const GET: RequestHandler = async ({ fetch, params }) => {
 	const { type, window } = params;
