@@ -4,56 +4,56 @@
  */
 
 export interface Account {
-  accessToken: string | null;
-  accessTokenExpiresAt: string | null;
-  accountId: string;
-  createdAt: string;
-  id: string;
-  idToken: string | null;
-  password: string | null;
-  providerId: string;
-  refreshToken: string | null;
-  refreshTokenExpiresAt: string | null;
-  scope: string | null;
-  updatedAt: string;
-  userId: string;
+	accessToken: string | null;
+	accessTokenExpiresAt: string | null;
+	accountId: string;
+	createdAt: string;
+	id: string;
+	idToken: string | null;
+	password: string | null;
+	providerId: string;
+	refreshToken: string | null;
+	refreshTokenExpiresAt: string | null;
+	scope: string | null;
+	updatedAt: string;
+	userId: string;
 }
 
 export interface Session {
-  createdAt: string;
-  expiresAt: string;
-  id: string;
-  ipAddress: string | null;
-  token: string;
-  updatedAt: string;
-  userAgent: string | null;
-  userId: string;
+	createdAt: string;
+	expiresAt: string;
+	id: string;
+	ipAddress: string | null;
+	token: string;
+	updatedAt: string;
+	userAgent: string | null;
+	userId: string;
 }
 
 export interface User {
-  createdAt: string;
-  displayUsername: string | null;
-  email: string;
-  emailVerified: number;
-  id: string;
-  image: string | null;
-  name: string;
-  updatedAt: string;
-  username: string | null;
+	createdAt: string;
+	displayUsername: string | null;
+	email: string;
+	emailVerified: number;
+	id: string;
+	image: string | null;
+	name: string;
+	updatedAt: string;
+	username: string | null;
 }
 
 export interface Verification {
-  createdAt: string | null;
-  expiresAt: string;
-  id: string;
-  identifier: string;
-  updatedAt: string | null;
-  value: string;
+	createdAt: string | null;
+	expiresAt: string;
+	id: string;
+	identifier: string;
+	updatedAt: string | null;
+	value: string;
 }
 
 export interface DB {
-  account: Account;
-  session: Session;
-  user: User;
-  verification: Verification;
+	account: Account;
+	session: Session;
+	user: User;
+	verification: Verification;
 }
