@@ -10,5 +10,8 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true
 	},
-	plugins: [username(), sveltekitCookies(getRequestEvent)]
+	plugins: [username(), sveltekitCookies(getRequestEvent)],
+	advanced: {
+		cookiePrefix: 'riven'
+	}
 });
