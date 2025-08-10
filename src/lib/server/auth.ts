@@ -1,3 +1,8 @@
+////////////////////////////////////
+// MAKE SURE TO KEEP THIS IN SYNC WITH better-auth.config.ts EXCEPT FOR SVELTE-KIT $ IMPORT
+// AS IT IS USED FOR BETTER-AUTH CLI
+//////////////////////////////////////
+
 import { betterAuth } from 'better-auth';
 import Database from 'better-sqlite3';
 import { DATABASE_URL } from '$env/static/private';

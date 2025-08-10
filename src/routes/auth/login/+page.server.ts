@@ -35,8 +35,6 @@ export const actions: Actions = {
 			});
 
 			console.log('Login response:', data);
-
-			return redirect(302, '/');
 		} catch (error) {
 			if (error instanceof APIError) {
 				return message(loginForm, error.message, {
@@ -48,6 +46,8 @@ export const actions: Actions = {
 				status: 500
 			});
 		}
+
+		return redirect(303, '/');
 	},
 	register: async (event) => {
 		const registerForm = await superValidate(event.request, zod(registerSchema));
@@ -71,8 +71,6 @@ export const actions: Actions = {
 			});
 
 			console.log('Sign up response:', data);
-
-			return redirect(302, '/');
 		} catch (error) {
 			if (error instanceof APIError) {
 				return message(registerForm, error.message, {
@@ -84,5 +82,7 @@ export const actions: Actions = {
 				status: 500
 			});
 		}
+
+		return redirect(303, '/');
 	}
 };
