@@ -3,7 +3,11 @@ import { json, error } from '@sveltejs/kit';
 
 import { getTrending } from '$lib/providers/anilist';
 
-export const GET: RequestHandler = async ({ fetch }) => {
+export const GET: RequestHandler = async ({ fetch, locals }) => {
+	if (!locals.user || !locals.session) {
+		error(401, 'Unauthorized');
+	}
+
 	try {
 		const nowPlaying = await getTrending(fetch);
 		return json(nowPlaying);

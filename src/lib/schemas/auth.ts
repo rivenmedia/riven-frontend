@@ -7,6 +7,8 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
 	username: z.string().min(3).max(31),
+	email: z.string().email(),
+	// image: z.instanceof(File, { message: 'Please upload a file.' }),
 	password: z.string().min(4),
 	confirmPassword: z.string().min(4)
 });

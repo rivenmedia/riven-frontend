@@ -3,7 +3,10 @@ import { json, error } from '@sveltejs/kit';
 
 import { MediaType, TimeWindow, getTrending } from '$lib/providers/tmdb';
 
-export const GET: RequestHandler = async ({ fetch, params }) => {
+export const GET: RequestHandler = async ({ fetch, params, locals }) => {
+	if (!locals.user || !locals.session) {
+		error(401, 'Unauthorized');
+	}
 	const { type, window } = params;
 
 	if (!Object.values(MediaType).includes(type as MediaType)) {

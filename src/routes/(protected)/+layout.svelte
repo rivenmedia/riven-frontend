@@ -44,7 +44,7 @@
 	<Sidebar user={data.user} />
 	<main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
 		<header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
-			 <div class="flex w-full items-center">
+			<div class="flex w-full items-center">
 				<Input type="text" placeholder="Search..." class="h-9" />
 				<Button
 					variant="ghost"

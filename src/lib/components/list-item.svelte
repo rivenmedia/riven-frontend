@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { AspectRatio } from '$lib/components/ui/aspect-ratio/index.js';
-	import { TMDB_IMAGE_BASE_URL } from '$lib/providers/tmdb';
 	import Calender from '@lucide/svelte/icons/calendar';
 	import Tv from '@lucide/svelte/icons/tv';
 

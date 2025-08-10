@@ -3,7 +3,9 @@
 
 	let logs = $state<any[]>([]);
 	let error = $state<string | null>(null);
-	let connectionStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
+	let connectionStatus = $state<'connecting' | 'connected' | 'disconnected' | 'error'>(
+		'connecting'
+	);
 	let abortController = $state<AbortController | null>(null);
 	let reconnectAttempts = $state<number>(0);
 	let maxReconnectAttempts = 10;
@@ -18,7 +20,7 @@
 		if (abortController) {
 			abortController.abort();
 		}
-		
+
 		abortController = new AbortController();
 		connectionStatus = 'connecting';
 		error = null;
@@ -81,16 +83,15 @@
 					}
 				}
 			}
-			
+
 			scheduleReconnect();
-			
 		} catch (e: any) {
 			if (e.name === 'AbortError') {
 				console.log('Stream aborted');
 				connectionStatus = 'disconnected';
 				return;
 			}
-			
+
 			console.error('Stream error:', e);
 			connectionStatus = 'error';
 			error = `Connection error: ${e.message}`;
@@ -107,9 +108,11 @@
 
 		const delay = getReconnectDelay(reconnectAttempts);
 		reconnectAttempts++;
-		
-		console.log(`Scheduling reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${Math.round(delay/1000)}s`);
-		
+
+		console.log(
+			`Scheduling reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${Math.round(delay / 1000)}s`
+		);
+
 		reconnectTimeoutId = setTimeout(() => {
 			if (abortController?.signal.aborted) return;
 			startStream();
@@ -146,21 +149,33 @@
 
 	function getStatusColor() {
 		switch (connectionStatus) {
-			case 'connected': return 'bg-green-500';
-			case 'connecting': return 'bg-yellow-500';
-			case 'disconnected': return 'bg-gray-500';
-			case 'error': return 'bg-red-500';
-			default: return 'bg-gray-500';
+			case 'connected':
+				return 'bg-green-500';
+			case 'connecting':
+				return 'bg-yellow-500';
+			case 'disconnected':
+				return 'bg-gray-500';
+			case 'error':
+				return 'bg-red-500';
+			default:
+				return 'bg-gray-500';
 		}
 	}
 
 	function getStatusText() {
 		switch (connectionStatus) {
-			case 'connected': return 'Connected';
-			case 'connecting': return reconnectAttempts > 0 ? `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})` : 'Connecting...';
-			case 'disconnected': return 'Disconnected';
-			case 'error': return 'Connection Error';
-			default: return 'Unknown';
+			case 'connected':
+				return 'Connected';
+			case 'connecting':
+				return reconnectAttempts > 0
+					? `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`
+					: 'Connecting...';
+			case 'disconnected':
+				return 'Disconnected';
+			case 'error':
+				return 'Connection Error';
+			default:
+				return 'Unknown';
 		}
 	}
 </script>
@@ -170,9 +185,9 @@
 		<div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
 			<h3 class="text-destructive mb-3 text-lg font-semibold">Connection Failed</h3>
 			<pre
-				class="text-destructive/80 bg-destructive/5 overflow-x-auto rounded border p-3 font-mono text-sm mb-4">{error}</pre>
-			<button 
-				class="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors"
+				class="text-destructive/80 bg-destructive/5 mb-4 overflow-x-auto rounded border p-3 font-mono text-sm">{error}</pre>
+			<button
+				class="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 font-medium transition-colors"
 				onclick={manualReconnect}
 			>
 				Try Again
@@ -199,12 +214,16 @@
 					<h2 class="text-foreground font-semibold">Stream Output</h2>
 					<div class="flex items-center gap-4">
 						<div class="flex items-center gap-2">
-							<div class="{getStatusColor()} h-2 w-2 rounded-full {connectionStatus === 'connecting' ? 'animate-pulse' : ''}"></div>
+							<div
+								class="{getStatusColor()} h-2 w-2 rounded-full {connectionStatus === 'connecting'
+									? 'animate-pulse'
+									: ''}"
+							></div>
 							<span class="text-muted-foreground text-sm">{getStatusText()}</span>
 						</div>
 						{#if connectionStatus === 'error' && reconnectAttempts < maxReconnectAttempts}
-							<button 
-								class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 border rounded px-3 py-1 text-sm font-medium transition-colors"
+							<button
+								class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 rounded border px-3 py-1 text-sm font-medium transition-colors"
 								onclick={manualReconnect}
 							>
 								Reconnect Now

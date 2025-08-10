@@ -14,6 +14,7 @@
 	import { cn } from '$lib/utils';
 	import * as Drawer from '$lib/components/ui/drawer/index.js';
 	import { goto } from '$app/navigation';
+	import { authClient } from '$lib/auth-client';
 
 	const navItems = [
 		{ href: '/', icon: Home, label: 'Home' },
@@ -75,7 +76,21 @@
 				{/snippet}
 			</Tooltip>
 
-			<Button variant="ghost" size="icon" class="size-10 rounded-md" aria-label="Logout">
+			<Button
+				onclick={async () => {
+					await authClient.signOut({
+						fetchOptions: {
+							onSuccess: () => {
+								goto('/auth/login');
+							}
+						}
+					});
+				}}
+				variant="ghost"
+				size="icon"
+				class="size-10 rounded-md"
+				aria-label="Logout"
+			>
 				<LogOut class="h-5 w-5" />
 			</Button>
 		{:else}
@@ -102,7 +117,21 @@
 					</p>
 				</div>
 
-				<Button variant="ghost" size="icon" class="size-10 rounded-md" aria-label="Logout">
+				<Button
+					onclick={async () => {
+						await authClient.signOut({
+							fetchOptions: {
+								onSuccess: () => {
+									goto('/auth/login');
+								}
+							}
+						});
+					}}
+					variant="ghost"
+					size="icon"
+					class="size-10 rounded-md"
+					aria-label="Logout"
+				>
 					<Drawer.Close class="text-muted-foreground">
 						<LogOut class="h-5 w-5" />
 					</Drawer.Close>

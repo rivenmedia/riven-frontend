@@ -3,7 +3,11 @@ import { json, error } from '@sveltejs/kit';
 
 import { getMoviesNowPlaying } from '$lib/providers/tmdb';
 
-export const GET: RequestHandler = async ({ fetch }) => {
+export const GET: RequestHandler = async ({ fetch, locals }) => {
+	if (!locals.user || !locals.session) {
+		error(401, 'Unauthorized');
+	}
+
 	try {
 		const nowPlaying = await getMoviesNowPlaying(fetch);
 		return json(nowPlaying);
