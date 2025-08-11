@@ -1,7 +1,30 @@
 import { auth } from '$lib/server/auth';
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
+import { getUsersCount } from '$lib/server/functions';
+
+export const init: ServerInit = async () => {
+	const userCount = (await getUsersCount())[0].count;
+
+	if (userCount === 0) {
+		console.warn('No users found in the database. Creating an admin user...');
+
+		const data = await auth.api.createUser({
+			body: {
+				name: 'Admin',
+				email: 'admin@admin.com',
+				password: 'admin',
+				role: ['admin'],
+				data: {
+					username: 'admin'
+				}
+			}
+		});
+
+		console.log('Admin user created:', data);
+	}
+};
 
 export const handle: Handle = async ({ event, resolve }) => {
 	if (event.route.id?.startsWith('/(protected)')) {

@@ -19,5 +19,8 @@ export const auth = betterAuth({
 	plugins: [username(), admin()],
 	advanced: {
 		cookiePrefix: 'riven'
+	},
+	telemetry: {
+		enabled: false
 	}
 });

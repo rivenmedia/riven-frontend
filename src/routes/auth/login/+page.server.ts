@@ -65,8 +65,7 @@ export const actions: Actions = {
 					name: registerForm.data.username,
 					username: registerForm.data.username,
 					email: registerForm.data.email,
-					password: registerForm.data.password,
-					callbackURL: '/'
+					password: registerForm.data.password
 				}
 			});
 
