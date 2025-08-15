@@ -22,7 +22,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.21.18'
+            default: '0.23.1'
         },
         api_key: {
             type: 'string',
@@ -106,6 +106,10 @@ export const AppModelSchema = {
                 all_debrid: {
                     api_key: '',
                     enabled: false
+                },
+                torbox: {
+                    api_key: '',
+                    enabled: false
                 }
             }
         },
@@ -154,6 +158,7 @@ export const AppModelSchema = {
                         refresh_token: ''
                     },
                     popular_count: 10,
+                    proxy_url: '',
                     trending_count: 10,
                     update_interval: 86400,
                     user_lists: [],
@@ -218,7 +223,7 @@ export const AppModelSchema = {
                     enabled: false,
                     ratelimit: true,
                     timeout: 30,
-                    url: 'https://mediafusion.elfhosted.com'
+                    url: 'http://localhost:8000'
                 },
                 zilean: {
                     enabled: false,
@@ -230,7 +235,7 @@ export const AppModelSchema = {
                     enabled: false,
                     ratelimit: true,
                     timeout: 30,
-                    url: 'https://comet.elfhosted.com'
+                    url: 'http://localhost:8000'
                 }
             }
         },
@@ -270,11 +275,6 @@ export const AppModelSchema = {
                             rank: 0,
                             use_custom_rank: false
                         },
-                        ac3: {
-                            fetch: true,
-                            rank: 0,
-                            use_custom_rank: false
-                        },
                         atmos: {
                             fetch: true,
                             rank: 0,
@@ -296,11 +296,6 @@ export const AppModelSchema = {
                             use_custom_rank: false
                         },
                         dts_lossy: {
-                            fetch: true,
-                            rank: 0,
-                            use_custom_rank: false
-                        },
-                        eac3: {
                             fetch: true,
                             rank: 0,
                             use_custom_rank: false
@@ -398,6 +393,11 @@ export const AppModelSchema = {
                             use_custom_rank: false
                         },
                         subbed: {
+                            fetch: true,
+                            rank: 0,
+                            use_custom_rank: false
+                        },
+                        uncensored: {
                             fetch: true,
                             rank: 0,
                             use_custom_rank: false
@@ -620,8 +620,7 @@ export const AppModelSchema = {
             '$ref': '#/components/schemas/NotificationsModel',
             default: {
                 enabled: false,
-                title: 'Riven completed something!',
-                on_item_type: ['movie', 'show', 'season'],
+                on_item_type: ['movie', 'show', 'season', 'episode'],
                 service_urls: []
             }
         },
@@ -656,9 +655,6 @@ export const AudioRankModelSchema = {
         aac: {
             '$ref': '#/components/schemas/CustomRank'
         },
-        ac3: {
-            '$ref': '#/components/schemas/CustomRank'
-        },
         atmos: {
             '$ref': '#/components/schemas/CustomRank'
         },
@@ -672,9 +668,6 @@ export const AudioRankModelSchema = {
             '$ref': '#/components/schemas/CustomRank'
         },
         dts_lossless: {
-            '$ref': '#/components/schemas/CustomRank'
-        },
-        eac3: {
             '$ref': '#/components/schemas/CustomRank'
         },
         flac: {
@@ -724,7 +717,7 @@ export const CometConfigSchema = {
         url: {
             type: 'string',
             title: 'Url',
-            default: 'https://comet.elfhosted.com'
+            default: 'http://localhost:8000'
         },
         timeout: {
             type: 'integer',
@@ -823,7 +816,8 @@ export const ContentModelSchema = {
                     oauth_client_secret: '',
                     oauth_redirect_uri: '',
                     refresh_token: ''
-                }
+                },
+                proxy_url: ''
             }
         }
     },
@@ -981,6 +975,13 @@ export const DownloadersModelSchema = {
                 enabled: false,
                 api_key: ''
             }
+        },
+        torbox: {
+            '$ref': '#/components/schemas/TorBoxModel',
+            default: {
+                enabled: false,
+                api_key: ''
+            }
         }
     },
     type: 'object',
@@ -1051,6 +1052,9 @@ export const ExtrasRankModelSchema = {
             '$ref': '#/components/schemas/CustomRank'
         },
         scene: {
+            '$ref': '#/components/schemas/CustomRank'
+        },
+        uncensored: {
             '$ref': '#/components/schemas/CustomRank'
         }
     },
@@ -1379,7 +1383,7 @@ export const MediafusionConfigSchema = {
         url: {
             type: 'string',
             title: 'Url',
-            default: 'https://mediafusion.elfhosted.com'
+            default: 'http://localhost:8000'
         },
         timeout: {
             type: 'integer',
@@ -1430,18 +1434,13 @@ export const NotificationsModelSchema = {
             title: 'Enabled',
             default: false
         },
-        title: {
-            type: 'string',
-            title: 'Title',
-            default: 'Riven completed something!'
-        },
         on_item_type: {
             items: {
                 type: 'string'
             },
             type: 'array',
             title: 'On Item Type',
-            default: ['movie', 'show', 'season']
+            default: ['movie', 'show', 'season', 'episode']
         },
         service_urls: {
             items: {
@@ -1878,9 +1877,19 @@ export const ParsedDataSchema = {
             title: 'Unrated',
             default: false
         },
+        uncensored: {
+            type: 'boolean',
+            title: 'Uncensored',
+            default: false
+        },
         documentary: {
             type: 'boolean',
             title: 'Documentary',
+            default: false
+        },
+        commentary: {
+            type: 'boolean',
+            title: 'Commentary',
             default: false
         },
         episode_code: {
@@ -2242,6 +2251,18 @@ export const RealDebridModelSchema = {
     title: 'RealDebridModel'
 } as const;
 
+export const ReindexResponseSchema = {
+    properties: {
+        message: {
+            type: 'string',
+            title: 'Message'
+        }
+    },
+    type: 'object',
+    required: ['message'],
+    title: 'ReindexResponse'
+} as const;
+
 export const RemoveResponseSchema = {
     properties: {
         message: {
@@ -2532,7 +2553,7 @@ export const ScraperModelSchema = {
             '$ref': '#/components/schemas/MediafusionConfig',
             default: {
                 enabled: false,
-                url: 'https://mediafusion.elfhosted.com',
+                url: 'http://localhost:8000',
                 timeout: 30,
                 ratelimit: true
             }
@@ -2550,7 +2571,7 @@ export const ScraperModelSchema = {
             '$ref': '#/components/schemas/CometConfig',
             default: {
                 enabled: false,
-                url: 'https://comet.elfhosted.com',
+                url: 'http://localhost:8000',
                 timeout: 30,
                 ratelimit: true
             }
@@ -2850,6 +2871,23 @@ export const SymlinkModelSchema = {
     title: 'SymlinkModel'
 } as const;
 
+export const TorBoxModelSchema = {
+    properties: {
+        enabled: {
+            type: 'boolean',
+            title: 'Enabled',
+            default: false
+        },
+        api_key: {
+            type: 'string',
+            title: 'Api Key',
+            default: ''
+        }
+    },
+    type: 'object',
+    title: 'TorBoxModel'
+} as const;
+
 export const TorrentContainerSchema = {
     properties: {
         infohash: {
@@ -3125,6 +3163,11 @@ export const TraktModelSchema = {
                 access_token: '',
                 refresh_token: ''
             }
+        },
+        proxy_url: {
+            type: 'string',
+            title: 'Proxy Url',
+            default: ''
         }
     },
     type: 'object',

@@ -31,13 +31,11 @@ export type AppModel = {
  */
 export type AudioRankModel = {
     aac?: CustomRank;
-    ac3?: CustomRank;
     atmos?: CustomRank;
     dolby_digital?: CustomRank;
     dolby_digital_plus?: CustomRank;
     dts_lossy?: CustomRank;
     dts_lossless?: CustomRank;
-    eac3?: CustomRank;
     flac?: CustomRank;
     mono?: CustomRank;
     mp3?: CustomRank;
@@ -129,6 +127,7 @@ export type DownloadersModel = {
     proxy_url?: string;
     real_debrid?: RealDebridModel;
     all_debrid?: AllDebridModel;
+    torbox?: TorBoxModel;
 };
 
 export type EmbyLibraryModel = {
@@ -155,6 +154,7 @@ export type ExtrasRankModel = {
     subbed?: CustomRank;
     upscaled?: CustomRank;
     scene?: CustomRank;
+    uncensored?: CustomRank;
 };
 
 export type FfprobeResponse = {
@@ -263,7 +263,6 @@ export type MountResponse = {
 
 export type NotificationsModel = {
     enabled?: boolean;
-    title?: string;
     on_item_type?: Array<(string)>;
     service_urls?: Array<(string)>;
 };
@@ -352,7 +351,9 @@ export type ParsedData = {
     upscaled?: boolean;
     remastered?: boolean;
     unrated?: boolean;
+    uncensored?: boolean;
     documentary?: boolean;
+    commentary?: boolean;
     episode_code?: (string | null);
     country?: (string | null);
     container?: (string | null);
@@ -471,6 +472,10 @@ export type RTNSettingsModel = {
 export type RealDebridModel = {
     enabled?: boolean;
     api_key?: string;
+};
+
+export type ReindexResponse = {
+    message: string;
 };
 
 export type RemoveResponse = {
@@ -649,6 +654,11 @@ export type SymlinkModel = {
     repair_interval?: number;
 };
 
+export type TorBoxModel = {
+    enabled?: boolean;
+    api_key?: string;
+};
+
 /**
  * Represents a collection of files from an infohash from a debrid service
  */
@@ -705,6 +715,7 @@ export type TraktModel = {
     most_watched_period?: string;
     most_watched_count?: number;
     oauth?: TraktOauthModel;
+    proxy_url?: string;
 };
 
 export type TraktOAuthInitiateResponse = {
@@ -1020,6 +1031,17 @@ export type UnpauseItemsData = {
 export type UnpauseItemsResponse = (PauseResponse);
 
 export type UnpauseItemsError = (unknown | HTTPValidationError);
+
+export type TraktReindexerData = {
+    query?: {
+        imdb_id?: (string | null);
+        item_id?: (string | null);
+    };
+};
+
+export type TraktReindexerResponse = (ReindexResponse);
+
+export type TraktReindexerError = (unknown | HTTPValidationError);
 
 export type FfprobeMediaFilesData = {
     query: {
