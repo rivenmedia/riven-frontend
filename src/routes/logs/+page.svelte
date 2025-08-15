@@ -233,8 +233,10 @@
 		</div>
 	{:else if logs.length > 0 || connectionStatus === 'connecting' || showHistoricalLogs}
 		<div class="flex h-full min-h-0 flex-col">
-			<div class="mb-6 flex flex-shrink-0 items-center justify-between">
-				<div>
+			<div
+				class="mb-6 flex flex-col items-start lg:justify-between lg:flex-row lg:items-center w-full"
+			>
+				<div class="flex flex-col items-start">
 					<h1 class="text-3xl font-bold tracking-tight">
 						{showHistoricalLogs ? 'Historical Logs' : 'Live Logs'}
 					</h1>
@@ -242,23 +244,23 @@
 						{showHistoricalLogs ? 'Previously recorded system logs' : 'Real-time system monitoring'}
 					</p>
 				</div>
-				<div class="flex items-center gap-4">
+				<div class="mt-4 flex w-full lg:w-auto flex-col items-center gap-4 lg:mt-0 lg:flex-row">
 					<div
-						class="rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 font-medium text-primary"
+						class="w-full rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-center font-medium text-primary lg:w-48"
 					>
 						{showHistoricalLogs ? oldLogs.length : logs.length} entries
 					</div>
 
 					{#if showHistoricalLogs}
 						<button
-							class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+							class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:w-48"
 							on:click={switchToLiveLogs}
 						>
 							Return to Live Logs
 						</button>
 					{:else}
 						<button
-							class="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+							class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:w-48"
 							on:click={fetchHistoricalLogs}
 							disabled={loadingHistoricalLogs}
 						>
@@ -267,7 +269,7 @@
 					{/if}
 
 					<button
-						class="rounded-lg bg-secondary px-4 py-2 font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
+						class="w-full rounded-lg bg-secondary px-4 py-2 font-medium text-secondary-foreground transition-colors hover:bg-secondary/90 lg:w-48"
 						on:click={uploadLogs}
 					>
 						Upload Logs
