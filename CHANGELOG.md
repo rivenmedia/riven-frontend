@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.21.0](https://github.com/rivenmedia/riven-frontend/compare/v0.20.0...v0.21.0) (2025-08-15)
+
+
+### Features
+
+* add PWA ([437fd52](https://github.com/rivenmedia/riven-frontend/commit/437fd527d87d82a53a2e2365d64081e93e5fa82c))
+* implement breadcrumb navigation for media pages ([#212](https://github.com/rivenmedia/riven-frontend/issues/212)) ([993c03b](https://github.com/rivenmedia/riven-frontend/commit/993c03b06eff93e35cfa589193c126b7c1e08c9a))
+* lots of bug fixes and QoL improvements ([b5e2c5c](https://github.com/rivenmedia/riven-frontend/commit/b5e2c5c8d22a6802fc460a10ea7abde55fb4fdda))
+* use parse endpoint in manual scraping ([4eb17ff](https://github.com/rivenmedia/riven-frontend/commit/4eb17fff4beac3aea98719b0dd0505731e3e343d))
+
+
+### Bug Fixes
+
+* docker build ([ae687c1](https://github.com/rivenmedia/riven-frontend/commit/ae687c1615fff905ec96fb1dd7f7304503774a24))
+* multiple settings not being read and set correctly ([#211](https://github.com/rivenmedia/riven-frontend/issues/211)) ([c5276d2](https://github.com/rivenmedia/riven-frontend/commit/c5276d2a0cb0a7f9be230c57ffb3f36a14d198a1))
+* ranking settings hevc field number coercion ([#210](https://github.com/rivenmedia/riven-frontend/issues/210)) ([677e870](https://github.com/rivenmedia/riven-frontend/commit/677e8703a9e06b7e28973da988f459956374e050))
+
 ## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
 
 
