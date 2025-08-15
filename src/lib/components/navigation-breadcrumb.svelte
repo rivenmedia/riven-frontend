@@ -2,20 +2,7 @@
 	import { ChevronRight, Library } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { cn } from '$lib/utils';
-
-	export interface BreadcrumbItem {
-		label: string;
-		href: string;
-		isActive?: boolean;
-		dropdown?: DropdownItem[];
-	}
-
-	export interface DropdownItem {
-		label: string;
-		href: string;
-		isActive?: boolean;
-		badge?: string;
-	}
+	import type { BreadcrumbItem, DropdownItem } from '$lib/types';
 
 	export let items: BreadcrumbItem[] = [];
 	export let className: string = '';
@@ -39,12 +26,14 @@
 					<span
 						class={cn(
 							'transition-colors',
-							item.isActive ? 'text-zinc-100 font-medium' : 'hover:text-zinc-100'
+							item.isActive ? 'font-medium text-zinc-100' : 'hover:text-zinc-100'
 						)}
 					>
 						{item.label}
 					</span>
-					<ChevronRight class="h-3 w-3 rotate-90 transition-transform group-data-[state=open]:rotate-[270deg]" />
+					<ChevronRight
+						class="h-3 w-3 rotate-90 transition-transform group-data-[state=open]:rotate-[270deg]"
+					/>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="start" class="max-h-[400px] overflow-y-auto">
 					{#each item.dropdown as dropdownItem}
@@ -70,7 +59,7 @@
 				href={item.href}
 				class={cn(
 					'flex items-center gap-1 transition-colors',
-					item.isActive ? 'text-zinc-100 font-medium' : 'hover:text-zinc-100'
+					item.isActive ? 'font-medium text-zinc-100' : 'hover:text-zinc-100'
 				)}
 			>
 				{#if index === 0}
@@ -80,4 +69,4 @@
 			</a>
 		{/if}
 	{/each}
-</nav> 
+</nav>

@@ -120,11 +120,11 @@
 	function getSymlinkCount(episodes: any[]): number {
 		return episodes.filter((x: any) => x.symlinked).length;
 	}
-	
+
 	function areAllEpisodesSymlinked(episodes: any[]): boolean {
 		return episodes.every((x: any) => x.symlinked);
 	}
-	
+
 	function findEpisodeByNumber(episodes: any[], episodeNumber: number): any {
 		return episodes.find((x: any) => x.number == episodeNumber);
 	}
@@ -154,8 +154,10 @@
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
 		<div class="mx-auto flex w-full max-w-7xl flex-col">
-			<div class="mb-6">
-				<NavigationBreadcrumb items={breadcrumbItems} />
+			<div class="relative mb-6">
+				<div class="scrollbar-none overflow-x-auto pb-1">
+					<NavigationBreadcrumb items={breadcrumbItems} />
+				</div>
 			</div>
 			<div class="flex w-full flex-col items-center md:flex-row md:items-start">
 				<div class="w-[180px] flex-shrink-0 overflow-hidden md:w-[25%]">
@@ -193,10 +195,10 @@
 					<div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
 						{#if !data.riven}
 							<ItemRequest data={data.details} type={data.mediaType} />
-							<!-- <MediaFileSelector
-								mediaId={data.details.external_ids.imdb_id}
+							<MediaFileSelector
+								mediaId={data.externalIDs.imdb_id}
 								mediaType={'tv'}
-							/> -->
+							/>
 						{/if}
 						{#if data.riven}
 							<Sheet.Root>
@@ -439,7 +441,10 @@
 
 					<div class="relative flex w-full cursor-pointer flex-wrap">
 						{#each data.details.episodes as episode}
-							{@const rivenEpisode = findEpisodeByNumber(data.riven?.episodes || [], episode.episode_number)}
+							{@const rivenEpisode = findEpisodeByNumber(
+								data.riven?.episodes || [],
+								episode.episode_number
+							)}
 							<a
 								href="/tv/{data.mediaID}/{data.seasonNumber}/{episode.episode_number}"
 								class="group relative aspect-[2/1] h-fit w-full p-2 sm:w-1/2 xl:w-1/3"

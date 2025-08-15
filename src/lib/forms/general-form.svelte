@@ -138,6 +138,7 @@
 			isForGroup={true}
 		/>
 		<CheckboxField {form} name="alldebrid_enabled" label="AllDebrid" {formData} isForGroup={true} />
+		<CheckboxField {form} name="torbox_enabled" label="TorBox" {formData} isForGroup={true} />
 	</GroupCheckboxField>
 
 	{#if $formData.realdebrid_enabled}
@@ -158,6 +159,18 @@
 				{form}
 				name="alldebrid_api_key"
 				label="AllDebrid API Key"
+				{formData}
+				isProtected={true}
+			/>
+		</div>
+	{/if}
+
+	{#if $formData.torbox_enabled}
+		<div transition:slide>
+			<TextField
+				{form}
+				name="torbox_api_key"
+				label="TorBox API Key"
 				{formData}
 				isProtected={true}
 			/>
@@ -196,10 +209,6 @@
 	<CheckboxField {form} name="notifications_enabled" label="Notifications" {formData} />
 
 	{#if $formData.notifications_enabled}
-		<div transition:slide>
-			<TextField {form} name="notifications_title" {formData} />
-		</div>
-
 		<div transition:slide>
 			<ArrayField {form} name="notifications_on_item_type" {formData}>
 				{#each $formData.notifications_on_item_type as _, i}

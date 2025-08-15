@@ -3,7 +3,7 @@
 	import { Star } from 'lucide-svelte';
 	import ItemRequest from '$lib/components/item-request.svelte';
 	import Header from '$lib/components/header.svelte';
-	import { writable } from 'svelte/store';
+	import { writable, derived } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -15,25 +15,47 @@
 		TimeWindow,
 		TMDB_LANGUAGE
 	} from '$lib/tmdb';
+	import { mediaListStore } from '$lib/stores/mediaListStores';
+	import { browser } from '$app/environment';
 
 	$: type = $page.params.type;
 	$: listType = $page.params.list;
 
-	const items = writable<any[]>([]);
+	let savedScrollPosition = 0;
 	const hoveredItem = writable(null);
-	let totalItems = 0;
-
-	let currentPage = 0;
 	let isLoading = false;
 	let hasMoreItems = true;
 
-	const existingIds = new Set();
+	$: {
+		if (type && listType) {
+			mediaListStore.initList(type, listType);
+		}
+	}
+
+	const currentList = derived([mediaListStore, page], ([$store, $page]) => {
+		const key = `${$page.params.type}-${$page.params.list}`;
+		return $store[key] || { items: [], currentPage: 0, totalItems: 0, existingIds: new Set() };
+	});
+
+	if (browser) {
+		window.addEventListener('beforeunload', () => {
+			savedScrollPosition = window.scrollY;
+		});
+	}
+
+	const handleMouseLeave = (e: MouseEvent) => {
+		const currentTarget = e.currentTarget as HTMLElement;
+		const relatedTarget = e.relatedTarget as HTMLElement;
+		if (currentTarget.contains(relatedTarget)) {
+			$hoveredItem = null;
+		}
+	};
 
 	async function loadMoreItems() {
 		if (isLoading || !hasMoreItems) return;
 
+		const nextPage = $currentList.currentPage + 1;
 		isLoading = true;
-		const nextPage = currentPage + 1;
 		console.info('Loading more items:', nextPage);
 
 		try {
@@ -65,30 +87,13 @@
 			}
 
 			if (newData && newData.results && newData.results.length > 0) {
-				if (currentPage === 0) {
-					totalItems = newData.total_results;
-				}
+				mediaListStore.addItems(type, listType, newData.results, newData.total_results, nextPage);
 
-				const uniqueNewItems: any[] = [];
-				const duplicates = [];
-
-				for (const item of newData.results) {
-					if (!existingIds.has(item.id)) {
-						uniqueNewItems.push(item);
-						existingIds.add(item.id);
-					} else {
-						duplicates.push(item);
-					}
-				}
-
-				items.update((existingItems) => [...existingItems, ...uniqueNewItems]);
-				currentPage = nextPage;
-
-				if (currentPage * 20 >= totalItems) {
+				if (nextPage * 20 >= newData.total_results) {
 					hasMoreItems = false;
 				}
 
-				if (uniqueNewItems.length === 0 && hasMoreItems) {
+				if (newData.results.length > 0 && $currentList.items.length === 0 && hasMoreItems) {
 					setTimeout(loadMoreItems, 100);
 				}
 			} else {
@@ -103,7 +108,16 @@
 
 	let sentinelElement: HTMLElement;
 	onMount(() => {
-		loadMoreItems();
+		if ($currentList.items.length === 0) {
+			loadMoreItems();
+		} else {
+			setTimeout(() => {
+				if (browser && savedScrollPosition > 0) {
+					window.scrollTo(0, savedScrollPosition);
+					savedScrollPosition = 0;
+				}
+			}, 0);
+		}
 
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -136,7 +150,7 @@
 
 		setTimeout(() => {
 			if (
-				$items.length === 0 ||
+				$currentList.items.length === 0 ||
 				(sentinelElement && sentinelElement.getBoundingClientRect().top <= window.innerHeight)
 			) {
 				loadMoreItems();
@@ -166,13 +180,13 @@
 	<div
 		class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
 	>
-		{#each $items as item (item.id)}
+		{#each $currentList.items as item (item.id)}
 			<div
 				class="group relative mb-2 flex flex-shrink-0 flex-col gap-2 rounded-lg p-2"
 				role="button"
 				tabindex="0"
 				on:mouseenter={() => ($hoveredItem = item.id)}
-				on:mouseleave={() => ($hoveredItem = null)}
+				on:mouseleave={handleMouseLeave}
 				on:focus={() => ($hoveredItem = item.id)}
 				on:blur={() => ($hoveredItem = null)}
 				on:keydown={(e) => {
@@ -200,6 +214,11 @@
 					</div>
 					<div
 						class="absolute inset-0 hidden flex-col justify-end from-zinc-900/70 p-2 group-hover:flex group-hover:bg-gradient-to-t"
+						on:mousedown={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+						}}
+						role="presentation"
 					>
 						{#if $hoveredItem === item.id}
 							<ItemRequest data={item} {type} />
@@ -219,7 +238,7 @@
 		</div>
 	{/if}
 
-	{#if !hasMoreItems && !isLoading && $items.length > 0}
+	{#if !hasMoreItems && !isLoading && $currentList.items.length > 0}
 		<div class="mt-6 text-center text-zinc-400">No more items to load</div>
 	{/if}
 </div>

@@ -39,12 +39,13 @@ export const generalSettingsSchema = z.object({
 	realdebrid_api_key: z.string().optional().default(''),
 	alldebrid_enabled: z.boolean().default(false),
 	alldebrid_api_key: z.string().optional().default(''),
+	torbox_enabled: z.boolean().default(false),
+	torbox_api_key: z.string().optional().default(''),
 	database_host: z
 		.string()
 		.optional()
 		.default('postgresql+psycopg2://postgres:postgres@riven-db:5432/riven'),
 	notifications_enabled: z.boolean().default(false),
-	notifications_title: z.string().optional().default('Riven completed something'),
 	notifications_on_item_type: z.string().array().optional().default([]),
 	notifications_service_urls: z.string().array().optional().default([]),
 	subliminal_enabled: z.boolean().default(false),
@@ -84,9 +85,10 @@ export function generalSettingsToPass(data: any) {
 		realdebrid_api_key: data.downloaders.real_debrid?.api_key,
 		alldebrid_enabled: data.downloaders.all_debrid.enabled,
 		alldebrid_api_key: data.downloaders.all_debrid.api_key,
+		torbox_enabled: data.downloaders.torbox.enabled,
+		torbox_api_key: data.downloaders.torbox.api_key,
 		database_host: data.database.host,
 		notifications_enabled: data.notifications.enabled,
-		notifications_title: data.notifications.title,
 		notifications_on_item_type: data.notifications.on_item_type,
 		notifications_service_urls: data.notifications.service_urls,
 		subliminal_enabled: data.post_processing.subliminal.enabled,
@@ -159,6 +161,10 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 				all_debrid: {
 					enabled: form.data.alldebrid_enabled,
 					api_key: form.data.alldebrid_api_key
+				},
+				torbox: {
+					enabled: form.data.torbox_enabled,
+					api_key: form.data.torbox_api_key
 				}
 			}
 		},
@@ -178,7 +184,6 @@ export function generalSettingsToSet(form: SuperValidated<Infer<GeneralSettingsS
 			key: 'notifications',
 			value: {
 				enabled: form.data.notifications_enabled,
-				title: form.data.notifications_title,
 				on_item_type: form.data.notifications_on_item_type,
 				service_urls: form.data.notifications_service_urls
 			}
@@ -276,12 +281,16 @@ export const scrapersSettingsSchema = z.object({
 	after_2: z.coerce.number().gte(0).int().default(0.5),
 	after_5: z.coerce.number().gte(0).int().default(2),
 	after_10: z.coerce.number().gte(0).int().default(24),
+	parse_debug: z.boolean().default(false),
 	enable_aliases: z.boolean().default(false),
 	bucket_limit: z.coerce.number().gte(0).lte(20).int().optional().default(5),
+	max_failed_attempts: z.coerce.number().gte(0).int().optional().default(0),
+	dubbed_anime_only: z.boolean().default(false),
 	torrentio_enabled: z.boolean().default(false),
 	torrentio_url: z.string().optional().default('https://torrentio.strem.fun'),
 	torrentio_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	torrentio_ratelimit: z.boolean().default(true),
+	torrentio_proxy_url: z.string().optional().default(''),
 	torrentio_filter: z
 		.string()
 		.optional()
@@ -323,7 +332,6 @@ export const scrapersSettingsSchema = z.object({
 	zilean_ratelimit: z.boolean().default(true),
 	comet_enabled: z.boolean().default(false),
 	comet_url: z.string().optional().default('http://localhost:8000'),
-	comet_indexers: z.array(z.string()).optional().default([]),
 	comet_timeout: z.coerce.number().gte(0).int().optional().default(30),
 	comet_ratelimit: z.boolean().default(true)
 });
@@ -335,13 +343,17 @@ export function scrapersSettingsToPass(data: any) {
 		after_2: data.scraping.after_2,
 		after_5: data.scraping.after_5,
 		after_10: data.scraping.after_10,
+		parse_debug: data.scraping.parse_debug,
 		enable_aliases: data.scraping.enable_aliases,
 		bucket_limit: data.scraping.bucket_limit,
+		max_failed_attempts: data.scraping.max_failed_attempts,
+		dubbed_anime_only: data.scraping.dubbed_anime_only,
 		torrentio_url: data.scraping.torrentio.url,
 		torrentio_enabled: data.scraping.torrentio.enabled,
 		torrentio_filter: data.scraping.torrentio.filter,
 		torrentio_timeout: data.scraping.torrentio.timeout,
 		torrentio_ratelimit: data.scraping.torrentio.ratelimit,
+		torrentio_proxy_url: data.scraping.torrentio.proxy_url,
 		knightcrawler_url: data.scraping.knightcrawler.url,
 		knightcrawler_enabled: data.scraping.knightcrawler.enabled,
 		knightcrawler_filter: data.scraping.knightcrawler.filter,
@@ -376,7 +388,6 @@ export function scrapersSettingsToPass(data: any) {
 		zilean_ratelimit: data.scraping.zilean.ratelimit,
 		comet_enabled: data.scraping.comet.enabled,
 		comet_url: data.scraping.comet.url,
-		comet_indexers: data.scraping.comet.indexers,
 		comet_timeout: data.scraping.comet.timeout,
 		comet_ratelimit: data.scraping.comet.ratelimit
 	};
@@ -390,14 +401,18 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				after_2: form.data.after_2,
 				after_5: form.data.after_5,
 				after_10: form.data.after_10,
+				parse_debug: form.data.parse_debug,
 				enable_aliases: form.data.enable_aliases,
 				bucket_limit: form.data.bucket_limit,
+				max_failed_attempts: form.data.max_failed_attempts,
+				dubbed_anime_only: form.data.dubbed_anime_only,
 				torrentio: {
 					enabled: form.data.torrentio_enabled,
 					url: form.data.torrentio_url,
 					filter: form.data.torrentio_filter,
 					timeout: form.data.torrentio_timeout,
-					ratelimit: form.data.torrentio_ratelimit
+					ratelimit: form.data.torrentio_ratelimit,
+					proxy_url: form.data.torrentio_proxy_url
 				},
 				knightcrawler: {
 					enabled: form.data.knightcrawler_enabled,
@@ -409,6 +424,7 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				orionoid: {
 					enabled: form.data.orionoid_enabled,
 					api_key: form.data.orionoid_api_key,
+					cached_results_only: form.data.orionoid_cached_results_only,
 					parameters: {
 						video3d: form.data.orionoid_parameters_video3d,
 						videoquality: form.data.orionoid_parameters_videoquality,
@@ -447,7 +463,6 @@ export function scrapersSettingsToSet(form: SuperValidated<Infer<ScrapersSetting
 				comet: {
 					enabled: form.data.comet_enabled,
 					url: form.data.comet_url,
-					indexers: form.data.comet_indexers,
 					timeout: form.data.comet_timeout,
 					ratelimit: form.data.comet_ratelimit
 				}
@@ -493,7 +508,13 @@ export const contentSettingsSchema = z.object({
 	trakt_most_watched_period: z
 		.enum(['daily', 'weekly', 'monthly', 'yearly', 'all'])
 		.optional()
-		.default('weekly')
+		.default('weekly'),
+	trakt_proxy_url: z.string().optional().default(''),
+	trakt_oauth_client_id: z.string().optional().default(''),
+	trakt_oauth_client_secret: z.string().optional().default(''),
+	trakt_oauth_redirect_uri: z.string().optional().default(''),
+	trakt_oauth_access_token: z.string().optional().default(''),
+	trakt_oauth_refresh_token: z.string().optional().default('')
 });
 export type ContentSettingsSchema = typeof contentSettingsSchema;
 
@@ -529,7 +550,13 @@ export function contentSettingsToPass(data: any) {
 		trakt_popular_count: data.content.trakt?.popular_count,
 		trakt_fetch_most_watched: data.content.trakt.fetch_most_watched,
 		trakt_most_watched_count: data.content.trakt.most_watched_count,
-		trakt_most_watched_period: data.content.trakt.most_watched_period
+		trakt_most_watched_period: data.content.trakt.most_watched_period,
+		trakt_proxy_url: data.content.trakt?.proxy_url,
+		trakt_oauth_client_id: data.content.trakt?.oauth?.oauth_client_id,
+		trakt_oauth_client_secret: data.content.trakt?.oauth?.oauth_client_secret,
+		trakt_oauth_redirect_uri: data.content.trakt?.oauth?.oauth_redirect_uri,
+		trakt_oauth_access_token: data.content.trakt?.oauth?.access_token,
+		trakt_oauth_refresh_token: data.content.trakt?.oauth?.refresh_token
 	};
 }
 
@@ -576,7 +603,15 @@ export function contentSettingsToSet(form: SuperValidated<Infer<ContentSettingsS
 					popular_count: form.data.trakt_popular_count,
 					fetch_most_watched: form.data.trakt_fetch_most_watched,
 					most_watched_count: form.data.trakt_most_watched_count,
-					most_watched_period: form.data.trakt_most_watched_period
+					most_watched_period: form.data.trakt_most_watched_period,
+					proxy_url: form.data.trakt_proxy_url,
+					oauth: {
+						oauth_client_id: form.data.trakt_oauth_client_id,
+						oauth_client_secret: form.data.trakt_oauth_client_secret,
+						oauth_redirect_uri: form.data.trakt_oauth_redirect_uri,
+						access_token: form.data.trakt_oauth_access_token,
+						refresh_token: form.data.trakt_oauth_refresh_token
+					}
 				}
 			}
 		}
@@ -603,6 +638,8 @@ export const rankingSettingsSchema = z.object({
 	remove_ranks_under: z.coerce.number().default(-10000),
 	remove_unknown_languages: z.boolean().default(false),
 	allow_english_in_languages: z.boolean().default(false),
+	enable_fetch_speed_mode: z.boolean().default(false),
+	remove_adult_content: z.boolean().default(false),
 	languages_required: z.array(z.string()).default([]),
 	languages_exclude: z.array(z.string()).default([]),
 	languages_preferred: z.array(z.string()).default([]),
@@ -854,6 +891,8 @@ export function rankingSettingsToPass(data: RankingData) {
 		remove_ranks_under: data.ranking.options.remove_ranks_under,
 		remove_unknown_languages: data.ranking.options.remove_unknown_languages,
 		allow_english_in_languages: data.ranking.options.allow_english_in_languages,
+		enable_fetch_speed_mode: data.ranking.options.enable_fetch_speed_mode,
+		remove_adult_content: data.ranking.options.remove_adult_content,
 		languages_required: data.ranking.languages.required,
 		languages_exclude: data.ranking.languages.exclude,
 		languages_preferred: data.ranking.languages.preferred,
@@ -980,7 +1019,9 @@ export function rankingSettingsToSet(form: SuperValidated<Infer<RankingSettingsS
 					remove_all_trash: form.data.remove_all_trash,
 					remove_ranks_under: form.data.remove_ranks_under,
 					remove_unknown_languages: form.data.remove_unknown_languages,
-					allow_english_in_languages: form.data.allow_english_in_languages
+					allow_english_in_languages: form.data.allow_english_in_languages,
+					enable_fetch_speed_mode: form.data.enable_fetch_speed_mode,
+					remove_adult_content: form.data.remove_adult_content
 				},
 				languages: {
 					required: form.data.languages_required,

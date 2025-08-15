@@ -5,6 +5,7 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import * as Form from '$lib/components/ui/form';
+	import * as Alert from '$lib/components/ui/alert';
 	import { rankingSettingsSchema, type RankingSettingsSchema } from '$lib/forms/helpers';
 	import { toast } from 'svelte-sonner';
 	import TextField from './components/text-field.svelte';
@@ -127,7 +128,21 @@
 
 <form method="POST" action={actionUrl} use:enhance class="my-8 flex flex-col gap-4">
 	<div class="space-y-4">
-		<h3 class="text-lg font-medium">General Settings</h3>
+		<div class="flex flex-col">
+			<h3 class="text-lg font-medium">General Settings</h3>
+
+			<p class="text-sm text-muted-foreground">
+				Checkout the <a
+					href="https://dreulavelle.github.io/rank-torrent-name/"
+					target="_blank"
+					class="text-blue-500 hover:underline">Rank Torrent Name</a
+				> documentation for more information on how to configure the ranking settings.
+			</p>
+			<p class="text-sm text-muted-foreground">
+				It is highly recommended that you configure the ranking settings before using Riven to ensure
+				the best experience.
+			</p>
+		</div>
 		<TextField {form} name="profile" {formData} />
 	</div>
 
@@ -260,6 +275,8 @@
 		<NumberField {form} name="remove_ranks_under" {formData} stepValue={1} />
 		<CheckboxField {form} name="remove_unknown_languages" {formData} />
 		<CheckboxField {form} name="allow_english_in_languages" {formData} />
+		<CheckboxField {form} name="enable_fetch_speed_mode" {formData} />
+		<CheckboxField {form} name="remove_adult_content" {formData} />
 	</div>
 
 	<Separator />
@@ -267,123 +284,20 @@
 	<div class="space-y-4">
 		<h3 class="text-lg font-medium">Languages</h3>
 		<LanguageField {form} {formData} name="languages_required" />
-
 		<LanguageField {form} {formData} name="languages_exclude" />
-
 		<LanguageField {form} {formData} name="languages_preferred" />
-		<!-- <ArrayField {form} name="languages_required" {formData}>
-			{#each $formData.languages_required as _, i}
-				<Form.ElementField {form} name="languages_required[{i}]">
-					<Form.Control let:attrs>
-						<div class="flex items-center gap-2">
-							<Input
-								type="text"
-								spellcheck="false"
-								autocomplete="false"
-								{...attrs}
-								bind:value={$formData.languages_required[i]}
-							/>
-							<Form.Button
-								type="button"
-								size="sm"
-								variant="destructive"
-								on:click={() => removeField('languages_required', i)}
-							>
-								<Trash2 class="h-4 w-4" />
-							</Form.Button>
-						</div>
-					</Form.Control>
-				</Form.ElementField>
-			{/each}
-			<div class="flex w-full items-center justify-between gap-2">
-				<p class="text-sm text-muted-foreground">Add Required Languages</p>
-				<Form.Button
-					type="button"
-					size="sm"
-					variant="outline"
-					on:click={() => addField('languages_required')}
-				>
-					<Plus class="h-4 w-4" />
-				</Form.Button>
-			</div>
-		</ArrayField>
-
-		<ArrayField {form} name="languages_exclude" {formData}>
-			{#each $formData.languages_exclude as _, i}
-				<Form.ElementField {form} name="languages_exclude[{i}]">
-					<Form.Control let:attrs>
-						<div class="flex items-center gap-2">
-							<Input
-								type="text"
-								spellcheck="false"
-								autocomplete="false"
-								{...attrs}
-								bind:value={$formData.languages_exclude[i]}
-							/>
-							<Form.Button
-								type="button"
-								size="sm"
-								variant="destructive"
-								on:click={() => removeField('languages_exclude', i)}
-							>
-								<Trash2 class="h-4 w-4" />
-							</Form.Button>
-						</div>
-					</Form.Control>
-				</Form.ElementField>
-			{/each}
-			<div class="flex w-full items-center justify-between gap-2">
-				<p class="text-sm text-muted-foreground">Add Excluded Languages</p>
-				<Form.Button
-					type="button"
-					size="sm"
-					variant="outline"
-					on:click={() => addField('languages_exclude')}
-				>
-					<Plus class="h-4 w-4" />
-				</Form.Button>
-			</div>
-		</ArrayField>
-
-		<ArrayField {form} name="languages_preferred" {formData}>
-			{#each $formData.languages_preferred as _, i}
-				<Form.ElementField {form} name="languages_preferred[{i}]">
-					<Form.Control let:attrs>
-						<div class="flex items-center gap-2">
-							<Input
-								type="text"
-								spellcheck="false"
-								autocomplete="false"
-								{...attrs}
-								bind:value={$formData.languages_preferred[i]}
-							/>
-							<Form.Button
-								type="button"
-								size="sm"
-								variant="destructive"
-								on:click={() => removeField('languages_preferred', i)}
-							>
-								<Trash2 class="h-4 w-4" />
-							</Form.Button>
-						</div>
-					</Form.Control>
-				</Form.ElementField>
-			{/each}
-			<div class="flex w-full items-center justify-between gap-2">
-				<p class="text-sm text-muted-foreground">Add Preferred Languages</p>
-				<Form.Button
-					type="button"
-					size="sm"
-					variant="outline"
-					on:click={() => addField('languages_preferred')}
-				>
-					<Plus class="h-4 w-4" />
-				</Form.Button>
-			</div>
-		</ArrayField> -->
 	</div>
 
 	<Separator />
+
+	<Alert.Root variant="default" class="mb-4">
+		<Alert.Title>Fetch and Custom rank</Alert.Title>
+		<Alert.Description>
+			Quality profile (default/best/custom) only affect the "Use Custom Rank" and not "Fetch". For
+			example, if remux is unchecked (first checkbox) below, even if the profile is best or you are
+			using some high custom rank, it will be ignored when we parse and apply ranks.
+		</Alert.Description>
+	</Alert.Root>
 
 	<CustomRankSection
 		{form}

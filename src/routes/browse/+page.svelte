@@ -10,8 +10,10 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Field, Control, Label, FieldErrors } from 'formsnap';
 	import { Button } from '$lib/components/ui/button';
-	import { SortAsc, SortDesc } from 'lucide-svelte';
+	import { SortAsc, SortDesc, Search } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import { Input } from '$lib/components/ui/input';
+	import { browser } from '$app/environment';
 
 	import { states, types, sortOptions } from '$lib/schema/browse';
 	import type { RivenItem } from '$lib/types';
@@ -34,25 +36,34 @@
 
 	const { form: formData, enhance } = form;
 
-	// Initialize form data from URL params
 	$: {
 		const params = $page.url.searchParams;
-		$formData.state =
-			params
+		if (params.size === 0) {
+			$formData.state = ['All'];
+			$formData.type = ['movie', 'show'];
+			$formData.sort = 'date_desc';
+			$formData.search = '';
+			pageNumber = 1;
+
+			if ($page.url.pathname === '/browse') {
+				setTimeout(() => fetchItems(), 0);
+			}
+		} else {
+			$formData.state = params
 				.get('state')
 				?.split(',')
 				.filter((state) => state in states)
-				.map((state) => state as keyof typeof states) || $formData.state;
-		$formData.type =
-			params
+				.map((state) => state as keyof typeof states) || ['All'];
+			$formData.type = params
 				.get('type')
 				?.split(',')
 				.filter((type) => type in types)
-				.map((type) => type as keyof typeof types) || $formData.type;
-		$formData.sort = (params.get('sort') as keyof typeof sortOptions) || $formData.sort;
+				.map((type) => type as keyof typeof types) || ['movie', 'show'];
+			$formData.sort = (params.get('sort') as keyof typeof sortOptions) || 'date_desc';
+			$formData.search = params.get('search') || '';
+		}
 	}
 
-	// Update selected values based on form data
 	$: selectedState = $formData.state.map((state) => ({
 		label: states[state],
 		value: state
@@ -69,11 +80,19 @@
 	};
 
 	async function fetchItems() {
+		if (!browser) return;
 		const url = new URL(window.location.href);
 		url.searchParams.set('page', pageNumber.toString());
 		url.searchParams.set('state', $formData.state.join(','));
 		url.searchParams.set('type', $formData.type.join(','));
 		url.searchParams.set('sort', $formData.sort);
+
+		if ($formData.search) {
+			url.searchParams.set('search', $formData.search);
+		} else {
+			url.searchParams.delete('search');
+		}
+
 		goto(url.toString(), { replaceState: true });
 
 		let { data } = await ItemsService.getItems({
@@ -82,7 +101,8 @@
 				sort: $formData.sort,
 				limit,
 				type: $formData.type.join(','),
-				states: $formData.state.join(',')
+				states: $formData.state.join(','),
+				search: $formData.search || undefined
 			}
 		});
 
@@ -140,6 +160,25 @@
 			toast.success(data.message);
 		}
 	}
+
+	function handleSearchInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		$formData.search = target.value;
+	}
+
+	function handleSearch(event: Event) {
+		event.preventDefault();
+		handleFilterChange();
+	}
+
+	function getCount(type: 'Movie' | 'Show' | 'Season' | 'Episode') {
+		return items.filter((item) => item.type === type).length;
+	}
+
+	$: movieCount = items.filter((item) => item.type === 'Movie').length;
+	$: showCount = items.filter((item) => item.type === 'Show').length;
+	$: seasonCount = items.filter((item) => item.type === 'Season').length;
+	$: episodeCount = items.filter((item) => item.type === 'Episode').length;
 </script>
 
 <svelte:head>
@@ -156,85 +195,91 @@
 			on:submit|preventDefault={handleFilterChange}
 			class="mb-6 flex flex-wrap items-center gap-4"
 		>
-			<Field {form} name="state">
-				<Control let:attrs>
-					<Label>State</Label>
-					<Select.Root
-						selected={selectedState}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.state = mapSelectedStates(s);
-								handleFilterChange();
-							}
-						}}
-						multiple
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Filter by state" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(states) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
+			<div class="flex items-center gap-2.5">
+				<Field {form} name="state">
+					<Control let:attrs>
+						<Label>State</Label>
+						<Select.Root
+							selected={selectedState}
+							onSelectedChange={(s) => {
+								if (s) {
+									$formData.state = mapSelectedStates(s);
+									handleFilterChange();
+								}
+							}}
+							multiple
+						>
+							<Select.Input name={attrs.name} />
+							<Select.Trigger {...attrs} class="w-[180px]">
+								<Select.Value placeholder="Filter by state" />
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(states) as [value, label]}
+									<Select.Item {value} {label} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</Control>
+					<FieldErrors />
+				</Field>
+			</div>
 
-			<Field {form} name="type">
-				<Control let:attrs>
-					<Label>Type</Label>
-					<Select.Root
-						selected={selectedType}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.type = mapSelectedTypes(s);
-								handleFilterChange();
-							}
-						}}
-						multiple
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Filter by type" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(types) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
+			<div class="flex items-center gap-2.5">
+				<Field {form} name="type">
+					<Control let:attrs>
+						<Label>Type</Label>
+						<Select.Root
+							selected={selectedType}
+							onSelectedChange={(s) => {
+								if (s) {
+									$formData.type = mapSelectedTypes(s);
+									handleFilterChange();
+								}
+							}}
+							multiple
+						>
+							<Select.Input name={attrs.name} />
+							<Select.Trigger {...attrs} class="w-[180px]">
+								<Select.Value placeholder="Filter by type" />
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(types) as [value, label]}
+									<Select.Item {value} {label} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</Control>
+					<FieldErrors />
+				</Field>
+			</div>
 
-			<Field {form} name="sort">
-				<Control let:attrs>
-					<Label>Sort</Label>
-					<Select.Root
-						selected={selectedSort}
-						onSelectedChange={(s) => {
-							if (s) {
-								$formData.sort = s.value;
-								handleFilterChange();
-							}
-						}}
-					>
-						<Select.Input name={attrs.name} />
-						<Select.Trigger {...attrs} class="w-[180px]">
-							<Select.Value placeholder="Sort by" />
-						</Select.Trigger>
-						<Select.Content>
-							{#each Object.entries(sortOptions) as [value, label]}
-								<Select.Item {value} {label} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</Control>
-				<FieldErrors />
-			</Field>
+			<div class="flex items-center gap-2.5">
+				<Field {form} name="sort">
+					<Control let:attrs>
+						<Label>Sort</Label>
+						<Select.Root
+							selected={selectedSort}
+							onSelectedChange={(s) => {
+								if (s) {
+									$formData.sort = s.value;
+									handleFilterChange();
+								}
+							}}
+						>
+							<Select.Input name={attrs.name} />
+							<Select.Trigger {...attrs} class="w-[180px]">
+								<Select.Value placeholder="Sort by" />
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(sortOptions) as [value, label]}
+									<Select.Item {value} {label} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</Control>
+					<FieldErrors />
+				</Field>
+			</div>
 
 			<Button variant="outline" size="icon" on:click={toggleSortOrder}>
 				{#if $formData.sort.includes('asc')}
@@ -244,6 +289,30 @@
 				{/if}
 			</Button>
 		</form>
+
+		<div class="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
+			<Field {form} name="search">
+				<Control let:attrs>
+					<Input
+						{...attrs}
+						type="text"
+						placeholder="Search titles..."
+						value={$formData.search}
+						on:input={handleSearchInput}
+						class="w-full"
+					/>
+				</Control>
+				<FieldErrors />
+			</Field>
+
+			<Button
+				on:click={handleSearch}
+				type="submit"
+				class="w-full md:max-w-24"
+				variant="default"
+				size="default">Search</Button
+			>
+		</div>
 
 		<div class="mb-8 mt-4 flex flex-wrap items-center justify-start gap-4">
 			<Button
@@ -270,6 +339,15 @@
 			>
 		</div>
 
+		<p class="mb-4 text-sm text-muted-foreground">
+			Showing {movieCount} movies, {showCount} shows, {seasonCount} seasons, and {episodeCount} episodes
+			{#if $formData.search}
+				matching "{$formData.search}"
+			{/if}
+			<br />
+			Total items: {$totalDataItems}.
+		</p>
+
 		<div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 			{#each items as item (item.id)}
 				<div
@@ -278,6 +356,14 @@
 					<MediaItem data={item} />
 				</div>
 			{/each}
+
+			{#if !items.length}
+				<div class="col-span-full text-center text-muted-foreground">
+					No items found matching the selected filters.
+					<br />
+					Select season and episode filter in type to see all items.
+				</div>
+			{/if}
 		</div>
 
 		<div class="my-8">

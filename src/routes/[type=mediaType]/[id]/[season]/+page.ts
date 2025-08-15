@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PageLoad } from './$types';
-import { getTVSeasonDetails, getTVDetails, TMDB_LANGUAGE } from '$lib/tmdb';
+import {
+	getTVSeasonDetails,
+	getTVDetails,
+	MediaType,
+	TMDB_LANGUAGE,
+	getExternalID
+} from '$lib/tmdb';
 import { error } from '@sveltejs/kit';
 import { ItemsService } from '$lib/client';
 
@@ -17,9 +23,12 @@ export const load = (async ({ fetch, params }) => {
 		return await getTVSeasonDetails(fetch, TMDB_LANGUAGE, null, tvID, seasonNumber);
 	}
 
-	// not using parent data since it will be fetched again with useless data
 	async function mediaDetails(tvID: string) {
 		return await getTVDetails(fetch, TMDB_LANGUAGE, null, tvID);
+	}
+
+	async function getExternalIDs(tvID: number): Promise<any> {
+		return await getExternalID(fetch, MediaType.TV, tvID);
 	}
 
 	async function getMediaItemDetails(tvID: string): Promise<any> {
@@ -35,7 +44,6 @@ export const load = (async ({ fetch, params }) => {
 			return Promise.resolve(null);
 		}
 		const anyData = data as any;
-		// Return both the current season and the full show data
 		return {
 			currentSeason: anyData.seasons.find((seasonItem: any) => seasonItem.number === season),
 			fullShow: anyData
@@ -51,6 +59,7 @@ export const load = (async ({ fetch, params }) => {
 		mediaID: id,
 		seasonNumber: season,
 		riven: rivenData?.currentSeason || null,
-		rivenShow: rivenData?.fullShow || null
+		rivenShow: rivenData?.fullShow || null,
+		externalIDs: await getExternalIDs(Number(id))
 	};
 }) satisfies PageLoad;

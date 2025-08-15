@@ -1,3 +1,4 @@
+import { searchContent } from '$lib/utils/search';
 import { z } from 'zod';
 
 export const schema = z.object({
@@ -20,7 +21,8 @@ export const schema = z.object({
 		)
 		.default(['All']),
 	type: z.array(z.enum(['movie', 'show'])).default(['movie', 'show']),
-	sort: z.enum(['date_desc', 'date_asc', 'title_asc', 'title_desc']).default('date_desc')
+	sort: z.enum(['date_desc', 'date_asc', 'title_asc', 'title_desc']).default('date_desc'),
+	search: z.string().optional()
 });
 
 export const states = {
@@ -40,7 +42,9 @@ export const states = {
 
 export const types = {
 	movie: 'Movies',
-	show: 'Shows'
+	show: 'Shows',
+	season: 'Season',
+	episode: 'Episode'
 };
 
 export const sortOptions = {

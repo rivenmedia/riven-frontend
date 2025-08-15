@@ -300,6 +300,13 @@
 		</div>
 	{/if}
 
+	<TextField
+		{form}
+		name="trakt_proxy_url"
+		{formData}
+		fieldDescription="This sets proxy url for Trakt indexer and content service both. Useful in case you are blocked by trakt"
+	/>
+
 	{#if $formData.trakt_enabled}
 		<div transition:slide>
 			<TextField {form} name="trakt_api_key" {formData} isProtected={true} />
@@ -480,6 +487,26 @@
 				<TextField {form} name="trakt_most_watched_period" {formData} />
 			</div>
 		{/if}
+
+		<div transition:slide>
+			<TextField {form} name="trakt_oauth_client_id" {formData} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="trakt_oauth_client_secret" {formData} isProtected={true} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="trakt_oauth_redirect_uri" {formData} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="trakt_oauth_access_token" {formData} isProtected={true} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="trakt_oauth_refresh_token" {formData} isProtected={true} />
+		</div>
 	{/if}
 
 	<Separator class="mt-4" />

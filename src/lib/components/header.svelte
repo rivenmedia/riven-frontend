@@ -19,7 +19,8 @@
 		{ name: 'Home', path: '/' },
 		{ name: 'Browse', path: '/browse' },
 		{ name: 'Summary', path: '/summary' },
-		{ name: 'Settings', path: '/settings' }
+		{ name: 'Settings', path: '/settings' },
+		{ name: 'Logs', path: '/logs' }
 	];
 
 	let showMenu: Writable<boolean> = getContext('showMenu');

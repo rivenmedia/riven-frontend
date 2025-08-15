@@ -1,4 +1,4 @@
-import type { BreadcrumbItem, DropdownItem } from '$lib/components/navigation-breadcrumb.svelte';
+import type { BreadcrumbItem, DropdownItem } from '$lib/types';
 import { statesName } from '$lib/constants';
 
 interface BreadcrumbOptions {
@@ -55,18 +55,20 @@ export function buildBreadcrumbs(options: BreadcrumbOptions): BreadcrumbItem[] {
 		// Add dropdown for other seasons if available
 		if (options.allSeasons && options.allSeasons.length > 1) {
 			seasonItem.dropdown = options.allSeasons
-				.filter(season => season.season_number !== 0) // Filter out specials
+				.filter((season) => season.season_number !== 0) // Filter out specials
 				.sort((a, b) => a.season_number - b.season_number) // Sort by season number
-				.map(season => {
+				.map((season) => {
 					// Handle different Riven data structures
 					let rivenSeason = null;
 					if (options.rivenData) {
 						if (options.rivenData.seasons) {
 							// Full show data structure
-							rivenSeason = options.rivenData.seasons.find((s: any) => s.number === season.season_number);
+							rivenSeason = options.rivenData.seasons.find(
+								(s: any) => s.number === season.season_number
+							);
 						}
 					}
-					
+
 					return {
 						label: `Season ${season.season_number}`,
 						href: `/tv/${options.mediaId}/${season.season_number}`,
@@ -97,19 +99,23 @@ export function buildBreadcrumbs(options: BreadcrumbOptions): BreadcrumbItem[] {
 					currentSeasonRivenData = options.rivenData;
 				} else if (options.rivenData.seasons) {
 					// We have show-level data, find the current season
-					currentSeasonRivenData = options.rivenData.seasons.find((s: any) => s.number === options.seasonNumber);
+					currentSeasonRivenData = options.rivenData.seasons.find(
+						(s: any) => s.number === options.seasonNumber
+					);
 				}
 			}
 
 			episodeItem.dropdown = options.allEpisodes
 				.sort((a, b) => a.episode_number - b.episode_number) // Sort by episode number
-				.map(episode => {
+				.map((episode) => {
 					// Find the riven episode data
 					let rivenEpisode = null;
 					if (currentSeasonRivenData && currentSeasonRivenData.episodes) {
-						rivenEpisode = currentSeasonRivenData.episodes.find((e: any) => e.number === episode.episode_number);
+						rivenEpisode = currentSeasonRivenData.episodes.find(
+							(e: any) => e.number === episode.episode_number
+						);
 					}
-					
+
 					return {
 						label: `E${episode.episode_number}: ${episode.name || `Episode ${episode.episode_number}`}`,
 						href: `/tv/${options.mediaId}/${options.seasonNumber}/${episode.episode_number}`,
@@ -123,4 +129,4 @@ export function buildBreadcrumbs(options: BreadcrumbOptions): BreadcrumbItem[] {
 	}
 
 	return items;
-} 
+}

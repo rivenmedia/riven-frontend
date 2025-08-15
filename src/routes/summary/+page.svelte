@@ -192,13 +192,65 @@
 				<Dialog.Description class="flex flex-col gap-2">
 					<p>
 						Riven has items, which are movies/shows/season/episode. These items go through different
-						states.
+						states. Starting from Indexed to Completed/Ongoing/Unreleased/Failed/Unknown.
 					</p>
 					<p>
-						States represent how the items are processed in the library. Each state represents a
-						different stage of the item in the library. Items start Requested and end up in
-						Completed state. Sometimes due to ongoing series, no streams or some error, they can end
-						up in Incomplete or Failed state. Rarely items end up in Unknown state.
+						Here in states, what you see is the last_state of the item. That means it has gone
+						through that stage and is now in the next stage. States are as follows:
+					</p>
+					<ul class="mt-2 list-decimal pl-4">
+						<li>
+							<strong>Unknown</strong>: Due to some unknown error, item is in an unknown state.
+							Needs manual intervention.
+						</li>
+						<li>
+							<strong>Requested</strong>: Item is requested to be added to the library.
+						</li>
+						<li>
+							<strong>Indexed</strong>: Item is indexed and ready for further processing.
+						</li>
+						<li>
+							<strong>Scraped</strong>: Files for the item have been scraped from the configured
+							scrapers and uses ranking settings to determine the best file.
+						</li>
+						<li>
+							<strong>Downloaded</strong>: Item has been downloaded to your downloaders.
+						</li>
+						<li>
+							<strong>Symlinked</strong>: Item has been symlinked to the library.
+						</li>
+						<li>
+							<strong>PartiallyCompleted</strong>: Item is partially completed, some parts are
+							missing.
+						</li>
+						<li>
+							<strong>Completed</strong>: Item is fully completed and available in the library.
+						</li>
+						<li>
+							<strong>Ongoing</strong>: Item is ongoing, like a show that is still airing.
+						</li>
+						<li>
+							<strong>Unreleased</strong>: Item is not yet released, like a movie that is not yet
+							out.
+						</li>
+						<li>
+							<strong>Failed</strong>: Item processing failed at some stage. Requires manual
+							intervention.
+						</li>
+						<li>
+							<strong>Paused</strong>: Item processing has been manually paused by the user. No
+							further processing will be done until resumed.
+						</li>
+					</ul>
+
+					<p>
+						The flow of the item is like this:
+
+						<strong>Requested</strong> → <strong>Indexed</strong> → <strong>Scraped</strong> →
+						<strong>Downloaded</strong> → <strong>Symlinked</strong> →
+						<strong>PartiallyCompleted (for shows)</strong> → <strong>Completed</strong> /
+						<strong>Ongoing</strong> / <strong>Unreleased</strong> / <strong>Failed</strong> /
+						<strong>Paused</strong> / <strong>Unknown</strong>
 					</p>
 				</Dialog.Description>
 			</Dialog.Header>

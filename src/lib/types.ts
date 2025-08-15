@@ -51,6 +51,15 @@ export interface RivenBaseItem {
 	folder: string;
 	symlink_path: string;
 	subtitles: Array<RivenSubtitle>;
+	parent_title: string | null;
+	season_number: number | null;
+	episode_number: number | null;
+	parent_ids: {
+		trakt_id: string | null;
+		tmdb_id: string | null;
+		imdb_id: string | null;
+		tvdb_id: number | null;
+	};
 }
 
 export interface RivenMovie extends RivenBaseItem {
@@ -109,4 +118,18 @@ export interface TMDBSearchResponse {
 	results: TMDBItem[];
 	total_pages: number;
 	total_results: number;
+}
+
+export interface BreadcrumbItem {
+	label: string;
+	href: string;
+	isActive?: boolean;
+	dropdown?: DropdownItem[];
+}
+
+export interface DropdownItem {
+	label: string;
+	href: string;
+	isActive?: boolean;
+	badge?: string;
 }

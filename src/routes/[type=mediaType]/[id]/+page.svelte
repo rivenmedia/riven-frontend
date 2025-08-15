@@ -15,7 +15,8 @@
 		CirclePower,
 		Clipboard,
 		CirclePause,
-		CirclePlay
+		CirclePlay,
+		FolderSync
 	} from 'lucide-svelte';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import { Button } from '$lib/components/ui/button';
@@ -138,6 +139,23 @@
 		}
 	}
 
+	async function reindexItem(id: string) {
+		const id_type = id.startsWith('tt') ? 'imdb_id' : 'item_id';
+
+		const response = await ItemsService.traktReindexer({
+			query: {
+				[id_type]: id
+			}
+		});
+
+		if (!response.error) {
+			toast.success('Media reindexed successfully');
+			invalidateAll();
+		} else {
+			toast.error('An error occurred while reindexing the media');
+		}
+	}
+
 	function getRivenSeason(season: number) {
 		if (!(data.riven && 'seasons' in data.riven)) return;
 		return data.riven.seasons.find((s) => s.number === season);
@@ -178,8 +196,10 @@
 	</div>
 	<div class="absolute z-[2] mt-32 flex h-full w-full flex-col items-center p-8 md:px-24 lg:px-32">
 		<div class="mx-auto flex w-full max-w-7xl flex-col">
-			<div class="mb-6">
-				<NavigationBreadcrumb items={breadcrumbItems} />
+			<div class="relative mb-6">
+				<div class="scrollbar-none overflow-x-auto pb-1">
+					<NavigationBreadcrumb items={breadcrumbItems} />
+				</div>
 			</div>
 			<div class="flex w-full flex-col items-center md:flex-row md:items-start">
 				<div class="w-[180px] flex-shrink-0 overflow-hidden md:w-[25%]">
@@ -427,6 +447,42 @@
 											</Tooltip.Trigger>
 											<Tooltip.Content>
 												<p>Removes the item and add it again to the queue</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
+
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<AlertDialog.Root>
+													<AlertDialog.Trigger asChild let:builder>
+														<Button
+															builders={[builder]}
+															class="flex w-full items-center gap-1"
+															variant="destructive"
+														>
+															<FolderSync class="size-4" />
+															<span>Reindex</span>
+														</Button>
+													</AlertDialog.Trigger>
+													<AlertDialog.Content>
+														<AlertDialog.Header>
+															<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+															<AlertDialog.Description>
+																This action will reindex the item
+															</AlertDialog.Description>
+														</AlertDialog.Header>
+														<AlertDialog.Footer>
+															<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+															<AlertDialog.Action
+																on:click={async () => {
+																	await reindexItem(data.riven.id);
+																}}>Continue</AlertDialog.Action
+															>
+														</AlertDialog.Footer>
+													</AlertDialog.Content>
+												</AlertDialog.Root>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p>Reindex the item</p>
 											</Tooltip.Content>
 										</Tooltip.Root>
 

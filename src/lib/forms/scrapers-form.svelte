@@ -73,6 +73,14 @@
 
 	<CheckboxField
 		{form}
+		name="parse_debug"
+		label="Parse Debug"
+		{formData}
+		fieldDescription="Enable debug for parsing results (useful for debugging scrapers)"
+	/>
+
+	<CheckboxField
+		{form}
 		name="enable_aliases"
 		label="Enable aliases"
 		{formData}
@@ -85,6 +93,22 @@
 		{formData}
 		stepValue={1}
 		fieldDescription="Limit the number of torrents that get taken per resolution bucket in each run"
+	/>
+
+	<CheckboxField
+		{form}
+		name="max_failed_attempts"
+		label="Max Failed Attempts"
+		{formData}
+		fieldDescription="Maximum number of failed attempts before giving up on a search"
+	/>
+
+	<CheckboxField
+		{form}
+		name="dubbed_anime_only"
+		label="Dubbed Anime Only"
+		{formData}
+		fieldDescription="Only search for dubbed anime (requires parse debug to be enabled)"
 	/>
 
 	<GroupCheckboxField fieldTitle="Scrapers" fieldDescription="Enable the scrapers you want to use">
@@ -131,6 +155,10 @@
 
 		<div transition:slide>
 			<CheckboxField {form} name="torrentio_ratelimit" {formData} />
+		</div>
+
+		<div transition:slide>
+			<TextField {form} name="torrentio_proxy_url" {formData} />
 		</div>
 	{/if}
 
@@ -301,53 +329,6 @@
 	{#if $formData.comet_enabled}
 		<div transition:slide>
 			<TextField {form} name="comet_url" {formData} />
-		</div>
-
-		<div transition:slide>
-			<ArrayField {form} name="comet_indexers" {formData}>
-				{#each $formData.comet_indexers as _, i}
-					<Form.ElementField {form} name="comet_indexers[{i}]">
-						<Form.Control let:attrs>
-							<div class="flex items-center gap-2">
-								<Input
-									type="text"
-									spellcheck="false"
-									autocomplete="false"
-									{...attrs}
-									bind:value={$formData.comet_indexers[i]}
-								/>
-
-								<div class="flex items-center gap-2">
-									<Form.Button
-										type="button"
-										size="sm"
-										variant="destructive"
-										on:click={() => {
-											removeField('comet_indexers', i);
-										}}
-									>
-										<Trash2 class="h-4 w-4" />
-									</Form.Button>
-								</div>
-							</div>
-						</Form.Control>
-					</Form.ElementField>
-				{/each}
-
-				<div class="flex w-full items-center justify-between gap-2">
-					<p class="text-sm text-muted-foreground">Add indexers</p>
-					<Form.Button
-						type="button"
-						size="sm"
-						variant="outline"
-						on:click={() => {
-							addField('comet_indexers');
-						}}
-					>
-						<Plus class="h-4 w-4" />
-					</Form.Button>
-				</div>
-			</ArrayField>
 		</div>
 
 		<div transition:slide>

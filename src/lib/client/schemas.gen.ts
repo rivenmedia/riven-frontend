@@ -22,7 +22,7 @@ export const AppModelSchema = {
         version: {
             type: 'string',
             title: 'Version',
-            default: '0.23.1'
+            default: '0.23.2'
         },
         api_key: {
             type: 'string',
