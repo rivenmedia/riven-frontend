@@ -10,7 +10,7 @@
 	<img
 		src={data.poster_path}
 		alt={data.title}
-		class="object-cover object-center transition-transform duration-300 select-none hover:scale-105"
+		class="h-full object-cover object-center transition-transform duration-300 select-none hover:scale-105"
 		loading="lazy"
 	/>
 </AspectRatio>
