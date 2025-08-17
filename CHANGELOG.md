@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.2](https://github.com/rivenmedia/riven-frontend/compare/v0.21.1...v0.21.2) (2025-08-17)
+
+
+### Bug Fixes
+
+* don't json parse oldLogs ([1a00ffa](https://github.com/rivenmedia/riven-frontend/commit/1a00ffa3355002beb245aac23718648fb4de04d5))
+
 ## [0.21.1](https://github.com/rivenmedia/riven-frontend/compare/v0.21.0...v0.21.1) (2025-08-15)
 
 
