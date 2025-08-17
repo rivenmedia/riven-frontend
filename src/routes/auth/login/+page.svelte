@@ -4,7 +4,7 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
-    import { type SuperValidated, type Infer, superForm, fileProxy } from "sveltekit-superforms";
+    import { type SuperValidated, type Infer, superForm } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
@@ -35,8 +35,6 @@
         enhance: registerEnhance,
         message: registerMessage
     } = registerForm;
-
-    // const image = fileProxy(registerFormData, 'image');
 
     $effect(() => {
         if ($loginMessage) {
@@ -146,20 +144,18 @@
                                     <Form.FieldErrors />
                                 </Form.Field>
 
-                                <!-- <Form.Field form={registerForm} name="image">
-									<Form.Control>
-										{#snippet children({ props })}
-											<Form.Label>Image</Form.Label>
-											<input
-												type="file"
-												name="image"
-												accept="image/png, image/jpeg"
-												bind:files={$image}
-											/>
-										{/snippet}
-									</Form.Control>
-									<Form.FieldErrors />
-								</Form.Field> -->
+                                <Form.Field form={registerForm} name="image">
+                                    <Form.Control>
+                                        {#snippet children({ props })}
+                                            <Form.Label>Image</Form.Label>
+                                            <Input
+                                                {...props}
+                                                type="text"
+                                                bind:value={$registerFormData.image} />
+                                        {/snippet}
+                                    </Form.Control>
+                                    <Form.FieldErrors />
+                                </Form.Field>
 
                                 <Form.Field form={registerForm} name="password">
                                     <Form.Control>

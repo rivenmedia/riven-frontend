@@ -9,6 +9,7 @@
     import Mountain from "@lucide/svelte/icons/mountain";
     import Settings from "@lucide/svelte/icons/settings";
     import User from "@lucide/svelte/icons/user";
+    import FileClock from "@lucide/svelte/icons/file-clock";
     import Tooltip from "./tooltip.svelte";
     import { getContext } from "svelte";
     import { cn } from "$lib/utils";
@@ -20,7 +21,8 @@
         { href: "/", icon: Home, label: "Home" },
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/settings", icon: Settings, label: "Settings" },
-        { href: "/auth", icon: User, label: "Profile" }
+        { href: "/auth", icon: User, label: "Profile" },
+        { href: "/logs", icon: FileClock, label: "Logs" }
     ];
 
     let { user } = $props();
@@ -64,8 +66,8 @@
                 {#snippet trigger()}
                     <Avatar.Root class="cursor-pointer">
                         <Avatar.Image
-                            src="https://github.com/ayushsehrawat.png"
-                            alt="@ayushsehrawat" />
+                            src={user.image || "https://avatar.iran.liara.run/public"}
+                            alt={user.username} />
                         <Avatar.Fallback>CN</Avatar.Fallback>
                     </Avatar.Root>
                 {/snippet}
@@ -109,8 +111,8 @@
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-pointer">
                         <Avatar.Image
-                            src="https://github.com/ayushsehrawat.png"
-                            alt="@ayushsehrawat" />
+                            src={user.image || "https://avatar.iran.liara.run/public"}
+                            alt={user.username} />
                         <Avatar.Fallback>CN</Avatar.Fallback>
                     </Avatar.Root>
                     <p class="font-medium">

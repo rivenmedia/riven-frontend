@@ -65,7 +65,8 @@ export const actions: Actions = {
                     name: registerForm.data.username,
                     username: registerForm.data.username,
                     email: registerForm.data.email,
-                    password: registerForm.data.password
+                    password: registerForm.data.password,
+                    image: registerForm.data.image || undefined
                 }
             });
 

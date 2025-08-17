@@ -3,6 +3,9 @@ import { redirect, type Handle, type ServerInit } from "@sveltejs/kit";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
 import { getUsersCount } from "$lib/server/functions";
+import { sequence } from "@sveltejs/kit/hooks";
+import { BACKEND_URL, BACKEND_API_KEY } from "$env/static/private";
+import { client } from "$lib/api/client.gen";
 
 export const init: ServerInit = async () => {
     const userCount = (await getUsersCount())[0].count;
@@ -17,7 +20,8 @@ export const init: ServerInit = async () => {
                 password: "admin",
                 role: ["admin"],
                 data: {
-                    username: "admin"
+                    username: "admin",
+                    image: "/images/admin.webp"
                 }
             }
         });
@@ -26,7 +30,7 @@ export const init: ServerInit = async () => {
     }
 };
 
-export const handle: Handle = async ({ event, resolve }) => {
+export const betterAuthHandler: Handle = async ({ event, resolve }) => {
     if (event.route.id?.startsWith("/(protected)")) {
         const session = await auth.api.getSession({
             headers: event.request.headers
@@ -43,3 +47,43 @@ export const handle: Handle = async ({ event, resolve }) => {
         return svelteKitHandler({ event, resolve, auth, building });
     }
 };
+
+const configureClientMiddleware: Handle = async ({ event, resolve }) => {
+    event.locals.backendUrl = BACKEND_URL;
+    event.locals.apiKey = BACKEND_API_KEY;
+    client.setConfig({
+        baseUrl: BACKEND_URL,
+        headers: {
+            "x-api-key": BACKEND_API_KEY
+        }
+    });
+
+    return resolve(event);
+};
+
+const errorInterceptor: Handle = async ({ event, resolve }) => {
+    const response = await resolve(event);
+
+    client.interceptors.error.use((error: unknown) => {
+        if (
+            error &&
+            typeof error === "object" &&
+            "detail" in error &&
+            typeof error.detail === "string"
+        ) {
+            if (error.detail === "Missing or invalid API key") {
+                redirect(307, "/403");
+            }
+            return error.detail;
+        }
+        return undefined;
+    });
+
+    return response;
+};
+
+export const handle: Handle = sequence(
+    configureClientMiddleware,
+    errorInterceptor,
+    betterAuthHandler
+);
