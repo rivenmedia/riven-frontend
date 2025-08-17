@@ -326,12 +326,11 @@
 									class="border-b border-border/50 transition-colors last:border-b-0 hover:bg-muted/20"
 								>
 									<div class="p-4">
-										<pre
-											class="overflow-x-auto rounded border bg-muted/30 p-3 font-mono text-xs text-foreground/90">{JSON.stringify(
-												log,
-												null,
-												2
-											)}</pre>
+										<div
+											class="rounded border bg-muted/30 p-3 font-mono text-xs leading-relaxed text-foreground/90"
+										>
+											{log}
+										</div>
 									</div>
 								</div>
 							{/each}
