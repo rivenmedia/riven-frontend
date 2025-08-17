@@ -1,8 +1,17 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
+    import { logs as getOldLogs } from "$lib/api";
 
-    let logs = $state<any[]>([]);
+    type LogEntry = {
+        message?: string;
+    };
+
+    let logs = $state<LogEntry[]>([]);
+    let historicalLogs = $state<LogEntry[]>([]);
+    let isLoadingHistorical = $state<boolean>(false);
+    let activeTab = $state<"live" | "historical">("live");
     let error = $state<string | null>(null);
+    let historicalError = $state<string | null>(null);
     let connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
         "connecting"
     );
@@ -14,6 +23,22 @@
     function getReconnectDelay(attempt: number): number {
         const delay = Math.min(30000, Math.pow(2, attempt) * 1000 + Math.random() * 1000);
         return delay;
+    }
+
+    async function fetchHistoricalLogs() {
+        try {
+            isLoadingHistorical = true;
+            historicalError = null;
+            const response = await getOldLogs();
+            console.log("Fetched historical logs:", response);
+            // @ts-ignore
+            historicalLogs = response.data?.logs || [];
+        } catch (e: any) {
+            console.error("Failed to fetch historical logs:", e);
+            historicalError = `Failed to fetch historical logs: ${e.message}`;
+        } finally {
+            isLoadingHistorical = false;
+        }
     }
 
     async function startStream() {
@@ -128,6 +153,13 @@
         startStream();
     }
 
+    function setActiveTab(tab: "live" | "historical") {
+        activeTab = tab;
+        if (tab === "historical" && historicalLogs.length === 0) {
+            fetchHistoricalLogs();
+        }
+    }
+
     onMount(() => {
         try {
             startStream();
@@ -180,6 +212,74 @@
     }
 </script>
 
+{#snippet logEntry(log: LogEntry)}
+    <div class="border-border/50 hover:bg-muted/20 border-b transition-colors last:border-b-0">
+        <div class="text-foreground/90 p-4 font-mono text-xs break-words whitespace-pre-wrap">
+            {log.message || log}
+        </div>
+    </div>
+{/snippet}
+
+{#snippet loadingSpinner(message: string)}
+    <div class="flex h-full flex-col items-center justify-center p-8">
+        <div
+            class="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent">
+        </div>
+        <p class="text-muted-foreground text-sm">{message}</p>
+    </div>
+{/snippet}
+
+{#snippet errorDisplay(
+    errorMessage: string,
+    retryAction: () => void,
+    buttonText: string = "Try Again"
+)}
+    <div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
+        <h3 class="text-destructive mb-3 text-lg font-semibold">Error Loading Logs</h3>
+        <pre
+            class="text-destructive/80 bg-destructive/5 mb-4 overflow-x-auto rounded border p-3 font-mono text-sm">{errorMessage}</pre>
+        <button
+            class="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 font-medium transition-colors"
+            onclick={retryAction}>
+            {buttonText}
+        </button>
+    </div>
+{/snippet}
+
+{#snippet tabButton(name: string, isActive: boolean, onClickAction: () => void)}
+    <button
+        class="rounded px-3 py-1.5 text-sm font-medium transition-colors {isActive
+            ? 'bg-primary/10 text-primary'
+            : 'hover:bg-muted/50'}"
+        onclick={onClickAction}>
+        {name}
+    </button>
+{/snippet}
+
+{#snippet statusIndicator()}
+    <div class="flex items-center gap-2">
+        <div
+            class="{getStatusColor()} h-2 w-2 rounded-full {connectionStatus === 'connecting'
+                ? 'animate-pulse'
+                : ''}">
+        </div>
+        <span class="text-muted-foreground text-sm">{getStatusText()}</span>
+    </div>
+{/snippet}
+
+{#snippet emptyState(message: string, actionText?: string, actionFn?: () => void)}
+    <div class="flex h-full flex-col items-center justify-center p-8">
+        <p class="text-muted-foreground text-sm">{message}</p>
+        {#if actionText && actionFn}
+            <button
+                class="bg-primary/10 hover:bg-primary/20 text-primary mt-4 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                onclick={actionFn}>
+                {actionText}
+            </button>
+        {/if}
+    </div>
+{/snippet}
+
 <div class="flex h-full flex-col p-6 md:p-8 md:px-16">
     {#if error && connectionStatus === "error" && reconnectAttempts >= maxReconnectAttempts}
         <div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
@@ -192,74 +292,78 @@
                 Try Again
             </button>
         </div>
-    {:else if logs.length > 0 || connectionStatus === "connecting"}
+    {:else if logs.length > 0 || historicalLogs.length > 0 || connectionStatus === "connecting" || isLoadingHistorical}
         <div class="flex h-full min-h-0 flex-col">
-            <div class="mb-6 flex flex-shrink-0 items-center justify-between">
+            <div class="mb-6 flex flex-col md:flex-row gap-4 items-start justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Live Logs</h1>
-                    <p class="text-muted-foreground mt-1">Real-time system monitoring</p>
+                    <h1 class="text-3xl font-bold tracking-tight">System Logs</h1>
+                    <p class="text-muted-foreground mt-1">System monitoring and logs</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <div
                         class="bg-primary/10 text-primary border-primary/20 rounded-lg border px-4 py-2 font-medium">
-                        {logs.length} entries
+                        {activeTab === "live" ? logs.length : historicalLogs.length} entries
                     </div>
                 </div>
             </div>
 
             <div class="bg-card flex min-h-0 flex-1 flex-col rounded-lg border shadow-sm">
                 <div
-                    class="bg-muted/30 flex flex-shrink-0 items-center justify-between border-b px-6 py-3">
-                    <h2 class="text-foreground font-semibold">Stream Output</h2>
+                    class="bg-muted/30 flex flex-col md:flex-row flex-shrink-0 items-center gap-4 justify-between border-b px-6 py-3">
+                    <div class="flex items-center gap-2">
+                        {@render tabButton("Live Logs", activeTab === "live", () =>
+                            setActiveTab("live")
+                        )}
+                        {@render tabButton("Historical Logs", activeTab === "historical", () =>
+                            setActiveTab("historical")
+                        )}
+                    </div>
                     <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <div
-                                class="{getStatusColor()} h-2 w-2 rounded-full {connectionStatus ===
-                                'connecting'
-                                    ? 'animate-pulse'
-                                    : ''}">
-                            </div>
-                            <span class="text-muted-foreground text-sm">{getStatusText()}</span>
-                        </div>
-                        {#if connectionStatus === "error" && reconnectAttempts < maxReconnectAttempts}
+                        {#if activeTab === "live"}
+                            {@render statusIndicator()}
+                            {#if connectionStatus === "error" && reconnectAttempts < maxReconnectAttempts}
+                                <button
+                                    class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 rounded border px-3 py-1 text-sm font-medium transition-colors"
+                                    onclick={manualReconnect}>
+                                    Reconnect Now
+                                </button>
+                            {/if}
+                        {:else}
                             <button
                                 class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 rounded border px-3 py-1 text-sm font-medium transition-colors"
-                                onclick={manualReconnect}>
-                                Reconnect Now
+                                onclick={fetchHistoricalLogs}
+                                disabled={isLoadingHistorical}>
+                                {isLoadingHistorical ? "Loading..." : "Refresh"}
                             </button>
                         {/if}
                     </div>
                 </div>
 
                 <div class="min-h-0 flex-1 overflow-y-auto">
-                    {#if logs.length > 0}
-                        {#each logs.slice().reverse() as log, index}
-                            <div
-                                class="border-border/50 hover:bg-muted/20 border-b transition-colors last:border-b-0">
-                                <div class="p-4">
-                                    {#if log.message}
-                                        <div
-                                            class="text-foreground/90 bg-muted/30 rounded border p-3 font-mono text-sm leading-relaxed">
-                                            {log.message}
-                                        </div>
-                                    {:else}
-                                        <pre
-                                            class="bg-muted/30 text-foreground/90 overflow-x-auto rounded border p-3 font-mono text-sm">{JSON.stringify(
-                                                log,
-                                                null,
-                                                2
-                                            )}</pre>
-                                    {/if}
-                                </div>
-                            </div>
-                        {/each}
-                    {:else if connectionStatus === "connecting"}
-                        <div class="flex h-full flex-col items-center justify-center p-8">
-                            <div
-                                class="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent">
-                            </div>
-                            <p class="text-muted-foreground text-sm">{getStatusText()}</p>
+                    {#if activeTab === "live"}
+                        {#if logs.length > 0}
+                            {#each logs.slice().reverse() as log}
+                                {@render logEntry(log)}
+                            {/each}
+                        {:else if connectionStatus === "connecting"}
+                            {@render loadingSpinner(getStatusText())}
+                        {/if}
+                    {:else if isLoadingHistorical}
+                        {@render loadingSpinner("Loading historical logs...")}
+                    {:else if historicalError}
+                        <div class="p-8">
+                            {@render errorDisplay(historicalError, fetchHistoricalLogs)}
                         </div>
+                    {:else if historicalLogs.length > 0}
+                        {#each historicalLogs.slice().reverse() as log}
+                            {@render logEntry(log)}
+                        {/each}
+                    {:else}
+                        {@render emptyState(
+                            "No historical logs found",
+                            "Refresh",
+                            fetchHistoricalLogs
+                        )}
                     {/if}
                 </div>
             </div>
@@ -270,7 +374,7 @@
                 <div
                     class="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-t-transparent">
                 </div>
-                <h3 class="mb-2 text-lg font-semibold">Connecting to Stream</h3>
+                <h3 class="mb-2 text-lg font-semibold">Connecting to Logs</h3>
                 <p class="text-muted-foreground text-sm">
                     Establishing connection to log server...
                 </p>

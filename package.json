@@ -67,6 +67,7 @@
         "better-sqlite3": "^11.10.0",
         "embla-carousel-autoplay": "^8.6.0",
         "kysely": "^0.28.5",
+        "lodash": "^4.17.21",
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "zod": "^3.25.76"
