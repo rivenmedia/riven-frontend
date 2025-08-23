@@ -4,7 +4,6 @@
     import { browser } from "$app/environment";
     import TmdbNowPlaying from "$lib/components/tmdb-now-playing.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
-    import { TMDB_IMAGE_BASE_URL } from "$lib/providers/tmdb";
     import { Button } from "$lib/components/ui/button/index.js";
 
     let { data }: { data: PageData } = $props();
@@ -12,18 +11,32 @@
     let nowPlaying = $state<any | null>(null);
     let trendingMovies = $state<any | null>(null);
     let trendingMoviesTimeWindow = $state<"day" | "week">("day");
-    let trenedingShows = $state<any | null>(null);
+    let trendingShows = $state<any | null>(null);
     let trendingShowsTimeWindow = $state<"day" | "week">("day");
     let anilistTrending = $state<any | null>(null);
 
-    async function fetchDataWithStorage(url: string, storageKey: string): Promise<any> {
+    if (browser) {
+        const savedMoviesWindow = sessionStorage.getItem("trendingMoviesTimeWindow");
+        if (savedMoviesWindow) {
+            trendingMoviesTimeWindow = savedMoviesWindow as "day" | "week";
+        }
+
+        const savedShowsWindow = sessionStorage.getItem("trendingShowsTimeWindow");
+        if (savedShowsWindow) {
+            trendingShowsTimeWindow = savedShowsWindow as "day" | "week";
+        }
+    }
+
+    async function fetchData(url: string, storageKey: string): Promise<any> {
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Failed to fetch data from ${url}`);
             }
             const result = await response.json();
-            sessionStorage.setItem(storageKey, JSON.stringify(result));
+            if (browser) {
+                sessionStorage.setItem(storageKey, JSON.stringify(result));
+            }
             return result;
         } catch (error) {
             console.error(`Error fetching data from ${url}:`, error);
@@ -31,123 +44,103 @@
         }
     }
 
-    async function getOrFetchData(
-        storageKey: string,
-        fetchFunction: () => Promise<any>
-    ): Promise<any> {
-        if (browser) {
-            const storedData = sessionStorage.getItem(storageKey);
-            if (storedData) {
-                return JSON.parse(storedData);
+    function getStorageKey(baseKey: string, timeWindow?: "day" | "week"): string {
+        return timeWindow ? `${baseKey}_${timeWindow}` : baseKey;
+    }
+
+    async function loadData(type: string): Promise<any> {
+        switch (type) {
+            case "nowPlaying":
+                const nowPlayingKey = getStorageKey("nowPlaying");
+                nowPlaying = await fetchData("/api/tmdb/now-playing", nowPlayingKey);
+                return nowPlaying;
+            
+            case "trendingMovies":
+                const moviesKey = getStorageKey("trendingMovies", trendingMoviesTimeWindow);
+                trendingMovies = await fetchData(
+                    `/api/tmdb/movie/${trendingMoviesTimeWindow}/trending`, 
+                    moviesKey
+                );
+                return trendingMovies;
+            
+            case "trendingShows":
+                const showsKey = getStorageKey("trendingShows", trendingShowsTimeWindow);
+                trendingShows = await fetchData(
+                    `/api/tmdb/tv/${trendingShowsTimeWindow}/trending`, 
+                    showsKey
+                );
+                return trendingShows;
+            
+            case "anilistTrending":
+                const anilistKey = getStorageKey("anilistTrending");
+                anilistTrending = await fetchData("/api/anilist/trending", anilistKey);
+                return anilistTrending;
+        }
+    }
+
+    async function loadOrGetFromCache(type: string): Promise<any> {
+        if (!browser) return null;
+
+        let storageKey: string;
+        switch (type) {
+            case "nowPlaying": 
+                storageKey = getStorageKey("nowPlaying");
+                break;
+            case "trendingMovies": 
+                storageKey = getStorageKey("trendingMovies", trendingMoviesTimeWindow);
+                break;
+            case "trendingShows": 
+                storageKey = getStorageKey("trendingShows", trendingShowsTimeWindow);
+                break;
+            case "anilistTrending": 
+                storageKey = getStorageKey("anilistTrending");
+                break;
+            default:
+                return null;
+        }
+
+        const storedData = sessionStorage.getItem(storageKey);
+        if (storedData) {
+            return JSON.parse(storedData);
+        }
+        
+        return await loadData(type);
+    }
+
+    async function changeTimeWindow(type: "movies" | "shows", window: "day" | "week") {
+        if (type === "movies") {
+            if (trendingMoviesTimeWindow !== window) {
+                trendingMoviesTimeWindow = window;
+                if (browser) {
+                    sessionStorage.setItem("trendingMoviesTimeWindow", window);
+                }
+                await loadData("trendingMovies");
             }
-            return await fetchFunction();
+        } else {
+            if (trendingShowsTimeWindow !== window) {
+                trendingShowsTimeWindow = window;
+                if (browser) {
+                    sessionStorage.setItem("trendingShowsTimeWindow", window);
+                }
+                await loadData("trendingShows");
+            }
         }
-        return null;
     }
-
-    async function changeTimeWindow(
-        currentValue: "day" | "week",
-        newValue: "day" | "week",
-        storageKey: string,
-        fetchFunction: () => Promise<void>
-    ): Promise<"day" | "week"> {
-        if (currentValue !== newValue) {
-            sessionStorage.removeItem(storageKey);
-            const updated = newValue;
-            await fetchFunction();
-            return updated;
-        }
-        return currentValue;
-    }
-
-    function parseMovieData(data: any) {
-        return (
-            data?.results.map((item: any) => ({
-                id: item.id,
-                title: item.title || item.original_title,
-                poster_path: `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`,
-                media_type: "Movie",
-                year: new Date(item.release_date).getFullYear()
-            })) || null
-        );
-    }
-
-    function parseShowData(data: any) {
-        return (
-            data?.results.map((item: any) => ({
-                id: item.id,
-                title: item.name || item.original_name,
-                poster_path: `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`,
-                media_type: "TV",
-                year: new Date(item.first_air_date).getFullYear()
-            })) || null
-        );
-    }
-
-    function parseAnimeData(data: any) {
-        return (
-            data?.data?.Page?.media.map((item: any) => ({
-                id: item.id,
-                title: item.title.romaji || item.title.english || item.title.native,
-                poster_path: item.coverImage.large,
-                media_type: item.format,
-                year: item.seasonYear
-            })) || null
-        );
-    }
-
-    async function fetchNowPlaying() {
-        nowPlaying = await fetchDataWithStorage("/api/tmdb/now-playing", "getNowPlaying");
-    }
-
-    async function fetchTrendingMovies() {
-        trendingMovies = await fetchDataWithStorage(
-            `/api/tmdb/movie/${trendingMoviesTimeWindow}/trending`,
-            "getTrendingMovies"
-        );
-    }
-
-    async function fetchTrendingShows() {
-        trenedingShows = await fetchDataWithStorage(
-            `/api/tmdb/tv/${trendingShowsTimeWindow}/trending`,
-            "getTrendingShows"
-        );
-    }
-
-    async function fetchAnilistTrending() {
-        anilistTrending = await fetchDataWithStorage("/api/anilist/trending", "getAnilistTrending");
-    }
-
-    async function changeMoviesTimeWindow(window: "day" | "week") {
-        trendingMoviesTimeWindow = await changeTimeWindow(
-            trendingMoviesTimeWindow,
-            window,
-            "getTrendingMovies",
-            fetchTrendingMovies
-        );
-    }
-
-    async function changeShowsTimeWindow(window: "day" | "week") {
-        trendingShowsTimeWindow = await changeTimeWindow(
-            trendingShowsTimeWindow,
-            window,
-            "getTrendingShows",
-            fetchTrendingShows
-        );
-    }
-
-    let trendingMoviesParsed = $derived.by(() => parseMovieData(trendingMovies));
-    let trendingShowsParsed = $derived.by(() => parseShowData(trenedingShows));
-    let anilistTrendingParsed = $derived.by(() => parseAnimeData(anilistTrending));
 
     onMount(async () => {
         if (browser) {
             try {
-                // Use the common pattern for loading all data sources
-                nowPlaying = await getOrFetchData("getNowPlaying", fetchNowPlaying);
-                trendingMovies = await getOrFetchData("getTrendingMovies", fetchTrendingMovies);
-                trenedingShows = await getOrFetchData("getTrendingShows", fetchTrendingShows);
-                anilistTrending = await getOrFetchData("getAnilistTrending", fetchAnilistTrending);
+                const [nowPlayingResult, moviesResult, showsResult, anilistResult] = await Promise.all([
+                    loadOrGetFromCache("nowPlaying"),
+                    loadOrGetFromCache("trendingMovies"),
+                    loadOrGetFromCache("trendingShows"),
+                    loadOrGetFromCache("anilistTrending")
+                ]);
+                
+                nowPlaying = nowPlayingResult;
+                trendingMovies = moviesResult;
+                trendingShows = showsResult;
+                anilistTrending = anilistResult;
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -168,19 +161,19 @@
                 <Button
                     variant={trendingMoviesTimeWindow === "day" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => changeMoviesTimeWindow("day")}>
+                    onclick={() => changeTimeWindow("movies", "day")}>
                     Today
                 </Button>
                 <Button
                     variant={trendingMoviesTimeWindow === "week" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => changeMoviesTimeWindow("week")}>
+                    onclick={() => changeTimeWindow("movies", "week")}>
                     This Week
                 </Button>
                 <Button variant="link" href="/movie/trending">View All</Button>
             </div>
         </div>
-        <ListCarousel bind:data={trendingMoviesParsed} />
+        <ListCarousel data={trendingMovies?.results} />
     </div>
 
     <div class="flex flex-col">
@@ -193,19 +186,19 @@
                 <Button
                     variant={trendingShowsTimeWindow === "day" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => changeShowsTimeWindow("day")}>
+                    onclick={() => changeTimeWindow("shows", "day")}>
                     Today
                 </Button>
                 <Button
                     variant={trendingShowsTimeWindow === "week" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => changeShowsTimeWindow("week")}>
+                    onclick={() => changeTimeWindow("shows", "week")}>
                     This Week
                 </Button>
                 <Button variant="link" href="/tv/trending">View All</Button>
             </div>
         </div>
-        <ListCarousel bind:data={trendingShowsParsed} />
+        <ListCarousel data={trendingShows?.results} />
     </div>
 
     <div class="flex flex-col">
@@ -216,6 +209,6 @@
             </h2>
             <Button variant="link" href="/anime/trending">View All</Button>
         </div>
-        <ListCarousel bind:data={anilistTrendingParsed} />
+        <ListCarousel data={anilistTrending?.data?.Page?.media} />
     </div>
 </div>
