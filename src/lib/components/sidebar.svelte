@@ -10,6 +10,7 @@
     import Settings from "@lucide/svelte/icons/settings";
     import User from "@lucide/svelte/icons/user";
     import FileClock from "@lucide/svelte/icons/file-clock";
+    import CalendarDays from "@lucide/svelte/icons/calendar-days";
     import Tooltip from "./tooltip.svelte";
     import { getContext } from "svelte";
     import { cn } from "$lib/utils";
@@ -22,7 +23,8 @@
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/settings", icon: Settings, label: "Settings" },
         { href: "/auth", icon: User, label: "Profile" },
-        { href: "/logs", icon: FileClock, label: "Logs" }
+        { href: "/logs", icon: FileClock, label: "Logs" },
+        { href: "/calendar", icon: CalendarDays, label: "Calendar" }
     ];
 
     let { user } = $props();
