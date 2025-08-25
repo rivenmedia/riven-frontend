@@ -28,6 +28,309 @@ const tmdbClient = createClient<TMDBPaths>({
     }
 });
 
+export const TVDB_ARTWORK_STATUSES = {
+    1: "Low Quality",
+    2: "Improper Action Shot",
+    3: "Spoiler",
+    4: "Adult Content",
+    5: "Automatically Resized"
+};
+export const TVDB_ARTWORK_TYPES = {
+    1: {
+        name: "Banner",
+        recordType: "series",
+        imageFormat: "JPG",
+        width: 758,
+        height: 140,
+        thumbWidth: 758,
+        thumbHeight: 140
+    },
+    2: {
+        name: "Poster",
+        recordType: "series",
+        imageFormat: "JPG",
+        width: 680,
+        height: 1000,
+        thumbWidth: 340,
+        thumbHeight: 500
+    },
+    3: {
+        name: "Background",
+        recordType: "series",
+        imageFormat: "JPG",
+        width: 1920,
+        height: 1080,
+        thumbWidth: 640,
+        thumbHeight: 360
+    },
+    5: {
+        name: "Icon",
+        recordType: "series",
+        imageFormat: "PNG",
+        width: 1024,
+        height: 1024,
+        thumbWidth: 512,
+        thumbHeight: 512
+    },
+    6: {
+        name: "Banner",
+        recordType: "season",
+        imageFormat: "JPG",
+        width: 758,
+        height: 140,
+        thumbWidth: 758,
+        thumbHeight: 140
+    },
+    7: {
+        name: "Poster",
+        recordType: "season",
+        imageFormat: "JPG",
+        width: 680,
+        height: 1000,
+        thumbWidth: 340,
+        thumbHeight: 500
+    },
+    8: {
+        name: "Background",
+        recordType: "season",
+        imageFormat: "JPG",
+        width: 1920,
+        height: 1080,
+        thumbWidth: 640,
+        thumbHeight: 360
+    },
+    10: {
+        name: "Icon",
+        recordType: "season",
+        imageFormat: "PNG",
+        width: 1024,
+        height: 1024,
+        thumbWidth: 512,
+        thumbHeight: 512
+    },
+    11: {
+        name: "16:9 Screencap",
+        recordType: "episode",
+        imageFormat: "JPG",
+        width: 640,
+        height: 360,
+        thumbWidth: 640,
+        thumbHeight: 360
+    },
+    12: {
+        name: "4:3 Screencap",
+        recordType: "episode",
+        imageFormat: "JPG",
+        width: 640,
+        height: 480,
+        thumbWidth: 640,
+        thumbHeight: 480
+    },
+    13: {
+        name: "Photo",
+        recordType: "actor",
+        imageFormat: "JPG",
+        width: 300,
+        height: 450,
+        thumbWidth: 300,
+        thumbHeight: 450
+    },
+    14: {
+        name: "Poster",
+        recordType: "movie",
+        imageFormat: "JPG",
+        width: 680,
+        height: 1000,
+        thumbWidth: 340,
+        thumbHeight: 500
+    },
+    15: {
+        name: "Background",
+        recordType: "movie",
+        imageFormat: "JPG",
+        width: 1920,
+        height: 1080,
+        thumbWidth: 640,
+        thumbHeight: 360
+    },
+    16: {
+        name: "Banner",
+        recordType: "movie",
+        imageFormat: "JPG",
+        width: 758,
+        height: 140,
+        thumbWidth: 758,
+        thumbHeight: 140
+    },
+    18: {
+        name: "Icon",
+        recordType: "movie",
+        imageFormat: "PNG",
+        width: 1024,
+        height: 1024,
+        thumbWidth: 512,
+        thumbHeight: 512
+    },
+    19: {
+        name: "Icon",
+        recordType: "company",
+        imageFormat: "PNG",
+        width: 512,
+        height: 512,
+        thumbWidth: 256,
+        thumbHeight: 256
+    },
+    20: {
+        name: "Cinemagraph",
+        recordType: "series",
+        imageFormat: "MP4",
+        width: 1280,
+        height: 720,
+        thumbWidth: 1280,
+        thumbHeight: 720
+    },
+    21: {
+        name: "Cinemagraph",
+        recordType: "movie",
+        imageFormat: "MP4",
+        width: 1280,
+        height: 720,
+        thumbWidth: 1280,
+        thumbHeight: 720
+    },
+    22: {
+        name: "ClearArt",
+        recordType: "series",
+        imageFormat: "PNG",
+        width: 1000,
+        height: 562,
+        thumbWidth: 500,
+        thumbHeight: 281
+    },
+    23: {
+        name: "ClearLogo",
+        recordType: "series",
+        imageFormat: "PNG",
+        width: 800,
+        height: 310,
+        thumbWidth: 400,
+        thumbHeight: 155
+    },
+    24: {
+        name: "ClearArt",
+        recordType: "movie",
+        imageFormat: "PNG",
+        width: 1000,
+        height: 562,
+        thumbWidth: 500,
+        thumbHeight: 281
+    },
+    25: {
+        name: "ClearLogo",
+        recordType: "movie",
+        imageFormat: "PNG",
+        width: 800,
+        height: 310,
+        thumbWidth: 400,
+        thumbHeight: 155
+    },
+    26: {
+        name: "Icon",
+        recordType: "award",
+        imageFormat: "PNG",
+        width: 1024,
+        height: 1024,
+        thumbWidth: 512,
+        thumbHeight: 512
+    },
+    27: {
+        name: "Poster",
+        recordType: "list",
+        imageFormat: "JPG",
+        width: 680,
+        height: 1000,
+        thumbWidth: 340,
+        thumbHeight: 500
+    }
+};
+export const TVDB_AWARDS = {
+    1: "Academy Awards",
+    2: "Golden Globe Awards",
+    3: "MTV Movie & TV Awards",
+    4: "Critics' Choice Awards",
+    5: "Primetime Emmy Awards",
+    6: "Screen Actors Guild Awards",
+    7: "Writers Guild of America Awards",
+    8: "Producers Guild of America Awards",
+    9: "Directors Guild of America Awards",
+    10: "Daytime Emmy Awards",
+    11: "BAFTA Awards",
+    12: "Bijou Awards",
+    13: "Canadian Film Awards",
+    14: "Genie Awards",
+    15: "Gemini Awards",
+    16: "Canadian Screen Awards",
+    17: "International Emmy Awards",
+    18: "National Television Awards",
+    19: "César Awards",
+    21: "Baeksang Arts Awards"
+};
+export const TVDB_COMPANY_TYPES = {
+    1: "Network",
+    2: "Studio",
+    3: "Production Company",
+    4: "Distributor",
+    5: "Special Effects"
+};
+export const TVDB_ENTITY_TYPES = {
+    1: "series",
+    2: "season",
+    3: "episode",
+    4: "movie",
+    5: "person",
+    6: "artwork",
+    7: "character",
+    8: "company",
+    9: "list"
+};
+export const TVDB_GENRES = {
+    1: { name: "Soap", slug: "soap" },
+    2: { name: "Science Fiction", slug: "science-fiction" },
+    3: { name: "Reality", slug: "reality" },
+    4: { name: "News", slug: "news" },
+    5: { name: "Mini-Series", slug: "mini-series" },
+    6: { name: "Horror", slug: "horror" },
+    7: { name: "Home and Garden", slug: "home-and-garden" },
+    8: { name: "Game Show", slug: "game-show" },
+    9: { name: "Food", slug: "food" },
+    10: { name: "Fantasy", slug: "fantasy" },
+    11: { name: "Family", slug: "family" },
+    12: { name: "Drama", slug: "drama" },
+    13: { name: "Documentary", slug: "documentary" },
+    14: { name: "Crime", slug: "crime" },
+    15: { name: "Comedy", slug: "comedy" },
+    16: { name: "Children", slug: "children" },
+    17: { name: "Animation", slug: "animation" },
+    18: { name: "Adventure", slug: "adventure" },
+    19: { name: "Action", slug: "action" },
+    21: { name: "Sport", slug: "sport" },
+    22: { name: "Suspense", slug: "suspense" },
+    23: { name: "Talk Show", slug: "talk-show" },
+    24: { name: "Thriller", slug: "thriller" },
+    25: { name: "Travel", slug: "travel" },
+    26: { name: "Western", slug: "western" },
+    27: { name: "Anime", slug: "anime" },
+    28: { name: "Romance", slug: "romance" },
+    29: { name: "Musical", slug: "musical" },
+    30: { name: "Podcast", slug: "podcast" },
+    31: { name: "Mystery", slug: "mystery" },
+    32: { name: "Indie", slug: "indie" },
+    33: { name: "History", slug: "history" },
+    34: { name: "War", slug: "war" },
+    35: { name: "Martial Arts", slug: "martial-arts" },
+    36: { name: "Awards Show", slug: "awards-show" }
+};
+
 export const TMDB_BASE_URL: string = "https://api.themoviedb.org/3";
 export const TMDB_IMAGE_BASE_URL: string = "https://image.tmdb.org/t/p";
 export enum TMDBMediaType {
