@@ -2,7 +2,7 @@
     import * as Carousel from "$lib/components/ui/carousel/index.js";
     import { type CarouselAPI } from "$lib/components/ui/carousel/context.js";
     import Autoplay from "embla-carousel-autoplay";
-    import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/providers/tmdb";
+    import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/providers";
     import { getSeasonAndYear } from "$lib/helpers";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";

@@ -294,7 +294,7 @@
         </div>
     {:else if logs.length > 0 || historicalLogs.length > 0 || connectionStatus === "connecting" || isLoadingHistorical}
         <div class="flex h-full min-h-0 flex-col">
-            <div class="mb-6 flex flex-col md:flex-row gap-4 items-start justify-between">
+            <div class="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row">
                 <div>
                     <h1 class="text-3xl font-bold tracking-tight">System Logs</h1>
                     <p class="text-muted-foreground mt-1">System monitoring and logs</p>
@@ -309,7 +309,7 @@
 
             <div class="bg-card flex min-h-0 flex-1 flex-col rounded-lg border shadow-sm">
                 <div
-                    class="bg-muted/30 flex flex-col md:flex-row flex-shrink-0 items-center gap-4 justify-between border-b px-6 py-3">
+                    class="bg-muted/30 flex flex-shrink-0 flex-col items-center justify-between gap-4 border-b px-6 py-3 md:flex-row">
                     <div class="flex items-center gap-2">
                         {@render tabButton("Live Logs", activeTab === "live", () =>
                             setActiveTab("live")

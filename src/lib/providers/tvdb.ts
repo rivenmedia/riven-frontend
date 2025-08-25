@@ -3314,7 +3314,42 @@ export interface operations {
                 /** @description country of origin */
                 country: string;
                 /** @description genre */
-                genre?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36;
+                genre?:
+                    | 1
+                    | 2
+                    | 3
+                    | 4
+                    | 5
+                    | 6
+                    | 7
+                    | 8
+                    | 9
+                    | 10
+                    | 11
+                    | 12
+                    | 13
+                    | 14
+                    | 15
+                    | 16
+                    | 17
+                    | 18
+                    | 19
+                    | 21
+                    | 22
+                    | 23
+                    | 24
+                    | 25
+                    | 26
+                    | 27
+                    | 28
+                    | 29
+                    | 30
+                    | 31
+                    | 32
+                    | 33
+                    | 34
+                    | 35
+                    | 36;
                 /** @description original language */
                 lang: string;
                 /** @description sort by results */
@@ -4345,7 +4380,42 @@ export interface operations {
                 /** @description country of origin */
                 country: string;
                 /** @description Genre id. This id can be found using **\/genres** endpoint. */
-                genre?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36;
+                genre?:
+                    | 1
+                    | 2
+                    | 3
+                    | 4
+                    | 5
+                    | 6
+                    | 7
+                    | 8
+                    | 9
+                    | 10
+                    | 11
+                    | 12
+                    | 13
+                    | 14
+                    | 15
+                    | 16
+                    | 17
+                    | 18
+                    | 19
+                    | 21
+                    | 22
+                    | 23
+                    | 24
+                    | 25
+                    | 26
+                    | 27
+                    | 28
+                    | 29
+                    | 30
+                    | 31
+                    | 32
+                    | 33
+                    | 34
+                    | 35
+                    | 36;
                 /** @description original language */
                 lang: string;
                 /** @description sort by results */
@@ -4550,7 +4620,41 @@ export interface operations {
         parameters: {
             query: {
                 since: number;
-                type?: "artwork" | "award_nominees" | "companies" | "episodes" | "lists" | "people" | "seasons" | "series" | "seriespeople" | "artworktypes" | "award_categories" | "awards" | "company_types" | "content_ratings" | "countries" | "entity_types" | "genres" | "languages" | "movies" | "movie_genres" | "movie_status" | "peopletypes" | "seasontypes" | "sourcetypes" | "tag_options" | "tags" | "translatedcharacters" | "translatedcompanies" | "translatedepisodes" | "translatedlists" | "translatedmovies" | "translatedpeople" | "translatedseasons" | "translatedserierk";
+                type?:
+                    | "artwork"
+                    | "award_nominees"
+                    | "companies"
+                    | "episodes"
+                    | "lists"
+                    | "people"
+                    | "seasons"
+                    | "series"
+                    | "seriespeople"
+                    | "artworktypes"
+                    | "award_categories"
+                    | "awards"
+                    | "company_types"
+                    | "content_ratings"
+                    | "countries"
+                    | "entity_types"
+                    | "genres"
+                    | "languages"
+                    | "movies"
+                    | "movie_genres"
+                    | "movie_status"
+                    | "peopletypes"
+                    | "seasontypes"
+                    | "sourcetypes"
+                    | "tag_options"
+                    | "tags"
+                    | "translatedcharacters"
+                    | "translatedcompanies"
+                    | "translatedepisodes"
+                    | "translatedlists"
+                    | "translatedmovies"
+                    | "translatedpeople"
+                    | "translatedseasons"
+                    | "translatedserierk";
                 action?: "delete" | "update";
                 /** @description name */
                 page?: number;

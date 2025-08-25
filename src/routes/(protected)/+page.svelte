@@ -54,23 +54,23 @@
                 const nowPlayingKey = getStorageKey("nowPlaying");
                 nowPlaying = await fetchData("/api/tmdb/now-playing", nowPlayingKey);
                 return nowPlaying;
-            
+
             case "trendingMovies":
                 const moviesKey = getStorageKey("trendingMovies", trendingMoviesTimeWindow);
                 trendingMovies = await fetchData(
-                    `/api/tmdb/movie/${trendingMoviesTimeWindow}/trending`, 
+                    `/api/tmdb/movie/${trendingMoviesTimeWindow}/trending`,
                     moviesKey
                 );
                 return trendingMovies;
-            
+
             case "trendingShows":
                 const showsKey = getStorageKey("trendingShows", trendingShowsTimeWindow);
                 trendingShows = await fetchData(
-                    `/api/tmdb/tv/${trendingShowsTimeWindow}/trending`, 
+                    `/api/tmdb/tv/${trendingShowsTimeWindow}/trending`,
                     showsKey
                 );
                 return trendingShows;
-            
+
             case "anilistTrending":
                 const anilistKey = getStorageKey("anilistTrending");
                 anilistTrending = await fetchData("/api/anilist/trending", anilistKey);
@@ -83,16 +83,16 @@
 
         let storageKey: string;
         switch (type) {
-            case "nowPlaying": 
+            case "nowPlaying":
                 storageKey = getStorageKey("nowPlaying");
                 break;
-            case "trendingMovies": 
+            case "trendingMovies":
                 storageKey = getStorageKey("trendingMovies", trendingMoviesTimeWindow);
                 break;
-            case "trendingShows": 
+            case "trendingShows":
                 storageKey = getStorageKey("trendingShows", trendingShowsTimeWindow);
                 break;
-            case "anilistTrending": 
+            case "anilistTrending":
                 storageKey = getStorageKey("anilistTrending");
                 break;
             default:
@@ -103,7 +103,7 @@
         if (storedData) {
             return JSON.parse(storedData);
         }
-        
+
         return await loadData(type);
     }
 
@@ -130,13 +130,14 @@
     onMount(async () => {
         if (browser) {
             try {
-                const [nowPlayingResult, moviesResult, showsResult, anilistResult] = await Promise.all([
-                    loadOrGetFromCache("nowPlaying"),
-                    loadOrGetFromCache("trendingMovies"),
-                    loadOrGetFromCache("trendingShows"),
-                    loadOrGetFromCache("anilistTrending")
-                ]);
-                
+                const [nowPlayingResult, moviesResult, showsResult, anilistResult] =
+                    await Promise.all([
+                        loadOrGetFromCache("nowPlaying"),
+                        loadOrGetFromCache("trendingMovies"),
+                        loadOrGetFromCache("trendingShows"),
+                        loadOrGetFromCache("anilistTrending")
+                    ]);
+
                 nowPlaying = nowPlayingResult;
                 trendingMovies = moviesResult;
                 trendingShows = showsResult;
