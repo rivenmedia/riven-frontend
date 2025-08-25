@@ -5,7 +5,7 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
     let api = $state<CarouselAPI>();
-    let { data = $bindable() } = $props();
+    let { data = $bindable(), indexer, type = "" } = $props();
 </script>
 
 {#if data}
@@ -19,7 +19,7 @@
         <Carousel.Content>
             {#each data as item}
                 <Carousel.Item class="basis-36 md:basis-40 lg:basis-44">
-                    <ListItem data={item} />
+                    <ListItem data={item} {indexer} {type} />
                 </Carousel.Item>
             {/each}
         </Carousel.Content>

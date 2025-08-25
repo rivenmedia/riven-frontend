@@ -3,7 +3,9 @@
     import Calender from "@lucide/svelte/icons/calendar";
     import Tv from "@lucide/svelte/icons/tv";
 
-    let { data } = $props();
+    let { data, indexer, type } = $props();
+
+    const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
 </script>
 
 <AspectRatio ratio={2 / 3}>
@@ -13,7 +15,7 @@
         class="h-full object-cover object-center transition-transform duration-300 select-none hover:scale-105"
         loading="lazy" />
 </AspectRatio>
-<a href="/details/{data.id}" class="mt-1 block h-10 text-sm font-semibold hover:underline">
+<a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">
     <p class="line-clamp-2">
         {data.title}
     </p>

@@ -174,7 +174,7 @@
                 <Button variant="link" href="/movie/trending">View All</Button>
             </div>
         </div>
-        <ListCarousel data={trendingMovies?.results} />
+        <ListCarousel data={trendingMovies?.results} indexer="tmdb" type="movie" />
     </div>
 
     <div class="flex flex-col">
@@ -199,7 +199,7 @@
                 <Button variant="link" href="/tv/trending">View All</Button>
             </div>
         </div>
-        <ListCarousel data={trendingShows?.results} />
+        <ListCarousel data={trendingShows?.results} indexer="tmdb" type="tv" />
     </div>
 
     <div class="flex flex-col">
@@ -210,6 +210,6 @@
             </h2>
             <Button variant="link" href="/anime/trending">View All</Button>
         </div>
-        <ListCarousel data={anilistTrending?.data?.Page?.media} />
+        <ListCarousel data={anilistTrending?.data?.Page?.media} indexer="anilist" />
     </div>
 </div>
