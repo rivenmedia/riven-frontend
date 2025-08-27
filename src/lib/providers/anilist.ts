@@ -32,31 +32,12 @@ query {
         english
         native
       }
-      description
       coverImage {
         large
         medium
       }
-      bannerImage
-      episodes
-      duration
-      status
-      season
       seasonYear
-      genres
-      averageScore
-      popularity
-      trending
       format
-      studios {
-        nodes {
-          name
-        }
-      }
-      nextAiringEpisode {
-        episode
-        timeUntilAiring
-      }
     }
   }
 }

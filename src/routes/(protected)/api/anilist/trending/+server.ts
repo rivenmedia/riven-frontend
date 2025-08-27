@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             nowPlaying.data.Page.media = nowPlaying.data.Page.media.map((item: any) => ({
                 id: item.id,
-                title: item.title.romaji || item.title.english || item.title.native,
+                title: item.title.english || item.title.romanji || item.title.native,
                 poster_path: item.coverImage.large,
                 media_type: item.format,
                 year: item.seasonYear
