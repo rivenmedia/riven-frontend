@@ -14,5 +14,5 @@ import { type Config, type ClientOptions as DefaultClientOptions, createClient, 
 export type CreateClientConfig<T extends DefaultClientOptions = ClientOptions> = (override?: Config<DefaultClientOptions & T>) => Config<Required<DefaultClientOptions> & T>;
 
 export const client = createClient(createConfig<ClientOptions>({
-    baseUrl: 'https://riven-backend.m5183.de'
+    baseUrl: 'https://rv1.m5183.de'
 }));

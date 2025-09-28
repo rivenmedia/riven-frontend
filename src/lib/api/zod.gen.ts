@@ -13,17 +13,22 @@ export const zAllDebridModel = z.object({
 export type AllDebridModelZodType = z.infer<typeof zAllDebridModel>;
 
 /**
- * SymlinkModel
+ * FilesystemModel
  */
-export const zSymlinkModel = z.object({
-    rclone_path: z.string().optional().default('.'),
-    library_path: z.string().optional().default('.'),
+export const zFilesystemModel = z.object({
+    mount_path: z.string().optional().default('/path/to/riven/mount'),
+    debug_fuse: z.boolean().optional().default(false),
     separate_anime_dirs: z.boolean().optional().default(false),
-    repair_symlinks: z.boolean().optional().default(false),
-    repair_interval: z.number().optional().default(6)
+    vfs_cache_dir: z.string().optional().default('/dev/shm/riven-cache'),
+    vfs_cache_max_size_mb: z.number().int().optional().default(10240),
+    vfs_cache_ttl_seconds: z.number().int().optional().default(7200),
+    vfs_cache_eviction: z.string().optional().default('LRU'),
+    vfs_cache_metrics: z.boolean().optional().default(true),
+    vfs_chunk_mb: z.number().int().optional().default(32),
+    fetch_ahead_size_mb: z.number().int().optional().default(128)
 });
 
-export type SymlinkModelZodType = z.infer<typeof zSymlinkModel>;
+export type FilesystemModelZodType = z.infer<typeof zFilesystemModel>;
 
 /**
  * PlexLibraryModel
@@ -63,6 +68,7 @@ export type EmbyLibraryModelZodType = z.infer<typeof zEmbyLibraryModel>;
  */
 export const zUpdatersModel = z.object({
     updater_interval: z.number().int().optional().default(120),
+    library_path: z.string().optional().default('/path/to/library/mount'),
     plex: zPlexLibraryModel.optional(),
     jellyfin: zJellyfinLibraryModel.optional(),
     emby: zEmbyLibraryModel.optional()
@@ -223,19 +229,6 @@ export const zTorrentioConfig = z.object({
 export type TorrentioConfigZodType = z.infer<typeof zTorrentioConfig>;
 
 /**
- * KnightcrawlerConfig
- */
-export const zKnightcrawlerConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    filter: z.string().optional().default('sort=qualitysize%7Cqualityfilter=480p,scr,cam'),
-    url: z.string().optional().default('https://knightcrawler.elfhosted.com'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
-});
-
-export type KnightcrawlerConfigZodType = z.infer<typeof zKnightcrawlerConfig>;
-
-/**
  * JackettConfig
  */
 export const zJackettConfig = z.object({
@@ -270,7 +263,7 @@ export const zOrionoidConfig = z.object({
     api_key: z.string().optional().default(''),
     cached_results_only: z.boolean().optional().default(false),
     parameters: z.record(z.unknown()).optional().default({
-        video3d: 'false',
+        video3d: false,
         videoquality: 'sd_hd8k',
         limitcount: 5
     }),
@@ -317,25 +310,36 @@ export const zCometConfig = z.object({
 export type CometConfigZodType = z.infer<typeof zCometConfig>;
 
 /**
+ * RarbgConfig
+ */
+export const zRarbgConfig = z.object({
+    enabled: z.boolean().optional().default(false),
+    url: z.string().optional().default('https://therarbg.to'),
+    timeout: z.number().int().optional().default(30),
+    ratelimit: z.boolean().optional().default(true)
+});
+
+export type RarbgConfigZodType = z.infer<typeof zRarbgConfig>;
+
+/**
  * ScraperModel
  */
 export const zScraperModel = z.object({
     after_2: z.number().optional().default(2),
     after_5: z.number().optional().default(6),
     after_10: z.number().optional().default(24),
-    parse_debug: z.boolean().optional().default(false),
     enable_aliases: z.boolean().optional().default(true),
     bucket_limit: z.number().int().gte(0).lte(20).optional().default(5),
     max_failed_attempts: z.number().int().gte(0).lte(10).optional().default(0),
     dubbed_anime_only: z.boolean().optional().default(false),
     torrentio: zTorrentioConfig.optional(),
-    knightcrawler: zKnightcrawlerConfig.optional(),
     jackett: zJackettConfig.optional(),
     prowlarr: zProwlarrConfig.optional(),
     orionoid: zOrionoidConfig.optional(),
     mediafusion: zMediafusionConfig.optional(),
     zilean: zZileanConfig.optional(),
-    comet: zCometConfig.optional()
+    comet: zCometConfig.optional(),
+    rarbg: zRarbgConfig.optional()
 });
 
 export type ScraperModelZodType = z.infer<typeof zScraperModel>;
@@ -608,15 +612,18 @@ export type PostProcessingZodType = z.infer<typeof zPostProcessing>;
  * AppModel
  */
 export const zAppModel = z.object({
-    version: z.string().optional().default('0.23.3'),
+    version: z.string().optional().default('0.23.6'),
     api_key: z.string().optional().default(''),
-    debug: z.boolean().optional().default(true),
-    debug_database: z.boolean().optional().default(false),
-    log: z.boolean().optional().default(true),
-    force_refresh: z.boolean().optional().default(false),
-    map_metadata: z.boolean().optional().default(true),
+    debug: z.enum([
+        'TRACE',
+        'DEBUG',
+        'INFO',
+        'WARNING',
+        'ERROR',
+        'CRITICAL'
+    ]).optional(),
     tracemalloc: z.boolean().optional().default(false),
-    symlink: zSymlinkModel.optional(),
+    filesystem: zFilesystemModel.optional(),
     updaters: zUpdatersModel.optional(),
     downloaders: zDownloadersModel.optional(),
     content: zContentModel.optional(),
@@ -654,6 +661,10 @@ export const zDebridFile = z.object({
     ]).optional(),
     filesize: z.union([
         z.number().int(),
+        z.null()
+    ]).optional(),
+    download_url: z.union([
+        z.string(),
         z.null()
     ]).optional()
 }).describe('Represents a file from a debrid service');
@@ -740,7 +751,9 @@ export type LogsResponseZodType = z.infer<typeof zLogsResponse>;
  * MessageResponse
  */
 export const zMessageResponse = z.object({
-    message: z.string()
+    message: z.string(),
+    tmdb_ids: z.array(z.string()).optional().default([]),
+    tvdb_ids: z.array(z.string()).optional().default([])
 });
 
 export type MessageResponseZodType = z.infer<typeof zMessageResponse>;
@@ -874,7 +887,7 @@ export type ParsedDataZodType = z.infer<typeof zParsedData>;
  */
 export const zPauseResponse = z.object({
     message: z.string(),
-    ids: z.array(z.string())
+    ids: z.array(z.number().int())
 });
 
 export type PauseResponseZodType = z.infer<typeof zPauseResponse>;
@@ -912,26 +925,17 @@ export type ReindexResponseZodType = z.infer<typeof zReindexResponse>;
  */
 export const zRemoveResponse = z.object({
     message: z.string(),
-    ids: z.array(z.string())
+    ids: z.array(z.number().int())
 });
 
 export type RemoveResponseZodType = z.infer<typeof zRemoveResponse>;
-
-/**
- * RepairSymlinksResponse
- */
-export const zRepairSymlinksResponse = z.object({
-    message: z.string()
-});
-
-export type RepairSymlinksResponseZodType = z.infer<typeof zRepairSymlinksResponse>;
 
 /**
  * ResetResponse
  */
 export const zResetResponse = z.object({
     message: z.string(),
-    ids: z.array(z.string())
+    ids: z.array(z.number().int())
 });
 
 export type ResetResponseZodType = z.infer<typeof zResetResponse>;
@@ -951,6 +955,8 @@ export type RetryResponseZodType = z.infer<typeof zRetryResponse>;
  */
 export const zRootResponse = z.object({
     message: z.string(),
+    tmdb_ids: z.array(z.string()).optional().default([]),
+    tvdb_ids: z.array(z.string()).optional().default([]),
     version: z.string()
 });
 
@@ -1077,7 +1083,8 @@ export const zTorrentInfo = z.object({
     files: z.record(z.record(z.union([
         z.number().int(),
         z.string()
-    ]))).optional()
+    ]))).optional(),
+    links: z.array(z.string()).optional()
 }).describe('Torrent information from a debrid service');
 
 export type TorrentInfoZodType = z.infer<typeof zTorrentInfo>;
@@ -1176,6 +1183,16 @@ export const zUpdateAttributesResponse = z.object({
 export type UpdateAttributesResponseZodType = z.infer<typeof zUpdateAttributesResponse>;
 
 /**
+ * UpdateNewReleasesResponse
+ */
+export const zUpdateNewReleasesResponse = z.object({
+    message: z.string(),
+    updated_items: z.array(z.record(z.unknown()))
+});
+
+export type UpdateNewReleasesResponseZodType = z.infer<typeof zUpdateNewReleasesResponse>;
+
+/**
  * UpdateOngoingResponse
  */
 export const zUpdateOngoingResponse = z.object({
@@ -1196,10 +1213,19 @@ export const zUploadLogsResponse = z.object({
 export type UploadLogsResponseZodType = z.infer<typeof zUploadLogsResponse>;
 
 /**
+ * VFSStatsResponse
+ */
+export const zVfsStatsResponse = z.object({
+    stats: z.record(z.record(z.unknown())).describe('VFS statistics')
+});
+
+export type VfsStatsResponseZodType = z.infer<typeof zVfsStatsResponse>;
+
+/**
  * EventResponse
  */
 export const zRoutersSecureDefaultEventResponse = z.object({
-    events: z.record(z.array(z.string()))
+    events: z.record(z.array(z.number().int()))
 });
 
 export type RoutersSecureDefaultEventResponseZodType = z.infer<typeof zRoutersSecureDefaultEventResponse>;
@@ -1411,6 +1437,21 @@ export const zFetchCalendarResponse = zCalendarResponse;
 
 export type FetchCalendarResponseZodType = z.infer<typeof zFetchCalendarResponse>;
 
+export const zGetVfsStatsData = z.object({
+    body: z.never().optional(),
+    path: z.never().optional(),
+    query: z.never().optional()
+});
+
+export type GetVfsStatsDataZodType = z.infer<typeof zGetVfsStatsData>;
+
+/**
+ * Successful Response
+ */
+export const zGetVfsStatsResponse = zVfsStatsResponse;
+
+export type GetVfsStatsResponseZodType = z.infer<typeof zGetVfsStatsResponse>;
+
 export const zGetStatesData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
@@ -1483,7 +1524,21 @@ export const zAddItemsData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
-        imdb_ids: z.string().optional()
+        tmdb_ids: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tvdb_ids: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        media_type: z.union([
+            z.enum([
+                'movie',
+                'tv'
+            ]),
+            z.null()
+        ]).optional()
     }).optional()
 });
 
@@ -1502,7 +1557,12 @@ export const zGetItemData = z.object({
         id: z.string()
     }),
     query: z.object({
-        use_tmdb_id: z.union([
+        media_type: z.enum([
+            'movie',
+            'tv',
+            'item'
+        ]).optional(),
+        with_streams: z.union([
             z.boolean(),
             z.null()
         ]).optional()
@@ -1518,24 +1578,6 @@ export type GetItemDataZodType = z.infer<typeof zGetItemData>;
 export const zGetItemResponse = z.record(z.unknown()).describe('Successful Response');
 
 export type GetItemResponseZodType = z.infer<typeof zGetItemResponse>;
-
-export const zGetItemsByImdbIdsData = z.object({
-    body: z.never().optional(),
-    path: z.object({
-        imdb_ids: z.string()
-    }),
-    query: z.never().optional()
-});
-
-export type GetItemsByImdbIdsDataZodType = z.infer<typeof zGetItemsByImdbIdsData>;
-
-/**
- * Response Get Items By Imdb Ids
- * Successful Response
- */
-export const zGetItemsByImdbIdsResponse = z.array(z.record(z.unknown())).describe('Successful Response');
-
-export type GetItemsByImdbIdsResponseZodType = z.infer<typeof zGetItemsByImdbIdsResponse>;
 
 export const zResetItemsData = z.object({
     body: z.never().optional(),
@@ -1601,25 +1643,30 @@ export const zUpdateOngoingItemsResponse = zUpdateOngoingResponse;
 
 export type UpdateOngoingItemsResponseZodType = z.infer<typeof zUpdateOngoingItemsResponse>;
 
-export const zRepairSymlinksData = z.object({
+export const zUpdateNewReleasesItemsData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
-        directory: z.union([
-            z.string(),
+        update_type: z.enum([
+            'series',
+            'seasons',
+            'episodes'
+        ]).optional(),
+        hours: z.union([
+            z.number().int(),
             z.null()
         ]).optional()
     }).optional()
 });
 
-export type RepairSymlinksDataZodType = z.infer<typeof zRepairSymlinksData>;
+export type UpdateNewReleasesItemsDataZodType = z.infer<typeof zUpdateNewReleasesItemsData>;
 
 /**
  * Successful Response
  */
-export const zRepairSymlinksResponse2 = zRepairSymlinksResponse;
+export const zUpdateNewReleasesItemsResponse = zUpdateNewReleasesResponse;
 
-export type RepairSymlinksResponseZodType2 = z.infer<typeof zRepairSymlinksResponse2>;
+export type UpdateNewReleasesItemsResponseZodType = z.infer<typeof zUpdateNewReleasesItemsResponse>;
 
 export const zRemoveItemData = z.object({
     body: z.never().optional(),
@@ -1641,7 +1688,7 @@ export type RemoveItemResponseZodType = z.infer<typeof zRemoveItemResponse>;
 export const zGetItemStreamsApiV1ItemsItemIdStreamsGetData = z.object({
     body: z.never().optional(),
     path: z.object({
-        item_id: z.string()
+        item_id: z.number().int()
     }),
     query: z.never().optional()
 });
@@ -1651,7 +1698,7 @@ export type GetItemStreamsApiV1ItemsItemIdStreamsGetDataZodType = z.infer<typeof
 export const zBlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = z.object({
     body: z.never().optional(),
     path: z.object({
-        item_id: z.string(),
+        item_id: z.number().int(),
         stream_id: z.number().int()
     }),
     query: z.never().optional()
@@ -1662,7 +1709,7 @@ export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostDataZodTy
 export const zUnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData = z.object({
     body: z.never().optional(),
     path: z.object({
-        item_id: z.string(),
+        item_id: z.number().int(),
         stream_id: z.number().int()
     }),
     query: z.never().optional()
@@ -1673,7 +1720,7 @@ export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostDataZ
 export const zResetItemStreamsData = z.object({
     body: z.never().optional(),
     path: z.object({
-        item_id: z.string()
+        item_id: z.number().int()
     }),
     query: z.never().optional()
 });
@@ -1714,11 +1761,19 @@ export const zUnpauseItemsResponse = zPauseResponse;
 
 export type UnpauseItemsResponseZodType = z.infer<typeof zUnpauseItemsResponse>;
 
-export const zTraktReindexerData = z.object({
+export const zCompositeReindexerData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
         item_id: z.union([
+            z.number().int(),
+            z.null()
+        ]).optional(),
+        tvdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tmdb_id: z.union([
             z.string(),
             z.null()
         ]).optional(),
@@ -1729,20 +1784,20 @@ export const zTraktReindexerData = z.object({
     }).optional()
 });
 
-export type TraktReindexerDataZodType = z.infer<typeof zTraktReindexerData>;
+export type CompositeReindexerDataZodType = z.infer<typeof zCompositeReindexerData>;
 
 /**
  * Successful Response
  */
-export const zTraktReindexerResponse = zReindexResponse;
+export const zCompositeReindexerResponse = zReindexResponse;
 
-export type TraktReindexerResponseZodType = z.infer<typeof zTraktReindexerResponse>;
+export type CompositeReindexerResponseZodType = z.infer<typeof zCompositeReindexerResponse>;
 
 export const zFfprobeMediaFilesData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
-        id: z.string()
+        id: z.number().int()
     })
 });
 
@@ -1757,10 +1812,32 @@ export type FfprobeMediaFilesResponseZodType = z.infer<typeof zFfprobeMediaFiles
 
 export const zScrapeItemData = z.object({
     body: z.never().optional(),
-    path: z.object({
-        id: z.string()
-    }),
-    query: z.never().optional()
+    path: z.never().optional(),
+    query: z.object({
+        item_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tmdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tvdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        imdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        media_type: z.union([
+            z.enum([
+                'movie',
+                'tv'
+            ]),
+            z.null()
+        ]).optional()
+    }).optional()
 });
 
 export type ScrapeItemDataZodType = z.infer<typeof zScrapeItemData>;
@@ -1776,9 +1853,34 @@ export const zStartManualSessionData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.object({
-        item_id: z.string(),
-        magnet: z.string()
-    })
+        item_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tmdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        tvdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        imdb_id: z.union([
+            z.string(),
+            z.null()
+        ]).optional(),
+        media_type: z.union([
+            z.enum([
+                'movie',
+                'tv'
+            ]),
+            z.null()
+        ]).optional(),
+        magnet: z.union([
+            z.string(),
+            z.null()
+        ]).optional()
+    }).optional()
 });
 
 export type StartManualSessionDataZodType = z.infer<typeof zStartManualSessionData>;

@@ -29,28 +29,12 @@ export type AppModel = {
     /**
      * Debug
      */
-    debug?: boolean;
-    /**
-     * Debug Database
-     */
-    debug_database?: boolean;
-    /**
-     * Log
-     */
-    log?: boolean;
-    /**
-     * Force Refresh
-     */
-    force_refresh?: boolean;
-    /**
-     * Map Metadata
-     */
-    map_metadata?: boolean;
+    debug?: 'TRACE' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
     /**
      * Tracemalloc
      */
     tracemalloc?: boolean;
-    symlink?: SymlinkModel;
+    filesystem?: FilesystemModel;
     updaters?: UpdatersModel;
     downloaders?: DownloadersModel;
     content?: ContentModel;
@@ -205,6 +189,10 @@ export type DebridFile = {
      * Filesize
      */
     filesize?: number | null;
+    /**
+     * Download Url
+     */
+    download_url?: string | null;
 };
 
 /**
@@ -294,6 +282,52 @@ export type FfprobeResponse = {
     data: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * FilesystemModel
+ */
+export type FilesystemModel = {
+    /**
+     * Mount Path
+     */
+    mount_path?: string;
+    /**
+     * Debug Fuse
+     */
+    debug_fuse?: boolean;
+    /**
+     * Separate Anime Dirs
+     */
+    separate_anime_dirs?: boolean;
+    /**
+     * Vfs Cache Dir
+     */
+    vfs_cache_dir?: string;
+    /**
+     * Vfs Cache Max Size Mb
+     */
+    vfs_cache_max_size_mb?: number;
+    /**
+     * Vfs Cache Ttl Seconds
+     */
+    vfs_cache_ttl_seconds?: number;
+    /**
+     * Vfs Cache Eviction
+     */
+    vfs_cache_eviction?: string;
+    /**
+     * Vfs Cache Metrics
+     */
+    vfs_cache_metrics?: boolean;
+    /**
+     * Vfs Chunk Mb
+     */
+    vfs_chunk_mb?: number;
+    /**
+     * Fetch Ahead Size Mb
+     */
+    fetch_ahead_size_mb?: number;
 };
 
 /**
@@ -405,32 +439,6 @@ export type JellyfinLibraryModel = {
 };
 
 /**
- * KnightcrawlerConfig
- */
-export type KnightcrawlerConfig = {
-    /**
-     * Enabled
-     */
-    enabled?: boolean;
-    /**
-     * Filter
-     */
-    filter?: string;
-    /**
-     * Url
-     */
-    url?: string;
-    /**
-     * Timeout
-     */
-    timeout?: number;
-    /**
-     * Ratelimit
-     */
-    ratelimit?: boolean;
-};
-
-/**
  * LanguagesConfig
  * Configuration for which languages are enabled.
  */
@@ -537,6 +545,14 @@ export type MessageResponse = {
      * Message
      */
     message: string;
+    /**
+     * Tmdb Ids
+     */
+    tmdb_ids?: Array<string>;
+    /**
+     * Tvdb Ids
+     */
+    tvdb_ids?: Array<string>;
 };
 
 /**
@@ -632,7 +648,6 @@ export type OrionoidConfig = {
     timeout?: number;
     /**
      * Ratelimit
-     * @deprecated
      */
     ratelimit?: boolean;
 };
@@ -889,7 +904,7 @@ export type PauseResponse = {
     /**
      * Ids
      */
-    ids: Array<string>;
+    ids: Array<number>;
 };
 
 /**
@@ -1069,6 +1084,28 @@ export type RtnSettingsModel = {
 };
 
 /**
+ * RarbgConfig
+ */
+export type RarbgConfig = {
+    /**
+     * Enabled
+     */
+    enabled?: boolean;
+    /**
+     * Url
+     */
+    url?: string;
+    /**
+     * Timeout
+     */
+    timeout?: number;
+    /**
+     * Ratelimit
+     */
+    ratelimit?: boolean;
+};
+
+/**
  * RealDebridModel
  */
 export type RealDebridModel = {
@@ -1103,17 +1140,7 @@ export type RemoveResponse = {
     /**
      * Ids
      */
-    ids: Array<string>;
-};
-
-/**
- * RepairSymlinksResponse
- */
-export type RepairSymlinksResponse = {
-    /**
-     * Message
-     */
-    message: string;
+    ids: Array<number>;
 };
 
 /**
@@ -1127,7 +1154,7 @@ export type ResetResponse = {
     /**
      * Ids
      */
-    ids: Array<string>;
+    ids: Array<number>;
 };
 
 /**
@@ -1202,6 +1229,14 @@ export type RootResponse = {
      */
     message: string;
     /**
+     * Tmdb Ids
+     */
+    tmdb_ids?: Array<string>;
+    /**
+     * Tvdb Ids
+     */
+    tvdb_ids?: Array<string>;
+    /**
      * Version
      */
     version: string;
@@ -1240,10 +1275,6 @@ export type ScraperModel = {
      */
     after_10?: number;
     /**
-     * Parse Debug
-     */
-    parse_debug?: boolean;
-    /**
      * Enable Aliases
      */
     enable_aliases?: boolean;
@@ -1260,13 +1291,13 @@ export type ScraperModel = {
      */
     dubbed_anime_only?: boolean;
     torrentio?: TorrentioConfig;
-    knightcrawler?: KnightcrawlerConfig;
     jackett?: JackettConfig;
     prowlarr?: ProwlarrConfig;
     orionoid?: OrionoidConfig;
     mediafusion?: MediafusionConfig;
     zilean?: ZileanConfig;
     comet?: CometConfig;
+    rarbg?: RarbgConfig;
 };
 
 /**
@@ -1470,32 +1501,6 @@ export type SubliminalConfig = {
 };
 
 /**
- * SymlinkModel
- */
-export type SymlinkModel = {
-    /**
-     * Rclone Path
-     */
-    rclone_path?: string;
-    /**
-     * Library Path
-     */
-    library_path?: string;
-    /**
-     * Separate Anime Dirs
-     */
-    separate_anime_dirs?: boolean;
-    /**
-     * Repair Symlinks
-     */
-    repair_symlinks?: boolean;
-    /**
-     * Repair Interval
-     */
-    repair_interval?: number;
-};
-
-/**
  * TorBoxModel
  */
 export type TorBoxModel = {
@@ -1577,6 +1582,10 @@ export type TorrentInfo = {
             [key: string]: number | string;
         };
     };
+    /**
+     * Links
+     */
+    links?: Array<string>;
 };
 
 /**
@@ -1601,7 +1610,6 @@ export type TorrentioConfig = {
     timeout?: number;
     /**
      * Ratelimit
-     * @deprecated
      */
     ratelimit?: boolean;
     /**
@@ -1735,6 +1743,22 @@ export type UpdateAttributesResponse = {
 };
 
 /**
+ * UpdateNewReleasesResponse
+ */
+export type UpdateNewReleasesResponse = {
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Updated Items
+     */
+    updated_items: Array<{
+        [key: string]: unknown;
+    }>;
+};
+
+/**
  * UpdateOngoingResponse
  */
 export type UpdateOngoingResponse = {
@@ -1758,6 +1782,10 @@ export type UpdatersModel = {
      * Updater Interval
      */
     updater_interval?: number;
+    /**
+     * Library Path
+     */
+    library_path?: string;
     plex?: PlexLibraryModel;
     jellyfin?: JellyfinLibraryModel;
     emby?: EmbyLibraryModel;
@@ -1776,6 +1804,21 @@ export type UploadLogsResponse = {
      * URL to the uploaded log file. 50M Filesize limit. 180 day retention.
      */
     url: string;
+};
+
+/**
+ * VFSStatsResponse
+ */
+export type VfsStatsResponse = {
+    /**
+     * Stats
+     * VFS statistics
+     */
+    stats: {
+        [key: string]: {
+            [key: string]: unknown;
+        };
+    };
 };
 
 /**
@@ -1814,7 +1857,6 @@ export type ZileanConfig = {
     timeout?: number;
     /**
      * Ratelimit
-     * @deprecated
      */
     ratelimit?: boolean;
 };
@@ -1827,7 +1869,7 @@ export type RoutersSecureDefaultEventResponse = {
      * Events
      */
     events: {
-        [key: string]: Array<string>;
+        [key: string]: Array<number>;
     };
 };
 
@@ -2149,6 +2191,29 @@ export type FetchCalendarResponses = {
 
 export type FetchCalendarResponse = FetchCalendarResponses[keyof FetchCalendarResponses];
 
+export type GetVfsStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/vfs_stats';
+};
+
+export type GetVfsStatsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type GetVfsStatsResponses = {
+    /**
+     * Successful Response
+     */
+    200: VfsStatsResponse;
+};
+
+export type GetVfsStatsResponse = GetVfsStatsResponses[keyof GetVfsStatsResponses];
+
 export type GetStatesData = {
     body?: never;
     path?: never;
@@ -2239,9 +2304,17 @@ export type AddItemsData = {
     path?: never;
     query?: {
         /**
-         * Imdb Ids
+         * Tmdb Ids
          */
-        imdb_ids?: string;
+        tmdb_ids?: string | null;
+        /**
+         * Tvdb Ids
+         */
+        tvdb_ids?: string | null;
+        /**
+         * Media Type
+         */
+        media_type?: ('movie' | 'tv') | null;
     };
     url: '/api/v1/items/add';
 };
@@ -2278,9 +2351,13 @@ export type GetItemData = {
     };
     query?: {
         /**
-         * Use Tmdb Id
+         * Media Type
          */
-        use_tmdb_id?: boolean | null;
+        media_type?: 'movie' | 'tv' | 'item';
+        /**
+         * With Streams
+         */
+        with_streams?: boolean | null;
     };
     url: '/api/v1/items/{id}';
 };
@@ -2309,43 +2386,6 @@ export type GetItemResponses = {
 };
 
 export type GetItemResponse = GetItemResponses[keyof GetItemResponses];
-
-export type GetItemsByImdbIdsData = {
-    body?: never;
-    path: {
-        /**
-         * Imdb Ids
-         */
-        imdb_ids: string;
-    };
-    query?: never;
-    url: '/api/v1/items/imdb/{imdb_ids}';
-};
-
-export type GetItemsByImdbIdsErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetItemsByImdbIdsError = GetItemsByImdbIdsErrors[keyof GetItemsByImdbIdsErrors];
-
-export type GetItemsByImdbIdsResponses = {
-    /**
-     * Response Get Items By Imdb Ids
-     * Successful Response
-     */
-    200: Array<{
-        [key: string]: unknown;
-    }>;
-};
-
-export type GetItemsByImdbIdsResponse = GetItemsByImdbIdsResponses[keyof GetItemsByImdbIdsResponses];
 
 export type ResetItemsData = {
     body?: never;
@@ -2461,19 +2501,23 @@ export type UpdateOngoingItemsResponses = {
 
 export type UpdateOngoingItemsResponse = UpdateOngoingItemsResponses[keyof UpdateOngoingItemsResponses];
 
-export type RepairSymlinksData = {
+export type UpdateNewReleasesItemsData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Directory
+         * Update Type
          */
-        directory?: string | null;
+        update_type?: 'series' | 'seasons' | 'episodes';
+        /**
+         * Hours
+         */
+        hours?: number | null;
     };
-    url: '/api/v1/items/repair_symlinks';
+    url: '/api/v1/items/update_new_releases';
 };
 
-export type RepairSymlinksErrors = {
+export type UpdateNewReleasesItemsErrors = {
     /**
      * Not found
      */
@@ -2484,16 +2528,16 @@ export type RepairSymlinksErrors = {
     422: HttpValidationError;
 };
 
-export type RepairSymlinksError = RepairSymlinksErrors[keyof RepairSymlinksErrors];
+export type UpdateNewReleasesItemsError = UpdateNewReleasesItemsErrors[keyof UpdateNewReleasesItemsErrors];
 
-export type RepairSymlinksResponses = {
+export type UpdateNewReleasesItemsResponses = {
     /**
      * Successful Response
      */
-    200: RepairSymlinksResponse;
+    200: UpdateNewReleasesResponse;
 };
 
-export type RepairSymlinksResponse2 = RepairSymlinksResponses[keyof RepairSymlinksResponses];
+export type UpdateNewReleasesItemsResponse = UpdateNewReleasesItemsResponses[keyof UpdateNewReleasesItemsResponses];
 
 export type RemoveItemData = {
     body?: never;
@@ -2535,7 +2579,7 @@ export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
         /**
          * Item Id
          */
-        item_id: string;
+        item_id: number;
     };
     query?: never;
     url: '/api/v1/items/{item_id}/streams';
@@ -2567,7 +2611,7 @@ export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
         /**
          * Item Id
          */
-        item_id: string;
+        item_id: number;
         /**
          * Stream Id
          */
@@ -2603,7 +2647,7 @@ export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData 
         /**
          * Item Id
          */
-        item_id: string;
+        item_id: number;
         /**
          * Stream Id
          */
@@ -2639,7 +2683,7 @@ export type ResetItemStreamsData = {
         /**
          * Item Id
          */
-        item_id: string;
+        item_id: number;
     };
     query?: never;
     url: '/api/v1/items/{item_id}/streams/reset';
@@ -2733,14 +2777,22 @@ export type UnpauseItemsResponses = {
 
 export type UnpauseItemsResponse = UnpauseItemsResponses[keyof UnpauseItemsResponses];
 
-export type TraktReindexerData = {
+export type CompositeReindexerData = {
     body?: never;
     path?: never;
     query?: {
         /**
          * Item Id
          */
-        item_id?: string | null;
+        item_id?: number | null;
+        /**
+         * Tvdb Id
+         */
+        tvdb_id?: string | null;
+        /**
+         * Tmdb Id
+         */
+        tmdb_id?: string | null;
         /**
          * Imdb Id
          */
@@ -2749,7 +2801,7 @@ export type TraktReindexerData = {
     url: '/api/v1/items/reindex';
 };
 
-export type TraktReindexerErrors = {
+export type CompositeReindexerErrors = {
     /**
      * Not found
      */
@@ -2760,16 +2812,16 @@ export type TraktReindexerErrors = {
     422: HttpValidationError;
 };
 
-export type TraktReindexerError = TraktReindexerErrors[keyof TraktReindexerErrors];
+export type CompositeReindexerError = CompositeReindexerErrors[keyof CompositeReindexerErrors];
 
-export type TraktReindexerResponses = {
+export type CompositeReindexerResponses = {
     /**
      * Successful Response
      */
     200: ReindexResponse;
 };
 
-export type TraktReindexerResponse = TraktReindexerResponses[keyof TraktReindexerResponses];
+export type CompositeReindexerResponse = CompositeReindexerResponses[keyof CompositeReindexerResponses];
 
 export type FfprobeMediaFilesData = {
     body?: never;
@@ -2778,7 +2830,7 @@ export type FfprobeMediaFilesData = {
         /**
          * Id
          */
-        id: string;
+        id: number;
     };
     url: '/api/v1/items/ffprobe';
 };
@@ -2807,14 +2859,30 @@ export type FfprobeMediaFilesResponse = FfprobeMediaFilesResponses[keyof Ffprobe
 
 export type ScrapeItemData = {
     body?: never;
-    path: {
+    path?: never;
+    query?: {
         /**
-         * Id
+         * Item Id
          */
-        id: string;
+        item_id?: string | null;
+        /**
+         * Tmdb Id
+         */
+        tmdb_id?: string | null;
+        /**
+         * Tvdb Id
+         */
+        tvdb_id?: string | null;
+        /**
+         * Imdb Id
+         */
+        imdb_id?: string | null;
+        /**
+         * Media Type
+         */
+        media_type?: ('movie' | 'tv') | null;
     };
-    query?: never;
-    url: '/api/v1/scrape/scrape/{id}';
+    url: '/api/v1/scrape/scrape';
 };
 
 export type ScrapeItemErrors = {
@@ -2838,15 +2906,31 @@ export type ScrapeItemResponse2 = ScrapeItemResponses[keyof ScrapeItemResponses]
 export type StartManualSessionData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         /**
          * Item Id
          */
-        item_id: string;
+        item_id?: string | null;
+        /**
+         * Tmdb Id
+         */
+        tmdb_id?: string | null;
+        /**
+         * Tvdb Id
+         */
+        tvdb_id?: string | null;
+        /**
+         * Imdb Id
+         */
+        imdb_id?: string | null;
+        /**
+         * Media Type
+         */
+        media_type?: ('movie' | 'tv') | null;
         /**
          * Magnet
          */
-        magnet: string;
+        magnet?: string | null;
     };
     url: '/api/v1/scrape/scrape/start_session';
 };
@@ -3300,5 +3384,5 @@ export type StreamEventsApiV1StreamEventTypeGetResponses = {
 export type StreamEventsApiV1StreamEventTypeGetResponse = StreamEventsApiV1StreamEventTypeGetResponses[keyof StreamEventsApiV1StreamEventTypeGetResponses];
 
 export type ClientOptions = {
-    baseUrl: 'https://riven-backend.m5183.de' | (string & {});
+    baseUrl: 'https://rv1.m5183.de' | (string & {});
 };
