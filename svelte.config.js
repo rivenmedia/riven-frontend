@@ -15,6 +15,9 @@ const config = {
         experimental: {
             async: true
         }
+    },
+    vitePlugin: {
+        inspector: true
     }
 };
 
