@@ -242,7 +242,7 @@
     </div>
 {/snippet}
 
-<div class="p-6 h-full w-full md:p-8 md:px-16">
+<div class="h-full w-full p-6 md:p-8 md:px-16">
     <Card.Root class="mb-4 md:mb-6">
         <Card.Header class="pb-4">
             <div class="flex items-center justify-between">

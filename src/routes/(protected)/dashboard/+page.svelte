@@ -7,6 +7,7 @@
 
     let { data }: { data: PageData } = $props();
 </script>
+
 <!-- 
 {#snippet cardBase(title: string, description?: string, )}
     

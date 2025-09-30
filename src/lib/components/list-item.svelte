@@ -6,7 +6,7 @@
     let { data, indexer, type } = $props();
 
     if (indexer === "anilist" && !type) {
-        type = data.media_type
+        type = data.media_type;
     }
 
     const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;

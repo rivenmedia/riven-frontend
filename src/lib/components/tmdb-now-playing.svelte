@@ -76,7 +76,9 @@
                                 </div>
                             </div>
                             <div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
-                                <Button href="/watch/{item.id}" class="w-full md:w-auto bg-foreground text-background px-8 hover:bg-foreground/90"
+                                <Button
+                                    href="/watch/{item.id}"
+                                    class="bg-foreground text-background hover:bg-foreground/90 w-full px-8 md:w-auto"
                                     >Request</Button>
                                 <Button variant="link" href="/details/{item.id}"
                                     >View Details</Button>

@@ -3384,5 +3384,5 @@ export type StreamEventsApiV1StreamEventTypeGetResponses = {
 export type StreamEventsApiV1StreamEventTypeGetResponse = StreamEventsApiV1StreamEventTypeGetResponses[keyof StreamEventsApiV1StreamEventTypeGetResponses];
 
 export type ClientOptions = {
-    baseUrl: 'https://rv1.m5183.de' | (string & {});
+    baseUrl: 'http://localhost:8080' | (string & {});
 };
