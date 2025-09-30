@@ -44,7 +44,7 @@
         "globals": "^16.4.0",
         "kysely-codegen": "^0.18.5",
         "kysely-ctl": "^0.15.3",
-        "layerchart": "2.0.0-next.23",
+        "layerchart": "2.0.0-next.27",
         "mdsvex": "^0.12.6",
         "openapi-typescript": "^7.9.1",
         "prettier": "^3.6.2",

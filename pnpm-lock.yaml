@@ -112,8 +112,8 @@ importers:
         specifier: ^0.15.3
         version: 0.15.3(kysely@0.28.7)(typescript@5.9.2)
       layerchart:
-        specifier: 2.0.0-next.23
-        version: 2.0.0-next.23(svelte@5.39.6)
+        specifier: 2.0.0-next.27
+        version: 2.0.0-next.27(svelte@5.39.6)
       mdsvex:
         specifier: ^0.12.6
         version: 0.12.6(svelte@5.39.6)
@@ -1896,8 +1896,8 @@ packages:
     resolution: {integrity: sha512-u/cAuTL4DRIiO2/g4vNGRgklEKNIj5Q3CG7RoUB5DV5SfEC2hMvPxKi0GWPmnzwL2ryIeud2VTcEEmqzTzEPNw==}
     engines: {node: '>=20.0.0'}
 
-  layerchart@2.0.0-next.23:
-    resolution: {integrity: sha512-Uf7/xMjhHcJHQqstjV4RN9GdUWSLQkmrfCKsvTneeJBVNUWs2C9djH6SQTVtv/FcT0HEyIv573RomB3m7uLSUw==}
+  layerchart@2.0.0-next.27:
+    resolution: {integrity: sha512-yt28xU8WzXq0AliX7eiC0JKZGQtO8M9FmHvt8sESNitSc/yC+fYeTghaO9lMRwcYCmi6D1NjbFyD9mWFeazNIQ==}
     peerDependencies:
       svelte: ^5.0.0
 
@@ -4650,7 +4650,7 @@ snapshots:
 
   kysely@0.28.7: {}
 
-  layerchart@2.0.0-next.23(svelte@5.39.6):
+  layerchart@2.0.0-next.27(svelte@5.39.6):
     dependencies:
       '@dagrejs/dagre': 1.1.5
       '@layerstack/svelte-actions': 1.0.1-next.12
