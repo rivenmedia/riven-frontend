@@ -27,7 +27,7 @@
         ];
     });
 
-    $inspect(data)
+    $inspect(data);
 </script>
 
 {#snippet KPICard({
@@ -126,6 +126,37 @@
                         {/snippet}
                     </PieChart>
                 </Chart.Container>
+            </Card.Content>
+        </Card.Root>
+    </section>
+
+    <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card.Root class="lg:col-span-2">
+            <Card.Header class="pb-2">
+                <Card.Title class="text-sm font-medium text-neutral-300">Service Status</Card.Title>
+            </Card.Header>
+            <Card.Content>
+                <div class="flex flex-wrap gap-4">
+                    {#if data.services && Object.keys(data.services).length > 0}
+                        {#each Object.entries(data.services) as [serviceName, status]}
+                            {#if status === true}
+                                <Badge variant="default" class="px-2 py-1 text-xs font-medium bg-green-600/20 text-green-400">
+                                    {serviceName}
+                                </Badge>
+                            {:else if status === false}
+                                <Badge variant="destructive" class="px-2 py-1 text-xs font-medium">
+                                    {serviceName}
+                                </Badge>
+                            {:else}
+                                <Badge variant="secondary" class="px-2 py-1 text-xs font-medium">
+                                    {serviceName}
+                                </Badge>
+                            {/if}
+                        {/each}
+                    {:else}
+                        <p class="text-sm text-neutral-400">No service data available.</p>
+                    {/if}
+                </div>
             </Card.Content>
         </Card.Root>
     </section>
