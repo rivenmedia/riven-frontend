@@ -3,29 +3,18 @@
 import { z } from 'zod/v3';
 
 /**
- * AllDebridModel
- */
-export const zAllDebridModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default('')
-});
-
-export type AllDebridModelZodType = z.infer<typeof zAllDebridModel>;
-
-/**
  * FilesystemModel
  */
 export const zFilesystemModel = z.object({
     mount_path: z.string().optional().default('/path/to/riven/mount'),
-    debug_fuse: z.boolean().optional().default(false),
     separate_anime_dirs: z.boolean().optional().default(false),
-    vfs_cache_dir: z.string().optional().default('/dev/shm/riven-cache'),
-    vfs_cache_max_size_mb: z.number().int().optional().default(10240),
-    vfs_cache_ttl_seconds: z.number().int().optional().default(7200),
-    vfs_cache_eviction: z.string().optional().default('LRU'),
-    vfs_cache_metrics: z.boolean().optional().default(true),
-    vfs_chunk_mb: z.number().int().optional().default(32),
-    fetch_ahead_size_mb: z.number().int().optional().default(128)
+    cache_dir: z.string().optional().default('/dev/shm/riven-cache'),
+    cache_max_size_mb: z.number().int().optional().default(10240),
+    cache_ttl_seconds: z.number().int().optional().default(7200),
+    cache_eviction: z.string().optional().default('LRU'),
+    cache_metrics: z.boolean().optional().default(true),
+    chunk_size_mb: z.number().int().optional().default(8),
+    fetch_ahead_chunks: z.number().int().optional().default(4)
 });
 
 export type FilesystemModelZodType = z.infer<typeof zFilesystemModel>;
@@ -107,7 +96,6 @@ export const zDownloadersModel = z.object({
     episode_filesize_mb_max: z.number().int().optional().default(-1),
     proxy_url: z.string().optional().default(''),
     real_debrid: zRealDebridModel.optional(),
-    all_debrid: zAllDebridModel.optional(),
     torbox: zTorBoxModel.optional()
 });
 
@@ -692,6 +680,66 @@ export const zContainer = z.record(zDebridFile).describe('Root model for contain
 export type ContainerZodType = z.infer<typeof zContainer>;
 
 /**
+ * DownloaderUserInfo
+ * Normalized downloader user information response
+ */
+export const zDownloaderUserInfo = z.object({
+    service: z.enum([
+        'realdebrid',
+        'torbox',
+        'alldebrid'
+    ]),
+    username: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    email: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    user_id: z.union([
+        z.number().int(),
+        z.string()
+    ]),
+    premium_status: z.enum([
+        'free',
+        'premium'
+    ]),
+    premium_expires_at: z.union([
+        z.string(),
+        z.null()
+    ]).optional(),
+    premium_days_left: z.union([
+        z.number().int(),
+        z.null()
+    ]).optional(),
+    points: z.union([
+        z.number().int(),
+        z.null()
+    ]).optional(),
+    total_downloaded_bytes: z.union([
+        z.number().int(),
+        z.null()
+    ]).optional(),
+    cooldown_until: z.union([
+        z.string(),
+        z.null()
+    ]).optional()
+}).describe('Normalized downloader user information response');
+
+export type DownloaderUserInfoZodType = z.infer<typeof zDownloaderUserInfo>;
+
+/**
+ * DownloaderUserInfoResponse
+ * Response containing user info for all initialized downloader services
+ */
+export const zDownloaderUserInfoResponse = z.object({
+    services: z.array(zDownloaderUserInfo)
+}).describe('Response containing user info for all initialized downloader services');
+
+export type DownloaderUserInfoResponseZodType = z.infer<typeof zDownloaderUserInfoResponse>;
+
+/**
  * FfprobeResponse
  */
 export const zFfprobeResponse = z.object({
@@ -893,25 +941,6 @@ export const zPauseResponse = z.object({
 export type PauseResponseZodType = z.infer<typeof zPauseResponse>;
 
 /**
- * RDUser
- */
-export const zRdUser = z.object({
-    id: z.number().int(),
-    username: z.string(),
-    email: z.string(),
-    points: z.number().int().describe("User's RD points"),
-    locale: z.string(),
-    avatar: z.string().describe("URL to the user's avatar"),
-    type: z.enum([
-        'free',
-        'premium'
-    ]),
-    premium: z.number().int().describe('Premium subscription left in seconds')
-});
-
-export type RdUserZodType = z.infer<typeof zRdUser>;
-
-/**
  * ReindexResponse
  */
 export const zReindexResponse = z.object({
@@ -945,7 +974,7 @@ export type ResetResponseZodType = z.infer<typeof zResetResponse>;
  */
 export const zRetryResponse = z.object({
     message: z.string(),
-    ids: z.array(z.string())
+    ids: z.array(z.number().int())
 });
 
 export type RetryResponseZodType = z.infer<typeof zRetryResponse>;
@@ -1095,7 +1124,16 @@ export type TorrentInfoZodType = z.infer<typeof zTorrentInfo>;
  */
 export const zTorrentContainer = z.object({
     infohash: z.string(),
-    files: z.array(zDebridFile).optional()
+    files: z.array(zDebridFile).optional(),
+    torrent_id: z.union([
+        z.number().int(),
+        z.string(),
+        z.null()
+    ]).optional(),
+    torrent_info: z.union([
+        zTorrentInfo,
+        z.null()
+    ]).optional()
 }).describe('Represents a collection of files from an infohash from a debrid service');
 
 export type TorrentContainerZodType = z.infer<typeof zTorrentContainer>;
@@ -1269,20 +1307,20 @@ export const zHealthResponse = zMessageResponse;
 
 export type HealthResponseZodType = z.infer<typeof zHealthResponse>;
 
-export const zRdData = z.object({
+export const zDownloadUserInfoData = z.object({
     body: z.never().optional(),
     path: z.never().optional(),
     query: z.never().optional()
 });
 
-export type RdDataZodType = z.infer<typeof zRdData>;
+export type DownloadUserInfoDataZodType = z.infer<typeof zDownloadUserInfoData>;
 
 /**
  * Successful Response
  */
-export const zRdResponse = zRdUser;
+export const zDownloadUserInfoResponse = zDownloaderUserInfoResponse;
 
-export type RdResponseZodType = z.infer<typeof zRdResponse>;
+export type DownloadUserInfoResponseZodType = z.infer<typeof zDownloadUserInfoResponse>;
 
 export const zGenerateapikeyData = z.object({
     body: z.never().optional(),
