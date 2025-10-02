@@ -13,7 +13,7 @@
     let { data } = $props();
 </script>
 
-{#if data}
+{#if Array.isArray(data) && data.length > 0}
     <Carousel.Root
         setApi={(emblaApi) => (api = emblaApi)}
         plugins={[
@@ -22,7 +22,7 @@
             })
         ]}>
         <Carousel.Content>
-            {#each data.results as item}
+            {#each data as item}
                 <Carousel.Item class="relative h-96 w-full">
                     <img
                         src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"

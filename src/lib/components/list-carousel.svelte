@@ -8,7 +8,7 @@
     let { data = $bindable(), indexer, type = "" } = $props();
 </script>
 
-{#if data}
+{#if Array.isArray(data) && data.length > 0}
     <Carousel.Root
         opts={{
             dragFree: true,
