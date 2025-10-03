@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { getAllSettings } from "$lib/api";
+import { getAllSettings, setSettings } from "$lib/api";
 import { zAppModel } from "$lib/api/zod.gen";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -9,7 +9,9 @@ import type { Actions } from "./$types";
 import { message } from 'sveltekit-superforms';
 
 export const load: PageServerLoad = async () => {
-    const settings = await getAllSettings();
+    const settings = await getAllSettings({
+      auth: process.env.API_KEY || ""
+    });
     if (settings.error) {
         error(500, "Failed to load settings");
     }
@@ -31,7 +33,7 @@ export const actions: Actions = {
         return fail(400, { form });
     }
     
-    // const result = await updateSettings(form.data);
+    // const result = await setSettings();
     
     // if (result.error) {
     //   return fail(500, { form, error: result.error });

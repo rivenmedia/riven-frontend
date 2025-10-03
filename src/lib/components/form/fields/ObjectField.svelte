@@ -20,12 +20,12 @@
   <button
     type="button"
     onclick={() => expanded = !expanded}
-    class="flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-2 text-left text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 focus-visible:ring-opacity-75"
+    class="flex w-full items-center justify-between rounded-lg bg-muted px-4 py-2 text-left text-sm font-medium hover:bg-accent focus:outline-none focus-visible:ring focus-visible:ring-ring focus-visible:ring-opacity-75"
   >
     <span>
       {label}
       {#if !isOptional}
-        <span class="text-red-500">*</span>
+        <span class="text-destructive">*</span>
       {/if}
     </span>
     <svg
@@ -37,9 +37,9 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
     </svg>
   </button>
-  
+
   {#if expanded}
-    <div class="mt-4 pl-4 border-l-2 border-gray-200">
+    <div class="mt-4 pl-4 border-l-2 border-border">
       <FormGenerator {schema} {form} {path} />
     </div>
   {/if}
