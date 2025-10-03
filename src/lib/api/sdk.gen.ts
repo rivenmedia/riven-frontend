@@ -197,6 +197,12 @@ export const traktOauthCallback = <ThrowOnError extends boolean = false>(options
 
 /**
  * Get Stats
+ * Produce aggregated statistics for the media library and its items.
+ *
+ * The response includes total counts for media items, movies, shows, seasons, and episodes; the total number of filesystem symlinks (determined by existence of FilesystemEntry records linked to movie or episode items); a mapping of each state to its item count; the number of incomplete items; and a mapping of incomplete item IDs to their scraped attempt counts.
+ *
+ * Returns:
+ * StatsResponse: Aggregated statistics with keys `total_items`, `total_movies`, `total_shows`, `total_seasons`, `total_episodes`, `total_symlinks`, `incomplete_items`, `incomplete_retries`, and `states`.
  */
 export const stats = <ThrowOnError extends boolean = false>(options?: Options<StatsData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<StatsResponses, StatsErrors, ThrowOnError>({
@@ -937,6 +943,19 @@ export const manualSelect = <ThrowOnError extends boolean = false>(options: Opti
 
 /**
  * Match container files to item
+ * Apply selected file attributes from a scraping session to the referenced media item(s).
+ *
+ * Locate the media item referenced by the given scraping session, create or reuse a staging FilesystemEntry for the provided file data, attach the file as the item's active stream (or attach to matching episodes for TV items), persist the changes to the database, and enqueue post-processing events for affected items.
+ *
+ * Parameters:
+ * session_id (str): Identifier of the scraping session containing item and torrent context.
+ * data (DebridFile | ShowFileData): File metadata for a single movie (`DebridFile`) or a mapping of seasons/episodes to file metadata (`ShowFileData`) for TV content.
+ *
+ * Returns:
+ * dict: A message indicating which item(s) were updated, including the item's log string.
+ *
+ * Raises:
+ * HTTPException: 404 if the session or target item cannot be found; 500 if the session lacks an associated item ID.
  */
 export const manualUpdateAttributes = <ThrowOnError extends boolean = false>(options: Options<ManualUpdateAttributesData, ThrowOnError>) => {
     return (options.client ?? _heyApiClient).post<ManualUpdateAttributesResponses, ManualUpdateAttributesErrors, ThrowOnError>({

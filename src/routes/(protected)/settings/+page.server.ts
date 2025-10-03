@@ -1,12 +1,42 @@
 import type { PageServerLoad } from "./$types";
-import { redirect } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import { getAllSettings } from "$lib/api";
+import { zAppModel } from "$lib/api/zod.gen";
+import { superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import { fail } from '@sveltejs/kit';
+import type { Actions } from "./$types";
+import { message } from 'sveltekit-superforms';
 
-export const load: PageServerLoad = async (event) => {
-    if (!event.locals.user || !event.locals.session) {
-        return redirect(302, "/auth/login");
+export const load: PageServerLoad = async () => {
+    const settings = await getAllSettings();
+    if (settings.error) {
+        error(500, "Failed to load settings");
     }
 
+    const form = await superValidate(settings.data, zod(zAppModel));
+
     return {
-        user: event.locals.user
+        form
     };
+};
+
+export const actions: Actions = {
+  default: async ({ request }) => {
+    const form = await superValidate(request, zod(zAppModel));
+    console.log("Form Data:", form);
+
+    
+    if (!form.valid) {
+        return fail(400, { form });
+    }
+    
+    // const result = await updateSettings(form.data);
+    
+    // if (result.error) {
+    //   return fail(500, { form, error: result.error });
+    // }
+    
+    return message(form, "Settings updated successfully");
+  }
 };

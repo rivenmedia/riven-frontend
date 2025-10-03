@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { logs as getOldLogs } from "$lib/api";
+    import { logs as getOldLogs, uploadLogs } from "$lib/api";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import { toast } from "svelte-sonner";
 
     type LogEntry = {
         message?: string;
@@ -210,6 +212,26 @@
                 return "Unknown";
         }
     }
+
+    async function handleUploadLogs() {
+        try {
+            const response = await uploadLogs();
+            if (response.error) {
+                toast.error(`Failed to upload logs: ${response.error}`);
+            }
+
+            if (response.data?.success) {
+                navigator.clipboard.writeText(response.data.url);
+                toast.success("Logs uploaded! URL copied to clipboard.");
+            } else {
+                toast.error(
+                    "Failed to copy logs link. Make sure you are using https or localhost."
+                );
+            }
+        } catch (e: any) {
+            console.error("Failed to upload logs:", e);
+        }
+    }
 </script>
 
 {#snippet logEntry(log: LogEntry)}
@@ -300,6 +322,7 @@
                     <p class="text-muted-foreground mt-1">System monitoring and logs</p>
                 </div>
                 <div class="flex items-center gap-4">
+                    <Button variant="secondary" onclick={handleUploadLogs}>Upload Logs</Button>
                     <div
                         class="bg-primary/10 text-primary border-primary/20 rounded-lg border px-4 py-2 font-medium">
                         {activeTab === "live" ? logs.length : historicalLogs.length} entries
