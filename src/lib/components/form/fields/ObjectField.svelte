@@ -1,46 +1,51 @@
 <script lang="ts">
-  import { type SuperForm } from 'sveltekit-superforms';
-  import { type ZodObject } from 'zod';
-  import FormGenerator from '../FormGenerator.svelte';
-  
-  interface Props {
-    path: string;
-    form: SuperForm<any>;
-    label: string;
-    isOptional: boolean;
-    schema: ZodObject<any>;
-  }
-  
-  let { path, form, label, isOptional, schema }: Props = $props();
-  
-  let expanded = $state(false);
+    import { type SuperForm } from "sveltekit-superforms";
+    import { type ZodObject } from "zod";
+    import FormGenerator from "../FormGenerator.svelte";
+    import * as Card from "$lib/components/ui/card/index.js";
+    import ChevronDown from "@lucide/svelte/icons/chevron-down";
+    import ChevronUp from "@lucide/svelte/icons/chevron-up";
+    import { slide } from "svelte/transition";
+
+    interface Props {
+        path: string;
+        form: SuperForm<any>;
+        label: string;
+        isOptional: boolean;
+        schema: ZodObject<any>;
+        description?: string;
+    }
+
+    let { path, form, label, isOptional, schema, description }: Props = $props();
+    let expanded = $state(false);
 </script>
 
-<div class="form-control">
-  <button
-    type="button"
-    onclick={() => expanded = !expanded}
-    class="flex w-full items-center justify-between rounded-lg bg-muted px-4 py-2 text-left text-sm font-medium hover:bg-accent focus:outline-none focus-visible:ring focus-visible:ring-ring focus-visible:ring-opacity-75"
-  >
-    <span>
-      {label}
-      {#if !isOptional}
-        <span class="text-destructive">*</span>
-      {/if}
-    </span>
-    <svg
-      class="h-5 w-5 transform transition-transform {expanded ? 'rotate-180' : ''}"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
-  </button>
-
-  {#if expanded}
-    <div class="mt-4 pl-4 border-l-2 border-border">
-      <FormGenerator {schema} {form} {path} />
-    </div>
-  {/if}
-</div>
+<Card.Root class="p-2">
+    <Card.Header class="cursor-pointer py-2" onclick={() => (expanded = !expanded)}>
+        <div class="flex w-full items-center justify-between">
+            <Card.Title class="case text-lg ">
+                {label}
+                {#if !isOptional}
+                    <span class="text-red-500">*</span>
+                {/if}
+            </Card.Title>
+            <div class="transition-transform duration-200">
+                {#if expanded}
+                    <ChevronUp size={20} />
+                {:else}
+                    <ChevronDown size={20} />
+                {/if}
+            </div>
+        </div>
+        {#if description}
+            <Card.Description>{description}</Card.Description>
+        {/if}
+    </Card.Header>
+    {#if expanded}
+        <div transition:slide>
+            <Card.Content>
+                <FormGenerator {schema} {form} {path} />
+            </Card.Content>
+        </div>
+    {/if}
+</Card.Root>
