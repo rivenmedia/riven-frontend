@@ -10,7 +10,7 @@ import { message } from "sveltekit-superforms";
 
 export const load: PageServerLoad = async () => {
     const settings = await getAllSettings({
-        auth: process.env.API_KEY || ""
+        auth: process.env.BACKEND_API_KEY || ""
     });
     if (settings.error) {
         error(500, "Failed to load settings");

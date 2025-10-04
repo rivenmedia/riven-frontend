@@ -1,5 +1,3 @@
-import { PUBLIC_API_KEY } from "$env/static/public";
-
 export type Notification = {
     id: string;
     title: string;
@@ -74,12 +72,11 @@ export class NotificationStore {
 
         try {
             // TODO: Replace with actual backend URL
-            const response = await fetch("http://localhost:8080/api/v1/stream/notifications", {
+            const response = await fetch("/api/notifications", {
                 method: "GET",
                 headers: {
                     Accept: "text/event-stream",
-                    "Cache-Control": "no-cache",
-                    'X-Api-Key': PUBLIC_API_KEY
+                    "Cache-Control": "no-cache"
                 },
                 signal: this.#abortController.signal
             });
