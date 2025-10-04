@@ -3,14 +3,16 @@ import { json, error } from "@sveltejs/kit";
 
 import { getTrending } from "$lib/providers/anilist";
 
-export const GET: RequestHandler = async ({ fetch, locals }) => {
+export const GET: RequestHandler = async ({ fetch, locals, url }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
 
+    const page = parseInt(url.searchParams.get("page") || "1");
+
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const nowPlaying = (await getTrending(fetch)) as any;
+        const nowPlaying = (await getTrending(fetch, page)) as any;
 
         if (nowPlaying && "data" in nowPlaying && nowPlaying.data?.Page?.media) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

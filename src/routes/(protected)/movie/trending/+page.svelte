@@ -3,8 +3,27 @@
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import { onMount } from "svelte";
 
     const trendingMoviesStore = new MediaListStore("trendingMovies", "/api/tmdb/movie", "day");
+    let loadMoreTrigger: HTMLDivElement;
+
+    onMount(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && trendingMoviesStore.hasMore && !trendingMoviesStore.loading) {
+                    trendingMoviesStore.loadMore();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (loadMoreTrigger) {
+            observer.observe(loadMoreTrigger);
+        }
+
+        return () => observer.disconnect();
+    });
 </script>
 
 <div class="flex flex-col gap-6 p-6 md:p-8 md:px-16">
@@ -48,6 +67,25 @@
                     </div>
                 </div>
             {/each}
+        </div>
+    {/if}
+
+    {#if trendingMoviesStore.hasMore}
+        <div bind:this={loadMoreTrigger}>
+            {#if trendingMoviesStore.loading}
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                    {#each Array(6) as _}
+                        <div class="w-full">
+                            <Skeleton class="aspect-[2/3] w-full rounded-sm" />
+                            <Skeleton class="mt-2 h-4 w-full" />
+                            <div class="mt-1 flex items-center justify-between">
+                                <Skeleton class="h-4 w-12 rounded-full" />
+                                <Skeleton class="h-4 w-12 rounded-full" />
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
         </div>
     {/if}
 </div>
