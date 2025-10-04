@@ -1,6 +1,7 @@
 <script lang="ts">
     import { afterNavigate, beforeNavigate } from "$app/navigation";
     import Sidebar from "$lib/components/sidebar.svelte";
+    import NotificationCenter from "$lib/components/notification-center.svelte";
     import { Input } from "$lib/components/ui/input/index.js";
     import { Separator } from "$lib/components/ui/separator/index.js";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
@@ -41,8 +42,9 @@
     <Sidebar user={data.user} />
     <main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
         <header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
-            <div class="flex w-full items-center">
+            <div class="flex w-full items-center gap-2">
                 <Input type="text" placeholder="Search..." class="h-9" />
+                <NotificationCenter />
                 <Button
                     variant="ghost"
                     class="size-10 rounded-md md:hidden"
