@@ -140,7 +140,9 @@
                     {#if data.services && Object.keys(data.services).length > 0}
                         {#each Object.entries(data.services) as [serviceName, status]}
                             {#if status === true}
-                                <Badge variant="default" class="px-2 py-1 text-xs font-medium bg-green-600/20 text-green-400">
+                                <Badge
+                                    variant="default"
+                                    class="bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
                                     {serviceName}
                                 </Badge>
                             {:else if status === false}

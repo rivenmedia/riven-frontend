@@ -45,7 +45,6 @@
             return "enum";
         if (innerSchema instanceof z.ZodObject) return "object";
         if (innerSchema instanceof z.ZodArray) return "array";
-
         return "unknown";
     });
 </script>
