@@ -160,7 +160,7 @@
     </div>
 {/snippet}
 
-<div class="flex h-full flex-col p-6 md:p-8 md:px-16 mt-14">
+<div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
     {#if error && connectionStatus === "error" && reconnectAttempts >= maxReconnectAttempts}
         <div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
             <h3 class="text-destructive mb-3 text-lg font-semibold">Connection Failed</h3>
@@ -233,17 +233,17 @@
                         {@render loadingSpinner("Loading historical logs...")}
                     {:else if historicalError}
                         <div class="p-8">
-                            {@render errorDisplay(historicalError, () => logStore.fetchHistoricalLogs())}
+                            {@render errorDisplay(historicalError, () =>
+                                logStore.fetchHistoricalLogs()
+                            )}
                         </div>
                     {:else if historicalLogs.length > 0}
                         {#each historicalLogs.slice().reverse() as log}
                             {@render logEntry(log)}
                         {/each}
                     {:else}
-                        {@render emptyState(
-                            "No historical logs found",
-                            "Refresh",
-                            () => logStore.fetchHistoricalLogs()
+                        {@render emptyState("No historical logs found", "Refresh", () =>
+                            logStore.fetchHistoricalLogs()
                         )}
                     {/if}
                 </div>

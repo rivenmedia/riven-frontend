@@ -64,7 +64,7 @@
     </Card.Root>
 {/snippet}
 
-<div class="flex h-full flex-col p-6 md:p-8 md:px-16 mt-14">
+<div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
     <h1 class="mb-8 text-3xl font-bold tracking-tight">Media Library Statistics</h1>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

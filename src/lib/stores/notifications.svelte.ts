@@ -15,7 +15,9 @@ export class NotificationStore {
     #abortController = $state<AbortController | null>(null);
     #reconnectAttempts = $state<number>(0);
     #reconnectTimeoutId: number | null = null;
-    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
+        "disconnected"
+    );
     #maxReconnectAttempts = 10;
 
     get notifications() {
@@ -23,7 +25,7 @@ export class NotificationStore {
     }
 
     get unreadCount() {
-        return this.#notifications.filter(n => !n.read).length;
+        return this.#notifications.filter((n) => !n.read).length;
     }
 
     get connectionStatus() {
@@ -40,14 +42,14 @@ export class NotificationStore {
     }
 
     markAsRead(id: string) {
-        const notification = this.#notifications.find(n => n.id === id);
+        const notification = this.#notifications.find((n) => n.id === id);
         if (notification) {
             notification.read = true;
         }
     }
 
     markAllAsRead() {
-        this.#notifications.forEach(n => n.read = true);
+        this.#notifications.forEach((n) => (n.read = true));
     }
 
     clear() {
@@ -55,7 +57,7 @@ export class NotificationStore {
     }
 
     remove(id: string) {
-        this.#notifications = this.#notifications.filter(n => n.id !== id);
+        this.#notifications = this.#notifications.filter((n) => n.id !== id);
     }
 
     #getReconnectDelay(attempt: number): number {
@@ -120,7 +122,10 @@ export class NotificationStore {
                                     const parsedData = JSON.parse(jsonStr);
                                     this.#handleNotificationEvent(parsedData);
                                 } catch (parseError) {
-                                    console.warn("Failed to parse SSE notification data:", parseError);
+                                    console.warn(
+                                        "Failed to parse SSE notification data:",
+                                        parseError
+                                    );
                                 }
                             }
                         }
@@ -143,9 +148,10 @@ export class NotificationStore {
     }
 
     #handleNotificationEvent(data: any) {
-        const message = data.type === "movie"
-            ? `${data.log_string} (${data.year || "Unknown"}) completed`
-            : `${data.log_string} completed`;
+        const message =
+            data.type === "movie"
+                ? `${data.log_string} (${data.year || "Unknown"}) completed`
+                : `${data.log_string} completed`;
 
         this.add({
             title: data.title,
@@ -161,7 +167,9 @@ export class NotificationStore {
     #scheduleReconnect() {
         if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
             this.#connectionStatus = "error";
-            console.error(`Failed to reconnect to notifications after ${this.#maxReconnectAttempts} attempts`);
+            console.error(
+                `Failed to reconnect to notifications after ${this.#maxReconnectAttempts} attempts`
+            );
             return;
         }
 

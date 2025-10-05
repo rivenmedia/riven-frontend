@@ -11,7 +11,11 @@
     onMount(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && trendingMoviesStore.hasMore && !trendingMoviesStore.loading) {
+                if (
+                    entries[0].isIntersecting &&
+                    trendingMoviesStore.hasMore &&
+                    !trendingMoviesStore.loading
+                ) {
                     trendingMoviesStore.loadMore();
                 }
             },
@@ -30,7 +34,7 @@
     <title>Trending Movies - Riven</title>
 </svelte:head>
 
-<div class="flex flex-col gap-6 p-6 md:p-8 md:px-16 mt-14">
+<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
     <div class="flex flex-col">
         <div class="flex items-center justify-between">
             <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Movies</h1>
@@ -52,7 +56,8 @@
     </div>
 
     {#if Array.isArray(trendingMoviesStore.items) && trendingMoviesStore.items.length > 0}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div
+            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {#each trendingMoviesStore.items as item}
                 <div>
                     <ListItem data={item} indexer="tmdb" type="movie" />
@@ -72,7 +77,8 @@
             {/if}
         </div>
     {:else}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div
+            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-[2/3] w-full rounded-sm" />

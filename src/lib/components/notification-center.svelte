@@ -86,7 +86,11 @@
 <Popover.Root bind:open>
     <Popover.Trigger>
         {#snippet child({ props })}
-            <Button variant="ghost" size="icon" class="relative h-10 w-10 cursor-pointer" {...props}>
+            <Button
+                variant="ghost"
+                size="icon"
+                class="relative h-10 w-10 cursor-pointer"
+                {...props}>
                 {#if notificationStore.unreadCount > 0}
                     <BellRing class="size-5" />
                 {:else}

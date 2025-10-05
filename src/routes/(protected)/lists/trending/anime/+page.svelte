@@ -10,7 +10,11 @@
     onMount(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && anilistTrendingStore.hasMore && !anilistTrendingStore.loading) {
+                if (
+                    entries[0].isIntersecting &&
+                    anilistTrendingStore.hasMore &&
+                    !anilistTrendingStore.loading
+                ) {
                     anilistTrendingStore.loadMore();
                 }
             },
@@ -29,13 +33,14 @@
     <title>Trending Animes - Riven</title>
 </svelte:head>
 
-<div class="flex flex-col gap-6 p-6 md:p-8 md:px-16 mt-14">
+<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
     <div class="flex flex-col">
         <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Animes</h1>
     </div>
 
     {#if Array.isArray(anilistTrendingStore.items) && anilistTrendingStore.items.length > 0}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div
+            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {#each anilistTrendingStore.items as item}
                 <div>
                     <ListItem data={item} indexer="anilist" type="anime" />
@@ -55,7 +60,8 @@
             {/if}
         </div>
     {:else}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <div
+            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-[2/3] w-full rounded-sm" />

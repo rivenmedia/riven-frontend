@@ -73,9 +73,8 @@
                         class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none">
                     </div>
 
-                    <div class="absolute inset-0 z-[2] flex flex-col gap-4 mt-14">
-                        <div
-                            class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
+                    <div class="absolute inset-0 z-[2] mt-14 flex flex-col gap-4">
+                        <div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
                             <div class="w-full max-w-2xl select-none">
                                 <h1
                                     class="text-3xl leading-tight font-medium break-words md:text-4xl">
