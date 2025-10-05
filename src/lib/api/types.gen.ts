@@ -6,30 +6,68 @@
 export type AppModel = {
     /**
      * Version
+     * Application version
      */
     version?: string;
     /**
      * Api Key
+     * API key for Riven API access
      */
     api_key?: string;
     /**
-     * Debug
+     * Log Level
+     * Logging level
      */
-    debug?: 'TRACE' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+    log_level?: 'TRACE' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
     /**
      * Tracemalloc
+     * Enable Python memory tracking (debug)
      */
     tracemalloc?: boolean;
+    /**
+     * Filesystem configuration
+     */
     filesystem?: FilesystemModel;
+    /**
+     * Library updaters configuration
+     */
     updaters?: UpdatersModel;
+    /**
+     * Downloader services configuration
+     */
     downloaders?: DownloadersModel;
+    /**
+     * Content services configuration
+     */
     content?: ContentModel;
+    /**
+     * Scraper configuration
+     */
     scraping?: ScraperModel;
+    /**
+     * Result ranking configuration
+     */
     ranking?: RtnSettingsModel;
+    /**
+     * Indexer configuration
+     */
     indexer?: IndexerModel;
+    /**
+     * Database configuration
+     */
     database?: DatabaseModel;
+    /**
+     * Notifications configuration
+     */
     notifications?: NotificationsModel;
+    /**
+     * Post-processing configuration
+     */
     post_processing?: PostProcessing;
+    /**
+     * Logging configuration
+     */
+    logging?: LoggingModel;
 };
 
 /**
@@ -69,18 +107,22 @@ export type CalendarResponse = {
 export type CometConfig = {
     /**
      * Enabled
+     * Enable Comet scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * Comet URL
      */
     url?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
 };
@@ -109,10 +151,25 @@ export type Container = {
  * ContentModel
  */
 export type ContentModel = {
+    /**
+     * Overseerr configuration
+     */
     overseerr?: OverseerrModel;
+    /**
+     * Plex Watchlist configuration
+     */
     plex_watchlist?: PlexWatchlistModel;
+    /**
+     * MDBList configuration
+     */
     mdblist?: MdblistModel;
+    /**
+     * Listrr configuration
+     */
     listrr?: ListrrModel;
+    /**
+     * Trakt configuration
+     */
     trakt?: TraktModel;
 };
 
@@ -154,6 +211,7 @@ export type CustomRanksConfig = {
 export type DatabaseModel = {
     /**
      * Host
+     * Database connection string
      */
     host?: string;
 };
@@ -245,29 +303,41 @@ export type DownloaderUserInfoResponse = {
 export type DownloadersModel = {
     /**
      * Video Extensions
+     * List of video file extensions to consider for downloads
      */
     video_extensions?: Array<string>;
     /**
      * Movie Filesize Mb Min
+     * Minimum file size in MB for movies
      */
     movie_filesize_mb_min?: number;
     /**
      * Movie Filesize Mb Max
+     * Maximum file size in MB for movies (-1 for no limit)
      */
     movie_filesize_mb_max?: number;
     /**
      * Episode Filesize Mb Min
+     * Minimum file size in MB for episodes
      */
     episode_filesize_mb_min?: number;
     /**
      * Episode Filesize Mb Max
+     * Maximum file size in MB for episodes (-1 for no limit)
      */
     episode_filesize_mb_max?: number;
     /**
      * Proxy Url
+     * Proxy URL for downloaders (optional)
      */
     proxy_url?: string;
+    /**
+     * Real-Debrid downloader configuration
+     */
     real_debrid?: RealDebridModel;
+    /**
+     * TorBox downloader configuration
+     */
     torbox?: TorBoxModel;
 };
 
@@ -277,14 +347,17 @@ export type DownloadersModel = {
 export type EmbyLibraryModel = {
     /**
      * Enabled
+     * Enable Emby library updates
      */
     enabled?: boolean;
     /**
      * Api Key
+     * Emby API key
      */
     api_key?: string;
     /**
      * Url
+     * Emby server URL
      */
     url?: string;
 };
@@ -333,38 +406,47 @@ export type FfprobeResponse = {
 export type FilesystemModel = {
     /**
      * Mount Path
+     * Path where Riven will mount the virtual filesystem
      */
     mount_path?: string;
     /**
      * Separate Anime Dirs
+     * Create separate directories for anime content
      */
     separate_anime_dirs?: boolean;
     /**
      * Cache Dir
+     * Directory for caching downloaded chunks
      */
     cache_dir?: string;
     /**
      * Cache Max Size Mb
+     * Maximum cache size in MB (10 GiB default)
      */
     cache_max_size_mb?: number;
     /**
      * Cache Ttl Seconds
+     * Cache time-to-live in seconds (2 hours default)
      */
     cache_ttl_seconds?: number;
     /**
      * Cache Eviction
+     * Cache eviction policy (LRU or TTL)
      */
-    cache_eviction?: string;
+    cache_eviction?: 'LRU' | 'TTL';
     /**
      * Cache Metrics
+     * Enable cache metrics logging
      */
     cache_metrics?: boolean;
     /**
      * Chunk Size Mb
+     * Size of a single fetch chunk in MB
      */
     chunk_size_mb?: number;
     /**
      * Fetch Ahead Chunks
+     * Number of chunks to fetch ahead when streaming
      */
     fetch_ahead_chunks?: number;
 };
@@ -397,6 +479,7 @@ export type HdrRankModel = {
 export type IndexerModel = {
     /**
      * Update Interval
+     * Indexer update interval in seconds (1 hour default)
      */
     update_interval?: number;
 };
@@ -439,22 +522,27 @@ export type ItemsResponse = {
 export type JackettConfig = {
     /**
      * Enabled
+     * Enable Jackett scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * Jackett URL
      */
     url?: string;
     /**
      * Api Key
+     * Jackett API key
      */
     api_key?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
 };
@@ -465,14 +553,17 @@ export type JackettConfig = {
 export type JellyfinLibraryModel = {
     /**
      * Enabled
+     * Enable Jellyfin library updates
      */
     enabled?: boolean;
     /**
      * Api Key
+     * Jellyfin API key
      */
     api_key?: string;
     /**
      * Url
+     * Jellyfin server URL
      */
     url?: string;
 };
@@ -502,24 +593,55 @@ export type LanguagesConfig = {
 export type ListrrModel = {
     /**
      * Update Interval
+     * Update interval in seconds (24 hours default)
      */
     update_interval?: number;
     /**
      * Enabled
+     * Enable Listrr integration
      */
     enabled?: boolean;
     /**
      * Movie Lists
+     * Listrr movie list IDs
      */
     movie_lists?: Array<string>;
     /**
      * Show Lists
+     * Listrr TV show list IDs
      */
     show_lists?: Array<string>;
     /**
      * Api Key
+     * Listrr API key
      */
     api_key?: string;
+};
+
+/**
+ * LoggingModel
+ */
+export type LoggingModel = {
+    /**
+     * Enabled
+     * Enable file logging
+     */
+    enabled?: boolean;
+    /**
+     * Retention Hours
+     * Log retention period in hours
+     */
+    retention_hours?: number;
+    /**
+     * Rotation Mb
+     * Log file rotation size in MB
+     */
+    rotation_mb?: number;
+    /**
+     * Compression
+     * Log compression format (empty for no compression)
+     */
+    compression?: 'zip' | 'gz' | 'bz2' | 'xz' | '';
 };
 
 /**
@@ -538,18 +660,22 @@ export type LogsResponse = {
 export type MdblistModel = {
     /**
      * Update Interval
+     * Update interval in seconds (24 hours default)
      */
     update_interval?: number;
     /**
      * Enabled
+     * Enable MDBList integration
      */
     enabled?: boolean;
     /**
      * Api Key
+     * MDBList API key
      */
     api_key?: string;
     /**
      * Lists
+     * MDBList list IDs to monitor
      */
     lists?: Array<string | number>;
 };
@@ -560,18 +686,22 @@ export type MdblistModel = {
 export type MediafusionConfig = {
     /**
      * Enabled
+     * Enable Mediafusion scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * Mediafusion URL
      */
     url?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
 };
@@ -612,14 +742,17 @@ export type MountResponse = {
 export type NotificationsModel = {
     /**
      * Enabled
+     * Enable notifications
      */
     enabled?: boolean;
     /**
      * On Item Type
+     * Item types to send notifications for
      */
     on_item_type?: Array<string>;
     /**
      * Service Urls
+     * Notification service URLs (e.g., Discord webhooks)
      */
     service_urls?: Array<string>;
 };
@@ -665,30 +798,54 @@ export type OptionsConfig = {
 export type OrionoidConfig = {
     /**
      * Enabled
+     * Enable Orionoid scraper
      */
     enabled?: boolean;
     /**
      * Api Key
+     * Orionoid API key
      */
     api_key?: string;
     /**
      * Cached Results Only
+     * Only return cached/downloadable results
      */
     cached_results_only?: boolean;
     /**
-     * Parameters
+     * Additional Orionoid parameters
      */
-    parameters?: {
-        [key: string]: unknown;
-    };
+    parameters?: OrionoidConfigParametersDict;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
+};
+
+/**
+ * OrionoidConfigParametersDict
+ */
+export type OrionoidConfigParametersDict = {
+    /**
+     * Video3D
+     * Include 3D video results
+     */
+    video3d?: boolean;
+    /**
+     * Videoquality
+     * Video quality filter
+     */
+    videoquality?: string;
+    /**
+     * Limitcount
+     * Maximum number of results
+     */
+    limitcount?: number;
 };
 
 /**
@@ -697,22 +854,27 @@ export type OrionoidConfig = {
 export type OverseerrModel = {
     /**
      * Update Interval
+     * Update interval in seconds
      */
     update_interval?: number;
     /**
      * Enabled
+     * Enable Overseerr integration
      */
     enabled?: boolean;
     /**
      * Url
+     * Overseerr URL
      */
     url?: string;
     /**
      * Api Key
+     * Overseerr API key
      */
     api_key?: string;
     /**
      * Use Webhook
+     * Use webhook instead of polling
      */
     use_webhook?: boolean;
 };
@@ -952,14 +1114,17 @@ export type PauseResponse = {
 export type PlexLibraryModel = {
     /**
      * Enabled
+     * Enable Plex library updates
      */
     enabled?: boolean;
     /**
      * Token
+     * Plex authentication token
      */
     token?: string;
     /**
      * Url
+     * Plex server URL
      */
     url?: string;
 };
@@ -970,14 +1135,17 @@ export type PlexLibraryModel = {
 export type PlexWatchlistModel = {
     /**
      * Update Interval
+     * Update interval in seconds
      */
     update_interval?: number;
     /**
      * Enabled
+     * Enable Plex Watchlist integration
      */
     enabled?: boolean;
     /**
      * Rss
+     * Plex Watchlist RSS feed URLs
      */
     rss?: Array<string>;
 };
@@ -986,7 +1154,10 @@ export type PlexWatchlistModel = {
  * PostProcessing
  */
 export type PostProcessing = {
-    subliminal?: SubliminalConfig;
+    /**
+     * Subtitle post-processing configuration
+     */
+    subtitle?: SubtitleConfig;
 };
 
 /**
@@ -995,26 +1166,32 @@ export type PostProcessing = {
 export type ProwlarrConfig = {
     /**
      * Enabled
+     * Enable Prowlarr scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * Prowlarr URL
      */
     url?: string;
     /**
      * Api Key
+     * Prowlarr API key
      */
     api_key?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
     /**
      * Limiter Seconds
+     * Rate limiter cooldown in seconds
      */
     limiter_seconds?: number;
 };
@@ -1087,18 +1264,22 @@ export type RtnSettingsModel = {
 export type RarbgConfig = {
     /**
      * Enabled
+     * Enable RARBG scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * RARBG URL
      */
     url?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
 };
@@ -1109,10 +1290,12 @@ export type RarbgConfig = {
 export type RealDebridModel = {
     /**
      * Enabled
+     * Enable Real-Debrid
      */
     enabled?: boolean;
     /**
      * Api Key
+     * Real-Debrid API key
      */
     api_key?: string;
 };
@@ -1262,39 +1445,70 @@ export type ScrapeItemResponse = {
 export type ScraperModel = {
     /**
      * After 2
+     * Hours to wait after 2 failed scrapes
      */
     after_2?: number;
     /**
      * After 5
+     * Hours to wait after 5 failed scrapes
      */
     after_5?: number;
     /**
      * After 10
+     * Hours to wait after 10 failed scrapes
      */
     after_10?: number;
     /**
      * Enable Aliases
+     * Enable title aliases for better matching
      */
     enable_aliases?: boolean;
     /**
      * Bucket Limit
+     * Maximum results per quality bucket
      */
     bucket_limit?: number;
     /**
      * Max Failed Attempts
+     * Maximum failed scrape attempts before giving up
      */
     max_failed_attempts?: number;
     /**
      * Dubbed Anime Only
+     * Only scrape dubbed anime content
      */
     dubbed_anime_only?: boolean;
+    /**
+     * Torrentio configuration
+     */
     torrentio?: TorrentioConfig;
+    /**
+     * Jackett configuration
+     */
     jackett?: JackettConfig;
+    /**
+     * Prowlarr configuration
+     */
     prowlarr?: ProwlarrConfig;
+    /**
+     * Orionoid configuration
+     */
     orionoid?: OrionoidConfig;
+    /**
+     * Mediafusion configuration
+     */
     mediafusion?: MediafusionConfig;
+    /**
+     * Zilean configuration
+     */
     zilean?: ZileanConfig;
+    /**
+     * Comet configuration
+     */
     comet?: CometConfig;
+    /**
+     * RARBG configuration
+     */
     rarbg?: RarbgConfig;
 };
 
@@ -1479,23 +1693,44 @@ export type Stream = {
 };
 
 /**
- * SubliminalConfig
+ * SubtitleConfig
  */
-export type SubliminalConfig = {
+export type SubtitleConfig = {
     /**
      * Enabled
+     * Enable subtitle downloading
      */
     enabled?: boolean;
     /**
      * Languages
+     * Subtitle languages to download (ISO 639-2 codes)
      */
     languages?: Array<string>;
     /**
-     * Providers
+     * Subtitle provider configurations
      */
-    providers?: {
-        [key: string]: unknown;
-    };
+    providers?: SubtitleProvidersDict;
+};
+
+/**
+ * SubtitleProviderConfig
+ */
+export type SubtitleProviderConfig = {
+    /**
+     * Enabled
+     * Enable this subtitle provider
+     */
+    enabled?: boolean;
+};
+
+/**
+ * SubtitleProvidersDict
+ */
+export type SubtitleProvidersDict = {
+    /**
+     * OpenSubtitles provider configuration
+     */
+    opensubtitles?: SubtitleProviderConfig;
 };
 
 /**
@@ -1504,10 +1739,12 @@ export type SubliminalConfig = {
 export type TorBoxModel = {
     /**
      * Enabled
+     * Enable TorBox
      */
     enabled?: boolean;
     /**
      * Api Key
+     * TorBox API key
      */
     api_key?: string;
 };
@@ -1597,26 +1834,32 @@ export type TorrentInfo = {
 export type TorrentioConfig = {
     /**
      * Enabled
+     * Enable Torrentio scraper
      */
     enabled?: boolean;
     /**
      * Filter
+     * Torrentio filter parameters
      */
     filter?: string;
     /**
      * Url
+     * Torrentio URL
      */
     url?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
     /**
      * Proxy Url
+     * Proxy URL for Torrentio requests
      */
     proxy_url?: string;
 };
@@ -1627,59 +1870,76 @@ export type TorrentioConfig = {
 export type TraktModel = {
     /**
      * Update Interval
+     * Update interval in seconds (24 hours default)
      */
     update_interval?: number;
     /**
      * Enabled
+     * Enable Trakt integration
      */
     enabled?: boolean;
     /**
      * Api Key
+     * Trakt API key
      */
     api_key?: string;
     /**
      * Watchlist
+     * Trakt usernames for watchlist monitoring
      */
     watchlist?: Array<string>;
     /**
      * User Lists
+     * Trakt user list URLs to monitor
      */
     user_lists?: Array<string>;
     /**
      * Collection
+     * Trakt usernames for collection monitoring
      */
     collection?: Array<string>;
     /**
      * Fetch Trending
+     * Fetch trending content from Trakt
      */
     fetch_trending?: boolean;
     /**
      * Trending Count
+     * Number of trending items to fetch
      */
     trending_count?: number;
     /**
      * Fetch Popular
+     * Fetch popular content from Trakt
      */
     fetch_popular?: boolean;
     /**
      * Popular Count
+     * Number of popular items to fetch
      */
     popular_count?: number;
     /**
      * Fetch Most Watched
+     * Fetch most watched content from Trakt
      */
     fetch_most_watched?: boolean;
     /**
      * Most Watched Period
+     * Period for most watched (daily, weekly, monthly, yearly)
      */
     most_watched_period?: string;
     /**
      * Most Watched Count
+     * Number of most watched items to fetch
      */
     most_watched_count?: number;
+    /**
+     * Trakt OAuth configuration
+     */
     oauth?: TraktOauthModel;
     /**
      * Proxy Url
+     * Proxy URL for Trakt API requests
      */
     proxy_url?: string;
 };
@@ -1700,22 +1960,27 @@ export type TraktOAuthInitiateResponse = {
 export type TraktOauthModel = {
     /**
      * Oauth Client Id
+     * Trakt OAuth client ID
      */
     oauth_client_id?: string;
     /**
      * Oauth Client Secret
+     * Trakt OAuth client secret
      */
     oauth_client_secret?: string;
     /**
      * Oauth Redirect Uri
+     * Trakt OAuth redirect URI
      */
     oauth_redirect_uri?: string;
     /**
      * Access Token
+     * Trakt OAuth access token
      */
     access_token?: string;
     /**
      * Refresh Token
+     * Trakt OAuth refresh token
      */
     refresh_token?: string;
 };
@@ -1783,14 +2048,25 @@ export type UpdateOngoingResponse = {
 export type UpdatersModel = {
     /**
      * Updater Interval
+     * Interval in seconds between library updates
      */
     updater_interval?: number;
     /**
      * Library Path
+     * Path to which your media library mount point
      */
     library_path?: string;
+    /**
+     * Plex library configuration
+     */
     plex?: PlexLibraryModel;
+    /**
+     * Jellyfin library configuration
+     */
     jellyfin?: JellyfinLibraryModel;
+    /**
+     * Emby library configuration
+     */
     emby?: EmbyLibraryModel;
 };
 
@@ -1848,18 +2124,22 @@ export type ValidationError = {
 export type ZileanConfig = {
     /**
      * Enabled
+     * Enable Zilean scraper
      */
     enabled?: boolean;
     /**
      * Url
+     * Zilean URL
      */
     url?: string;
     /**
      * Timeout
+     * Request timeout in seconds
      */
     timeout?: number;
     /**
      * Ratelimit
+     * Enable rate limiting
      */
     ratelimit?: boolean;
 };

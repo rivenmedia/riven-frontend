@@ -6,15 +6,18 @@ import { z } from 'zod/v3';
  * FilesystemModel
  */
 export const zFilesystemModel = z.object({
-    mount_path: z.string().optional().default('/path/to/riven/mount'),
-    separate_anime_dirs: z.boolean().optional().default(false),
-    cache_dir: z.string().optional().default('/dev/shm/riven-cache'),
-    cache_max_size_mb: z.number().int().optional().default(10240),
-    cache_ttl_seconds: z.number().int().optional().default(7200),
-    cache_eviction: z.string().optional().default('LRU'),
-    cache_metrics: z.boolean().optional().default(true),
-    chunk_size_mb: z.number().int().optional().default(8),
-    fetch_ahead_chunks: z.number().int().optional().default(4)
+    mount_path: z.string().describe('Path where Riven will mount the virtual filesystem').optional().default('/path/to/riven/mount'),
+    separate_anime_dirs: z.boolean().describe('Create separate directories for anime content').optional().default(false),
+    cache_dir: z.string().describe('Directory for caching downloaded chunks').optional().default('/dev/shm/riven-cache'),
+    cache_max_size_mb: z.number().int().gte(0).describe('Maximum cache size in MB (10 GiB default)').optional().default(10240),
+    cache_ttl_seconds: z.number().int().describe('Cache time-to-live in seconds (2 hours default)').optional().default(7200),
+    cache_eviction: z.enum([
+        'LRU',
+        'TTL'
+    ]).describe('Cache eviction policy (LRU or TTL)').optional(),
+    cache_metrics: z.boolean().describe('Enable cache metrics logging').optional().default(true),
+    chunk_size_mb: z.number().int().gte(1).describe('Size of a single fetch chunk in MB').optional().default(8),
+    fetch_ahead_chunks: z.number().int().gte(0).describe('Number of chunks to fetch ahead when streaming').optional().default(4)
 });
 
 export type FilesystemModelZodType = z.infer<typeof zFilesystemModel>;
@@ -23,9 +26,9 @@ export type FilesystemModelZodType = z.infer<typeof zFilesystemModel>;
  * PlexLibraryModel
  */
 export const zPlexLibraryModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    token: z.string().optional().default(''),
-    url: z.string().optional().default('http://localhost:32400')
+    enabled: z.boolean().describe('Enable Plex library updates').optional().default(false),
+    token: z.string().describe('Plex authentication token').optional().default(''),
+    url: z.string().describe('Plex server URL').optional().default('http://localhost:32400')
 });
 
 export type PlexLibraryModelZodType = z.infer<typeof zPlexLibraryModel>;
@@ -34,9 +37,9 @@ export type PlexLibraryModelZodType = z.infer<typeof zPlexLibraryModel>;
  * JellyfinLibraryModel
  */
 export const zJellyfinLibraryModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default(''),
-    url: z.string().optional().default('http://localhost:8096')
+    enabled: z.boolean().describe('Enable Jellyfin library updates').optional().default(false),
+    api_key: z.string().describe('Jellyfin API key').optional().default(''),
+    url: z.string().describe('Jellyfin server URL').optional().default('http://localhost:8096')
 });
 
 export type JellyfinLibraryModelZodType = z.infer<typeof zJellyfinLibraryModel>;
@@ -45,9 +48,9 @@ export type JellyfinLibraryModelZodType = z.infer<typeof zJellyfinLibraryModel>;
  * EmbyLibraryModel
  */
 export const zEmbyLibraryModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default(''),
-    url: z.string().optional().default('http://localhost:8096')
+    enabled: z.boolean().describe('Enable Emby library updates').optional().default(false),
+    api_key: z.string().describe('Emby API key').optional().default(''),
+    url: z.string().describe('Emby server URL').optional().default('http://localhost:8096')
 });
 
 export type EmbyLibraryModelZodType = z.infer<typeof zEmbyLibraryModel>;
@@ -56,8 +59,8 @@ export type EmbyLibraryModelZodType = z.infer<typeof zEmbyLibraryModel>;
  * UpdatersModel
  */
 export const zUpdatersModel = z.object({
-    updater_interval: z.number().int().optional().default(120),
-    library_path: z.string().optional().default('/path/to/library/mount'),
+    updater_interval: z.number().int().gte(1).describe('Interval in seconds between library updates').optional().default(120),
+    library_path: z.string().describe('Path to which your media library mount point').optional().default('/path/to/library/mount'),
     plex: zPlexLibraryModel.optional(),
     jellyfin: zJellyfinLibraryModel.optional(),
     emby: zEmbyLibraryModel.optional()
@@ -69,8 +72,8 @@ export type UpdatersModelZodType = z.infer<typeof zUpdatersModel>;
  * RealDebridModel
  */
 export const zRealDebridModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default('')
+    enabled: z.boolean().describe('Enable Real-Debrid').optional().default(false),
+    api_key: z.string().describe('Real-Debrid API key').optional().default('')
 });
 
 export type RealDebridModelZodType = z.infer<typeof zRealDebridModel>;
@@ -79,8 +82,8 @@ export type RealDebridModelZodType = z.infer<typeof zRealDebridModel>;
  * TorBoxModel
  */
 export const zTorBoxModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default('')
+    enabled: z.boolean().describe('Enable TorBox').optional().default(false),
+    api_key: z.string().describe('TorBox API key').optional().default('')
 });
 
 export type TorBoxModelZodType = z.infer<typeof zTorBoxModel>;
@@ -89,12 +92,12 @@ export type TorBoxModelZodType = z.infer<typeof zTorBoxModel>;
  * DownloadersModel
  */
 export const zDownloadersModel = z.object({
-    video_extensions: z.array(z.string()).optional().default(['mp4', 'mkv', 'avi']),
-    movie_filesize_mb_min: z.number().int().optional().default(700),
-    movie_filesize_mb_max: z.number().int().optional().default(-1),
-    episode_filesize_mb_min: z.number().int().optional().default(100),
-    episode_filesize_mb_max: z.number().int().optional().default(-1),
-    proxy_url: z.string().optional().default(''),
+    video_extensions: z.array(z.string()).describe('List of video file extensions to consider for downloads').optional(),
+    movie_filesize_mb_min: z.number().int().gte(1).describe('Minimum file size in MB for movies').optional().default(700),
+    movie_filesize_mb_max: z.number().int().gte(-1).describe('Maximum file size in MB for movies (-1 for no limit)').optional().default(-1),
+    episode_filesize_mb_min: z.number().int().gte(1).describe('Minimum file size in MB for episodes').optional().default(100),
+    episode_filesize_mb_max: z.number().int().gte(-1).describe('Maximum file size in MB for episodes (-1 for no limit)').optional().default(-1),
+    proxy_url: z.string().describe('Proxy URL for downloaders (optional)').optional().default(''),
     real_debrid: zRealDebridModel.optional(),
     torbox: zTorBoxModel.optional()
 });
@@ -105,11 +108,11 @@ export type DownloadersModelZodType = z.infer<typeof zDownloadersModel>;
  * OverseerrModel
  */
 export const zOverseerrModel = z.object({
-    update_interval: z.number().int().optional().default(60),
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:5055'),
-    api_key: z.string().optional().default(''),
-    use_webhook: z.boolean().optional().default(false)
+    update_interval: z.number().int().gte(1).describe('Update interval in seconds').optional().default(60),
+    enabled: z.boolean().describe('Enable Overseerr integration').optional().default(false),
+    url: z.string().describe('Overseerr URL').optional().default('http://localhost:5055'),
+    api_key: z.string().describe('Overseerr API key').optional().default(''),
+    use_webhook: z.boolean().describe('Use webhook instead of polling').optional().default(false)
 });
 
 export type OverseerrModelZodType = z.infer<typeof zOverseerrModel>;
@@ -118,9 +121,9 @@ export type OverseerrModelZodType = z.infer<typeof zOverseerrModel>;
  * PlexWatchlistModel
  */
 export const zPlexWatchlistModel = z.object({
-    update_interval: z.number().int().optional().default(60),
-    enabled: z.boolean().optional().default(false),
-    rss: z.array(z.string()).optional().default([])
+    update_interval: z.number().int().gte(1).describe('Update interval in seconds').optional().default(60),
+    enabled: z.boolean().describe('Enable Plex Watchlist integration').optional().default(false),
+    rss: z.array(z.string()).describe('Plex Watchlist RSS feed URLs').optional()
 });
 
 export type PlexWatchlistModelZodType = z.infer<typeof zPlexWatchlistModel>;
@@ -129,13 +132,13 @@ export type PlexWatchlistModelZodType = z.infer<typeof zPlexWatchlistModel>;
  * MdblistModel
  */
 export const zMdblistModel = z.object({
-    update_interval: z.number().int().optional().default(86400),
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default(''),
+    update_interval: z.number().int().gte(1).describe('Update interval in seconds (24 hours default)').optional().default(86400),
+    enabled: z.boolean().describe('Enable MDBList integration').optional().default(false),
+    api_key: z.string().describe('MDBList API key').optional().default(''),
     lists: z.array(z.union([
         z.string(),
         z.number().int()
-    ])).optional().default([])
+    ])).describe('MDBList list IDs to monitor').optional()
 });
 
 export type MdblistModelZodType = z.infer<typeof zMdblistModel>;
@@ -144,11 +147,11 @@ export type MdblistModelZodType = z.infer<typeof zMdblistModel>;
  * ListrrModel
  */
 export const zListrrModel = z.object({
-    update_interval: z.number().int().optional().default(86400),
-    enabled: z.boolean().optional().default(false),
-    movie_lists: z.array(z.string()).optional().default([]),
-    show_lists: z.array(z.string()).optional().default([]),
-    api_key: z.string().optional().default('')
+    update_interval: z.number().int().gte(1).describe('Update interval in seconds (24 hours default)').optional().default(86400),
+    enabled: z.boolean().describe('Enable Listrr integration').optional().default(false),
+    movie_lists: z.array(z.string()).describe('Listrr movie list IDs').optional(),
+    show_lists: z.array(z.string()).describe('Listrr TV show list IDs').optional(),
+    api_key: z.string().describe('Listrr API key').optional().default('')
 });
 
 export type ListrrModelZodType = z.infer<typeof zListrrModel>;
@@ -157,11 +160,11 @@ export type ListrrModelZodType = z.infer<typeof zListrrModel>;
  * TraktOauthModel
  */
 export const zTraktOauthModel = z.object({
-    oauth_client_id: z.string().optional().default(''),
-    oauth_client_secret: z.string().optional().default(''),
-    oauth_redirect_uri: z.string().optional().default(''),
-    access_token: z.string().optional().default(''),
-    refresh_token: z.string().optional().default('')
+    oauth_client_id: z.string().describe('Trakt OAuth client ID').optional().default(''),
+    oauth_client_secret: z.string().describe('Trakt OAuth client secret').optional().default(''),
+    oauth_redirect_uri: z.string().describe('Trakt OAuth redirect URI').optional().default(''),
+    access_token: z.string().describe('Trakt OAuth access token').optional().default(''),
+    refresh_token: z.string().describe('Trakt OAuth refresh token').optional().default('')
 });
 
 export type TraktOauthModelZodType = z.infer<typeof zTraktOauthModel>;
@@ -170,21 +173,21 @@ export type TraktOauthModelZodType = z.infer<typeof zTraktOauthModel>;
  * TraktModel
  */
 export const zTraktModel = z.object({
-    update_interval: z.number().int().optional().default(86400),
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default(''),
-    watchlist: z.array(z.string()).optional().default([]),
-    user_lists: z.array(z.string()).optional().default([]),
-    collection: z.array(z.string()).optional().default([]),
-    fetch_trending: z.boolean().optional().default(false),
-    trending_count: z.number().int().optional().default(10),
-    fetch_popular: z.boolean().optional().default(false),
-    popular_count: z.number().int().optional().default(10),
-    fetch_most_watched: z.boolean().optional().default(false),
-    most_watched_period: z.string().optional().default('weekly'),
-    most_watched_count: z.number().int().optional().default(10),
+    update_interval: z.number().int().gte(1).describe('Update interval in seconds (24 hours default)').optional().default(86400),
+    enabled: z.boolean().describe('Enable Trakt integration').optional().default(false),
+    api_key: z.string().describe('Trakt API key').optional().default(''),
+    watchlist: z.array(z.string()).describe('Trakt usernames for watchlist monitoring').optional(),
+    user_lists: z.array(z.string()).describe('Trakt user list URLs to monitor').optional(),
+    collection: z.array(z.string()).describe('Trakt usernames for collection monitoring').optional(),
+    fetch_trending: z.boolean().describe('Fetch trending content from Trakt').optional().default(false),
+    trending_count: z.number().int().gte(1).describe('Number of trending items to fetch').optional().default(10),
+    fetch_popular: z.boolean().describe('Fetch popular content from Trakt').optional().default(false),
+    popular_count: z.number().int().gte(1).describe('Number of popular items to fetch').optional().default(10),
+    fetch_most_watched: z.boolean().describe('Fetch most watched content from Trakt').optional().default(false),
+    most_watched_period: z.string().describe('Period for most watched (daily, weekly, monthly, yearly)').optional().default('weekly'),
+    most_watched_count: z.number().int().gte(1).describe('Number of most watched items to fetch').optional().default(10),
     oauth: zTraktOauthModel.optional(),
-    proxy_url: z.string().optional().default('')
+    proxy_url: z.string().describe('Proxy URL for Trakt API requests').optional().default('')
 });
 
 export type TraktModelZodType = z.infer<typeof zTraktModel>;
@@ -206,12 +209,12 @@ export type ContentModelZodType = z.infer<typeof zContentModel>;
  * TorrentioConfig
  */
 export const zTorrentioConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    filter: z.string().optional().default('sort=qualitysize%7Cqualityfilter=480p,scr,cam'),
-    url: z.string().optional().default('http://torrentio.strem.fun'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true),
-    proxy_url: z.string().optional().default('')
+    enabled: z.boolean().describe('Enable Torrentio scraper').optional().default(false),
+    filter: z.string().describe('Torrentio filter parameters').optional().default('sort=qualitysize%7Cqualityfilter=480p,scr,cam'),
+    url: z.string().describe('Torrentio URL').optional().default('http://torrentio.strem.fun'),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true),
+    proxy_url: z.string().describe('Proxy URL for Torrentio requests').optional().default('')
 });
 
 export type TorrentioConfigZodType = z.infer<typeof zTorrentioConfig>;
@@ -220,11 +223,11 @@ export type TorrentioConfigZodType = z.infer<typeof zTorrentioConfig>;
  * JackettConfig
  */
 export const zJackettConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:9117'),
-    api_key: z.string().optional().default(''),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable Jackett scraper').optional().default(false),
+    url: z.string().describe('Jackett URL').optional().default('http://localhost:9117'),
+    api_key: z.string().describe('Jackett API key').optional().default(''),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type JackettConfigZodType = z.infer<typeof zJackettConfig>;
@@ -233,30 +236,37 @@ export type JackettConfigZodType = z.infer<typeof zJackettConfig>;
  * ProwlarrConfig
  */
 export const zProwlarrConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:9696'),
-    api_key: z.string().optional().default(''),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true),
-    limiter_seconds: z.number().int().optional().default(60)
+    enabled: z.boolean().describe('Enable Prowlarr scraper').optional().default(false),
+    url: z.string().describe('Prowlarr URL').optional().default('http://localhost:9696'),
+    api_key: z.string().describe('Prowlarr API key').optional().default(''),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true),
+    limiter_seconds: z.number().int().gte(1).describe('Rate limiter cooldown in seconds').optional().default(60)
 });
 
 export type ProwlarrConfigZodType = z.infer<typeof zProwlarrConfig>;
 
 /**
+ * OrionoidConfigParametersDict
+ */
+export const zOrionoidConfigParametersDict = z.object({
+    video3d: z.boolean().describe('Include 3D video results').optional().default(false),
+    videoquality: z.string().describe('Video quality filter').optional().default('sd_hd8k'),
+    limitcount: z.number().int().gte(1).describe('Maximum number of results').optional().default(5)
+});
+
+export type OrionoidConfigParametersDictZodType = z.infer<typeof zOrionoidConfigParametersDict>;
+
+/**
  * OrionoidConfig
  */
 export const zOrionoidConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    api_key: z.string().optional().default(''),
-    cached_results_only: z.boolean().optional().default(false),
-    parameters: z.record(z.unknown()).optional().default({
-        video3d: false,
-        videoquality: 'sd_hd8k',
-        limitcount: 5
-    }),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable Orionoid scraper').optional().default(false),
+    api_key: z.string().describe('Orionoid API key').optional().default(''),
+    cached_results_only: z.boolean().describe('Only return cached/downloadable results').optional().default(false),
+    parameters: zOrionoidConfigParametersDict.optional(),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type OrionoidConfigZodType = z.infer<typeof zOrionoidConfig>;
@@ -265,10 +275,10 @@ export type OrionoidConfigZodType = z.infer<typeof zOrionoidConfig>;
  * MediafusionConfig
  */
 export const zMediafusionConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:8000'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable Mediafusion scraper').optional().default(false),
+    url: z.string().describe('Mediafusion URL').optional().default('http://localhost:8000'),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type MediafusionConfigZodType = z.infer<typeof zMediafusionConfig>;
@@ -277,10 +287,10 @@ export type MediafusionConfigZodType = z.infer<typeof zMediafusionConfig>;
  * ZileanConfig
  */
 export const zZileanConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:8181'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable Zilean scraper').optional().default(false),
+    url: z.string().describe('Zilean URL').optional().default('http://localhost:8181'),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type ZileanConfigZodType = z.infer<typeof zZileanConfig>;
@@ -289,10 +299,10 @@ export type ZileanConfigZodType = z.infer<typeof zZileanConfig>;
  * CometConfig
  */
 export const zCometConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('http://localhost:8000'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable Comet scraper').optional().default(false),
+    url: z.string().describe('Comet URL').optional().default('http://localhost:8000'),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type CometConfigZodType = z.infer<typeof zCometConfig>;
@@ -301,10 +311,10 @@ export type CometConfigZodType = z.infer<typeof zCometConfig>;
  * RarbgConfig
  */
 export const zRarbgConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    url: z.string().optional().default('https://therarbg.to'),
-    timeout: z.number().int().optional().default(30),
-    ratelimit: z.boolean().optional().default(true)
+    enabled: z.boolean().describe('Enable RARBG scraper').optional().default(false),
+    url: z.string().describe('RARBG URL').optional().default('https://therarbg.to'),
+    timeout: z.number().int().gte(1).describe('Request timeout in seconds').optional().default(30),
+    ratelimit: z.boolean().describe('Enable rate limiting').optional().default(true)
 });
 
 export type RarbgConfigZodType = z.infer<typeof zRarbgConfig>;
@@ -313,13 +323,13 @@ export type RarbgConfigZodType = z.infer<typeof zRarbgConfig>;
  * ScraperModel
  */
 export const zScraperModel = z.object({
-    after_2: z.number().optional().default(2),
-    after_5: z.number().optional().default(6),
-    after_10: z.number().optional().default(24),
-    enable_aliases: z.boolean().optional().default(true),
-    bucket_limit: z.number().int().gte(0).lte(20).optional().default(5),
-    max_failed_attempts: z.number().int().gte(0).lte(10).optional().default(0),
-    dubbed_anime_only: z.boolean().optional().default(false),
+    after_2: z.number().describe('Hours to wait after 2 failed scrapes').optional().default(2),
+    after_5: z.number().describe('Hours to wait after 5 failed scrapes').optional().default(6),
+    after_10: z.number().describe('Hours to wait after 10 failed scrapes').optional().default(24),
+    enable_aliases: z.boolean().describe('Enable title aliases for better matching').optional().default(true),
+    bucket_limit: z.number().int().gte(0).lte(20).describe('Maximum results per quality bucket').optional().default(5),
+    max_failed_attempts: z.number().int().gte(0).lte(10).describe('Maximum failed scrape attempts before giving up').optional().default(0),
+    dubbed_anime_only: z.boolean().describe('Only scrape dubbed anime content').optional().default(false),
     torrentio: zTorrentioConfig.optional(),
     jackett: zJackettConfig.optional(),
     prowlarr: zProwlarrConfig.optional(),
@@ -540,7 +550,7 @@ export type RtnSettingsModelZodType = z.infer<typeof zRtnSettingsModel>;
  * IndexerModel
  */
 export const zIndexerModel = z.object({
-    update_interval: z.number().int().optional().default(3600)
+    update_interval: z.number().int().gte(1).describe('Indexer update interval in seconds (1 hour default)').optional().default(3600)
 });
 
 export type IndexerModelZodType = z.infer<typeof zIndexerModel>;
@@ -549,7 +559,7 @@ export type IndexerModelZodType = z.infer<typeof zIndexerModel>;
  * DatabaseModel
  */
 export const zDatabaseModel = z.object({
-    host: z.string().optional().default('postgresql+psycopg2://postgres:postgres@localhost/riven')
+    host: z.string().min(1).describe('Database connection string').optional()
 });
 
 export type DatabaseModelZodType = z.infer<typeof zDatabaseModel>;
@@ -558,59 +568,84 @@ export type DatabaseModelZodType = z.infer<typeof zDatabaseModel>;
  * NotificationsModel
  */
 export const zNotificationsModel = z.object({
-    enabled: z.boolean().optional().default(false),
-    on_item_type: z.array(z.string()).optional().default(['movie', 'show', 'season', 'episode']),
-    service_urls: z.array(z.string()).optional().default([])
+    enabled: z.boolean().describe('Enable notifications').optional().default(false),
+    on_item_type: z.array(z.string()).describe('Item types to send notifications for').optional(),
+    service_urls: z.array(z.string()).describe('Notification service URLs (e.g., Discord webhooks)').optional()
 });
 
 export type NotificationsModelZodType = z.infer<typeof zNotificationsModel>;
 
 /**
- * SubliminalConfig
+ * SubtitleProviderConfig
  */
-export const zSubliminalConfig = z.object({
-    enabled: z.boolean().optional().default(false),
-    languages: z.array(z.string()).optional().default(['eng']),
-    providers: z.record(z.unknown()).optional().default({
-        opensubtitles: {
-            enabled: false,
-            password: '',
-            username: ''
-        },
-        opensubtitlescom: {
-            enabled: false,
-            password: '',
-            username: ''
-        }
-    })
+export const zSubtitleProviderConfig = z.object({
+    enabled: z.boolean().describe('Enable this subtitle provider').optional().default(false)
 });
 
-export type SubliminalConfigZodType = z.infer<typeof zSubliminalConfig>;
+export type SubtitleProviderConfigZodType = z.infer<typeof zSubtitleProviderConfig>;
+
+/**
+ * SubtitleProvidersDict
+ */
+export const zSubtitleProvidersDict = z.object({
+    opensubtitles: zSubtitleProviderConfig.optional()
+});
+
+export type SubtitleProvidersDictZodType = z.infer<typeof zSubtitleProvidersDict>;
+
+/**
+ * SubtitleConfig
+ */
+export const zSubtitleConfig = z.object({
+    enabled: z.boolean().describe('Enable subtitle downloading').optional().default(false),
+    languages: z.array(z.string()).describe('Subtitle languages to download (ISO 639-2 codes)').optional(),
+    providers: zSubtitleProvidersDict.optional()
+});
+
+export type SubtitleConfigZodType = z.infer<typeof zSubtitleConfig>;
 
 /**
  * PostProcessing
  */
 export const zPostProcessing = z.object({
-    subliminal: zSubliminalConfig.optional()
+    subtitle: zSubtitleConfig.optional()
 });
 
 export type PostProcessingZodType = z.infer<typeof zPostProcessing>;
 
 /**
+ * LoggingModel
+ */
+export const zLoggingModel = z.object({
+    enabled: z.boolean().describe('Enable file logging').optional().default(true),
+    retention_hours: z.number().int().describe('Log retention period in hours').optional().default(24),
+    rotation_mb: z.number().int().describe('Log file rotation size in MB').optional().default(10),
+    compression: z.enum([
+        'zip',
+        'gz',
+        'bz2',
+        'xz',
+        ''
+    ]).describe('Log compression format (empty for no compression)').optional()
+});
+
+export type LoggingModelZodType = z.infer<typeof zLoggingModel>;
+
+/**
  * AppModel
  */
 export const zAppModel = z.object({
-    version: z.string().optional().default('0.23.6'),
-    api_key: z.string().optional().default(''),
-    debug: z.enum([
+    version: z.string().describe('Application version').optional(),
+    api_key: z.string().describe('API key for Riven API access').optional().default(''),
+    log_level: z.enum([
         'TRACE',
         'DEBUG',
         'INFO',
         'WARNING',
         'ERROR',
         'CRITICAL'
-    ]).optional(),
-    tracemalloc: z.boolean().optional().default(false),
+    ]).describe('Logging level').optional(),
+    tracemalloc: z.boolean().describe('Enable Python memory tracking (debug)').optional().default(false),
     filesystem: zFilesystemModel.optional(),
     updaters: zUpdatersModel.optional(),
     downloaders: zDownloadersModel.optional(),
@@ -620,7 +655,8 @@ export const zAppModel = z.object({
     indexer: zIndexerModel.optional(),
     database: zDatabaseModel.optional(),
     notifications: zNotificationsModel.optional(),
-    post_processing: zPostProcessing.optional()
+    post_processing: zPostProcessing.optional(),
+    logging: zLoggingModel.optional()
 });
 
 export type AppModelZodType = z.infer<typeof zAppModel>;
