@@ -17,6 +17,7 @@
     import * as Drawer from "$lib/components/ui/drawer/index.js";
     import { goto } from "$app/navigation";
     import { authClient } from "$lib/auth-client";
+    import NotificationCenter from "$lib/components/notification-center.svelte";
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
@@ -64,6 +65,8 @@
 
     <div class="mt-auto flex flex-col items-center gap-4 pb-4">
         {#if user}
+            <NotificationCenter />
+
             <Tooltip>
                 {#snippet trigger()}
                     <Avatar.Root class="cursor-pointer">
