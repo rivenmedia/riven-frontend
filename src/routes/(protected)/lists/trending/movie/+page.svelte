@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MediaListStore } from "../../../listStore.svelte";
+    import { MediaListStore } from "../../../../../lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";

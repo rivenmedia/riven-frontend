@@ -5,7 +5,7 @@
     import TmdbNowPlaying from "$lib/components/tmdb-now-playing.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { MediaListStore } from "./listStore.svelte";
+    import { MediaListStore } from "../../lib/services/lists-cache.svelte";
 
     let { data }: { data: PageData } = $props();
 
