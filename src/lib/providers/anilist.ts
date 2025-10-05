@@ -43,6 +43,26 @@ query {
 }
 `;
 
+const mediaRatingsQuery = `
+query ($id: Int) {
+  Media(id: $id, type: ANIME) {
+    id
+    averageScore
+    meanScore
+  }
+}
+`;
+
+export type AnilistMediaRatingsResponse = {
+    data: {
+        Media: {
+            id: number;
+            averageScore: number | null;
+            meanScore: number | null;
+        };
+    };
+};
+
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
 
 export async function getTrending(fetch: FetchFunction, page: number = 1) {
@@ -66,6 +86,34 @@ export async function getTrending(fetch: FetchFunction, page: number = 1) {
         }
 
         return data as AnilistTrendingResponse;
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return null;
+    }
+}
+
+export async function getMediaDetails(anilistId: number, fetch: FetchFunction) {
+    try {
+        const response = await fetch(ANILIST_BASE_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json"
+            },
+            body: JSON.stringify({
+                query: mediaRatingsQuery,
+                variables: { id: anilistId }
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.errors) {
+            console.error("GraphQL errors:", data.errors);
+            return null;
+        }
+
+        return data as AnilistMediaRatingsResponse;
     } catch (error) {
         console.error("Fetch error:", error);
         return null;
