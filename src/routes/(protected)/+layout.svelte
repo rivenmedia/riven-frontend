@@ -44,7 +44,9 @@
         <header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
             <div class="flex w-full items-center gap-2">
                 <Input type="text" placeholder="Search..." class="h-9" />
-                <NotificationCenter />
+                <div class="md:hidden">
+                    <NotificationCenter />
+                </div>
                 <Button
                     variant="ghost"
                     class="size-10 rounded-md md:hidden"
