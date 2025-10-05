@@ -92,34 +92,36 @@
 
 <AspectRatio ratio={2 / 3}>
 	<div class="relative h-full w-full">
-		<!-- Poster Image -->
-		<img
-			src={posterUrl}
-			{alt}
-			class="h-full w-full object-cover object-center transition-transform duration-300 select-none hover:scale-105"
-			loading="lazy" />
+		<div class="relative h-full w-full transition-transform duration-300 hover:scale-105">
+			<!-- Poster Image -->
+			<img
+				src={posterUrl}
+				{alt}
+				class="h-full w-full object-cover object-center select-none"
+				loading="lazy" />
 
-		<!-- Rating Overlay -->
-		{#if !loading && !error && scores.length > 0}
-			<div
-				class="rating-overlay absolute {overlayPosition} {isHorizontal
-					? 'left-0 right-0'
-					: 'top-0 bottom-0'} flex {isHorizontal
-					? 'h-[8%] flex-row items-center justify-evenly'
-					: 'w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
-				style="background-color: rgba(0, 0, 0, {overlayOpacity});">
-				{#each scores as score}
-					<div class="rating-item text-white text-xs flex {isHorizontal ? 'flex-row' : 'flex-col'}">
-						{#if score.image}
-							<img
-								src="/rating-logos/{score.image}"
-								alt={score.name}
-								class="rating-logo" />
-						{/if}
-						<span class="font-medium">{score.score}</span>
-					</div>
-				{/each}
-			</div>
-		{/if}
+			<!-- Rating Overlay -->
+			{#if !loading && !error && scores.length > 0}
+				<div
+					class="rating-overlay absolute {overlayPosition} {isHorizontal
+						? 'left-0 right-0'
+						: 'top-0 bottom-0'} flex {isHorizontal
+						? 'h-[8%] flex-row items-center justify-evenly'
+						: 'w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
+					style="background-color: rgba(0, 0, 0, {overlayOpacity});">
+					{#each scores as score}
+						<div class="rating-item text-white text-xs flex {isHorizontal ? 'flex-row' : 'flex-col'}">
+							{#if score.image}
+								<img
+									src="/rating-logos/{score.image}"
+									alt={score.name}
+									class="rating-logo" />
+							{/if}
+							<span class="font-medium">{score.score}</span>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
 	</div>
 </AspectRatio>
