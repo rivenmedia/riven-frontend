@@ -1,184 +1,38 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { logs as getOldLogs, uploadLogs } from "$lib/api";
+    import { uploadLogs } from "$lib/api";
     import { Button } from "$lib/components/ui/button/index.js";
     import { toast } from "svelte-sonner";
+    import { logStore, type LogEntry } from "$lib/stores/logs.svelte";
 
-    type LogEntry = {
-        message?: string;
-    };
-
-    let logs = $state<LogEntry[]>([]);
-    let historicalLogs = $state<LogEntry[]>([]);
-    let isLoadingHistorical = $state<boolean>(false);
-    let activeTab = $state<"live" | "historical">("live");
-    let error = $state<string | null>(null);
-    let historicalError = $state<string | null>(null);
-    let connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
-        "connecting"
-    );
-    let abortController = $state<AbortController | null>(null);
-    let reconnectAttempts = $state<number>(0);
-    let maxReconnectAttempts = 10;
-    let reconnectTimeoutId: number | null = null;
-
-    function getReconnectDelay(attempt: number): number {
-        const delay = Math.min(30000, Math.pow(2, attempt) * 1000 + Math.random() * 1000);
-        return delay;
-    }
-
-    async function fetchHistoricalLogs() {
-        try {
-            isLoadingHistorical = true;
-            historicalError = null;
-            const response = await getOldLogs();
-            console.log("Fetched historical logs:", response);
-            // @ts-ignore
-            historicalLogs = response.data?.logs || [];
-        } catch (e: any) {
-            console.error("Failed to fetch historical logs:", e);
-            historicalError = `Failed to fetch historical logs: ${e.message}`;
-        } finally {
-            isLoadingHistorical = false;
-        }
-    }
-
-    async function startStream() {
-        if (abortController) {
-            abortController.abort();
-        }
-
-        abortController = new AbortController();
-        connectionStatus = "connecting";
-        error = null;
-
-        try {
-            const response = await fetch("/api/logs", {
-                method: "GET",
-                headers: {
-                    Accept: "text/event-stream",
-                    "Cache-Control": "no-cache"
-                },
-                signal: abortController.signal
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error("No response body reader available");
-            }
-
-            connectionStatus = "connected";
-            reconnectAttempts = 0;
-
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    console.log("Stream ended normally");
-                    break;
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-
-                let lines = buffer.split("\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    if (line.trim()) {
-                        try {
-                            const jsonData = JSON.parse(line.trim());
-                            logs.push(jsonData);
-                            error = null;
-                        } catch (e) {
-                            if (line.startsWith("data: ")) {
-                                try {
-                                    const jsonStr = line.substring(6);
-                                    const parsedData = JSON.parse(jsonStr);
-                                    logs.push(parsedData);
-                                    error = null;
-                                } catch (parseError) {
-                                    console.warn("Failed to parse SSE data:", parseError);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            scheduleReconnect();
-        } catch (e: any) {
-            if (e.name === "AbortError") {
-                console.log("Stream aborted");
-                connectionStatus = "disconnected";
-                return;
-            }
-
-            console.error("Stream error:", e);
-            connectionStatus = "error";
-            error = `Connection error: ${e.message}`;
-            scheduleReconnect();
-        }
-    }
-
-    function scheduleReconnect() {
-        if (reconnectAttempts >= maxReconnectAttempts) {
-            connectionStatus = "error";
-            error = `Failed to reconnect after ${maxReconnectAttempts} attempts. Please refresh the page.`;
-            return;
-        }
-
-        const delay = getReconnectDelay(reconnectAttempts);
-        reconnectAttempts++;
-
-        console.log(
-            `Scheduling reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${Math.round(delay / 1000)}s`
-        );
-
-        reconnectTimeoutId = setTimeout(() => {
-            if (abortController?.signal.aborted) return;
-            startStream();
-        }, delay) as unknown as number;
-    }
-
-    function manualReconnect() {
-        if (reconnectTimeoutId) {
-            clearTimeout(reconnectTimeoutId);
-            reconnectTimeoutId = null;
-        }
-        reconnectAttempts = 0;
-        startStream();
-    }
-
-    function setActiveTab(tab: "live" | "historical") {
-        activeTab = tab;
-        if (tab === "historical" && historicalLogs.length === 0) {
-            fetchHistoricalLogs();
-        }
-    }
+    const {
+        logs,
+        historicalLogs,
+        isLoadingHistorical,
+        activeTab,
+        error,
+        historicalError,
+        connectionStatus,
+        reconnectAttempts,
+        maxReconnectAttempts
+    } = $derived({
+        logs: logStore.logs,
+        historicalLogs: logStore.historicalLogs,
+        isLoadingHistorical: logStore.isLoadingHistorical,
+        activeTab: logStore.activeTab,
+        error: logStore.error,
+        historicalError: logStore.historicalError,
+        connectionStatus: logStore.connectionStatus,
+        reconnectAttempts: logStore.reconnectAttempts,
+        maxReconnectAttempts: logStore.maxReconnectAttempts
+    });
 
     onMount(() => {
-        try {
-            startStream();
-        } catch (e: any) {
-            error = `Initialization error: ${e.message}`;
-            connectionStatus = "error";
-            console.error("Initialization error:", e);
-        }
+        logStore.connect();
     });
 
     onDestroy(() => {
-        if (reconnectTimeoutId) {
-            clearTimeout(reconnectTimeoutId);
-        }
-        if (abortController) {
-            abortController.abort();
-        }
+        logStore.disconnect();
     });
 
     function getStatusColor() {
@@ -310,7 +164,7 @@
                 class="text-destructive/80 bg-destructive/5 mb-4 overflow-x-auto rounded border p-3 font-mono text-sm">{error}</pre>
             <button
                 class="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 font-medium transition-colors"
-                onclick={manualReconnect}>
+                onclick={() => logStore.reconnect()}>
                 Try Again
             </button>
         </div>
@@ -335,10 +189,10 @@
                     class="bg-muted/30 flex flex-shrink-0 flex-col items-center justify-between gap-4 border-b px-6 py-3 md:flex-row">
                     <div class="flex items-center gap-2">
                         {@render tabButton("Live Logs", activeTab === "live", () =>
-                            setActiveTab("live")
+                            logStore.setActiveTab("live")
                         )}
                         {@render tabButton("Historical Logs", activeTab === "historical", () =>
-                            setActiveTab("historical")
+                            logStore.setActiveTab("historical")
                         )}
                     </div>
                     <div class="flex items-center gap-4">
@@ -347,14 +201,14 @@
                             {#if connectionStatus === "error" && reconnectAttempts < maxReconnectAttempts}
                                 <button
                                     class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 rounded border px-3 py-1 text-sm font-medium transition-colors"
-                                    onclick={manualReconnect}>
+                                    onclick={() => logStore.reconnect()}>
                                     Reconnect Now
                                 </button>
                             {/if}
                         {:else}
                             <button
                                 class="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 rounded border px-3 py-1 text-sm font-medium transition-colors"
-                                onclick={fetchHistoricalLogs}
+                                onclick={() => logStore.fetchHistoricalLogs()}
                                 disabled={isLoadingHistorical}>
                                 {isLoadingHistorical ? "Loading..." : "Refresh"}
                             </button>
@@ -375,7 +229,7 @@
                         {@render loadingSpinner("Loading historical logs...")}
                     {:else if historicalError}
                         <div class="p-8">
-                            {@render errorDisplay(historicalError, fetchHistoricalLogs)}
+                            {@render errorDisplay(historicalError, () => logStore.fetchHistoricalLogs())}
                         </div>
                     {:else if historicalLogs.length > 0}
                         {#each historicalLogs.slice().reverse() as log}
@@ -385,7 +239,7 @@
                         {@render emptyState(
                             "No historical logs found",
                             "Refresh",
-                            fetchHistoricalLogs
+                            () => logStore.fetchHistoricalLogs()
                         )}
                     {/if}
                 </div>
