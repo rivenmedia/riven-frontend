@@ -16,7 +16,7 @@
     <img
         src={data.poster_path}
         alt={data.title}
-        class="h-full object-cover object-center transition-transform duration-300 select-none hover:scale-105"
+        class="h-full w-full object-cover object-center transition-transform duration-300 select-none hover:scale-105"
         loading="lazy" />
 </AspectRatio>
 <a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">

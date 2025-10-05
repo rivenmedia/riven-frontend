@@ -22,9 +22,9 @@ export type AnilistTrendingMediaItem = {
 
 export const ANILIST_BASE_URL = "https://graphql.anilist.co";
 
-const trendingQuery = `
+const getTrendingQuery = (page: number, perPage: number = 20) => `
 query {
-  Page(page: 1, perPage: 20) {
+  Page(page: ${page}, perPage: ${perPage}) {
     media(type: ANIME, sort: TRENDING_DESC) {
       id
       title {
@@ -45,7 +45,7 @@ query {
 
 type FetchFunction = (url: string, init?: RequestInit) => Promise<Response>;
 
-export async function getTrending(fetch: FetchFunction) {
+export async function getTrending(fetch: FetchFunction, page: number = 1) {
     try {
         const response = await fetch(ANILIST_BASE_URL, {
             method: "POST",
@@ -54,7 +54,7 @@ export async function getTrending(fetch: FetchFunction) {
                 Accept: "application/json"
             },
             body: JSON.stringify({
-                query: trendingQuery
+                query: getTrendingQuery(page)
             })
         });
 
