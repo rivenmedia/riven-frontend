@@ -89,10 +89,6 @@
             <Button variant="ghost" size="icon" class="relative h-9 w-9" {...props}>
                 {#if notificationStore.unreadCount > 0}
                     <BellRing class="size-5" />
-                    <Badge
-                        class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                        {notificationStore.unreadCount}
-                    </Badge>
                 {:else}
                     <Bell class="size-5" />
                 {/if}

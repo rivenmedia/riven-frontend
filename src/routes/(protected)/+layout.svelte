@@ -44,9 +44,10 @@
         <header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
             <div class="flex w-full items-center gap-2">
                 <Input type="text" placeholder="Search..." class="h-9" />
-                <div class="md:hidden">
+                {#if isMobileStore.isMobile}
                     <NotificationCenter />
-                </div>
+                {/if}
+
                 <Button
                     variant="ghost"
                     class="size-10 rounded-md md:hidden"

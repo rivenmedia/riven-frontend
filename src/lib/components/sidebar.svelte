@@ -1,31 +1,33 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { page } from "$app/state";
+    import { authClient } from "$lib/auth-client";
+    import NotificationCenter from "$lib/components/notification-center.svelte";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+    import * as Drawer from "$lib/components/ui/drawer/index.js";
     import { Separator } from "$lib/components/ui/separator/index.js";
+    import { cn } from "$lib/utils";
+    import CalendarDays from "@lucide/svelte/icons/calendar-days";
+    import FileClock from "@lucide/svelte/icons/file-clock";
     import Home from "@lucide/svelte/icons/home";
     import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
     import LogOut from "@lucide/svelte/icons/log-out";
     import Mountain from "@lucide/svelte/icons/mountain";
     import Settings from "@lucide/svelte/icons/settings";
+    import Search from "@lucide/svelte/icons/search";
     import User from "@lucide/svelte/icons/user";
-    import FileClock from "@lucide/svelte/icons/file-clock";
-    import CalendarDays from "@lucide/svelte/icons/calendar-days";
-    import Tooltip from "./tooltip.svelte";
     import { getContext } from "svelte";
-    import { cn } from "$lib/utils";
-    import * as Drawer from "$lib/components/ui/drawer/index.js";
-    import { goto } from "$app/navigation";
-    import { authClient } from "$lib/auth-client";
-    import NotificationCenter from "$lib/components/notification-center.svelte";
+    import Tooltip from "./tooltip.svelte";
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
         { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { href: "/settings", icon: Settings, label: "Settings" },
+        { href: "/explore", icon: Search, label: "Explore" },
+        { href: "/calendar", icon: CalendarDays, label: "Calendar" },
         { href: "/auth", icon: User, label: "Profile" },
-        { href: "/logs", icon: FileClock, label: "Logs" },
-        { href: "/calendar", icon: CalendarDays, label: "Calendar" }
+        { href: "/settings", icon: Settings, label: "Settings" },
+        { href: "/logs", icon: FileClock, label: "Logs" }
     ];
 
     let { user } = $props();
@@ -65,7 +67,9 @@
 
     <div class="mt-auto flex flex-col items-center gap-4 pb-4">
         {#if user}
-            <NotificationCenter />
+            {#if !isMobileStore.isMobile}
+                <NotificationCenter />
+            {/if}
 
             <Tooltip>
                 {#snippet trigger()}
