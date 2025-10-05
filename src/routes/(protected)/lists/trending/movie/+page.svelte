@@ -1,18 +1,18 @@
 <script lang="ts">
-    import { MediaListStore } from "../../listStore.svelte";
+    import { MediaListStore } from "../../../listStore.svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { onMount } from "svelte";
 
-    const trendingShowsStore = new MediaListStore("trendingShows", "/api/tmdb/tv", "day");
+    const trendingMoviesStore = new MediaListStore("trendingMovies", "/api/tmdb/movie", "day");
     let loadMoreTrigger: HTMLDivElement;
 
     onMount(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && trendingShowsStore.hasMore && !trendingShowsStore.loading) {
-                    trendingShowsStore.loadMore();
+                if (entries[0].isIntersecting && trendingMoviesStore.hasMore && !trendingMoviesStore.loading) {
+                    trendingMoviesStore.loadMore();
                 }
             },
             { threshold: 0.1 }
@@ -29,32 +29,32 @@
 <div class="flex flex-col gap-6 p-6 md:p-8 md:px-16">
     <div class="flex flex-col">
         <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending TV Shows</h1>
+            <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Movies</h1>
             <div class="flex gap-2">
                 <Button
-                    variant={trendingShowsStore.timeWindow === "day" ? "default" : "outline"}
+                    variant={trendingMoviesStore.timeWindow === "day" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => trendingShowsStore.changeTimeWindow("day")}>
+                    onclick={() => trendingMoviesStore.changeTimeWindow("day")}>
                     Today
                 </Button>
                 <Button
-                    variant={trendingShowsStore.timeWindow === "week" ? "default" : "outline"}
+                    variant={trendingMoviesStore.timeWindow === "week" ? "default" : "outline"}
                     size="sm"
-                    onclick={() => trendingShowsStore.changeTimeWindow("week")}>
+                    onclick={() => trendingMoviesStore.changeTimeWindow("week")}>
                     This Week
                 </Button>
             </div>
         </div>
     </div>
 
-    {#if Array.isArray(trendingShowsStore.items) && trendingShowsStore.items.length > 0}
+    {#if Array.isArray(trendingMoviesStore.items) && trendingMoviesStore.items.length > 0}
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {#each trendingShowsStore.items as item}
+            {#each trendingMoviesStore.items as item}
                 <div>
-                    <ListItem data={item} indexer="tmdb" type="tv" />
+                    <ListItem data={item} indexer="tmdb" type="movie" />
                 </div>
             {/each}
-            {#if trendingShowsStore.loading}
+            {#if trendingMoviesStore.loading}
                 {#each Array(6) as _}
                     <div class="w-full">
                         <Skeleton class="aspect-[2/3] w-full rounded-sm" />

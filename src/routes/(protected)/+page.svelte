@@ -37,7 +37,7 @@
                     onclick={() => trendingMoviesStore.changeTimeWindow("week")}>
                     This Week
                 </Button>
-                <Button variant="link" href="/movie/trending">View All</Button>
+                <Button variant="link" href="/lists/trending/movie">View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingMoviesStore.items} indexer="tmdb" type="movie" />
@@ -62,7 +62,7 @@
                     onclick={() => trendingShowsStore.changeTimeWindow("week")}>
                     This Week
                 </Button>
-                <Button variant="link" href="/tv/trending">View All</Button>
+                <Button variant="link" href="/lists/trending/tv">View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingShowsStore.items} indexer="tmdb" type="tv" />
@@ -74,7 +74,7 @@
                 class="text-muted-foreground mb-4 max-w-max text-base font-semibold md:text-xl lg:text-2xl">
                 Trending Animes
             </h2>
-            <Button variant="link" href="/anime/trending">View All</Button>
+            <Button variant="link" href="/lists/trending/anime">View All</Button>
         </div>
         <ListCarousel data={anilistTrendingStore.items} indexer="anilist" />
     </div>
