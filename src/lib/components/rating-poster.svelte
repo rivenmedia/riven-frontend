@@ -84,7 +84,6 @@
 	}
 
 	.rating-logo {
-		height: 0.8rem;
 		width: auto;
 		object-fit: contain;
 	}
@@ -115,7 +114,7 @@
 								<img
 									src="/rating-logos/{score.image}"
 									alt={score.name}
-									class="rating-logo" />
+									class="rating-logo {indexer === 'anilist' ? 'h-[1rem]' : 'h-[0.8rem]'}" />
 							{/if}
 							<span class="font-medium">{score.score}</span>
 						</div>
