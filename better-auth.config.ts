@@ -9,18 +9,24 @@ import Database from "better-sqlite3";
 import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
-import { admin } from "better-auth/plugins";
+import { admin, openAPI } from "better-auth/plugins";
 
 export const auth = betterAuth({
     database: new Database(process.env.DATABASE_URL!),
     emailAndPassword: {
         enabled: true
     },
-    plugins: [username(), admin()],
+    plugins: [username(), admin(), openAPI()],
     advanced: {
         cookiePrefix: "riven"
     },
     telemetry: {
         enabled: false
+    },
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60 // Cache duration in seconds
+        }
     }
 });
