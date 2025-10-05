@@ -85,17 +85,19 @@
 
 <Popover.Root bind:open>
     <Popover.Trigger>
-        <Button variant="ghost" size="icon" class="relative h-9 w-9">
-            {#if notificationStore.unreadCount > 0}
-                <BellRing class="size-5" />
-                <Badge
-                    class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                    {notificationStore.unreadCount}
-                </Badge>
-            {:else}
-                <Bell class="size-5" />
-            {/if}
-        </Button>
+        {#snippet child({ props })}
+            <Button variant="ghost" size="icon" class="relative h-9 w-9" {...props}>
+                {#if notificationStore.unreadCount > 0}
+                    <BellRing class="size-5" />
+                    <Badge
+                        class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                        {notificationStore.unreadCount}
+                    </Badge>
+                {:else}
+                    <Bell class="size-5" />
+                {/if}
+            </Button>
+        {/snippet}
     </Popover.Trigger>
     <Popover.Content class="w-96 p-0" align="end">
         <div class="flex flex-col">
@@ -129,7 +131,7 @@
             <div class="max-h-[400px] overflow-y-auto">
                 {#if notificationStore.notifications.length === 0}
                     <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <Bell class="size-12 text-muted-foreground/30" />
+                        <Bell class="text-muted-foreground/30 size-12" />
                         <p class="text-muted-foreground mt-2 text-sm">No notifications yet</p>
                         <p class="text-muted-foreground/70 mt-1 text-xs">
                             You'll be notified when items complete
@@ -138,7 +140,9 @@
                 {:else}
                     {#each notificationStore.notifications as notification (notification.id)}
                         <div
-                            class="border-b border-border/50 p-3 transition-colors hover:bg-muted/30 {!notification.read ? 'bg-muted/10' : ''}">
+                            class="border-border/50 hover:bg-muted/30 border-b p-3 transition-colors {!notification.read
+                                ? 'bg-muted/10'
+                                : ''}">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex-1 space-y-1">
                                     <div class="flex items-center gap-2">
@@ -151,7 +155,7 @@
                                             <div class="size-2 rounded-full bg-blue-500"></div>
                                         {/if}
                                     </div>
-                                    <p class="text-sm font-medium leading-none">
+                                    <p class="text-sm leading-none font-medium">
                                         {notification.title}
                                     </p>
                                     <p class="text-muted-foreground text-xs">
@@ -186,7 +190,7 @@
             </div>
 
             {#if notificationStore.connectionStatus === "error"}
-                <div class="border-t border-destructive/20 bg-destructive/10 p-3">
+                <div class="border-destructive/20 bg-destructive/10 border-t p-3">
                     <p class="text-destructive text-xs">
                         Connection error. Notifications may be delayed.
                     </p>
