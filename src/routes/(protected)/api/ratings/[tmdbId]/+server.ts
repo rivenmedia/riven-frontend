@@ -88,22 +88,39 @@ export const GET: RequestHandler = async ({ params, url }) => {
         if (imdbId) {
             // 3. IMDB Rating via Cinemeta
             try {
-                const cinemetaType = mediaType === "movie" ? "movie" : "series";
-                const cinemetaUrl = `https://v3-cinemeta.strem.io/meta/${cinemetaType}/${imdbId}.json`;
+                // const cinemetaType = mediaType === "movie" ? "movie" : "series";
+                // const cinemetaUrl = `https://v3-cinemeta.strem.io/meta/${cinemetaType}/${imdbId}.json`;
 
-                const cinemetaResponse = await fetch(cinemetaUrl);
-                if (cinemetaResponse.ok) {
-                    const cinemetaData = await cinemetaResponse.json();
-                    const imdbRating = cinemetaData?.meta?.imdbRating;
+                // const cinemetaResponse = await fetch(cinemetaUrl);
+                // if (cinemetaResponse.ok) {
+                //     const cinemetaData = await cinemetaResponse.json();
+				// 	console.log("cinemetaData", cinemetaData);
+                //     const imdbRating = cinemetaData?.meta?.imdbRating;
 
-                    if (imdbRating) {
-                        scores.push({
-                            name: "imdb",
-                            image: "imdb.png",
-                            score: imdbRating
-                        });
-                    }
-                }
+                //     if (imdbRating) {
+                //         scores.push({
+                //             name: "imdb",
+                //             image: "imdb.png",
+                //             score: imdbRating
+                //         });
+                //     }
+                // }
+
+
+				const url = "https://api.imdbapi.dev/titles/" + imdbId;
+				const imdbResponse = await fetch(url);
+				if (imdbResponse.ok) {
+					const imdbData = await imdbResponse.json();
+					const imdbRating = imdbData?.rating?.aggregateRating;
+
+					if (imdbRating) {
+						scores.push({
+							name: "imdb",
+							image: "imdb.png",
+							score: imdbRating
+						});
+					}
+				}
             } catch (e) {
                 console.error("IMDB rating fetch failed:", e);
             }
