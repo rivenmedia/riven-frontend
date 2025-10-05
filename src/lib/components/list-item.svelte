@@ -12,21 +12,20 @@
 
     const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
     const useDynamicPoster = $derived(
-        (indexer === "tmdb" && (type === "movie" || type === "tv")) ||
-        indexer === "anilist"
+        (indexer === "tmdb" && (type === "movie" || type === "tv")) || indexer === "anilist"
     );
 </script>
 
 {#if useDynamicPoster}
     <RatingPoster
         id={data.id}
-        indexer={indexer}
+        {indexer}
         mediaType={type}
         posterUrl={data.poster_path}
         alt={data.title}
         placement="bottom" />
 {:else}
-    <AspectRatio ratio={2 / 3}>
+    <AspectRatio ratio={2 / 3} class="overflow-hidden rounded-sm">
         <img
             src={data.poster_path}
             alt={data.title}

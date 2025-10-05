@@ -89,7 +89,7 @@
 	}
 </style>
 
-<AspectRatio ratio={2 / 3}>
+<AspectRatio ratio={2 / 3} class="overflow-hidden rounded-sm">
 	<div class="relative h-full w-full">
 		<div class="relative h-full w-full transition-transform duration-300 hover:scale-105">
 			<!-- Poster Image -->
