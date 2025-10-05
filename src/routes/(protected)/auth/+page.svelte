@@ -40,7 +40,11 @@
     // data has user and session
 </script>
 
-<div class="flex h-full flex-col p-6 md:p-8 md:px-16">
+<svelte:head>
+    <title>Profile - Riven</title>
+</svelte:head>
+
+<div class="flex h-full flex-col p-6 md:p-8 md:px-16 mt-14">
     <h1 class="text-3xl font-bold tracking-tight">{data.user.username}'s Profile</h1>
 
     <div class="mt-4 flex flex-col gap-4">

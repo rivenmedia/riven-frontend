@@ -15,6 +15,10 @@
     const anilistTrendingStore = new MediaListStore("anilistTrending", "/api/anilist/trending");
 </script>
 
+<svelte:head>
+    <title>Home - Riven</title>
+</svelte:head>
+
 <TmdbNowPlaying data={nowPlayingStore.items} />
 
 {#snippet listHeading(title: string)}

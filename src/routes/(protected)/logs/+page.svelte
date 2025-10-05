@@ -88,6 +88,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Logs - Riven</title>
+</svelte:head>
+
 {#snippet logEntry(log: LogEntry)}
     <div class="border-border/50 hover:bg-muted/20 border-b transition-colors last:border-b-0">
         <div class="text-foreground/90 p-4 font-mono text-xs break-words whitespace-pre-wrap">
@@ -156,7 +160,7 @@
     </div>
 {/snippet}
 
-<div class="flex h-full flex-col p-6 md:p-8 md:px-16">
+<div class="flex h-full flex-col p-6 md:p-8 md:px-16 mt-14">
     {#if error && connectionStatus === "error" && reconnectAttempts >= maxReconnectAttempts}
         <div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
             <h3 class="text-destructive mb-3 text-lg font-semibold">Connection Failed</h3>

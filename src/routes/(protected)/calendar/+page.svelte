@@ -135,6 +135,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Calendar - Riven</title>
+</svelte:head>
+
 {#snippet itemIcon(item: EntertainmentItem, size = 4)}
     {#if item.season}
         <Tv class={`h-${size} w-${size} flex-shrink-0 text-blue-400`} />
@@ -242,7 +246,7 @@
     </div>
 {/snippet}
 
-<div class="h-full w-full p-6 md:p-8 md:px-16">
+<div class="h-full w-full p-6 md:p-8 md:px-16 mt-14">
     <Card.Root class="mb-4 md:mb-6">
         <Card.Header class="pb-4">
             <div class="flex items-center justify-between">

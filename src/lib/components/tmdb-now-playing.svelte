@@ -63,7 +63,7 @@
         class="relative">
         <Carousel.Content>
             {#each data as item}
-                <Carousel.Item class="relative h-96 w-full">
+                <Carousel.Item class="relative h-[27.5rem] w-full">
                     <img
                         src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
                         alt={item.title || item.original_title}
@@ -73,8 +73,9 @@
                         class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none">
                     </div>
 
-                    <div class="absolute inset-0 z-[2] flex flex-col gap-4">
-                        <div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
+                    <div class="absolute inset-0 z-[2] flex flex-col gap-4 mt-14">
+                        <div
+                            class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
                             <div class="w-full max-w-2xl select-none">
                                 <h1
                                     class="text-3xl leading-tight font-medium break-words md:text-4xl">
@@ -133,7 +134,8 @@
                                 <div class="flex gap-1">
                                     {#each data as _, i}
                                         <button
-                                            class="h-1.5 w-1.5 rounded-full cursor-pointer {i === currentIndex
+                                            class="h-1.5 w-1.5 cursor-pointer rounded-full {i ===
+                                            currentIndex
                                                 ? 'bg-white'
                                                 : 'bg-white/50'}"
                                             onclick={() => api?.scrollTo(i)}

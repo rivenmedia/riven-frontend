@@ -25,7 +25,11 @@
     });
 </script>
 
-<div class="flex flex-col gap-6 p-6 md:p-8 md:px-16">
+<svelte:head>
+    <title>Trending Animes - Riven</title>
+</svelte:head>
+
+<div class="flex flex-col gap-6 p-6 md:p-8 md:px-16 mt-14">
     <div class="flex flex-col">
         <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Animes</h1>
     </div>

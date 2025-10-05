@@ -2,7 +2,6 @@
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
     import { authClient } from "$lib/auth-client";
-    import NotificationCenter from "$lib/components/notification-center.svelte";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Drawer from "$lib/components/ui/drawer/index.js";
@@ -43,7 +42,7 @@
             <Mountain class="size-5" />
         </div>
     </div>
-    <nav class="flex flex-col items-center gap-3.5 mt-4">
+    <nav class="mt-4 flex flex-col items-center gap-3.5">
         {#each navItems as item}
             <Tooltip>
                 {#snippet trigger()}
@@ -66,10 +65,6 @@
 
     <div class="mt-auto flex flex-col items-center gap-3.5 pb-4">
         {#if user}
-            {#if !isMobileStore.isMobile}
-                <NotificationCenter />
-            {/if}
-
             <Tooltip>
                 {#snippet trigger()}
                     <Avatar.Root class="cursor-pointer">
@@ -98,7 +93,7 @@
                 }}
                 variant="ghost"
                 size="icon"
-                class="size-10 rounded-md cursor-pointer"
+                class="size-10 cursor-pointer rounded-md"
                 aria-label="Logout">
                 <LogOut class="size-5" />
             </Button>

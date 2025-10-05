@@ -4,4 +4,10 @@
     let { data }: { data: PageData } = $props();
 </script>
 
-<SettingsForm {data} />
+<svelte:head>
+    <title>Settings - Riven</title>
+</svelte:head>
+
+<div class="mt-14">
+    <SettingsForm {data} />
+</div>
