@@ -37,14 +37,13 @@
 </script>
 
 <aside
-    class="bg-card border-r-border top-0 left-0 hidden h-screen w-16 flex-col items-center border-r md:flex">
+    class="bg-card border-r-border top-0 left-0 hidden h-screen w-14 flex-col items-center border-r md:flex">
     <div class="flex h-18 w-full items-center justify-center">
-        <div class="text-primary-foreground flex size-10 items-center justify-center">
-            <Mountain class="size-6" />
+        <div class="text-primary-foreground flex items-center justify-center">
+            <Mountain class="size-5" />
         </div>
     </div>
-    <Separator class="mb-4 w-full" />
-    <nav class="flex flex-col items-center gap-4">
+    <nav class="flex flex-col items-center gap-3.5 mt-4">
         {#each navItems as item}
             <Tooltip>
                 {#snippet trigger()}
@@ -65,7 +64,7 @@
         {/each}
     </nav>
 
-    <div class="mt-auto flex flex-col items-center gap-4 pb-4">
+    <div class="mt-auto flex flex-col items-center gap-3.5 pb-4">
         {#if user}
             {#if !isMobileStore.isMobile}
                 <NotificationCenter />
@@ -99,9 +98,9 @@
                 }}
                 variant="ghost"
                 size="icon"
-                class="size-10 rounded-md"
+                class="size-10 rounded-md cursor-pointer"
                 aria-label="Logout">
-                <LogOut class="h-5 w-5" />
+                <LogOut class="size-5" />
             </Button>
         {:else}
             <Avatar.Root class="cursor-pointer">
@@ -118,7 +117,7 @@
         <Drawer.Header class="flex flex-row items-center justify-between">
             {#if user}
                 <div class="flex items-center gap-2">
-                    <Avatar.Root class="cursor-pointer">
+                    <Avatar.Root class="cursor-poiter">
                         <Avatar.Image
                             src={user.image || "https://avatar.iran.liara.run/public"}
                             alt={user.username} />

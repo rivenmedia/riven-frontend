@@ -41,7 +41,7 @@
     class="bg-background grid h-screen w-screen grid-cols-1 overflow-hidden md:grid-cols-[auto_1fr]">
     <Sidebar user={data.user} />
     <main class="grid grid-rows-[auto_auto_1fr] overflow-hidden">
-        <header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4">
+        <header class="bg-background md:bg-card flex h-18 w-full items-center px-2 md:px-4 md:hidden">
             <div class="flex w-full items-center gap-2">
                 <Input type="text" placeholder="Search..." class="h-9" />
                 {#if isMobileStore.isMobile}

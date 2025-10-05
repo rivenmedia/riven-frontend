@@ -16,7 +16,7 @@
         }}
         class="mt-1.5"
         setApi={(emblaApi) => (api = emblaApi)}>
-        <Carousel.Content>
+        <Carousel.Content class="gap-2">
             {#each data as item}
                 <Carousel.Item class="basis-36 md:basis-40 lg:basis-44">
                     <ListItem data={item} {indexer} {type} />

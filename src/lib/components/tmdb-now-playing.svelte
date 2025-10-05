@@ -7,10 +7,49 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import { onMount, onDestroy } from "svelte";
 
     let api = $state<CarouselAPI>();
+    let currentProgress = $state(0);
+    let currentIndex = $state(0);
+    let autoplayDelay = 5000;
+    let progressInterval: number;
+    let slideStartTime = $state(Date.now());
 
     let { data } = $props();
+
+    function setupProgressTracking() {
+        if (api) {
+            api.on("select", () => {
+                currentProgress = 0;
+                slideStartTime = Date.now();
+                currentIndex = api!.selectedScrollSnap();
+            });
+
+            if (progressInterval) clearInterval(progressInterval);
+
+            progressInterval = window.setInterval(() => {
+                const elapsed = Date.now() - slideStartTime;
+                currentProgress = Math.min((elapsed / autoplayDelay) * 100, 100);
+            }, 16);
+        }
+    }
+
+    onMount(() => {
+        if (api) {
+            setupProgressTracking();
+        }
+    });
+
+    onDestroy(() => {
+        if (progressInterval) clearInterval(progressInterval);
+    });
+
+    $effect(() => {
+        if (api) {
+            setupProgressTracking();
+        }
+    });
 </script>
 
 {#if Array.isArray(data) && data.length > 0}
@@ -18,9 +57,10 @@
         setApi={(emblaApi) => (api = emblaApi)}
         plugins={[
             Autoplay({
-                delay: 5000
+                delay: autoplayDelay
             })
-        ]}>
+        ]}
+        class="relative">
         <Carousel.Content>
             {#each data as item}
                 <Carousel.Item class="relative h-96 w-full">
@@ -83,11 +123,46 @@
                                 <Button variant="link" href="/details/{item.id}"
                                     >View Details</Button>
                             </div>
+
+                            <div
+                                class="mx-auto mt-3 flex w-full max-w-xs items-center justify-center gap-3">
+                                <div class="text-xs font-medium whitespace-nowrap text-white/80">
+                                    {currentIndex + 1}/{data.length}
+                                </div>
+
+                                <div class="flex gap-1">
+                                    {#each data as _, i}
+                                        <button
+                                            class="h-1.5 w-1.5 rounded-full cursor-pointer {i === currentIndex
+                                                ? 'bg-white'
+                                                : 'bg-white/50'}"
+                                            onclick={() => api?.scrollTo(i)}
+                                            aria-label="Go to slide {i + 1}">
+                                        </button>
+                                    {/each}
+                                </div>
+
+                                <div class="h-1 w-24 overflow-hidden rounded-full bg-black/30">
+                                    <div
+                                        class="h-full bg-white transition-all duration-100"
+                                        style="width: {currentProgress}%">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </Carousel.Item>
             {/each}
         </Carousel.Content>
+
+        <div class="absolute inset-y-0 left-2 z-10 flex items-center">
+            <Carousel.Previous
+                class="h-8 w-8 rounded-full bg-black/50 p-1.5 opacity-75 hover:opacity-100" />
+        </div>
+        <div class="absolute inset-y-0 right-2 z-10 flex items-center">
+            <Carousel.Next
+                class="h-8 w-8 rounded-full bg-black/50 p-1.5 opacity-75 hover:opacity-100" />
+        </div>
     </Carousel.Root>
 {:else}
     <div class="relative h-96 w-full">

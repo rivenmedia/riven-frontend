@@ -12,7 +12,7 @@
     const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
 </script>
 
-<AspectRatio ratio={2 / 3}>
+<AspectRatio ratio={2 / 3} class="overflow-hidden rounded-sm">
     <img
         src={data.poster_path}
         alt={data.title}
