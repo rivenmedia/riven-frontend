@@ -1,5 +1,4 @@
 import { defineConfig } from "@hey-api/openapi-ts";
-import "dotenv/config";
 
 export default defineConfig({
     input: `${process.env.BACKEND_URL || "http://localhost:8080"}/openapi.json`,
