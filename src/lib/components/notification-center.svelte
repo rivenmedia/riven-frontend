@@ -87,7 +87,7 @@
     <Popover.Trigger>
         {#snippet child({ props })}
             <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 class="relative h-10 w-10 cursor-pointer"
                 {...props}>
