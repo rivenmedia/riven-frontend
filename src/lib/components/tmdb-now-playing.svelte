@@ -126,7 +126,7 @@
                                     href="/watch/{item.id}"
                                     class="bg-foreground text-background hover:bg-foreground/90 w-full px-8 md:w-auto shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                                     >Request</Button>
-                                <Button variant="link" href="/details/{item.id}"
+                                <Button variant="link" href="/details/media/{item.id}/movie"
                                     class="backdrop-blur-sm bg-white/5 hover:bg-white/10 transition-all duration-200"
                                     >View Details</Button>
                             </div>
