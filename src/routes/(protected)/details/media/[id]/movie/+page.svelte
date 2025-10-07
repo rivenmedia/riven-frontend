@@ -4,6 +4,7 @@
     import { AspectRatio } from "$lib/components/ui/aspect-ratio/index.js";
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
+    import { Badge } from "$lib/components/ui/badge/index.js";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -50,44 +51,46 @@
         </span>
     </div>
     <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-24">
-        <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
-            <AspectRatio ratio={16 / 9} class="w-full">
-                <img
-                    alt={data.details.id.toString()}
-                    class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                    src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
-                    loading="lazy" />
-            </AspectRatio>
+        {#if data.details.backdrop_path}
+            <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
+                <AspectRatio ratio={16 / 9} class="w-full">
+                    <img
+                        alt={data.details.id.toString()}
+                        class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
+                        src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
+                        loading="lazy" />
+                </AspectRatio>
 
-            {#if data.details.images && data.details.images.logos && data.details.images.logos.length > 0}
-                {@const logo = data.details.images.logos[0]}
-                <div class="absolute inset-0 flex items-end p-4">
-                    <div
-                        class={`overflow-hidden ${
-                            logo.aspect_ratio > 3
-                                ? "max-h-[60px] max-w-[220px]"
-                                : logo.aspect_ratio > 2.5
-                                  ? "max-h-[70px] max-w-[200px]"
-                                  : logo.aspect_ratio < 1
-                                    ? "max-h-[90px] max-w-[100px]"
-                                    : "max-h-[80px] max-w-[180px]"
-                        }`}>
-                        <img
-                            alt="Movie logo"
-                            class="h-auto w-full object-contain drop-shadow-lg"
-                            src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
-                            loading="lazy" />
+                {#if data.details.images && data.details.images.logos && data.details.images.logos.length > 0}
+                    {@const logo = data.details.images.logos[0]}
+                    <div class="absolute inset-0 flex items-end p-4">
+                        <div
+                            class={`overflow-hidden ${
+                                logo.aspect_ratio > 3
+                                    ? "max-h-[60px] max-w-[220px]"
+                                    : logo.aspect_ratio > 2.5
+                                      ? "max-h-[70px] max-w-[200px]"
+                                      : logo.aspect_ratio < 1
+                                        ? "max-h-[90px] max-w-[100px]"
+                                        : "max-h-[80px] max-w-[180px]"
+                            }`}>
+                            <img
+                                alt="Movie logo"
+                                class="h-auto w-full object-contain drop-shadow-lg"
+                                src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
+                                loading="lazy" />
+                        </div>
                     </div>
-                </div>
-            {/if}
-        </div>
+                {/if}
+            </div>
+        {/if}
 
         <div class="md:px-8 lg:px-16">
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
                     alt={data.details.title}
-                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
+                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52 transition-transform duration-300 hover:scale-105"
                     src={data.details.poster_path
                         ? `${TMDB_IMAGE_BASE_URL}/w500${data.details.poster_path}`
                         : "https://avatar.iran.liara.run/public"}
@@ -120,6 +123,16 @@
                         {/if}
                     </div>
 
+                    {#if data.details.genres && data.details.genres.length > 0}
+                        <div class="mb-3 flex flex-wrap gap-2">
+                            {#each data.details.genres as genre (genre.id)}
+                                <Badge variant="outline">
+                                    {genre.name}
+                                </Badge>
+                            {/each}
+                        </div>
+                    {/if}
+
                     <div class="flex flex-col gap-8">
                         <p class="max-w-max text-sm leading-relaxed">
                             {data.details.overview}
@@ -134,7 +147,7 @@
                                                 <a href="/media/person/tmdb/{cast.id}">
                                                     <img
                                                         alt={cast.name}
-                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md"
+                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
                                                         src={cast.profile_path
                                                             ? `${TMDB_IMAGE_BASE_URL}/w200${cast.profile_path}`
                                                             : "https://avatar.iran.liara.run/public"}
@@ -157,7 +170,7 @@
             </div>
 
             {#if data.details.belongs_to_collection}
-                <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
+                <h2 class="mt-8 mb-4 text-lg font-bold ">Part of the collection</h2>
                 <div class="relative">
                     <img
                         alt={data.details.belongs_to_collection.name}
@@ -171,7 +184,7 @@
                     <div class="absolute inset-0 flex items-center justify-center p-4">
                         <a
                             href={`/details/collection/${data.details.belongs_to_collection.id}`}
-                            class="text-center text-lg font-bold underline drop-shadow-md">
+                             class="text-center text-lg font-bold underline drop-shadow-lg transition-all duration-200 hover:scale-105">
                             {data.details.belongs_to_collection.name}
                         </a>
                     </div>
@@ -180,14 +193,14 @@
 
             {#if data.details.recommendations && data.details.recommendations.results.length > 0}
                 <div class="mt-8 flex flex-col">
-                    <h2 class="mb-4 text-lg font-bold">Recommendations</h2>
+                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">Recommendations</h2>
                     <ListCarousel data={derivedRecommendationsResult} indexer="tmdb" type="movie" />
                 </div>
             {/if}
 
             {#if data.details.similar && data.details.similar.results.length > 0}
                 <div class="mt-8 flex flex-col">
-                    <h2 class="mb-4 text-lg font-bold">Similar Movies</h2>
+                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
                     <ListCarousel data={derivedSimilarResult} indexer="tmdb" type="movie" />
                 </div>
             {/if}
