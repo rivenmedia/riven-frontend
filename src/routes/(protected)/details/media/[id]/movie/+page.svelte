@@ -171,7 +171,7 @@
                                                 <a href="/media/person/tmdb/{cast.id}">
                                                     <img
                                                         alt={cast.name}
-                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
                                                         src={cast.profile_path
                                                             ? `${TMDB_IMAGE_BASE_URL}/w200${cast.profile_path}`
                                                             : "https://avatar.iran.liara.run/public"}
