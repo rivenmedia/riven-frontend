@@ -2,6 +2,8 @@ import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
 import { error } from "@sveltejs/kit";
 
+// TODO: remove unnecessary appended responses
+
 export const load = (async ({ fetch, params }) => {
     const { id } = params;
 

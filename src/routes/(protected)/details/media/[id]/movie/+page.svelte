@@ -30,6 +30,25 @@
     const derivedSimilarResult = $derived.by(() => {
         return transformTMDBList(data.details.similar?.results || []);
     });
+
+    const externalMetaData = {
+        imdb_id: {
+            name: "IMDb",
+            baseUrl: "https://www.imdb.com/title/"
+        },
+        facebook_id: {
+            name: "Facebook",
+            baseUrl: "https://www.facebook.com/"
+        },
+        instagram_id: {
+            name: "Instagram",
+            baseUrl: "https://www.instagram.com/"
+        },
+        twitter_id: {
+            name: "Twitter",
+            baseUrl: "https://www.twitter.com/"
+        }
+    };
 </script>
 
 <svelte:head>
@@ -90,7 +109,7 @@
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
                     alt={data.details.title}
-                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52 transition-transform duration-300 hover:scale-105"
+                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
                     src={data.details.poster_path
                         ? `${TMDB_IMAGE_BASE_URL}/w500${data.details.poster_path}`
                         : "https://avatar.iran.liara.run/public"}
@@ -120,6 +139,11 @@
 
                         {#if data.details.original_language}
                             <span>{data.details.original_language?.toUpperCase()}</span>
+                            <span>•</span>
+                        {/if}
+
+                        {#if data.details.status}
+                            <span>{data.details.status}</span>
                         {/if}
                     </div>
 
@@ -170,7 +194,7 @@
             </div>
 
             {#if data.details.belongs_to_collection}
-                <h2 class="mt-8 mb-4 text-lg font-bold ">Part of the collection</h2>
+                <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
                 <div class="relative">
                     <img
                         alt={data.details.belongs_to_collection.name}
@@ -184,12 +208,140 @@
                     <div class="absolute inset-0 flex items-center justify-center p-4">
                         <a
                             href={`/details/collection/${data.details.belongs_to_collection.id}`}
-                             class="text-center text-lg font-bold underline drop-shadow-lg transition-all duration-200 hover:scale-105">
+                            class="text-center text-lg font-bold underline drop-shadow-lg transition-all duration-200 hover:scale-105">
                             {data.details.belongs_to_collection.name}
                         </a>
                     </div>
                 </div>
             {/if}
+
+            <section>
+                <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">More Details</h2>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div
+                        class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                        {#if data.details.budget}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Budget</p>
+                                <p class="text-sm font-medium">
+                                    {data.details.budget
+                                        ? new Intl.NumberFormat("en-US", {
+                                              style: "currency",
+                                              currency: "USD",
+                                              maximumFractionDigits: 0
+                                          }).format(data.details.budget)
+                                        : "N/A"}
+                                </p>
+                            </div>
+                        {/if}
+
+                        {#if data.details.revenue}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Revenue</p>
+                                <p class="text-sm font-medium">
+                                    {data.details.revenue
+                                        ? new Intl.NumberFormat("en-US", {
+                                              style: "currency",
+                                              currency: "USD",
+                                              maximumFractionDigits: 0
+                                          }).format(data.details.revenue)
+                                        : "N/A"}
+                                </p>
+                            </div>
+                        {/if}
+
+                        {#if data.details.homepage}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Homepage</p>
+                                {#if data.details.homepage}
+                                    <a
+                                        href={data.details.homepage}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-sm font-medium underline hover:opacity-80">
+                                        Visit Website
+                                    </a>
+                                {:else}
+                                    <p class="text-sm font-medium">N/A</p>
+                                {/if}
+                            </div>
+                        {/if}
+
+                        {#if data.details.origin_country && data.details.origin_country.length > 0}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Origin Country</p>
+                                <p class="text-sm font-medium">
+                                    {data.details.origin_country.length > 0
+                                        ? data.details.origin_country.join(", ")
+                                        : "N/A"}
+                                </p>
+                            </div>
+                        {/if}
+
+                        {#if data.details.production_companies && data.details.production_companies.length > 0}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">
+                                    Production Companies
+                                </p>
+                                <div class="flex flex-row flex-wrap">
+                                    {#each data.details.production_companies as company, index (company.id)}
+                                        <Tooltip>
+                                            {#snippet trigger()}
+                                                <div class="mr-2 mb-2 inline-block">
+                                                    <img
+                                                        alt={company.name}
+                                                        class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                                        src={company.logo_path
+                                                            ? `${TMDB_IMAGE_BASE_URL}/w200${company.logo_path}`
+                                                            : "https://avatar.iran.liara.run/public"}
+                                                        loading="lazy" />
+                                                </div>
+                                            {/snippet}
+
+                                            {#snippet content()}
+                                                <p class="text-center text-sm font-medium">
+                                                    {company.name}
+                                                </p>
+                                            {/snippet}
+                                        </Tooltip>
+                                    {/each}
+                                </div>
+                            </div>
+                        {/if}
+
+                        {#if data.details.spoken_languages && data.details.spoken_languages.length > 0}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Spoken Languages</p>
+                                <p class="text-sm font-medium">
+                                    {data.details.spoken_languages.length > 0
+                                        ? data.details.spoken_languages
+                                              .map((lang) => lang.english_name)
+                                              .join(", ")
+                                        : "N/A"}
+                                </p>
+                            </div>
+                        {/if}
+
+                        {#if data.details.external_ids}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">External Links</p>
+
+                                {#each Object.entries(data.details.external_ids) as [key, value] (key)}
+                                    {#if value && externalMetaData[key]}
+                                        <a
+                                            href={`${externalMetaData[key].baseUrl}${value}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="mr-4 text-sm font-medium underline hover:opacity-80">
+                                            {externalMetaData[key].name}
+                                        </a>
+                                    {/if}
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </section>
 
             {#if data.details.recommendations && data.details.recommendations.results.length > 0}
                 <div class="mt-8 flex flex-col">
