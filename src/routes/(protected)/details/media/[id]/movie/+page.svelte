@@ -3,6 +3,7 @@
     import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
     import { AspectRatio } from "$lib/components/ui/aspect-ratio/index.js";
     import Tooltip from "$lib/components/tooltip.svelte";
+    import ListCarousel from "$lib/components/list-carousel.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -10,6 +11,24 @@
     const hours = Math.floor(data.details.runtime / 60);
     const minutes = data.details.runtime % 60;
     const formattedRuntime = `${hours}h ${minutes}m`;
+
+    function transformTMDBList(items) {
+        return items?.map((item) => ({
+            id: item.id,
+            title: item.title || item.original_title,
+            poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
+            media_type: "movie",
+            year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A"
+        }));
+    }
+
+    const derivedRecommendationsResult = $derived.by(() => {
+        return transformTMDBList(data.details.recommendations?.results || []);
+    });
+
+    const derivedSimilarResult = $derived.by(() => {
+        return transformTMDBList(data.details.similar?.results || []);
+    });
 </script>
 
 <svelte:head>
@@ -68,7 +87,7 @@
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
                     alt={data.details.title}
-                    class="mr-6 h-48 w-32 rounded-lg object-cover object-center shadow-md sm:h-64 sm:w-44 md:h-72 md:w-48 lg:h-80 lg:w-52 hidden md:block"
+                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
                     src={data.details.poster_path
                         ? `${TMDB_IMAGE_BASE_URL}/w500${data.details.poster_path}`
                         : "https://avatar.iran.liara.run/public"}
@@ -156,6 +175,20 @@
                             {data.details.belongs_to_collection.name}
                         </a>
                     </div>
+                </div>
+            {/if}
+
+            {#if data.details.recommendations && data.details.recommendations.results.length > 0}
+                <div class="mt-8 flex flex-col">
+                    <h2 class="mb-4 text-lg font-bold">Recommendations</h2>
+                    <ListCarousel data={derivedRecommendationsResult} indexer="tmdb" type="movie" />
+                </div>
+            {/if}
+
+            {#if data.details.similar && data.details.similar.results.length > 0}
+                <div class="mt-8 flex flex-col">
+                    <h2 class="mb-4 text-lg font-bold">Similar Movies</h2>
+                    <ListCarousel data={derivedSimilarResult} indexer="tmdb" type="movie" />
                 </div>
             {/if}
         </div>
