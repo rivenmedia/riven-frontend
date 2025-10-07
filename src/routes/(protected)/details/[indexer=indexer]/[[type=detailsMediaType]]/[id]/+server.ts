@@ -2,14 +2,14 @@ import type { RequestHandler } from "./$types";
 import { error, redirect, json } from "@sveltejs/kit";
 import providers from "$lib/providers";
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, fetch }) => {
     const { indexer, type, id } = params;
 
     switch (indexer) {
         case "tmdb":
             switch (type) {
                 case "movie":
-                    throw redirect(307, `/movie/${id}`);
+                    throw redirect(307, `/details/media/${id}/movie`);
                 case "tv": {
                     const showExternalIDs = await providers.tmdb.GET(
                         "/3/tv/{series_id}/external_ids",
@@ -18,7 +18,8 @@ export const GET: RequestHandler = async ({ params }) => {
                                 path: {
                                     series_id: Number(id)
                                 }
-                            }
+                            },
+                            fetch: fetch
                         }
                     );
 
@@ -27,7 +28,7 @@ export const GET: RequestHandler = async ({ params }) => {
                     }
 
                     if (showExternalIDs.data.tvdb_id) {
-                        throw redirect(307, `/tv/${showExternalIDs.data.tvdb_id}`);
+                        throw redirect(307, `/details/media/${showExternalIDs.data.tvdb_id}/tv`);
                     } else {
                         throw error(404, "TVDB ID not found for this show");
                     }
@@ -65,12 +66,18 @@ export const GET: RequestHandler = async ({ params }) => {
 
                     if ("type" in anilistExternalIDs) {
                         if (anilistExternalIDs.type === "TV" && anilistExternalIDs.thetvdb_id) {
-                            throw redirect(307, `/tv/${anilistExternalIDs.thetvdb_id}`);
+                            throw redirect(
+                                307,
+                                `/details/media/${anilistExternalIDs.thetvdb_id}/tv`
+                            );
                         } else if (
                             anilistExternalIDs.type === "MOVIE" &&
                             anilistExternalIDs.themoviedb_id
                         ) {
-                            throw redirect(307, `/movie/${anilistExternalIDs.themoviedb_id}`);
+                            throw redirect(
+                                307,
+                                `/details/media/${anilistExternalIDs.themoviedb_id}/movie`
+                            );
                         } else {
                             return json({
                                 error: "No suitable external ID found",

@@ -36,7 +36,7 @@
 </script>
 
 <aside
-    class="bg-card border-r-border top-0 left-0 hidden h-screen w-14 flex-col items-center border-r md:flex">
+    class="bg-transparent bg-opacity-75 backdrop-blur-sm top-0 left-0 hidden h-screen w-14 flex-col items-center md:flex z-5">
     <div class="flex h-18 w-full items-center justify-center">
         <div class="text-primary-foreground flex items-center justify-center">
             <Mountain class="size-5" />
