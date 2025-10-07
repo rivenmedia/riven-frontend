@@ -10,6 +10,10 @@
     import { onMount, onDestroy } from "svelte";
 
     let api = $state<CarouselAPI>();
+    let autoplayPlugin = Autoplay({
+        delay: 5000,
+        stopOnInteraction: false
+    });
     let currentProgress = $state(0);
     let currentIndex = $state(0);
     let autoplayDelay = 5000;
@@ -24,6 +28,11 @@
                 currentProgress = 0;
                 slideStartTime = Date.now();
                 currentIndex = api!.selectedScrollSnap();
+
+                // Reset the autoplay timer when manually switching slides
+                if (autoplayPlugin) {
+                    autoplayPlugin.reset();
+                }
             });
 
             if (progressInterval) clearInterval(progressInterval);
@@ -55,11 +64,8 @@
 {#if Array.isArray(data) && data.length > 0}
     <Carousel.Root
         setApi={(emblaApi) => (api = emblaApi)}
-        plugins={[
-            Autoplay({
-                delay: autoplayDelay
-            })
-        ]}
+        plugins={[autoplayPlugin]}
+        opts={{ loop: true }}
         class="relative">
         <Carousel.Content>
             {#each data as item}
