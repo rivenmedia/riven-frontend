@@ -76,14 +76,14 @@
                         class="w-full object-cover object-center select-none max-md:h-full"
                         loading="lazy" />
                     <div
-                        class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 select-none">
+                        class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent select-none">
                     </div>
 
                     <div class="absolute inset-0 z-[2] mt-14 flex flex-col gap-4">
                         <div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
                             <div class="w-full max-w-2xl select-none">
                                 <h1
-                                    class="text-3xl leading-tight font-medium break-words md:text-4xl">
+                                    class="text-3xl leading-tight font-medium break-words md:text-4xl drop-shadow-lg">
                                     {item.title || item.original_title}
                                 </h1>
                                 <div class="mt-2 flex items-center gap-1.5 select-none">
@@ -111,10 +111,10 @@
                                 <p class="text-muted-foreground mt-1 line-clamp-2 text-sm">
                                     {item.overview || "No overview available."}
                                 </p>
-                                <div class="mt-1.5 flex items-center">
+                                <div class="mt-1.5 flex items-center flex-wrap">
                                     {#each item.genre_ids as genreId}
                                         {#if TMDB_GENRES[genreId]}
-                                            <Badge variant="outline" class="mt-2 mr-1">
+                                            <Badge variant="outline" class="mt-2 mr-1 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20 transition-all duration-200">
                                                 {TMDB_GENRES[genreId]}
                                             </Badge>
                                         {/if}
@@ -124,9 +124,10 @@
                             <div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
                                 <Button
                                     href="/watch/{item.id}"
-                                    class="bg-foreground text-background hover:bg-foreground/90 w-full px-8 md:w-auto"
+                                    class="bg-foreground text-background hover:bg-foreground/90 w-full px-8 md:w-auto shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                                     >Request</Button>
                                 <Button variant="link" href="/details/{item.id}"
+                                    class="backdrop-blur-sm bg-white/5 hover:bg-white/10 transition-all duration-200"
                                     >View Details</Button>
                             </div>
                         </div>
@@ -137,34 +138,34 @@
 
         <div class="absolute inset-y-0 left-2 z-10 flex items-center">
             <Carousel.Previous
-                class="h-8 w-8 rounded-full bg-black/50 p-1.5 opacity-75 hover:opacity-100" />
+                class="h-8 w-8 rounded-full bg-black/50 backdrop-blur-md p-1.5 opacity-75 hover:opacity-100 hover:scale-110 transition-all duration-200 border border-white/10" />
         </div>
         <div class="absolute inset-y-0 right-2 z-10 flex items-center">
             <Carousel.Next
-                class="h-8 w-8 rounded-full bg-black/50 p-1.5 opacity-75 hover:opacity-100" />
+                class="h-8 w-8 rounded-full bg-black/50 backdrop-blur-md p-1.5 opacity-75 hover:opacity-100 hover:scale-110 transition-all duration-200 border border-white/10" />
         </div>
 
         <div
-            class="absolute left-1/2 z-10 flex w-full max-w-xs -translate-x-1/2 items-center justify-center gap-3 md:bottom-10">
-            <div class="text-xs font-medium whitespace-nowrap text-white/80">
+            class="absolute left-1/2 z-10 flex w-full max-w-xs -translate-x-1/2 items-center justify-center gap-3 md:bottom-10 backdrop-blur-md bg-black/20 rounded-full px-4 py-2 border border-white/10">
+            <div class="text-xs font-medium whitespace-nowrap text-white/90">
                 {currentIndex + 1}/{data.length}
             </div>
 
             <div class="flex gap-1">
                 {#each data as _, i}
                     <button
-                        class="h-1.5 w-1.5 cursor-pointer rounded-full {i === currentIndex
-                            ? 'bg-white'
-                            : 'bg-white/50'}"
+                        class="h-1.5 w-1.5 cursor-pointer rounded-full transition-all duration-200 {i === currentIndex
+                            ? 'bg-white scale-125'
+                            : 'bg-white/50 hover:bg-white/70'}"
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
                     </button>
                 {/each}
             </div>
 
-            <div class="h-1 w-24 overflow-hidden rounded-full bg-black/30">
+            <div class="h-1 w-24 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm">
                 <div
-                    class="h-full bg-white transition-all duration-100"
+                    class="h-full bg-white transition-all duration-100 shadow-sm"
                     style="width: {currentProgress}%">
                 </div>
             </div>
