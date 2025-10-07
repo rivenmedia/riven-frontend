@@ -8,9 +8,39 @@
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
+    import { parseSearchQuery } from "$lib/tmdb-search-parser";
+    import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
 
     const isMobileStore: any = getContext("ismobilestore");
     const SidebarStore: any = getContext("sidebarStore");
+    const searchStore: any = getContext("searchStore");
+
+    let searchValue = $state("");
+
+    function handleSearchInput(event: Event) {
+        const target = event.target as HTMLInputElement;
+        searchValue = target.value;
+    }
+
+    async function handleSearchSubmit(event: KeyboardEvent) {
+        if (event.key === "Enter" && searchValue.trim()) {
+            const parsed = parseSearchQuery(searchValue);
+
+            // Store search state and trigger search
+            if (searchStore) {
+                searchStore.setSearch(searchValue, parsed);
+
+                // If we're already on the search page, trigger search directly
+                if ($page.url.pathname === "/search") {
+                    await searchStore.search();
+                } else {
+                    // Navigate to search results page
+                    await goto("/search");
+                }
+            }
+        }
+    }
 </script>
 
 <header
