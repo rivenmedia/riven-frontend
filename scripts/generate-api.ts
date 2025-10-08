@@ -7,7 +7,7 @@ const API_OUTPUT_DIR = "src/lib/api";
 
 // Run the original generation
 console.log("🚀 Generating API client...");
-execSync("pnpm run generate-client-do-not-use-this", { stdio: "inherit" });
+execSync("bun run generate-client-do-not-use-this", { stdio: "inherit" });
 
 // Track changes
 let filesProcessed = 0;

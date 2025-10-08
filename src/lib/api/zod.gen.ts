@@ -625,7 +625,7 @@ export const zLoggingModel = z.object({
         'gz',
         'bz2',
         'xz',
-        ''
+        'disabled'
     ]).describe('Log compression format (empty for no compression)').optional()
 });
 

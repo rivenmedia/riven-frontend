@@ -832,7 +832,7 @@ export const compositeReindexer = <ThrowOnError extends boolean = false>(options
 };
 
 /**
- * Parse Media File
+ * Parse Media Files using ffprobe
  * Parse a media file
  */
 export const ffprobeMediaFiles = <ThrowOnError extends boolean = false>(options: Options<FfprobeMediaFilesData, ThrowOnError>) => {

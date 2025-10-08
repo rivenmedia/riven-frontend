@@ -641,7 +641,7 @@ export type LoggingModel = {
      * Compression
      * Log compression format (empty for no compression)
      */
-    compression?: 'zip' | 'gz' | 'bz2' | 'xz' | '';
+    compression?: 'zip' | 'gz' | 'bz2' | 'xz' | 'disabled';
 };
 
 /**
