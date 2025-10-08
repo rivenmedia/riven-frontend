@@ -79,7 +79,6 @@
     <title>{data.details.title} ({data.details.release_date?.slice(0, 4)}) - Riven</title>
 </svelte:head>
 
-
 <div class="relative flex flex-col">
     <div class="fixed bottom-0 left-0 z-1 h-screen w-full">
         <span>
@@ -105,11 +104,20 @@
                             title={bestTrailer.name || data.details.title + " Trailer"}
                             allow="autoplay"
                             allowfullscreen></iframe>
-                            
+
                         <button
-                            class="absolute top-4 right-4 flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:bg-black/80 hover:scale-105"
+                            class="absolute top-4 right-4 flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
                             onclick={toggleTrailer}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -371,17 +379,19 @@
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary-foreground/70 text-xs">External Links</p>
 
-                                {#each Object.entries(data.details.external_ids) as [key, value] (key)}
-                                    {#if value && externalMetaData[key]}
-                                        <a
-                                            href={`${externalMetaData[key].baseUrl}${value}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="mr-4 text-sm font-medium underline hover:opacity-80">
-                                            {externalMetaData[key].name}
-                                        </a>
-                                    {/if}
-                                {/each}
+                                <div class="flex flex-row flex-wrap items-center">
+                                    {#each Object.entries(data.details.external_ids) as [key, value] (key)}
+                                        {#if value && externalMetaData[key]}
+                                            <a
+                                                href={`${externalMetaData[key].baseUrl}${value}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="mr-4 text-sm font-medium underline hover:opacity-80">
+                                                {externalMetaData[key].name}
+                                            </a>
+                                        {/if}
+                                    {/each}
+                                </div>
                             </div>
                         {/if}
                     </div>
