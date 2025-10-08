@@ -28,6 +28,7 @@ const tmdbClient = createClient<TMDBPaths>({
     }
 });
 
+export const TVDB_ARTWORK_BASE_URL = "https://artworks.thetvdb.com";
 export const TVDB_ARTWORK_STATUSES = {
     1: "Low Quality",
     2: "Improper Action Shot",

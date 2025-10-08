@@ -84,18 +84,10 @@
                     {@const logo = data.details.images.logos[0]}
                     <div class="absolute inset-0 flex items-end p-4">
                         <div
-                            class={`overflow-hidden ${
-                                logo.aspect_ratio > 3
-                                    ? "max-h-[60px] max-w-[220px]"
-                                    : logo.aspect_ratio > 2.5
-                                      ? "max-h-[70px] max-w-[200px]"
-                                      : logo.aspect_ratio < 1
-                                        ? "max-h-[90px] max-w-[100px]"
-                                        : "max-h-[80px] max-w-[180px]"
-                            }`}>
+                            >
                             <img
                                 alt="Movie logo"
-                                class="h-auto w-full object-contain drop-shadow-lg"
+                                class="h-14 md:h-20 lg:h-24 w-full object-contain drop-shadow-lg"
                                 src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
                                 loading="lazy" />
                         </div>
