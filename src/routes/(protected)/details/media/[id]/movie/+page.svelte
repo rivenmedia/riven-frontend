@@ -5,6 +5,7 @@
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
     import { Badge } from "$lib/components/ui/badge/index.js";
+    import Play from "@lucide/svelte/icons/play";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -49,11 +50,35 @@
             baseUrl: "https://www.twitter.com/"
         }
     };
+
+    const bestTrailer = $derived.by(() => {
+        const officialTrailers =
+            data.details.videos?.results?.filter(
+                (video) => video.type === "Trailer" && video.official === true
+            ) || [];
+
+        const sorted = officialTrailers.sort((a, b) => {
+            if (b.size !== a.size) return b.size - a.size;
+            return new Date(b.published_at) - new Date(a.published_at);
+        });
+
+        return sorted.length > 0 ? sorted[0] : null;
+    });
+
+    let showTrailer = $state(false);
+
+    function toggleTrailer() {
+        console.log("Toggling trailer. Current state:", showTrailer);
+        if (bestTrailer) {
+            showTrailer = !showTrailer;
+        }
+    }
 </script>
 
 <svelte:head>
     <title>{data.details.title} ({data.details.release_date?.slice(0, 4)}) - Riven</title>
 </svelte:head>
+
 
 <div class="relative flex flex-col">
     <div class="fixed bottom-0 left-0 z-1 h-screen w-full">
@@ -70,31 +95,59 @@
         </span>
     </div>
     <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-24">
-        {#if data.details.backdrop_path}
-            <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
-                <AspectRatio ratio={16 / 9} class="w-full">
-                    <img
-                        alt={data.details.id.toString()}
-                        class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                        src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
-                        loading="lazy" />
-                </AspectRatio>
+        <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
+            <AspectRatio ratio={16 / 9} class="w-full">
+                {#if showTrailer && bestTrailer}
+                    <div class="relative">
+                        <iframe
+                            class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
+                            src="https://www.youtube-nocookie.com/embed/{bestTrailer.key}?autoplay=1&controls=0&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
+                            title={bestTrailer.name || data.details.title + " Trailer"}
+                            allow="autoplay"
+                            allowfullscreen></iframe>
+                            
+                        <button
+                            class="absolute top-4 right-4 flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:bg-black/80 hover:scale-105"
+                            onclick={toggleTrailer}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                {:else if data.details.backdrop_path}
+                    <div class="relative">
+                        <img
+                            alt={data.details.id.toString()}
+                            class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
+                            src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
+                            loading="lazy" />
 
-                {#if data.details.images && data.details.images.logos && data.details.images.logos.length > 0}
-                    {@const logo = data.details.images.logos[0]}
-                    <div class="absolute inset-0 flex items-end p-4">
-                        <div
-                            >
-                            <img
-                                alt="Movie logo"
-                                class="h-14 md:h-20 lg:h-24 w-full object-contain drop-shadow-lg"
-                                src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
-                                loading="lazy" />
-                        </div>
+                        {#if bestTrailer}
+                            <button
+                                class="bg-primary/90 hover:bg-primary absolute right-4 bottom-4 z-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:scale-105"
+                                onclick={toggleTrailer}>
+                                <Play size={18} />
+                                Play Trailer
+                            </button>
+                        {/if}
                     </div>
                 {/if}
-            </div>
-        {/if}
+            </AspectRatio>
+
+            {#if !showTrailer && data.details.images && data.details.images.logos && data.details.images.logos.length > 0}
+                {@const logo = data.details.images.logos[0]}
+                <div class="absolute inset-0 flex items-end p-4">
+                    <div>
+                        <img
+                            alt="Movie logo"
+                            class="h-14 w-full object-contain drop-shadow-lg md:h-20 lg:h-24"
+                            src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
+                            loading="lazy" />
+                    </div>
+                </div>
+            {/if}
+        </div>
 
         <div class="md:px-8 lg:px-16">
             <div
