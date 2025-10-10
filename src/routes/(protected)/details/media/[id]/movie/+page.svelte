@@ -6,6 +6,8 @@
     import ListCarousel from "$lib/components/list-carousel.svelte";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import Play from "@lucide/svelte/icons/play";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -105,23 +107,15 @@
                             allow="autoplay"
                             allowfullscreen></iframe>
 
-                        <button
-                            class="absolute top-4 right-4 flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
-                            onclick={toggleTrailer}>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
+                        <div class="absolute top-4 right-4">
+                            <Button
+                                variant="ghost"
+                                class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
+                                onclick={toggleTrailer}
+                                aria-label="Close Trailer">
+                                <X size={16} />
+                            </Button>
+                        </div>
                     </div>
                 {:else if data.details.backdrop_path}
                     <div class="relative">
@@ -132,12 +126,13 @@
                             loading="lazy" />
 
                         {#if bestTrailer}
-                            <button
-                                class="bg-primary/90 hover:bg-primary absolute right-4 bottom-4 z-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:scale-105"
-                                onclick={toggleTrailer}>
+                            <Button
+                                variant="ghost"
+                                class="absolute right-4 bottom-4 z-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
+                                onclick={toggleTrailer}
+                                aria-label="Play Trailer">
                                 <Play size={18} />
-                                Play Trailer
-                            </button>
+                            </Button>
                         {/if}
                     </div>
                 {/if}
@@ -392,6 +387,19 @@
                                         {/if}
                                     {/each}
                                 </div>
+                            </div>
+                        {/if}
+
+                        {#if data.details.external_ids.imdb_id}
+                            <div class="flex flex-col gap-1">
+                                <p class="text-primary-foreground/70 text-xs">Parental Guide</p>
+                                <a
+                                    href={`https://www.imdb.com/title/${data.details.external_ids.imdb_id}/parentalguide/`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="mr-4 text-sm font-medium underline hover:opacity-80">
+                                    IMDB Parental Guide
+                                </a>
                             </div>
                         {/if}
                     </div>
