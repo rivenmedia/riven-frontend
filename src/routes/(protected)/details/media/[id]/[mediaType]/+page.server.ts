@@ -3,8 +3,6 @@ import providers from "$lib/providers";
 import type { TMDBMovieDetailsExtended, TMDBParsedMovieDetails } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
-// TODO: remove unnecessary appended responses
-
 export const load = (async ({ fetch, params }) => {
     const { id } = params;
 

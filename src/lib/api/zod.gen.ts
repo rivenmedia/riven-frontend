@@ -3,11 +3,81 @@
 import { z } from 'zod/v3';
 
 /**
+ * LibraryProfileFilterRules
+ * Filter rules for library profile matching (metadata-only)
+ */
+export const zLibraryProfileFilterRules = z.object({
+    content_types: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    genres: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    exclude_genres: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    min_year: z.union([
+        z.number().int().gte(1900),
+        z.null()
+    ]).optional(),
+    max_year: z.union([
+        z.number().int().gte(1900),
+        z.null()
+    ]).optional(),
+    is_anime: z.union([
+        z.boolean(),
+        z.null()
+    ]).optional(),
+    networks: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    countries: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    languages: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional(),
+    min_rating: z.union([
+        z.number().gte(0).lte(10),
+        z.null()
+    ]).optional(),
+    max_rating: z.union([
+        z.number().gte(0).lte(10),
+        z.null()
+    ]).optional(),
+    content_ratings: z.union([
+        z.array(z.string()),
+        z.null()
+    ]).optional()
+}).describe('Filter rules for library profile matching (metadata-only)');
+
+export type LibraryProfileFilterRulesZodType = z.infer<typeof zLibraryProfileFilterRules>;
+
+/**
+ * LibraryProfile
+ * Library profile configuration for organizing media into different libraries
+ */
+export const zLibraryProfile = z.object({
+    name: z.string().describe('Human-readable profile name'),
+    library_path: z.string().describe("VFS path prefix for this profile (e.g., '/kids', '/anime')"),
+    enabled: z.boolean().describe('Enable this profile').optional().default(true),
+    filter_rules: zLibraryProfileFilterRules.optional()
+}).describe('Library profile configuration for organizing media into different libraries');
+
+export type LibraryProfileZodType = z.infer<typeof zLibraryProfile>;
+
+/**
  * FilesystemModel
  */
 export const zFilesystemModel = z.object({
     mount_path: z.string().describe('Path where Riven will mount the virtual filesystem').optional().default('/path/to/riven/mount'),
-    separate_anime_dirs: z.boolean().describe('Create separate directories for anime content').optional().default(false),
+    library_profiles: z.record(zLibraryProfile).describe('Library profiles for organizing media into different libraries based on metadata. Example profiles are provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates additional VFS paths. Media always appears at the base path (/movies, /shows) plus any matching profile paths (e.g., /kids/movies, /anime/movies).').optional(),
     cache_dir: z.string().describe('Directory for caching downloaded chunks').optional().default('/dev/shm/riven-cache'),
     cache_max_size_mb: z.number().int().gte(0).describe('Maximum cache size in MB (10 GiB default)').optional().default(10240),
     cache_ttl_seconds: z.number().int().describe('Cache time-to-live in seconds (2 hours default)').optional().default(7200),
@@ -1636,7 +1706,7 @@ export const zGetItemData = z.object({
             'tv',
             'item'
         ]).optional(),
-        with_streams: z.union([
+        extended: z.union([
             z.boolean(),
             z.null()
         ]).optional()

@@ -1,6 +1,5 @@
 <script lang="ts">
-    import type { PageProps } from "./$types";
-    import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
+    import { PageProps } from "./$types";
     import { AspectRatio } from "$lib/components/ui/aspect-ratio/index.js";
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
@@ -12,7 +11,7 @@
     let { data }: PageProps = $props();
     $inspect(data.details);
 
-    type ExternalMediaKey = 'imdb_id' | 'facebook_id' | 'instagram_id' | 'twitter_id';
+    type ExternalMediaKey = "imdb_id" | "facebook_id" | "instagram_id" | "twitter_id";
 
     const externalMetaData: Record<ExternalMediaKey, { name: string; baseUrl: string }> = {
         imdb_id: {
@@ -86,7 +85,7 @@
                         <img
                             alt={data.details.id?.toString()}
                             class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                            src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
+                            src={data.details.backdrop_path}
                             loading="lazy" />
 
                         {#if data.details.trailer}
@@ -142,7 +141,9 @@
                             {@const details = [
                                 data.details.year,
                                 data.details.formatted_runtime,
-                                data.details.original_language ? data.details.original_language.toUpperCase() : null,
+                                data.details.original_language
+                                    ? data.details.original_language.toUpperCase()
+                                    : null,
                                 data.details.certification,
                                 data.details.status
                             ].filter(Boolean)}
@@ -182,7 +183,7 @@
                                                         alt={cast.name}
                                                         class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
                                                         src={cast.profile_path
-                                                            ? `${TMDB_IMAGE_BASE_URL}/w200${cast.profile_path}`
+                                                            ? cast.profile_path
                                                             : "https://avatar.iran.liara.run/public"}
                                                         loading="lazy" />
                                                 </a>
@@ -300,7 +301,7 @@
                                                         alt={company.name}
                                                         class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
                                                         src={company.logo_path
-                                                            ? `${TMDB_IMAGE_BASE_URL}/w200${company.logo_path}`
+                                                            ? company.logo_path
                                                             : "https://avatar.iran.liara.run/public"}
                                                         loading="lazy" />
                                                 </div>
