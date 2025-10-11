@@ -10,31 +10,11 @@
     import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
-    $inspect(data);
+    $inspect(data.details);
 
-    const hours = Math.floor(data.details.runtime / 60);
-    const minutes = data.details.runtime % 60;
-    const formattedRuntime = `${hours}h ${minutes}m`;
+    type ExternalMediaKey = 'imdb_id' | 'facebook_id' | 'instagram_id' | 'twitter_id';
 
-    function transformTMDBList(items) {
-        return items?.map((item) => ({
-            id: item.id,
-            title: item.title || item.original_title,
-            poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
-            media_type: "movie",
-            year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A"
-        }));
-    }
-
-    const derivedRecommendationsResult = $derived.by(() => {
-        return transformTMDBList(data.details.recommendations?.results || []);
-    });
-
-    const derivedSimilarResult = $derived.by(() => {
-        return transformTMDBList(data.details.similar?.results || []);
-    });
-
-    const externalMetaData = {
+    const externalMetaData: Record<ExternalMediaKey, { name: string; baseUrl: string }> = {
         imdb_id: {
             name: "IMDb",
             baseUrl: "https://www.imdb.com/title/"
@@ -53,41 +33,24 @@
         }
     };
 
-    const bestTrailer = $derived.by(() => {
-        const officialTrailers =
-            data.details.videos?.results?.filter(
-                (video) => video.type === "Trailer" && video.official === true
-            ) || [];
-
-        const sorted = officialTrailers.sort((a, b) => {
-            if (b.size !== a.size) return b.size - a.size;
-            return new Date(b.published_at) - new Date(a.published_at);
-        });
-
-        return sorted.length > 0 ? sorted[0] : null;
-    });
-
     let showTrailer = $state(false);
 
     function toggleTrailer() {
-        console.log("Toggling trailer. Current state:", showTrailer);
-        if (bestTrailer) {
-            showTrailer = !showTrailer;
-        }
+        showTrailer = !showTrailer;
     }
 </script>
 
 <svelte:head>
-    <title>{data.details.title} ({data.details.release_date?.slice(0, 4)}) - Riven</title>
+    <title>{data.details.title} ({data.details.year}) - Riven</title>
 </svelte:head>
 
 <div class="relative flex flex-col">
     <div class="fixed bottom-0 left-0 z-1 h-screen w-full">
         <span>
             <img
-                alt={data.details.id.toString()}
+                alt={data.details.id?.toString()}
                 class="h-full w-full object-cover opacity-50 blur-2xl"
-                src="https://www.themoviedb.org/t/p/original{data.details.backdrop_path}"
+                src={data.details.backdrop_path}
                 loading="lazy" />
             <div class="bg-background/70 absolute right-0 bottom-0 left-0 h-full w-full"></div>
             <div
@@ -98,12 +61,13 @@
     <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-24">
         <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
             <AspectRatio ratio={16 / 9} class="w-full">
-                {#if showTrailer && bestTrailer}
+                {#if showTrailer && data.details.trailer}
                     <div class="relative">
                         <iframe
                             class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                            src="https://www.youtube-nocookie.com/embed/{bestTrailer.key}?autoplay=1&controls=0&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
-                            title={bestTrailer.name || data.details.title + " Trailer"}
+                            src="https://www.youtube-nocookie.com/embed/{data.details.trailer
+                                .key}?autoplay=1&controls=0&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
+                            title={data.details.trailer.name || data.details.title + " Trailer"}
                             allow="autoplay"
                             allowfullscreen></iframe>
 
@@ -120,12 +84,12 @@
                 {:else if data.details.backdrop_path}
                     <div class="relative">
                         <img
-                            alt={data.details.id.toString()}
+                            alt={data.details.id?.toString()}
                             class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
                             src="{TMDB_IMAGE_BASE_URL}/original{data.details.backdrop_path}"
                             loading="lazy" />
 
-                        {#if bestTrailer}
+                        {#if data.details.trailer}
                             <Button
                                 variant="ghost"
                                 class="absolute right-4 bottom-4 z-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
@@ -138,14 +102,13 @@
                 {/if}
             </AspectRatio>
 
-            {#if !showTrailer && data.details.images && data.details.images.logos && data.details.images.logos.length > 0}
-                {@const logo = data.details.images.logos[0]}
+            {#if !showTrailer && data.details.logo}
                 <div class="absolute inset-0 flex items-end p-4">
                     <div>
                         <img
                             alt="Movie logo"
                             class="h-14 w-full object-contain drop-shadow-lg md:h-20 lg:h-24"
-                            src="{TMDB_IMAGE_BASE_URL}/w500{logo.file_path}"
+                            src={data.details.logo}
                             loading="lazy" />
                     </div>
                 </div>
@@ -159,7 +122,7 @@
                     alt={data.details.title}
                     class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
                     src={data.details.poster_path
-                        ? `${TMDB_IMAGE_BASE_URL}/w500${data.details.poster_path}`
+                        ? data.details.poster_path
                         : "https://avatar.iran.liara.run/public"}
                     loading="lazy" />
 
@@ -175,24 +138,22 @@
                     {/if}
 
                     <div class="mb-3 flex flex-wrap gap-1.5 text-sm font-semibold">
-                        {#if data.details.release_date}
-                            <span>{data.details.release_date?.slice(0, 4)}</span>
-                            <span>•</span>
-                        {/if}
+                        {#key [data.details.year, data.details.formatted_runtime, data.details.original_language, data.details.status, data.details.certification]}
+                            {@const details = [
+                                data.details.year,
+                                data.details.formatted_runtime,
+                                data.details.original_language ? data.details.original_language.toUpperCase() : null,
+                                data.details.certification,
+                                data.details.status
+                            ].filter(Boolean)}
 
-                        {#if data.details.runtime}
-                            <span>{formattedRuntime}</span>
-                            <span>•</span>
-                        {/if}
-
-                        {#if data.details.original_language}
-                            <span>{data.details.original_language?.toUpperCase()}</span>
-                            <span>•</span>
-                        {/if}
-
-                        {#if data.details.status}
-                            <span>{data.details.status}</span>
-                        {/if}
+                            {#each details as detail, i}
+                                <span>{detail}</span>
+                                {#if i < details.length - 1}
+                                    <span>•</span>
+                                {/if}
+                            {/each}
+                        {/key}
                     </div>
 
                     {#if data.details.genres && data.details.genres.length > 0}
@@ -211,7 +172,7 @@
                         </p>
 
                         <div class="flex flex-wrap">
-                            {#each data.details.credits.cast as cast, index (cast.id)}
+                            {#each data.details.cast as cast, index (cast.id)}
                                 {#if index < 8}
                                     <div class="flex flex-col items-center">
                                         <Tooltip>
@@ -241,23 +202,22 @@
                 </div>
             </div>
 
-            {#if data.details.belongs_to_collection}
+            {#if data.details.collection}
                 <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
                 <div class="relative">
                     <img
-                        alt={data.details.belongs_to_collection.name}
+                        alt={data.details.collection.name}
                         class="h-28 w-full rounded-lg object-cover object-center shadow-lg"
-                        src="{TMDB_IMAGE_BASE_URL}/original{data.details.belongs_to_collection
-                            .backdrop_path}"
+                        src={data.details.collection.backdrop_path}
                         loading="lazy" />
                     <div class="bg-background/70 absolute right-0 bottom-0 left-0 h-full w-full">
                     </div>
 
                     <div class="absolute inset-0 flex items-center justify-center p-4">
                         <a
-                            href={`/details/collection/${data.details.belongs_to_collection.id}`}
+                            href={`/details/collection/${data.details.collection.id}`}
                             class="text-center text-lg font-bold underline drop-shadow-lg transition-all duration-200 hover:scale-105">
-                            {data.details.belongs_to_collection.name}
+                            {data.details.collection.name}
                         </a>
                     </div>
                 </div>
@@ -376,13 +336,13 @@
 
                                 <div class="flex flex-row flex-wrap items-center">
                                     {#each Object.entries(data.details.external_ids) as [key, value] (key)}
-                                        {#if value && externalMetaData[key]}
+                                        {#if value && key in externalMetaData && externalMetaData[key as ExternalMediaKey]}
                                             <a
-                                                href={`${externalMetaData[key].baseUrl}${value}`}
+                                                href={`${externalMetaData[key as ExternalMediaKey].baseUrl}${value}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 class="mr-4 text-sm font-medium underline hover:opacity-80">
-                                                {externalMetaData[key].name}
+                                                {externalMetaData[key as ExternalMediaKey].name}
                                             </a>
                                         {/if}
                                     {/each}
@@ -406,17 +366,17 @@
                 </div>
             </section>
 
-            {#if data.details.recommendations && data.details.recommendations.results.length > 0}
+            {#if data.details.recommendations && data.details.recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Recommendations</h2>
-                    <ListCarousel data={derivedRecommendationsResult} indexer="tmdb" type="movie" />
+                    <ListCarousel data={data.details.recommendations} indexer="tmdb" type="movie" />
                 </div>
             {/if}
 
-            {#if data.details.similar && data.details.similar.results.length > 0}
+            {#if data.details.similar && data.details.similar.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
-                    <ListCarousel data={derivedSimilarResult} indexer="tmdb" type="movie" />
+                    <ListCarousel data={data.details.recommendations} indexer="tmdb" type="movie" />
                 </div>
             {/if}
         </div>

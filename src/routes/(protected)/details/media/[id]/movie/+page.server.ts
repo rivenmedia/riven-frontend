@@ -1,5 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
+import type { TMDBMovieDetailsExtended, TMDBParsedMovieDetails } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
 // TODO: remove unnecessary appended responses
@@ -14,7 +15,7 @@ export const load = (async ({ fetch, params }) => {
             },
             query: {
                 append_to_response:
-                    "external_ids,images,keywords,recommendations,similar,videos,credits,watch/providers"
+                    "external_ids,images,recommendations,similar,videos,credits,release_dates"
             }
         },
         fetch: fetch
@@ -24,7 +25,11 @@ export const load = (async ({ fetch, params }) => {
         error(500, detailsError);
     }
 
+    const parsedDetails = providers.parser.parseTMDBMovieDetails(
+        details as TMDBMovieDetailsExtended
+    );
+
     return {
-        details
+        details: parsedDetails as TMDBParsedMovieDetails
     };
 }) satisfies PageServerLoad;

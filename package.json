@@ -34,7 +34,7 @@
         "@types/better-sqlite3": "^7.6.13",
         "@types/node": "^22.18.9",
         "@types/nprogress": "^0.2.3",
-        "bits-ui": "^2.11.4",
+        "bits-ui": "^2.11.5",
         "clsx": "^2.1.1",
         "embla-carousel-svelte": "^8.6.0",
         "eslint": "^9.37.0",
