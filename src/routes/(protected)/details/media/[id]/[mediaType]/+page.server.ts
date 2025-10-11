@@ -1,12 +1,17 @@
 import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
-import type { TMDBMovieDetailsExtended, TMDBParsedMovieDetails } from "$lib/providers/parser";
+import type {
+    TMDBMovieDetailsExtended,
+    TMDBParsedMovieDetails,
+    TVDBParsedSeries,
+    TVDBSeriesData
+} from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
 // Define a union type for the details
 export type MediaDetails =
     | { type: "movie"; details: TMDBParsedMovieDetails }
-    | { type: "tv"; details: any };
+    | { type: "tv"; details: TVDBParsedSeries };
 
 export const load = (async ({ fetch, params }) => {
     const { id, mediaType } = params;
@@ -71,16 +76,14 @@ export const load = (async ({ fetch, params }) => {
             error(500, detailsError);
         }
 
-        // const parsedDetails = providers.parser.parseTMDBTVDetails(details);
+        const parsedDetails = providers.parser.parseTVDBSeriesData(details);
 
-        // return {
-        //     mediaDetails: {
-        //         type: "tv",
-        //         details: parsedDetails as TMDBParsedTVDetails
-        //     } as MediaDetails
-        // };
-
-        return {};
+        return {
+            mediaDetails: {
+                type: "tv",
+                details: parsedDetails as TVDBParsedSeries
+            } as MediaDetails
+        };
     } else {
         error(400, "Invalid media type");
     }

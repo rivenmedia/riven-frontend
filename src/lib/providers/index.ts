@@ -12,7 +12,7 @@ import { env } from "$env/dynamic/public";
 
 import type { paths as TVDBPaths } from "./tvdb";
 import type { paths as TMDBPaths } from "./tmdb";
-import { parseTMDBMovieDetails } from "./parser";
+import { parseTMDBMovieDetails, parseTVDBSeriesData } from "./parser";
 
 const tvdbClient = createClient<TVDBPaths>({
     baseUrl: "https://api4.thetvdb.com/v4"
@@ -1317,6 +1317,7 @@ export default {
     tvdb: tvdbClient,
     tmdb: tmdbClient,
     parser: {
-        parseTMDBMovieDetails
+        parseTMDBMovieDetails,
+        parseTVDBSeriesData
     }
 };
