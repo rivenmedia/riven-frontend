@@ -1,19 +1,14 @@
 import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
-import type {
-    TMDBMovieDetailsExtended,
-    TMDBParsedMovieDetails,
-    TVDBParsedSeries,
-    TVDBSeriesData
-} from "$lib/providers/parser";
+import type { TMDBMovieDetailsExtended, TMDBParsedMovieDetails } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
 // Define a union type for the details
 export type MediaDetails =
     | { type: "movie"; details: TMDBParsedMovieDetails }
-    | { type: "tv"; details: TVDBParsedSeries };
+    | { type: "tv"; details: any };
 
-export const load = (async ({ fetch, params, request }) => {
+export const load = (async ({ fetch, params }) => {
     const { id, mediaType } = params;
 
     if (mediaType !== "movie" && mediaType !== "tv") {
@@ -67,9 +62,6 @@ export const load = (async ({ fetch, params, request }) => {
                         meta: "episodes"
                     }
                 },
-                headers: {
-                    Authorization: `Bearer ${request.headers.get("tvdb_cookie")}`
-                },
 
                 fetch: fetch
             }
@@ -79,14 +71,16 @@ export const load = (async ({ fetch, params, request }) => {
             error(500, detailsError);
         }
 
-        const parsedDetails = providers.parser.parseTVDBSeriesData(details);
+        // const parsedDetails = providers.parser.parseTMDBTVDetails(details);
 
-        return {
-            mediaDetails: {
-                type: "tv",
-                details: parsedDetails as TVDBParsedSeries
-            } as MediaDetails
-        };
+        // return {
+        //     mediaDetails: {
+        //         type: "tv",
+        //         details: parsedDetails as TMDBParsedTVDetails
+        //     } as MediaDetails
+        // };
+
+        return {};
     } else {
         error(400, "Invalid media type");
     }
