@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ cookies, request }) => {
 			await auth.api.signInUsername({
 				body: {
 					username: username,
-					password: pinStatus.authToken // Use token as password verification
+					password: plexUser.uuid // Use UUID as password verification
 				},
 				headers: request.headers
 			});
@@ -56,28 +56,16 @@ export const GET: RequestHandler = async ({ cookies, request }) => {
 						username: username,
 						displayUsername: plexUser.friendlyName,
 						email: email,
-						password: pinStatus.authToken,
+						password: plexUser.uuid,
 						image: plexUser.thumb
 					}
 				});
-
-				if (plexUser.confirmed) {
-					// Mark email as verified if Plex confirms it
-					await auth.api.adminUpdateUser({
-						body: {
-							userId: user.user.id,
-							data: {
-								emailVerified: true
-							}
-						}
-					});
-				}
 
 				// Sign in the newly created user
 				await auth.api.signInUsername({
 					body: {
 						username: username,
-						password: pinStatus.authToken
+						password: plexUser.uuid
 					},
 					headers: request.headers
 				});
