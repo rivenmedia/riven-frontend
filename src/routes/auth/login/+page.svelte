@@ -4,11 +4,14 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
     import { type SuperValidated, type Infer, superForm } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
+    import { page } from "$app/stores";
+    import { onMount } from "svelte";
 
     let {
         data
@@ -43,6 +46,13 @@
 
         if ($registerMessage) {
             toast.error($registerMessage);
+        }
+    });
+
+    onMount(() => {
+        const error = $page.url.searchParams.get("error");
+        if (error) {
+            toast.error(error);
         }
     });
 
@@ -102,8 +112,35 @@
                                     </Form.Control>
                                     <Form.FieldErrors />
                                 </Form.Field>
-                                <Form.Button class="mt-4">Submit</Form.Button>
+                                <Form.Button class="mt-4 w-full">Submit</Form.Button>
                             </form>
+
+                            <div class="relative my-4">
+                                <div class="absolute inset-0 flex items-center">
+                                    <span class="w-full border-t"></span>
+                                </div>
+                                <div class="relative flex justify-center text-xs uppercase">
+                                    <span class="bg-card text-muted-foreground px-2">
+                                        Or continue with
+                                    </span>
+                                </div>
+                            </div>
+
+                            <Button
+                                href="/auth/plex/login"
+                                variant="outline"
+                                class="w-full"
+                                type="button">
+                                <!-- <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 512 512"
+                                    class="mr-2 h-4 w-4">
+                                    <path
+                                        fill="currentColor"
+                                        d="M339.4 129.8L448 256L339.4 382.2C336.4 386.3 331.5 388.5 326.5 388.5H301.4L397.2 256L301.4 123.5H326.5C331.5 123.5 336.4 125.7 339.4 129.8zM246.1 123.5H271.2L175.4 256L271.2 388.5H246.1C241.1 388.5 236.2 386.3 233.2 382.2L124.6 256L233.2 129.8C236.2 125.7 241.1 123.5 246.1 123.5z" />
+                                </svg> -->
+                                Login with Plex
+                            </Button>
                         </Card.Content>
                     </Card.Root>
                 </Tabs.Content>
