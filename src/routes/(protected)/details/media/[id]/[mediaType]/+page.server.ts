@@ -13,7 +13,7 @@ export type MediaDetails =
     | { type: "movie"; details: TMDBParsedMovieDetails }
     | { type: "tv"; details: TVDBParsedSeries };
 
-export const load = (async ({ fetch, params }) => {
+export const load = (async ({ fetch, params, request }) => {
     const { id, mediaType } = params;
 
     if (mediaType !== "movie" && mediaType !== "tv") {
@@ -66,6 +66,9 @@ export const load = (async ({ fetch, params }) => {
                     query: {
                         meta: "episodes"
                     }
+                },
+                headers: {
+                    Authorization: `Bearer ${request.headers.get("tvdb_cookie")}`
                 },
 
                 fetch: fetch
