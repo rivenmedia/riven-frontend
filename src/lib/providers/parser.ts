@@ -1,4 +1,4 @@
-import { TMDB_IMAGE_BASE_URL } from "./index";
+import { TMDB_IMAGE_BASE_URL, TVDB_ARTWORK_BASE_URL } from "./index";
 
 interface TMDBListItem {
     adult: boolean;
@@ -340,4 +340,246 @@ export function parseTMDBMovieDetails(data: TMDBMovieDetailsExtended | null) {
     return result;
 }
 
+// ---------------------------------------------------------------------------------
 
+export interface TVDBBaseItem {
+    id: number;
+    name: string;
+    slug: string;
+    image: string | null; // https://artworks.thetvdb.com/banners/posters/81189-10.jpg
+    nameTranslations: string[] | null;
+    overviewTranslations: string[] | null;
+    aliases: { language: string; name: string }[];
+    firstAired: string | null; // 2008-01-20
+    lastAired: string | null; // 2013-09-29
+    nextAired: string | null; // 2024-11-10
+    score: number | null;
+    status: {
+        id: number;
+        name: string;
+        recordType: string;
+        keepUpdated: boolean;
+    } | null;
+    originalCountry: string | null;
+    originalLanguage: string | null;
+    defaultSeasonType: number | null;
+    isOrderRandomized: boolean | null;
+    lastUpdated: number | null; // 2025-10-09 14:23:05
+    averageRuntime: number | null; // in minutes
+    episodes: TVDBEpisodeItem[] | null;
+    overview: string | null;
+    year: string | null; // "2008"
+    artworks: TVDBArtworkItem[] | null;
+    companies: TVDBCompanyItem[] | null;
+    originalNetwork: {
+        id: number | null;
+        name: string | null;
+        slug: string | null;
+        nameTranslations: string[] | null;
+        overviewTranslations: string[] | null;
+        aliases: { language: string; name: string }[];
+        country: string | null;
+        primaryCompanyType: number | null;
+        activeDate: string | null;
+        inactiveDate: string | null;
+        companyType: {
+            companyTypeId: number | null;
+            companyTypeName: string | null;
+        } | null;
+        parentCompany: {
+            id: number | null;
+            name: string | null;
+            relation: {
+                id: number | null;
+                typeName: string | null;
+            } | null;
+        } | null;
+        tagOptions: unknown[] | null;
+    } | null;
+    latestNetwork: {
+        id: number | null;
+        name: string | null;
+        slug: string | null;
+        nameTranslations: string[] | null;
+        overviewTranslations: string[] | null;
+        aliases: { language: string; name: string }[];
+        country: string | null;
+        primaryCompanyType: number | null;
+        activeDate: string | null;
+        inactiveDate: string | null;
+        companyType: {
+            companyTypeId: number | null;
+            companyTypeName: string | null;
+        } | null;
+        parentCompany: {
+            id: number | null;
+            name: string | null;
+            relation: {
+                id: number | null;
+                typeName: string | null;
+            } | null;
+        } | null;
+        tagOptions: unknown[] | null;
+    } | null;
+    genres: { id: number; name: string; slug: string }[] | null;
+    trailers: { id: number; name: string; url: string; language: string; runtime: number }[] | null; // runtime is given 0, not trustworthy
+    lists: TVDBCollectionItem[] | null;
+    remoteIds: { id: string; type: number; sourceName: string }[] | null;
+    characters: TVDBCharacterItem[] | null;
+    airsDays: {
+        sunday: boolean;
+        monday: boolean;
+        tuesday: boolean;
+        wednesday: boolean;
+        thursday: boolean;
+        friday: boolean;
+        saturday: boolean;
+    } | null;
+    airsTime: string | null; // "21:00"
+    seasons: TVDBSeasonItem[] | null;
+    tags:
+        | { id: number; tag: number; tagName: string; name: string; helpText: string | null }[]
+        | null;
+    contentRatings:
+        | {
+              id: number;
+              name: string;
+              country: string | null;
+              description: string;
+              contentType: string;
+              order: number;
+              fullName: unknown | null;
+          }[]
+        | null;
+    seasonTypes: { id: number; name: string; type: string; alternateName: string | null }[] | null;
+}
+
+interface TVDBEpisodeItem {
+    id: number;
+    seriesId: number;
+    name: string;
+    aired: string | null; // 2008-01-20
+    runtime: number | null; // in minutes
+    nameTranslations: string[] | null;
+    overview: string | null;
+    overviewTranslations: string[] | null;
+    image: string | null; // /banners/episodes/81189/3859781.jpg
+    imageType: number;
+    isMovie: number; // 0 or 1
+    seasons: unknown | null; // Not used
+    number: number | null; // Episode number
+    absoluteNumber: number | null; // Absolute episode number
+    seasonNumber: number | null; // Season number
+    lastUpdated: string | null; // 2023-03-28 19:46:53
+    finaleType: string | null; // "series"
+    year: string | null; // "2008"
+}
+
+interface TVDBArtworkItem {
+    id: number;
+    image: string; // https://artworks.thetvdb.com/banners/posters/81189-10.jpg
+    thumbnail: string; // https://artworks.thetvdb.com/banners/posters/81189-10_t.jpg
+    language: string | null; // "eng"
+    type: number;
+    score: number | null;
+    width: number | null;
+    height: number | null;
+    includesText: boolean | null;
+    thumbnailWidth: number | null;
+    thumbnailHeight: number | null;
+    updatedAt: number | null; // timestamp
+    status: {
+        id: number | null;
+        name: string | null;
+    } | null;
+    tagOptions: unknown[] | null;
+}
+
+interface TVDBCompanyItem {
+    id: number;
+    name: string;
+    slug: string;
+    nameTranslations: string[] | null;
+    overviewTranslations: string[] | null;
+    aliases: { language: string; name: string }[];
+    country: string | null; // "usa"
+    primaryCompanyType: number | null;
+    activeDate: string | null; // "1990-06-01"
+    inactiveDate: string | null; // "2002-05-31"
+    companyType: {
+        companyTypeId: number | null;
+        companyTypeName: string | null;
+    } | null;
+    parentCompany: {
+        id: number | null;
+        name: string | null;
+        relation: {
+            id: number | null;
+            typeName: string | null;
+        } | null;
+    } | null;
+    tagOptions: unknown[] | null;
+}
+
+interface TVDBCollectionItem {
+    id: number;
+    name: string;
+    overview: string | null;
+    url: string;
+    isOfficial: boolean | null;
+    nameTranslations: string[] | null;
+    overviewTranslations: string[] | null;
+    aliases: { language: string; name: string }[];
+    score: number | null;
+    image: string | null;
+    imageIsFallback: boolean | null;
+    remoteIds: unknown | null;
+    tags: unknown[] | null;
+}
+
+interface TVDBCharacterItem {
+    id: number;
+    name: string;
+    peopleId: number;
+    seriesId: number;
+    series: unknown | null;
+    movie: unknown | null;
+    movieId: number | null;
+    episodeId: number | null;
+    type: number; // 3 = Actor
+    image: string | null; // https://artworks.thetvdb.com/banners/actors/75476.jpg
+    sort: number | null;
+    isFeatured: boolean | null;
+    url: string; // https://thetvdb.com/people/269404-anna-gunn
+    nameTranslations: string[] | null;
+    overviewTranslations: string[] | null;
+    aliases: { language: string; name: string }[] | null;
+    peopleType: string | null; // "Actor"
+    personName: string | null; // "Anna Gunn"
+    tagOptions: unknown[] | null;
+    personImgURL: string | null; // https://artworks.thetvdb.com/banners/v4/actor/269404/photo/61138b8f549b0.jpg
+}
+
+interface TVDBSeasonItem {
+    id: number;
+    seriesId: number;
+    type: {
+        id: number;
+        name: string;
+        type: string;
+        alternateName: string | null;
+    } | null;
+    number: number | null;
+    nameTranslations: string[] | null;
+    overviewTranslations: string[] | null;
+    image: string | null; // https://artworks.thetvdb.com/banners/seasons/81189-1-3.jpg
+    imageType: number | null;
+    companies: {
+        studio: string | null;
+        network: string | null;
+        production: string | null;
+        distributor: string | null;
+        special_effects: string | null;
+    } | null;
+    lastUpdated: string | null; // 2025-05-29 07:57:48
+}
