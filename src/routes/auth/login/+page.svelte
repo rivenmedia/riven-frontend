@@ -4,11 +4,17 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
     import { type SuperValidated, type Infer, superForm } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
+    import { authClient } from "$lib/auth-client";
+    import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+    import Fingerprint from "@lucide/svelte/icons/fingerprint";
+    import { doesBrowserSupportPasskeys } from "$lib/passkeys";
 
     let {
         data
@@ -47,6 +53,56 @@
     });
 
     let activeTab = $state("login");
+    let isPasskeyLoading = $state(false);
+    let supportsPasskeyAutofill = $state(false);
+    let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
+
+    onMount(async () => {
+        // Check if conditional UI (autofill) is available
+        if (
+            doesBrowserSupportPasskeys() &&
+            typeof window.PublicKeyCredential.isConditionalMediationAvailable === "function"
+        ) {
+            supportsPasskeyAutofill =
+                await window.PublicKeyCredential.isConditionalMediationAvailable();
+
+            // Start passkey autofill if supported
+            if (supportsPasskeyAutofill) {
+                void authClient.signIn.passkey({
+                    autoFill: true,
+                    fetchOptions: {
+                        onSuccess() {
+                            goto("/");
+                        },
+                        onError(context) {
+                            // Silently fail for autofill attempts
+                            console.debug("Passkey autofill failed:", context.error);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    async function handlePasskeySignIn() {
+        isPasskeyLoading = true;
+        try {
+            await authClient.signIn.passkey({
+                fetchOptions: {
+                    onSuccess() {
+                        goto("/");
+                    },
+                    onError(context) {
+                        toast.error(context.error.message || "Passkey authentication failed");
+                    }
+                }
+            });
+        } catch (error) {
+            toast.error("Passkey authentication failed");
+        } finally {
+            isPasskeyLoading = false;
+        }
+    }
 </script>
 
 <div class="grid min-h-svh lg:grid-cols-2">
@@ -84,6 +140,7 @@
                                             <Form.Label>Username</Form.Label>
                                             <Input
                                                 {...props}
+                                                autocomplete="username webauthn"
                                                 bind:value={$loginFormData.username} />
                                         {/snippet}
                                     </Form.Control>
@@ -97,12 +154,32 @@
                                             <Input
                                                 {...props}
                                                 type="password"
+                                                autocomplete="current-password webauthn"
                                                 bind:value={$loginFormData.password} />
                                         {/snippet}
                                     </Form.Control>
                                     <Form.FieldErrors />
                                 </Form.Field>
                                 <Form.Button class="mt-4">Submit</Form.Button>
+                                {#if supportsPasskey}
+                                    <div class="relative my-4">
+                                        <div class="absolute inset-0 flex items-center">
+                                            <span class="w-full border-t"></span>
+                                        </div>
+                                        <div class="relative flex justify-center text-xs uppercase">
+                                            <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        class="w-full"
+                                        disabled={isPasskeyLoading}
+                                        onclick={handlePasskeySignIn}
+                                        type="button">
+                                        <Fingerprint class="mr-2 h-4 w-4" />
+                                        {isPasskeyLoading ? "Authenticating..." : "Sign in with Passkey"}
+                                    </Button>
+                                {/if}
                             </form>
                         </Card.Content>
                     </Card.Root>
