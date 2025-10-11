@@ -339,3 +339,5 @@ export function parseTMDBMovieDetails(data: TMDBMovieDetailsExtended | null) {
 
     return result;
 }
+
+
