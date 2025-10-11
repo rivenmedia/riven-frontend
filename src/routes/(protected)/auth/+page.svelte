@@ -45,13 +45,13 @@
 </svelte:head>
 
 <div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
-    <h1 class="text-3xl font-bold tracking-tight">{data.user.username}'s Profile</h1>
+    <h1 class="text-3xl font-bold tracking-tight">{data.user.name}'s Profile</h1>
 
     <div class="mt-4 flex flex-col gap-4">
         <div class="flex flex-row items-center gap-4">
             <img
                 src={data.user.image || "https://avatar.iran.liara.run/public"}
-                alt={data.user.username}
+                alt={data.user.name}
                 class="h-16 w-16 rounded-full object-cover" />
             <div>
                 <p class="text-lg font-semibold">{data.user.name}</p>

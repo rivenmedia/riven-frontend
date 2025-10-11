@@ -16,6 +16,15 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    socialProviders: {
+        plex: {
+            clientId: process.env.PLEX_CLIENT_IDENTIFIER || "riven",
+            product: "Riven Media",
+            version: "1.0",
+            platform: "Web",
+            enabled: true
+        }
+    },
     plugins: [username(), admin(), openAPI()],
     advanced: {
         cookiePrefix: "riven"
