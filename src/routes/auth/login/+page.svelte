@@ -50,13 +50,6 @@
         }
     });
 
-    onMount(() => {
-        const error = $page.url.searchParams.get("error");
-        if (error) {
-            toast.error(error);
-        }
-    });
-
     async function plexLogin() {
         await authClient.signIn.social({
             provider: "plex"
