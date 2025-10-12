@@ -70,13 +70,13 @@
                     <Avatar.Root class="cursor-pointer">
                         <Avatar.Image
                             src={user.image || "https://avatar.iran.liara.run/public"}
-                            alt={user.username} />
+                            alt={user.name} />
                         <Avatar.Fallback>CN</Avatar.Fallback>
                     </Avatar.Root>
                 {/snippet}
                 {#snippet content()}
                     <p class="font-medium">
-                        {user.username}
+                        {user.name}
                     </p>
                 {/snippet}
             </Tooltip>

@@ -17,6 +17,15 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    socialProviders: {
+        plex: {
+            clientId: "riven",
+            product: "Riven Media",
+            version: "1.0",
+            platform: "Web",
+            enabled: true
+        }
+    },
     plugins: [
         username(), 
         admin(), 

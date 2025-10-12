@@ -17,6 +17,15 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    socialProviders: {
+        plex: {
+            clientId: "riven",
+            product: "Riven Media",
+            version: "1.0",
+            platform: "Web",
+            enabled: true
+        }
+    },
     trustedOrigins: [
         "http://localhost:5173",
         "http://192.168.1.*:5173",

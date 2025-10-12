@@ -10,9 +10,10 @@
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
+    import { page } from "$app/stores";
+    import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
     import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
 
@@ -52,7 +53,12 @@
         }
     });
 
-    let activeTab = $state("login");
+    async function plexLogin() {
+        await authClient.signIn.social({
+            provider: "plex"
+        });
+    }
+
     let isPasskeyLoading = $state(false);
     let supportsPasskeyAutofill = $state(false);
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
@@ -103,6 +109,8 @@
             isPasskeyLoading = false;
         }
     }
+  
+    let activeTab = $state("login");
 </script>
 
 <div class="grid min-h-svh lg:grid-cols-2">
@@ -160,27 +168,44 @@
                                     </Form.Control>
                                     <Form.FieldErrors />
                                 </Form.Field>
-                                <Form.Button class="mt-4">Submit</Form.Button>
-                                {#if supportsPasskey}
-                                    <div class="relative my-4">
-                                        <div class="absolute inset-0 flex items-center">
-                                            <span class="w-full border-t"></span>
-                                        </div>
-                                        <div class="relative flex justify-center text-xs uppercase">
-                                            <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        class="w-full"
-                                        disabled={isPasskeyLoading}
-                                        onclick={handlePasskeySignIn}
-                                        type="button">
-                                        <Fingerprint class="mr-2 h-4 w-4" />
-                                        {isPasskeyLoading ? "Authenticating..." : "Sign in with Passkey"}
-                                    </Button>
-                                {/if}
+                                <Form.Button class="mt-4 w-full">Submit</Form.Button>
                             </form>
+
+                            <div class="relative my-4">
+                                <div class="absolute inset-0 flex items-center">
+                                    <span class="w-full border-t"></span>
+                                </div>
+                                <div class="relative flex justify-center text-xs uppercase">
+                                    <span class="bg-card text-muted-foreground px-2">
+                                        Or continue with
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <Button
+                                onclick={plexLogin}
+                                variant="outline"
+                                class="w-full"
+                                type="button">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path d="M256 70H148l108 186-108 186h108l108-186z" fill="currentColor"/>
+                                </svg>
+                                Login with Plex
+                            </Button>
+                            {#if supportsPasskey}
+                                <Button
+                                    variant="outline"
+                                    class="w-full"
+                                    disabled={isPasskeyLoading}
+                                    onclick={handlePasskeySignIn}
+                                    type="button">
+                                    <Fingerprint class="mr-2 h-4 w-4" />
+                                    {isPasskeyLoading ? "Authenticating..." : "Sign in with Passkey"}
+                                </Button>
+                            {/if}
+                            </div>
+
                         </Card.Content>
                     </Card.Root>
                 </Tabs.Content>
