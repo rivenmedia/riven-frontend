@@ -43,7 +43,7 @@
     async function handleRegisterPasskey() {
         isRegisteringPasskey = true;
         try {
-            await authClient.passkey.add({
+            await authClient.passkey.addPasskey({
                 fetchOptions: {
                     onSuccess() {
                         toast.success("Passkey registered successfully!");
