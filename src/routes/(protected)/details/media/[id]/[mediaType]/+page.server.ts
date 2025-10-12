@@ -1,14 +1,18 @@
 import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
-import type { TMDBMovieDetailsExtended, TMDBParsedMovieDetails } from "$lib/providers/parser";
+import type {
+    TMDBMovieDetailsExtended,
+    ParsedMovieDetails,
+    ParsedShowDetails
+} from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
 // Define a union type for the details
 export type MediaDetails =
-    | { type: "movie"; details: TMDBParsedMovieDetails }
-    | { type: "tv"; details: any };
+    | { type: "movie"; details: ParsedMovieDetails }
+    | { type: "tv"; details: ParsedShowDetails };
 
-export const load = (async ({ fetch, params }) => {
+export const load = (async ({ fetch, params, cookies }) => {
     const { id, mediaType } = params;
 
     if (mediaType !== "movie" && mediaType !== "tv") {
@@ -47,7 +51,7 @@ export const load = (async ({ fetch, params }) => {
         return {
             mediaDetails: {
                 type: "movie",
-                details: parsedDetails as TMDBParsedMovieDetails
+                details: parsedDetails as ParsedMovieDetails
             } as MediaDetails
         };
     } else if (mediaType === "tv") {
@@ -62,6 +66,9 @@ export const load = (async ({ fetch, params }) => {
                         meta: "episodes"
                     }
                 },
+                headers: {
+                    Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
+                },
 
                 fetch: fetch
             }
@@ -71,14 +78,14 @@ export const load = (async ({ fetch, params }) => {
             error(500, detailsError);
         }
 
-        // const parsedDetails = providers.parser.parseTMDBTVDetails(details);
+        const parsedDetails = providers.parser.parseTVDBShowDetails(details.data);
 
-        // return {
-        //     mediaDetails: {
-        //         type: "tv",
-        //         details: parsedDetails as TMDBParsedTVDetails
-        //     } as MediaDetails
-        // };
+        return {
+            mediaDetails: {
+                type: "tv",
+                details: parsedDetails as ParsedShowDetails
+            } as MediaDetails
+        };
 
         return {};
     } else {
