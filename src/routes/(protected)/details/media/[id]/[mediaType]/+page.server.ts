@@ -63,7 +63,7 @@ export const load = (async ({ fetch, params, cookies }) => {
                         id: Number(id)
                     },
                     query: {
-                        meta: "episodes"
+                        meta: "episodes,translations"
                     }
                 },
                 headers: {
@@ -73,6 +73,8 @@ export const load = (async ({ fetch, params, cookies }) => {
                 fetch: fetch
             }
         );
+
+        console.log(details);
 
         if (detailsError) {
             error(500, detailsError);

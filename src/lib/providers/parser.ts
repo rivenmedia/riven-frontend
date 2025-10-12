@@ -267,6 +267,18 @@ export interface TVDBBaseItem {
           }[]
         | null;
     seasonTypes: { id: number; name: string; type: string; alternateName: string | null }[] | null;
+    translations: {
+        nameTranslations:
+            | {
+                  name: string;
+                  language: string;
+                  isPrimary?: boolean;
+                  isAlias?: boolean;
+              }[]
+            | null;
+        overviewTranslations: { overview: string; language: string; isPrimary?: boolean }[] | null;
+        aliases: string[] | null;
+    };
 }
 
 interface TVDBEpisodeItem {
