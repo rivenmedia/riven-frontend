@@ -10,6 +10,7 @@ import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
 import { admin, openAPI } from "better-auth/plugins";
+import { passkey } from "better-auth/plugins/passkey";
 
 export const auth = betterAuth({
     database: new Database(process.env.DATABASE_URL!),
@@ -25,7 +26,16 @@ export const auth = betterAuth({
             enabled: true
         }
     },
-    plugins: [username(), admin(), openAPI()],
+    plugins: [
+        username(), 
+        admin(), 
+        openAPI(), 
+        passkey({
+            rpID: process.env.PASSKEY_RP_ID || "localhost",
+            rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
+            origin: process.env.PASSKEY_ORIGIN || "http://localhost:5173"
+        })
+    ],
     advanced: {
         cookiePrefix: "riven"
     },

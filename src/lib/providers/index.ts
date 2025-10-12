@@ -12,6 +12,7 @@ import { env } from "$env/dynamic/public";
 
 import type { paths as TVDBPaths } from "./tvdb";
 import type { paths as TMDBPaths } from "./tmdb";
+import { parseTMDBMovieDetails, parseTVDBShowDetails } from "./parser";
 
 const tvdbClient = createClient<TVDBPaths>({
     baseUrl: "https://api4.thetvdb.com/v4"
@@ -28,6 +29,7 @@ const tmdbClient = createClient<TMDBPaths>({
     }
 });
 
+export const TVDB_ARTWORK_BASE_URL = "https://artworks.thetvdb.com";
 export const TVDB_ARTWORK_STATUSES = {
     1: "Low Quality",
     2: "Improper Action Shot",
@@ -1313,5 +1315,9 @@ export const TMDB_LANGUAGES: { iso_639_1: string; english_name: string; name: st
 
 export default {
     tvdb: tvdbClient,
-    tmdb: tmdbClient
+    tmdb: tmdbClient,
+    parser: {
+        parseTMDBMovieDetails,
+        parseTVDBShowDetails
+    }
 };

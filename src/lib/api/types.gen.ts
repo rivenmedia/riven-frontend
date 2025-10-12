@@ -410,10 +410,12 @@ export type FilesystemModel = {
      */
     mount_path?: string;
     /**
-     * Separate Anime Dirs
-     * Create separate directories for anime content
+     * Library Profiles
+     * Library profiles for organizing media into different libraries based on metadata. Example profiles are provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates additional VFS paths. Media always appears at the base path (/movies, /shows) plus any matching profile paths (e.g., /kids/movies, /anime/movies).
      */
-    separate_anime_dirs?: boolean;
+    library_profiles?: {
+        [key: string]: LibraryProfile;
+    };
     /**
      * Cache Dir
      * Directory for caching downloaded chunks
@@ -588,6 +590,99 @@ export type LanguagesConfig = {
 };
 
 /**
+ * LibraryProfile
+ * Library profile configuration for organizing media into different libraries
+ */
+export type LibraryProfile = {
+    /**
+     * Name
+     * Human-readable profile name
+     */
+    name: string;
+    /**
+     * Library Path
+     * VFS path prefix for this profile (e.g., '/kids', '/anime')
+     */
+    library_path: string;
+    /**
+     * Enabled
+     * Enable this profile
+     */
+    enabled?: boolean;
+    /**
+     * Metadata filter rules for matching items
+     */
+    filter_rules?: LibraryProfileFilterRules;
+};
+
+/**
+ * LibraryProfileFilterRules
+ * Filter rules for library profile matching (metadata-only)
+ */
+export type LibraryProfileFilterRules = {
+    /**
+     * Content Types
+     * Media types to include (movie, show). None/omit = all types
+     */
+    content_types?: Array<string> | null;
+    /**
+     * Genres
+     * Include if ANY genre matches (OR logic). None/omit = no genre filter
+     */
+    genres?: Array<string> | null;
+    /**
+     * Exclude Genres
+     * Exclude if ANY genre matches. None/omit = no exclusion
+     */
+    exclude_genres?: Array<string> | null;
+    /**
+     * Min Year
+     * Minimum release year. None/omit = no minimum
+     */
+    min_year?: number | null;
+    /**
+     * Max Year
+     * Maximum release year. None/omit = no maximum
+     */
+    max_year?: number | null;
+    /**
+     * Is Anime
+     * Filter by anime flag. None/omit = no anime filter
+     */
+    is_anime?: boolean | null;
+    /**
+     * Networks
+     * TV networks to include (OR logic). None/omit = no network filter
+     */
+    networks?: Array<string> | null;
+    /**
+     * Countries
+     * Countries of origin to include (OR logic). None/omit = no country filter
+     */
+    countries?: Array<string> | null;
+    /**
+     * Languages
+     * Original languages to include (OR logic). None/omit = no language filter
+     */
+    languages?: Array<string> | null;
+    /**
+     * Min Rating
+     * Minimum rating (0-10 scale). None/omit = no minimum
+     */
+    min_rating?: number | null;
+    /**
+     * Max Rating
+     * Maximum rating (0-10 scale). None/omit = no maximum
+     */
+    max_rating?: number | null;
+    /**
+     * Content Ratings
+     * Allowed content ratings (G, PG, PG-13, R, TV-MA, etc.). None/omit = no filter
+     */
+    content_ratings?: Array<string> | null;
+};
+
+/**
  * ListrrModel
  */
 export type ListrrModel = {
@@ -641,7 +736,7 @@ export type LoggingModel = {
      * Compression
      * Log compression format (empty for no compression)
      */
-    compression?: 'zip' | 'gz' | 'bz2' | 'xz' | '';
+    compression?: 'zip' | 'gz' | 'bz2' | 'xz' | 'disabled';
 };
 
 /**
@@ -2638,9 +2733,9 @@ export type GetItemData = {
          */
         media_type?: 'movie' | 'tv' | 'item';
         /**
-         * With Streams
+         * Extended
          */
-        with_streams?: boolean | null;
+        extended?: boolean | null;
     };
     url: '/api/v1/items/{id}';
 };

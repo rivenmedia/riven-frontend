@@ -13,6 +13,9 @@
     import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
+    import { goto } from "$app/navigation";
+    import Fingerprint from "@lucide/svelte/icons/fingerprint";
+    import { doesBrowserSupportPasskeys } from "$lib/passkeys";
 
     let {
         data
@@ -56,6 +59,57 @@
         });
     }
 
+    let isPasskeyLoading = $state(false);
+    let supportsPasskeyAutofill = $state(false);
+    let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
+
+    onMount(async () => {
+        // Check if conditional UI (autofill) is available
+        if (
+            doesBrowserSupportPasskeys() &&
+            typeof window.PublicKeyCredential.isConditionalMediationAvailable === "function"
+        ) {
+            supportsPasskeyAutofill =
+                await window.PublicKeyCredential.isConditionalMediationAvailable();
+
+            // Start passkey autofill if supported
+            if (supportsPasskeyAutofill) {
+                void authClient.signIn.passkey({
+                    autoFill: true,
+                    fetchOptions: {
+                        onSuccess() {
+                            goto("/");
+                        },
+                        onError(context) {
+                            // Silently fail for autofill attempts
+                            console.debug("Passkey autofill failed:", context.error);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    async function handlePasskeySignIn() {
+        isPasskeyLoading = true;
+        try {
+            await authClient.signIn.passkey({
+                fetchOptions: {
+                    onSuccess() {
+                        goto("/");
+                    },
+                    onError(context) {
+                        toast.error(context.error.message || "Passkey authentication failed");
+                    }
+                }
+            });
+        } catch (error) {
+            toast.error("Passkey authentication failed");
+        } finally {
+            isPasskeyLoading = false;
+        }
+    }
+  
     let activeTab = $state("login");
 </script>
 
@@ -94,6 +148,7 @@
                                             <Form.Label>Username</Form.Label>
                                             <Input
                                                 {...props}
+                                                autocomplete="username webauthn"
                                                 bind:value={$loginFormData.username} />
                                         {/snippet}
                                     </Form.Control>
@@ -107,6 +162,7 @@
                                             <Input
                                                 {...props}
                                                 type="password"
+                                                autocomplete="current-password webauthn"
                                                 bind:value={$loginFormData.password} />
                                         {/snippet}
                                     </Form.Control>
@@ -135,6 +191,15 @@
                                     <path d="M256 70H148l108 186-108 186h108l108-186z" fill="currentColor"/>
                                 </svg>
                                 Login with Plex
+                            </Button>
+                            <Button
+                                variant="outline"
+                                class="w-full"
+                                disabled={isPasskeyLoading}
+                                onclick={handlePasskeySignIn}
+                                type="button">
+                                <Fingerprint class="mr-2 h-4 w-4" />
+                                {isPasskeyLoading ? "Authenticating..." : "Sign in with Passkey"}
                             </Button>
                         </Card.Content>
                     </Card.Root>
