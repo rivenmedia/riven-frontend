@@ -18,7 +18,7 @@ export const auth = betterAuth({
     },
     socialProviders: {
         plex: {
-            clientId: process.env.PLEX_CLIENT_IDENTIFIER || "riven",
+            clientId: "riven",
             product: "Riven Media",
             version: "1.0",
             platform: "Web",

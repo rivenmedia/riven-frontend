@@ -10,7 +10,6 @@ import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { admin, openAPI } from "better-auth/plugins";
-import { env } from "$env/dynamic/private";
 
 export const auth = betterAuth({
     database: new Database(DATABASE_URL),
@@ -19,7 +18,7 @@ export const auth = betterAuth({
     },
     socialProviders: {
         plex: {
-            clientId: env.PLEX_CLIENT_IDENTIFIER || "riven",
+            clientId: "riven",
             product: "Riven Media",
             version: "1.0",
             platform: "Web",
