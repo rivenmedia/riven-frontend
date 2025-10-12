@@ -10,13 +10,29 @@ import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { admin, openAPI } from "better-auth/plugins";
+import { passkey } from "better-auth/plugins/passkey";
 
 export const auth = betterAuth({
     database: new Database(DATABASE_URL),
     emailAndPassword: {
         enabled: true
     },
-    plugins: [username(), admin(), openAPI(), sveltekitCookies(getRequestEvent)],
+    trustedOrigins: [
+        "http://localhost:5173",
+        "http://192.168.1.*:5173",
+        process.env.PASSKEY_ORIGIN
+    ].filter(Boolean) as string[],
+    plugins: [
+        username(),
+        admin(),
+        openAPI(),
+        sveltekitCookies(getRequestEvent),
+        passkey({
+            rpID: process.env.PASSKEY_RP_ID || "localhost",
+            rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
+            origin: process.env.PASSKEY_ORIGIN || "http://localhost:5173"
+        })
+    ],
     advanced: {
         cookiePrefix: "riven"
     },

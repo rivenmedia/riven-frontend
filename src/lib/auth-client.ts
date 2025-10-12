@@ -1,8 +1,8 @@
 import { createAuthClient } from "better-auth/svelte";
-import { usernameClient } from "better-auth/client/plugins";
+import { passkeyClient, usernameClient } from "better-auth/client/plugins";
 import { adminClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-    plugins: [usernameClient(), adminClient()]
+    plugins: [usernameClient(), adminClient(), passkeyClient()]
 });
 export const { signIn, signUp, useSession } = authClient;
