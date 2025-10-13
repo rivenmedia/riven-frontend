@@ -11,26 +11,50 @@
     let { data }: PageProps = $props();
     $inspect(data);
 
-    type ExternalMediaKey = "imdb_id" | "facebook_id" | "instagram_id" | "twitter_id";
-
-    const externalMetaData: Record<ExternalMediaKey, { name: string; baseUrl: string }> = {
-        imdb_id: {
+    const externalMetaData: Record<string, { name: string; baseUrl: string }> = {
+        imdb: {
             name: "IMDb",
             baseUrl: "https://www.imdb.com/title/"
         },
-        facebook_id: {
+        facebook: {
             name: "Facebook",
             baseUrl: "https://www.facebook.com/"
         },
-        instagram_id: {
+        instagram: {
             name: "Instagram",
             baseUrl: "https://www.instagram.com/"
         },
-        twitter_id: {
+        twitter: {
             name: "Twitter",
             baseUrl: "https://www.twitter.com/"
+        },
+        reddit: {
+            name: "Reddit",
+            baseUrl: "https://www.reddit.com/"
+        },
+        "themoviedb.com": {
+            name: "TMDB",
+            baseUrl: "https://www.themoviedb.org/tv/"
+        },
+        eidr: {
+            name: "EIDR",
+            baseUrl: "https://ui.eidr.org/view/content?id="
         }
     };
+
+    function normalizeExternalIdKey(key: string): string {
+        // Convert TMDB key format to standard format
+        if (key.endsWith("_id")) {
+            return key.replace("_id", "");
+        }
+        return key;
+    }
+
+    // Get display metadata for a key
+    function getExternalMetadata(key: string) {
+        const normalizedKey = normalizeExternalIdKey(key);
+        return externalMetaData[normalizedKey];
+    }
 
     let showTrailer = $state(false);
 
@@ -295,27 +319,35 @@
                                     Production Companies
                                 </p>
                                 <div class="flex flex-row flex-wrap">
-                                    {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
-                                        <Tooltip>
-                                            {#snippet trigger()}
-                                                <div class="mr-2 mb-2 inline-block">
-                                                    <img
-                                                        alt={company.name}
-                                                        class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
-                                                        src={company.logo_path
-                                                            ? company.logo_path
-                                                            : "https://avatar.iran.liara.run/public"}
-                                                        loading="lazy" />
-                                                </div>
-                                            {/snippet}
+                                    {#if data.mediaDetails.type === "movie"}
+                                        {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
+                                            <Tooltip>
+                                                {#snippet trigger()}
+                                                    <div class="mr-2 mb-2 inline-block">
+                                                        <img
+                                                            alt={company.name}
+                                                            class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                                            src={company.logo_path
+                                                                ? company.logo_path
+                                                                : "https://avatar.iran.liara.run/public"}
+                                                            loading="lazy" />
+                                                    </div>
+                                                {/snippet}
 
-                                            {#snippet content()}
-                                                <p class="text-center text-sm font-medium">
-                                                    {company.name}
-                                                </p>
-                                            {/snippet}
-                                        </Tooltip>
-                                    {/each}
+                                                {#snippet content()}
+                                                    <p class="text-center text-sm font-medium">
+                                                        {company.name}
+                                                    </p>
+                                                {/snippet}
+                                            </Tooltip>
+                                        {/each}
+                                    {:else if data.mediaDetails.type === "tv"}
+                                        <p class="text-sm font-medium">
+                                            {data.mediaDetails?.details.production_companies
+                                                .map((company) => company.name)
+                                                .join(", ")}
+                                        </p>
+                                    {/if}
                                 </div>
                             </div>
                         {/if}
@@ -339,13 +371,14 @@
 
                                 <div class="flex flex-row flex-wrap items-center">
                                     {#each Object.entries(data.mediaDetails?.details.external_ids) as [key, value] (key)}
-                                        {#if value && key in externalMetaData && externalMetaData[key as ExternalMediaKey]}
+                                        {#if value && getExternalMetadata(key)}
+                                            {@const metadata = getExternalMetadata(key)}
                                             <a
-                                                href={`${externalMetaData[key as ExternalMediaKey].baseUrl}${value}`}
+                                                href={`${metadata.baseUrl}${value}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 class="mr-4 text-sm font-medium underline hover:opacity-80">
-                                                {externalMetaData[key as ExternalMediaKey].name}
+                                                {metadata.name}
                                             </a>
                                         {/if}
                                     {/each}
@@ -353,11 +386,11 @@
                             </div>
                         {/if}
 
-                        {#if data.mediaDetails?.details.external_ids.imdb_id}
+                        {#if getExternalMetadata("imdb")}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary-foreground/70 text-xs">Parental Guide</p>
                                 <a
-                                    href={`https://www.imdb.com/title/${data.mediaDetails?.details.external_ids.imdb_id}/parentalguide/`}
+                                    href={`https://www.imdb.com/title/${getExternalMetadata("imdb")}/parentalguide/`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="mr-4 text-sm font-medium underline hover:opacity-80">
