@@ -744,7 +744,7 @@ function selectArtwork(
     return artworks.find(predicate) ?? artworks[0];
 }
 
-export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetails | null {
+export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[] | null = null): ParsedShowDetails | null {
     if (!data) return null;
 
     const runtime = data.averageRuntime ?? null;
@@ -912,6 +912,8 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetai
         image: buildTVDBImage(episode.image)
     }));
 
+    const recommendations = transformTraktRecommendations(traktRecs);
+
     return {
         id: data.id ?? null,
         type: "show",
@@ -944,7 +946,7 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetai
         spoken_languages,
         production_companies: productionCompanies,
         production_countries,
-        recommendations: [],
+        recommendations,
         similar: [],
         score: data.score ?? null,
         imdb_id,
@@ -965,4 +967,23 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetai
             description: rating.description
         }))
     };
+}
+
+function transformTraktRecommendations(items: any[] | null): TMDBTransformedListItem[] {
+    if (!items || !Array.isArray(items)) return [];
+    
+    return items.map(item => {
+        // Convert the URL from relative to absolute if needed
+        const poster = item.images?.poster?.[0] ? 
+            (item.images.poster[0].startsWith('http') ? item.images.poster[0] : `https://${item.images.poster[0]}`) : 
+            null;
+            
+        return {
+            id: item.ids?.tvdb || 0,
+            title: item.title || "",
+            poster_path: poster,
+            media_type: "tv",
+            year: item.year || "N/A"
+        };
+    }).filter(item => item.id > 0); // Filter out items without valid TVDB IDs
 }

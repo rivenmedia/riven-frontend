@@ -77,7 +77,54 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
-        const parsedDetails = providers.parser.parseTVDBShowDetails(details.data);
+        let traktSlug = null;
+        let traktRecs = null;
+
+        // Get Trakt slug
+        const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
+            "/search/{id_type}/{id}",
+            {
+                params: {
+                    path: {
+                        id_type: "tvdb",
+                        id: id
+                    },
+                    query: {
+                        type: "show"
+                    }
+                },
+                fetch: fetch
+            }
+        );
+
+        if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
+            traktSlug = (traktSlugResp[0] as any).show?.ids?.slug;
+        }
+
+        // Get Trakt recommendations
+        if (traktSlug) {
+            const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
+                "/shows/{id}/related",
+                {
+                    params: {
+                        path: {
+                            id: traktSlug
+                        },
+                        query: {
+                            extended: "images"
+                        }
+                    },
+                    fetch: fetch
+                }
+            );
+            
+            if (!traktRecsError && traktRecsData) {
+                traktRecs = traktRecsData;
+            }
+        }
+
+        // Pass traktRecs to the parser
+        const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
 
         return {
             mediaDetails: {
@@ -85,8 +132,6 @@ export const load = (async ({ fetch, params, cookies }) => {
                 details: parsedDetails as ParsedShowDetails
             } as MediaDetails
         };
-
-        return {};
     } else {
         error(400, "Invalid media type");
     }
