@@ -7,7 +7,6 @@ import type {
 } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
 
-// Define a union type for the details
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
     | { type: "tv"; details: ParsedShowDetails };
@@ -73,8 +72,6 @@ export const load = (async ({ fetch, params, cookies }) => {
                 fetch: fetch
             }
         );
-
-        console.log(details);
 
         if (detailsError) {
             error(500, detailsError);

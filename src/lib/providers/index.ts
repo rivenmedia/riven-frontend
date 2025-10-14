@@ -1,7 +1,6 @@
 /*
 TMDB V3 OPENAPI SPEC: https://developer.themoviedb.org/openapi/64542913e1f86100738e227f
 TVDB V4 OPENAPI SPEC: https://thetvdb.github.io/v4-api/swagger.yml
-TRAKT OPENAPI SPEC: setup https://github.com/trakt/trakt-api and run openapi generator
 
 COMMAND TO GENERATE: bunx openapi-typescript URL -o src/lib/providers/FILE.ts
 
