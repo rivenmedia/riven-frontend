@@ -1,8 +1,9 @@
 /*
 TMDB V3 OPENAPI SPEC: https://developer.themoviedb.org/openapi/64542913e1f86100738e227f
 TVDB V4 OPENAPI SPEC: https://thetvdb.github.io/v4-api/swagger.yml
+TRAKT OPENAPI SPEC: setup https://github.com/trakt/trakt-api and run openapi generator
 
-COMMAND TO GENERATE: pnpx openapi-typescript URL -o src/lib/providers/FILE.ts
+COMMAND TO GENERATE: bunx openapi-typescript URL -o src/lib/providers/FILE.ts
 
 This is different from @hey-api openapi-ts package.
 */
@@ -12,6 +13,7 @@ import { env } from "$env/dynamic/public";
 
 import type { paths as TVDBPaths } from "./tvdb";
 import type { paths as TMDBPaths } from "./tmdb";
+import type { paths as TraktPaths } from "./trakt";
 import { parseTMDBMovieDetails, parseTVDBShowDetails } from "./parser";
 
 const tvdbClient = createClient<TVDBPaths>({
@@ -26,6 +28,15 @@ const tmdbClient = createClient<TMDBPaths>({
     headers: {
         Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
         "Content-Type": "application/json;charset=utf-8"
+    }
+});
+
+const traktClient = createClient<TraktPaths>({
+    baseUrl: "https://api.trakt.tv",
+    headers: {
+        "Content-Type": "application/json",
+        "trakt-api-version": "2",
+        "trakt-api-key": env.PUBLIC_TRAKT_CLIENT_ID || "0183a05ad97098d87287fe46da4ae286f434f32e8e951caad4cc147c947d79a3"
     }
 });
 
@@ -1316,6 +1327,7 @@ export const TMDB_LANGUAGES: { iso_639_1: string; english_name: string; name: st
 export default {
     tvdb: tvdbClient,
     tmdb: tmdbClient,
+    trakt: traktClient,
     parser: {
         parseTMDBMovieDetails,
         parseTVDBShowDetails
