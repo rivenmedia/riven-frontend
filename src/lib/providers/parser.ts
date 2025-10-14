@@ -331,6 +331,13 @@ export function parseTMDBMovieDetails(
         name: language.name ?? null
     }));
 
+    // Choose logo: prefer English (iso_639_1 === "en"), otherwise first available, otherwise null
+    const chosenLogo = data.images.logos.length
+        ? data.images.logos.find(logo => logo.iso_639_1 === "en")?.file_path 
+            ? buildTMDBImage(data.images.logos.find(logo => logo.iso_639_1 === "en")!.file_path, "w500")
+            : buildTMDBImage(data.images.logos[0].file_path, "w500")
+        : null;
+
     return {
         id: data.id ?? null,
         type: "movie",
@@ -350,9 +357,7 @@ export function parseTMDBMovieDetails(
         homepage: data.homepage ?? null,
         backdrop_path: buildTMDBImage(data.backdrop_path, "original"),
         poster_path: buildTMDBImage(data.poster_path, "w500"),
-        logo: data.images.logos.length
-            ? buildTMDBImage(data.images.logos[0].file_path, "w500")
-            : null,
+        logo: chosenLogo,
         trailer: trailer
             ? {
                   id: trailer.id,

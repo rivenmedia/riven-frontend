@@ -30,7 +30,7 @@
         },
         reddit: {
             name: "Reddit",
-            baseUrl: "https://www.reddit.com/"
+            baseUrl: "https://www.reddit.com/r/"
         },
         "themoviedb.com": {
             name: "TMDB",
@@ -386,11 +386,11 @@
                             </div>
                         {/if}
 
-                        {#if getExternalMetadata("imdb")}
+                        {#if data.mediaDetails?.details.imdb_id && getExternalMetadata("imdb")}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary-foreground/70 text-xs">Parental Guide</p>
                                 <a
-                                    href={`https://www.imdb.com/title/${getExternalMetadata("imdb")}/parentalguide/`}
+                                    href={`${getExternalMetadata("imdb").baseUrl}${data.mediaDetails?.details.imdb_id}/parentalguide/`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="mr-4 text-sm font-medium underline hover:opacity-80">
