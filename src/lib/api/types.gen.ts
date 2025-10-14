@@ -20,6 +20,11 @@ export type AppModel = {
      */
     log_level?: 'TRACE' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
     /**
+     * Retry Interval
+     * Interval in seconds to retry failed library items (24 hours default, 0 to disable)
+     */
+    retry_interval?: number;
+    /**
      * Tracemalloc
      * Enable Python memory tracking (debug)
      */
@@ -480,10 +485,10 @@ export type HdrRankModel = {
  */
 export type IndexerModel = {
     /**
-     * Update Interval
-     * Indexer update interval in seconds (1 hour default)
+     * Reindex Ongoing Interval
+     * Interval in seconds to reindex all ongoing items (24 hours default, 0 to disable)
      */
-    update_interval?: number;
+    reindex_ongoing_interval?: number;
 };
 
 /**
@@ -722,6 +727,11 @@ export type LoggingModel = {
      * Enable file logging
      */
     enabled?: boolean;
+    /**
+     * Clean Interval
+     * Log cleanup interval in seconds (1 hour default)
+     */
+    clean_interval?: number;
     /**
      * Retention Hours
      * Log retention period in hours

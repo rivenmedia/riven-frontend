@@ -620,7 +620,7 @@ export type RtnSettingsModelZodType = z.infer<typeof zRtnSettingsModel>;
  * IndexerModel
  */
 export const zIndexerModel = z.object({
-    update_interval: z.number().int().gte(1).describe('Indexer update interval in seconds (1 hour default)').optional().default(3600)
+    reindex_ongoing_interval: z.number().int().gte(0).describe('Interval in seconds to reindex all ongoing items (24 hours default, 0 to disable)').optional().default(86400)
 });
 
 export type IndexerModelZodType = z.infer<typeof zIndexerModel>;
@@ -688,6 +688,7 @@ export type PostProcessingZodType = z.infer<typeof zPostProcessing>;
  */
 export const zLoggingModel = z.object({
     enabled: z.boolean().describe('Enable file logging').optional().default(true),
+    clean_interval: z.number().int().describe('Log cleanup interval in seconds (1 hour default)').optional().default(3600),
     retention_hours: z.number().int().describe('Log retention period in hours').optional().default(24),
     rotation_mb: z.number().int().describe('Log file rotation size in MB').optional().default(10),
     compression: z.enum([
@@ -715,6 +716,7 @@ export const zAppModel = z.object({
         'ERROR',
         'CRITICAL'
     ]).describe('Logging level').optional(),
+    retry_interval: z.number().int().gte(0).describe('Interval in seconds to retry failed library items (24 hours default, 0 to disable)').optional().default(86400),
     tracemalloc: z.boolean().describe('Enable Python memory tracking (debug)').optional().default(false),
     filesystem: zFilesystemModel.optional(),
     updaters: zUpdatersModel.optional(),
