@@ -11,6 +11,59 @@ export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
     | { type: "tv"; details: ParsedShowDetails };
 
+
+async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isMovie: boolean) {
+    const idType = isMovie ? "tmdb" : "tvdb";
+    const mediaType = isMovie ? "movie" : "show";
+    const endpointPrefix = isMovie ? "movies" : "shows";
+    
+    let traktSlug = null;
+    let traktRecs = null;
+
+    const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
+        "/search/{id_type}/{id}",
+        {
+            params: {
+                path: {
+                    id_type: idType,
+                    id: mediaId
+                },
+                query: {
+                    type: mediaType
+                }
+            },
+            fetch: fetch
+        }
+    );
+
+    if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
+        traktSlug = (traktSlugResp[0] as any)[mediaType]?.ids?.slug;
+    }
+
+    if (traktSlug) {
+        const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
+            `/${endpointPrefix}/{id}/related`,
+            {
+                params: {
+                    path: {
+                        id: traktSlug
+                    },
+                    query: {
+                        extended: "images"
+                    }
+                },
+                fetch: fetch
+            }
+        );
+        
+        if (!traktRecsError && traktRecsData) {
+            traktRecs = traktRecsData;
+        }
+    }
+
+    return { traktSlug, traktRecs };
+}
+
 export const load = (async ({ fetch, params, cookies }) => {
     const { id, mediaType } = params;
 
@@ -43,52 +96,7 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
-        // Get Trakt recommendations for movies
-        let traktSlug = null;
-        let traktRecs = null;
-
-        // Get Trakt slug using TMDB ID
-        const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
-            "/search/{id_type}/{id}",
-            {
-                params: {
-                    path: {
-                        id_type: "tmdb",
-                        id: id
-                    },
-                    query: {
-                        type: "movie"
-                    }
-                },
-                fetch: fetch
-            }
-        );
-
-        if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
-            traktSlug = (traktSlugResp[0] as any).movie?.ids?.slug;
-        }
-
-        // Get Trakt recommendations
-        if (traktSlug) {
-            const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
-                "/movies/{id}/related",
-                {
-                    params: {
-                        path: {
-                            id: traktSlug
-                        },
-                        query: {
-                            extended: "images"
-                        }
-                    },
-                    fetch: fetch
-                }
-            );
-            
-            if (!traktRecsError && traktRecsData) {
-                traktRecs = traktRecsData;
-            }
-        }
+        const { traktRecs } = await getTraktData(fetch, id, true);
 
         const parsedDetails = providers.parser.parseTMDBMovieDetails(
             details as TMDBMovieDetailsExtended,
@@ -116,7 +124,6 @@ export const load = (async ({ fetch, params, cookies }) => {
                 headers: {
                     Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
                 },
-
                 fetch: fetch
             }
         );
@@ -125,53 +132,8 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
-        let traktSlug = null;
-        let traktRecs = null;
+        const { traktRecs } = await getTraktData(fetch, id, false);
 
-        // Get Trakt slug
-        const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
-            "/search/{id_type}/{id}",
-            {
-                params: {
-                    path: {
-                        id_type: "tvdb",
-                        id: id
-                    },
-                    query: {
-                        type: "show"
-                    }
-                },
-                fetch: fetch
-            }
-        );
-
-        if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
-            traktSlug = (traktSlugResp[0] as any).show?.ids?.slug;
-        }
-
-        // Get Trakt recommendations
-        if (traktSlug) {
-            const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
-                "/shows/{id}/related",
-                {
-                    params: {
-                        path: {
-                            id: traktSlug
-                        },
-                        query: {
-                            extended: "images"
-                        }
-                    },
-                    fetch: fetch
-                }
-            );
-            
-            if (!traktRecsError && traktRecsData) {
-                traktRecs = traktRecsData;
-            }
-        }
-
-        // Pass traktRecs to the parser
         const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
 
         return {
