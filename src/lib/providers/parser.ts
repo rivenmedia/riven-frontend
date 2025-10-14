@@ -749,6 +749,26 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetai
 
     const runtime = data.averageRuntime ?? null;
 
+    let title = data.name;
+    const originalTitle = data.name;
+    
+    const engTitle = data.translations?.nameTranslations?.find(
+        t => t.language === "eng" && !t.isAlias
+    )?.name;
+    
+    const engAlias = data.translations?.nameTranslations?.find(
+        t => t.language === "eng" && t.isAlias
+    )?.name;
+    
+    title = engAlias || engTitle || data.name;
+    
+    let overview = data.overview;
+    const engOverview = data.translations?.overviewTranslations?.find(
+        t => t.language === "eng"
+    )?.overview;
+    
+    overview = engOverview || data.overview;
+
     const posterPath = data.image
         ? buildTVDBImage(data.image)
         : buildTVDBImage(
@@ -895,10 +915,10 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null): ParsedShowDetai
     return {
         id: data.id ?? null,
         type: "show",
-        title: data.name ?? null,
-        original_title: data.name ?? null,
+        title: title ?? null,
+        original_title: originalTitle ?? null,
         original_language: data.originalLanguage ?? null,
-        overview: data.overview ?? null,
+        overview: overview ?? null,
         tagline: null,
         status: data.status?.name ?? null,
         release_date: data.firstAired ?? null,
