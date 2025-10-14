@@ -282,6 +282,7 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
         poster_path: string | null;
         backdrop_path: string | null;
     } | null;
+    trakt_recommendations: TMDBTransformedListItem[]; // Added field for Trakt recommendations
 }
 
 export function transformTMDBList(items: TMDBListItem[] | null) {
@@ -312,9 +313,11 @@ function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
 }
 
 export function parseTMDBMovieDetails(
-    data: TMDBMovieDetailsExtended | null
+    data: TMDBMovieDetailsExtended | null,
+    traktRecs: any[] | null = null
 ): ParsedMovieDetails | null {
-    if (!data) return null;
+    if (!data)
+        return null;
 
     const runtime = data.runtime ?? null;
     const trailer = data.videos ? findTMDBBestTrailer(data.videos.results) : null;
@@ -410,7 +413,8 @@ export function parseTMDBMovieDetails(
                       "original"
                   )
               }
-            : null
+            : null,
+        trakt_recommendations: transformTraktRecommendations(traktRecs, true)
     };
 }
 
@@ -912,7 +916,7 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
         image: buildTVDBImage(episode.image)
     }));
 
-    const recommendations = transformTraktRecommendations(traktRecs);
+    const recommendations = transformTraktRecommendations(traktRecs, false);
 
     return {
         id: data.id ?? null,
@@ -969,7 +973,7 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
     };
 }
 
-function transformTraktRecommendations(items: any[] | null): TMDBTransformedListItem[] {
+function transformTraktRecommendations(items: any[] | null, isMovie: boolean = false): TMDBTransformedListItem[] {
     if (!items || !Array.isArray(items)) return [];
     
     return items.map(item => {
@@ -977,13 +981,17 @@ function transformTraktRecommendations(items: any[] | null): TMDBTransformedList
         const poster = item.images?.poster?.[0] ? 
             (item.images.poster[0].startsWith('http') ? item.images.poster[0] : `https://${item.images.poster[0]}`) : 
             null;
+        
+        // For movies, use TMDB ID; for TV shows, use TVDB ID
+        const id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
+        const mediaType = isMovie ? "movie" : "tv";
             
         return {
-            id: item.ids?.tvdb || 0,
+            id: id || 0,
             title: item.title || "",
             poster_path: poster,
-            media_type: "tv",
+            media_type: mediaType,
             year: item.year || "N/A"
         };
-    }).filter(item => item.id > 0); // Filter out items without valid TVDB IDs
+    }).filter(item => item.id > 0); // Filter out items without valid IDs
 }

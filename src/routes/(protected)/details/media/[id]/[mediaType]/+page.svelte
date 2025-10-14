@@ -421,6 +421,16 @@
                         type="movie" />
                 </div>
             {/if}
+
+            {#if data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
+                <div class="mt-8 flex flex-col">
+                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Like This (Trakt)</h2>
+                    <ListCarousel
+                        data={data.mediaDetails?.details.trakt_recommendations}
+                        indexer="tmdb"
+                        type="movie" />
+                </div>
+            {/if}
         </div>
     </div>
 </div>

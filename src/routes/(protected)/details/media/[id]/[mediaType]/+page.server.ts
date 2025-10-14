@@ -43,8 +43,56 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
+        // Get Trakt recommendations for movies
+        let traktSlug = null;
+        let traktRecs = null;
+
+        // Get Trakt slug using TMDB ID
+        const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
+            "/search/{id_type}/{id}",
+            {
+                params: {
+                    path: {
+                        id_type: "tmdb",
+                        id: id
+                    },
+                    query: {
+                        type: "movie"
+                    }
+                },
+                fetch: fetch
+            }
+        );
+
+        if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
+            traktSlug = (traktSlugResp[0] as any).movie?.ids?.slug;
+        }
+
+        // Get Trakt recommendations
+        if (traktSlug) {
+            const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
+                "/movies/{id}/related",
+                {
+                    params: {
+                        path: {
+                            id: traktSlug
+                        },
+                        query: {
+                            extended: "images"
+                        }
+                    },
+                    fetch: fetch
+                }
+            );
+            
+            if (!traktRecsError && traktRecsData) {
+                traktRecs = traktRecsData;
+            }
+        }
+
         const parsedDetails = providers.parser.parseTMDBMovieDetails(
-            details as TMDBMovieDetailsExtended
+            details as TMDBMovieDetailsExtended,
+            traktRecs
         );
 
         return {
