@@ -416,7 +416,7 @@
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
                     <ListCarousel
-                        data={data.mediaDetails?.details.recommendations}
+                        data={data.mediaDetails?.details.similar}
                         indexer="tmdb"
                         type="movie" />
                 </div>
