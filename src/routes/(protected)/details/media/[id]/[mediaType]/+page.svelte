@@ -156,6 +156,12 @@
                         {data.mediaDetails?.details.title}
                     </h1>
 
+                    {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
+                        <p class="text-primary-foreground/70 mb-2 text-sm">
+                            Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data.mediaDetails?.details.airing.time}
+                        </p>
+                    {/if}
+
                     {#if data.mediaDetails?.details.tagline}
                         <p class="text-primary-foreground/70 mb-2 text-sm font-semibold italic">
                             {data.mediaDetails?.details.tagline}
