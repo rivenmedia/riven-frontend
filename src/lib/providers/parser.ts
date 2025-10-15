@@ -699,16 +699,16 @@ interface ParsedShowSeason {
     type: string | null;
 }
 
-interface ParsedShowEpisode {
-    id: number;
-    season_number: number | null;
-    episode_number: number | null;
-    absolute_number: number | null;
-    name: string;
-    aired: string | null;
-    runtime: number | null;
-    image: string | null;
-}
+// interface ParsedShowEpisode {
+//     id: number;
+//     season_number: number | null;
+//     episode_number: number | null;
+//     absolute_number: number | null;
+//     name: string;
+//     aired: string | null;
+//     runtime: number | null;
+//     image: string | null;
+// }
 
 interface ParsedNetwork {
     id: number | null;
@@ -728,7 +728,7 @@ export interface ParsedShowDetails extends ParsedMediaDetailsBase {
     episode_count: number;
     season_count: number;
     seasons: ParsedShowSeason[];
-    episodes: ParsedShowEpisode[];
+    episodes: TVDBEpisodeItem[];
     networks: ParsedNetwork[];
     content_ratings: {
         id: number;
@@ -910,16 +910,12 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
         type: season.type?.name ?? null
     }));
 
-    const episodes: ParsedShowEpisode[] = (data.episodes ?? []).map((episode) => ({
-        id: episode.id,
-        season_number: episode.seasonNumber,
-        episode_number: episode.number,
-        absolute_number: episode.absoluteNumber,
-        name: episode.name,
-        aired: episode.aired,
-        runtime: episode.runtime,
-        image: buildTVDBImage(episode.image)
-    }));
+    const episodes: TVDBEpisodeItem[] = (data.episodes ?? [])
+        .filter(episode => episode.seasonNumber !== 0)
+        .map(episode => ({
+            ...episode,
+            image: buildTVDBImage(episode.image)
+        }));
 
     const recommendations = transformTraktRecommendations(traktRecs, false);
 
@@ -982,12 +978,10 @@ function transformTraktRecommendations(items: any[] | null, isMovie: boolean = f
     if (!items || !Array.isArray(items)) return [];
     
     return items.map(item => {
-        // Convert the URL from relative to absolute if needed
         const poster = item.images?.poster?.[0] ? 
             (item.images.poster[0].startsWith('http') ? item.images.poster[0] : `https://${item.images.poster[0]}`) : 
             null;
         
-        // For movies, use TMDB ID; for TV shows, use TVDB ID
         const id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
         const mediaType = isMovie ? "movie" : "tv";
             
@@ -998,5 +992,5 @@ function transformTraktRecommendations(items: any[] | null, isMovie: boolean = f
             media_type: mediaType,
             year: item.year || "N/A"
         };
-    }).filter(item => item.id > 0); // Filter out items without valid IDs
+    }).filter(item => item.id > 0);
 }
