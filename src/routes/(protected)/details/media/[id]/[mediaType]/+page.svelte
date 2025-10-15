@@ -7,6 +7,7 @@
     import Play from "@lucide/svelte/icons/play";
     import { Button } from "$lib/components/ui/button/index.js";
     import X from "@lucide/svelte/icons/x";
+    import * as Card from "$lib/components/ui/card/index.js";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -61,6 +62,8 @@
     function toggleTrailer() {
         showTrailer = !showTrailer;
     }
+
+    let selectedSeason: string | undefined = $state("1");
 </script>
 
 <svelte:head>
@@ -158,7 +161,8 @@
 
                     {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
                         <p class="text-primary-foreground/70 mb-2 text-sm">
-                            Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data.mediaDetails?.details.airing.time}
+                            Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data
+                                .mediaDetails?.details.airing.time}
                         </p>
                     {/if}
 
@@ -254,6 +258,52 @@
                         </a>
                     </div>
                 </div>
+            {/if}
+
+            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.episodes}
+                <section>
+                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seaons</h2>
+
+                    <div
+                        class="border-border flex flex-wrap gap-4 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                        {#each data.mediaDetails?.details.seasons as season (season.id)}
+                            <button onclick={() => (selectedSeason = season.number?.toString())}>
+                                <img
+                                    alt={season.id.toString()}
+                                    class="h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                    src={season.image
+                                        ? season.image
+                                        : "https://avatar.iran.liara.run/public"}
+                                    loading="lazy" />
+                            </button>
+                        {/each}
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {#each data.mediaDetails?.details.episodes.filter(ep => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
+                            <div class="border-border flex rounded-lg border bg-white/10 overflow-hidden shadow-lg">
+                                <div class="w-1/3">
+                                    <img
+                                        alt={episode.name}
+                                        class="h-full w-full object-cover object-center"
+                                        src={episode.image || "https://avatar.iran.liara.run/public"}
+                                        loading="lazy" />
+                                </div>
+                                <div class="w-2/3 p-4 flex flex-col">
+                                    <h3 class="text-sm font-bold">{episode.number}. {episode.name}</h3>
+                                    <p class="text-xs text-primary-foreground/70 mb-2">
+                                        {episode.aired} • {episode.runtime} min
+                                    </p>
+                                    <p class="text-xs line-clamp-3">{episode.overview}</p>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                </section>
             {/if}
 
             <section>

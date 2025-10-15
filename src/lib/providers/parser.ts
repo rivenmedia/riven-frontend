@@ -282,7 +282,7 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
         poster_path: string | null;
         backdrop_path: string | null;
     } | null;
-    trakt_recommendations: TMDBTransformedListItem[]; // Added field for Trakt recommendations
+    trakt_recommendations: TMDBTransformedListItem[];
 }
 
 export function transformTMDBList(items: TMDBListItem[] | null) {
@@ -727,7 +727,7 @@ export interface ParsedShowDetails extends ParsedMediaDetailsBase {
     };
     episode_count: number;
     season_count: number;
-    seasons: ParsedShowSeason[];
+    seasons: TVDBSeasonItem[];
     episodes: TVDBEpisodeItem[];
     networks: ParsedNetwork[];
     content_ratings: {
@@ -899,16 +899,11 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
         });
     }
 
-    const seasons: ParsedShowSeason[] = (data.seasons ?? []).map((season) => ({
-        id: season.id,
-        number: season.number,
-        name:
-            season.number != null
-                ? `Season ${season.number}`
-                : (season.nameTranslations?.[0] ?? null),
-        image: buildTVDBImage(season.image),
-        type: season.type?.name ?? null
-    }));
+    const seasons = (data.seasons ?? [])
+        .filter(season => 
+            season.type?.name === "Aired Order" && 
+            season.number !== 0
+        );
 
     const episodes: TVDBEpisodeItem[] = (data.episodes ?? [])
         .filter(episode => episode.seasonNumber !== 0)
