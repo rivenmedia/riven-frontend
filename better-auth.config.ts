@@ -15,7 +15,8 @@ import { passkey } from "better-auth/plugins/passkey";
 export const auth = betterAuth({
     database: new Database(process.env.DATABASE_URL!),
     emailAndPassword: {
-        enabled: true
+        enabled: process.env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
+        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
     },
     socialProviders: {
         plex: {
@@ -23,13 +24,14 @@ export const auth = betterAuth({
             product: "Riven Media",
             version: "1.0",
             platform: "Web",
-            enabled: true
+            enabled: process.env.DISABLE_PLEX === "true" ? false : true,
+            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true" || false
         }
     },
     plugins: [
-        username(), 
-        admin(), 
-        openAPI(), 
+        username(),
+        admin(),
+        openAPI(),
         passkey({
             rpID: process.env.PASSKEY_RP_ID || "localhost",
             rpName: process.env.PASSKEY_RP_NAME || "Riven Media",

@@ -6,6 +6,7 @@
 import { betterAuth } from "better-auth";
 import Database from "better-sqlite3";
 import { DATABASE_URL } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
@@ -15,7 +16,8 @@ import { passkey } from "better-auth/plugins/passkey";
 export const auth = betterAuth({
     database: new Database(DATABASE_URL),
     emailAndPassword: {
-        enabled: true
+        enabled: env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
+        disableSignUp: env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
     },
     socialProviders: {
         plex: {
@@ -23,7 +25,8 @@ export const auth = betterAuth({
             product: "Riven Media",
             version: "1.0",
             platform: "Web",
-            enabled: true
+            enabled: env.DISABLE_PLEX === "true" ? false : true,
+            disableSignUp: env.DISABLE_PLEX_SIGNUP === "true" || false
         }
     },
     trustedOrigins: [
