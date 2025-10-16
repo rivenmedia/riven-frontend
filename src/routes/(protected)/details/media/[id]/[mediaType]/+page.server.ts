@@ -6,17 +6,17 @@ import type {
     ParsedShowDetails
 } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
+import { getItem } from "$lib/api";
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
     | { type: "tv"; details: ParsedShowDetails };
 
-
 async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isMovie: boolean) {
     const idType = isMovie ? "tmdb" : "tvdb";
     const mediaType = isMovie ? "movie" : "show";
     const endpointPrefix = isMovie ? "movies" : "shows";
-    
+
     let traktSlug = null;
     let traktRecs = null;
 
@@ -55,7 +55,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
                 fetch: fetch
             }
         );
-        
+
         if (!traktRecsError && traktRecsData) {
             traktRecs = traktRecsData;
         }
@@ -74,6 +74,16 @@ export const load = (async ({ fetch, params, cookies }) => {
     if (!id || isNaN(Number(id))) {
         error(400, "Invalid ID");
     }
+
+    const rivenData = await getItem({
+        path: {
+            id: id
+        },
+        query: {
+            media_type: mediaType,
+            extended: true
+        }
+    });
 
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
@@ -104,6 +114,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         );
 
         return {
+            riven: rivenData.data,
             mediaDetails: {
                 type: "movie",
                 details: parsedDetails as ParsedMovieDetails
@@ -137,6 +148,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
 
         return {
+            riven: rivenData.data,
             mediaDetails: {
                 type: "tv",
                 details: parsedDetails as ParsedShowDetails

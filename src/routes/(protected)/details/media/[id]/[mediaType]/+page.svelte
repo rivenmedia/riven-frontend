@@ -7,7 +7,9 @@
     import Play from "@lucide/svelte/icons/play";
     import { Button } from "$lib/components/ui/button/index.js";
     import X from "@lucide/svelte/icons/x";
-    import * as Card from "$lib/components/ui/card/index.js";
+    import Mountain from "@lucide/svelte/icons/mountain";
+    import { cn } from "$lib/utils";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -51,7 +53,6 @@
         return key;
     }
 
-    // Get display metadata for a key
     function getExternalMetadata(key: string) {
         const normalizedKey = normalizeExternalIdKey(key);
         return externalMetaData[normalizedKey];
@@ -143,7 +144,7 @@
             {/if}
         </div>
 
-        <div class="md:px-8 lg:px-16">
+        <div class="md:px-8 lg:px-16 z-2">
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
@@ -158,6 +159,38 @@
                     <h1 class="mb-2 text-xl font-bold drop-shadow-md">
                         {data.mediaDetails?.details.title}
                     </h1>
+
+                    {#if !data.riven}
+                        <div class="flex">
+                            <Dialog.Root>
+                                <Dialog.Trigger>Open</Dialog.Trigger>
+                                <Dialog.Content>
+                                    <Dialog.Header>
+                                        <Dialog.Title>Are you sure absolutely sure?</Dialog.Title>
+                                        <Dialog.Description>
+                                            This action cannot be undone. This will permanently
+                                            delete your account and remove your data from our
+                                            servers.
+                                        </Dialog.Description>
+                                    </Dialog.Header>
+                                </Dialog.Content>
+                            </Dialog.Root>
+                        </div>
+                    {/if}
+
+                    {#if data.riven?.state}
+                        <Badge
+                            class={cn(
+                                "mb-2",
+                                data.riven.state === "Completed"
+                                    ? "bg-green-600"
+                                    : data.riven.state === "Unknown"
+                                      ? "bg-red-600"
+                                      : "bg-yellow-600"
+                            )}>
+                            {data.riven.state}
+                        </Badge>
+                    {/if}
 
                     {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
                         <p class="text-primary-foreground/70 mb-2 text-sm">
@@ -262,19 +295,26 @@
 
             {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.episodes}
                 <section>
-                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seaons</h2>
+                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seasons</h2>
 
                     <div
                         class="border-border flex flex-wrap gap-4 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                         {#each data.mediaDetails?.details.seasons as season (season.id)}
                             <button onclick={() => (selectedSeason = season.number?.toString())}>
-                                <img
-                                    alt={season.id.toString()}
-                                    class="h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
-                                    src={season.image
-                                        ? season.image
-                                        : "https://avatar.iran.liara.run/public"}
-                                    loading="lazy" />
+                                {#if season.image}
+                                    <img
+                                        alt={season.id.toString()}
+                                        class="h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                        src={season.image}
+                                        loading="lazy" />
+                                {:else}
+                                    <div
+                                        class="flex h-48 w-32 flex-col items-center justify-center rounded-lg border border-white/30 bg-white/20 shadow-md backdrop-blur-md transition-transform duration-300 hover:scale-105">
+                                        <Mountain size={32} class="opacity-70" />
+                                        <span class="mt-2 text-center text-xs font-medium"
+                                            >Season {season.number}</span>
+                                    </div>
+                                {/if}
                             </button>
                         {/each}
                     </div>
@@ -282,23 +322,35 @@
 
                 <section>
                     <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {#each data.mediaDetails?.details.episodes.filter(ep => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
-                            <div class="border-border flex rounded-lg border bg-white/10 overflow-hidden shadow-lg">
+
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
+                            <div
+                                class="border-border flex overflow-hidden rounded-lg border bg-white/10 shadow-lg">
                                 <div class="w-1/3">
-                                    <img
-                                        alt={episode.name}
-                                        class="h-full w-full object-cover object-center"
-                                        src={episode.image || "https://avatar.iran.liara.run/public"}
-                                        loading="lazy" />
+                                    {#if episode.image}
+                                        <img
+                                            alt={episode.name}
+                                            class="h-full w-full object-cover object-center"
+                                            src={episode.image}
+                                            loading="lazy" />
+                                    {:else}
+                                        <div
+                                            class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
+                                            <Mountain size={32} class="opacity-70" />
+                                            <span class="mt-2 text-xs font-medium"
+                                                >Episode {episode.number}</span>
+                                        </div>
+                                    {/if}
                                 </div>
-                                <div class="w-2/3 p-4 flex flex-col">
-                                    <h3 class="text-sm font-bold">{episode.number}. {episode.name}</h3>
-                                    <p class="text-xs text-primary-foreground/70 mb-2">
+                                <div class="flex w-2/3 flex-col p-4">
+                                    <h3 class="text-sm font-bold">
+                                        {episode.number}. {episode.name}
+                                    </h3>
+                                    <p class="text-primary-foreground/70 mb-2 text-xs">
                                         {episode.aired} • {episode.runtime} min
                                     </p>
-                                    <p class="text-xs line-clamp-3">{episode.overview}</p>
+                                    <p class="line-clamp-3 text-xs">{episode.overview}</p>
                                 </div>
                             </div>
                         {/each}
