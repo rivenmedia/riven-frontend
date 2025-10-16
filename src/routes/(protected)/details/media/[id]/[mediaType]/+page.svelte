@@ -9,9 +9,12 @@
     import X from "@lucide/svelte/icons/x";
     import Mountain from "@lucide/svelte/icons/mountain";
     import { cn } from "$lib/utils";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js"
-    import { addItems } from "$lib/api";
     import { toast } from "svelte-sonner";
+    import ItemRequest from "$lib/components/media/riven/item-request.svelte";
+    import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
+    import ItemPause from "$lib/components/media/riven/item-pause.svelte";
+    import ItemReset from "$lib/components/media/riven/item-reset.svelte";
+    import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -67,31 +70,6 @@
     }
 
     let selectedSeason: string | undefined = $state("1");
-
-    async function addMediaItem() {
-        if (!data.mediaDetails) return;
-
-        const response = await addItems({
-            query: {
-                media_type: data.mediaDetails.type,
-                tmdb_ids:
-                    data.mediaDetails.type === "movie"
-                        ? data.mediaDetails.details.id?.toString() || ""
-                        : "",
-
-                tvdb_ids:
-                    data.mediaDetails.type === "tv"
-                        ? data.mediaDetails.details.id?.toString() || ""
-                        : ""
-            }
-        });
-
-        if (response.data) {
-            toast.success("Media item requested successfully!");
-        } else {
-            toast.error("Failed to request media item.");
-        }
-    }
 </script>
 
 <svelte:head>
@@ -172,6 +150,34 @@
         </div>
 
         <div class="z-2 md:px-8 lg:px-16">
+            {#if data.riven}
+                <div
+                    class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                    <ItemDelete
+                        class="mr-2 bg-white/10"
+                        title={data.mediaDetails?.details.title}
+                        ids={[data.riven?.id?.toString()]}
+                        variant="destructive" />
+
+                    <ItemReset
+                        class="mr-2 bg-white/10"
+                        title={data.mediaDetails?.details.title}
+                        ids={[data.riven?.id?.toString()]} />
+
+                    {#if data.riven.state !== "Completed"}
+                        <ItemPause
+                            class="mr-2 bg-white/10"
+                            title={data.mediaDetails?.details.title}
+                            isPaused={data.riven.state === "Paused"}
+                            ids={[data.riven?.id?.toString()]} />
+                    {/if}
+                    <ItemRetry
+                        class="mr-2 bg-white/10"
+                        title={data.mediaDetails?.details.title}
+                        ids={[data.riven?.id?.toString()]} />
+                </div>
+            {/if}
+
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
@@ -189,34 +195,13 @@
 
                     {#if !data.riven}
                         <div class="flex">
-                            <AlertDialog.Root>
-                                <AlertDialog.Trigger>
-                                    {#snippet child({ props })}
-                                        <Button
-                                            variant="ghost"
-                                            class="mt-1 mb-2 bg-white/10"
-                                            size="sm"
-                                            {...props}>
-                                            Request
-                                        </Button>
-                                    {/snippet}
-                                </AlertDialog.Trigger>
-                                <AlertDialog.Content>
-                                    <AlertDialog.Header>
-                                        <AlertDialog.Title>
-                                            Requesting "{data.mediaDetails?.details.title}"
-                                        </AlertDialog.Title>
-                                        <AlertDialog.Description>
-                                            This will send a request to Riven to add this media. You
-                                            will be notified when it's available.
-                                        </AlertDialog.Description>
-                                    </AlertDialog.Header>
-                                    <AlertDialog.Footer>
-                                        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-                                        <AlertDialog.Action onclick={addMediaItem}>Request</AlertDialog.Action>
-                                    </AlertDialog.Footer>
-                                </AlertDialog.Content>
-                            </AlertDialog.Root>
+                            <ItemRequest
+                                class="mt-1 mb-2 bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={data.mediaDetails.type
+                                    ? [data.mediaDetails?.details.id?.toString()]
+                                    : []}
+                                mediaType={data.mediaDetails.type} />
                         </div>
                     {/if}
 
