@@ -15,12 +15,11 @@
     const isMobile = $state(new IsMobile(1280));
 
     interface EntertainmentItem {
-        trakt_id: string;
-        imdb_id: string | null;
-        tvdb_id: string | null;
-        tmdb_id: string;
+        item_id: number;
+        tvdb_id: string;
+        show_title: string;
+        item_type: string;
         aired_at: string;
-        title: string;
         season?: number;
         episode?: number;
     }
@@ -47,9 +46,9 @@
     let showEpisodes = $state(true);
 
     const itemsByDate = $derived.by(() => {
-        const items: EntertainmentItem[] = Object.values(
-            data.calendar?.data || {}
-        ) as EntertainmentItem[];
+        const items: EntertainmentItem[] = data.calendar?.data 
+            ? Object.values(data.calendar.data) 
+            : [];
 
         const result: Record<string, EntertainmentItem[]> = {};
 
@@ -70,8 +69,8 @@
 
         for (const [dateKey, items] of Object.entries(itemsByDate)) {
             result[dateKey] = items.filter((item) => {
-                if (item.season && !showEpisodes) return false;
-                if (!item.season && !showMovies) return false;
+                if (item.item_type === "episode" && !showEpisodes) return false;
+                if (item.item_type === "movie" && !showMovies) return false;
                 return true;
             });
         }
@@ -140,7 +139,7 @@
 </svelte:head>
 
 {#snippet itemIcon(item: EntertainmentItem, size = 4)}
-    {#if item.season}
+    {#if item.item_type === "episode"}
         <Tv class={`h-${size} w-${size} flex-shrink-0 text-blue-400`} />
     {:else}
         <Film class={`h-${size} w-${size} flex-shrink-0 text-orange-400`} />
@@ -152,7 +151,7 @@
         class={cn(
             "flex items-center rounded transition-colors",
             compact ? "gap-1 truncate p-1" : "gap-3 p-2",
-            item.season
+            item.item_type === "episode"
                 ? [
                       "border border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30",
                       compact && "text-blue-300"
@@ -163,13 +162,13 @@
                   ]
         )}
         title={compact
-            ? `${item.title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
+            ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
             : undefined}>
         {@render itemIcon(item, compact ? 3 : 4)}
 
         <div class="min-w-0 flex-1">
             <div class={cn(compact && "truncate", `text-${compact ? "xs" : "xs font-medium"}`)}>
-                {item.title}
+                {item.show_title}
                 {#if item.season && compact}
                     S{item.season}E{item.episode}
                 {/if}
@@ -187,7 +186,7 @@
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
     <div class="space-y-1">
-        {#each day.items.slice(0, limit) as item, itemIndex (item.trakt_id)}
+        {#each day.items.slice(0, limit) as item, itemIndex (item.item_id)}
             {@render entertainmentItem(item, limit !== Infinity)}
         {/each}
 
@@ -209,7 +208,7 @@
                         </Dialog.Description>
                     </Dialog.Header>
                     <div class="mt-4 max-h-96 space-y-2 overflow-y-auto">
-                        {#each day.items as item (item.trakt_id)}
+                        {#each day.items as item (item.item_id)}
                             {@render entertainmentItem(item)}
                         {/each}
                     </div>
