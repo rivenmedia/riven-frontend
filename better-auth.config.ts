@@ -5,16 +5,19 @@
 ////////////////////////////////////
 
 import { betterAuth } from "better-auth";
-import Database from "better-sqlite3";
 import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
 import { admin, openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
+import { db } from "./src/lib/server/db";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import "dotenv/config";
 
 export const auth = betterAuth({
-    database: new Database(process.env.DATABASE_URL!),
+    database: drizzleAdapter(db, {
+        provider: "sqlite"
+    }),
     emailAndPassword: {
         enabled: process.env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
         disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
@@ -29,6 +32,11 @@ export const auth = betterAuth({
             disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true" || false
         }
     },
+    trustedOrigins: [
+        "http://localhost:5173",
+        "http://192.168.1.*:5173",
+        process.env.PASSKEY_ORIGIN
+    ].filter(Boolean) as string[],
     plugins: [
         username(),
         admin(),

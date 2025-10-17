@@ -1,13 +1,7 @@
-import { type DB } from "./db.d";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { env } from "$env/dynamic/private";
-import { Kysely, SqliteDialect } from "kysely";
+import * as schema from "./schema";
 
-const sqliteDb = new Database(env.DATABASE_URL);
-const dialect = new SqliteDialect({
-    database: sqliteDb
-});
-
-export const db = new Kysely<DB>({
-    dialect
-});
+const sqlite = new Database(env.DATABASE_URL);
+export const db = drizzle(sqlite, { schema });

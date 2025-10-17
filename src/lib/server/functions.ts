@@ -1,8 +1,6 @@
 import { db } from "./db";
+import { user } from "./schema"; // Import the user table reference
 
 export async function getUsersCount() {
-    return await db
-        .selectFrom("user")
-        .select((eb) => eb.fn.countAll().as("count"))
-        .execute();
+    return await db.$count(user);
 }
