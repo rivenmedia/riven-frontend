@@ -85,15 +85,15 @@ export const load = (async ({ fetch, params, cookies }) => {
         }
     });
 
-    const settings = await getSettings({
-        path: {paths: "updaters.plex"},
+    const updaterSettings = await getSettings({
+        path: {paths: "updaters"},
         auth: process.env.BACKEND_API_KEY || ""
     });
 
-    console.log("Settings:", settings);
+    console.log("Settings:", updaterSettings);
 
 
-    const settingsData = settings.data as Record<string, any>;
+    const updaterSettingsData = updaterSettings.data as Record<string, any>;
 
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
@@ -129,7 +129,7 @@ export const load = (async ({ fetch, params, cookies }) => {
                 type: "movie",
                 details: parsedDetails as ParsedMovieDetails
             } as MediaDetails,
-            plex: settingsData["updaters.plex"]
+            mediaServers: updaterSettingsData["updaters"]
         };
     } else if (mediaType === "tv") {
         const { data: details, error: detailsError } = await providers.tvdb.GET(
@@ -164,7 +164,7 @@ export const load = (async ({ fetch, params, cookies }) => {
                 type: "tv",
                 details: parsedDetails as ParsedShowDetails
             } as MediaDetails,
-            plex: settingsData["updaters.plex"]
+            mediaServers: updaterSettingsData["updaters"]
         };
     } else {
         error(400, "Invalid media type");

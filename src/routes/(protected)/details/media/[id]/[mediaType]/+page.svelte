@@ -16,9 +16,36 @@
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
     import VideoPlayer from "$lib/components/video-player.svelte";
+    import { createMediaPlayerManager, type MediaInfo } from "$lib/services/media-players";
 
     let { data }: PageProps = $props();
     $inspect(data);
+
+    // Media Player Configuration - configure your media servers here
+    // You can enable multiple players and switch between them
+    const mediaPlayerManager = createMediaPlayerManager({
+        plex: data.mediaServers?.plex?.enabled && data.mediaServers?.plex?.url && data.mediaServers?.plex?.token ? {
+            type: "plex",
+            serverUrl: data.mediaServers.plex.url,
+            token: data.mediaServers.plex.token
+        } : undefined,
+        emby: data.mediaServers?.emby?.enabled && data.mediaServers?.emby?.url && data.mediaServers?.emby?.token ? {
+            type: "emby",
+            serverUrl: data.mediaServers.emby.url,
+            token: data.mediaServers.emby.token
+        } : undefined,
+        jellyfin: data.mediaServers?.jellyfin?.enabled && data.mediaServers?.jellyfin?.url && data.mediaServers?.jellyfin?.token ? {
+            type: "jellyfin",
+            serverUrl: data.mediaServers.jellyfin.url,
+            token: data.mediaServers.jellyfin.token
+        } : undefined
+    });
+
+    // Set the active player (change to "emby" or "jellyfin" if needed)
+    const configuredServices = mediaPlayerManager.getConfiguredServices();
+    if (configuredServices.length > 0) {
+        mediaPlayerManager.setActiveService(configuredServices[0].name);
+    }
 
     const externalMetaData: Record<string, { name: string; baseUrl: string }> = {
         imdb: {
@@ -65,57 +92,48 @@
     }
 
     let showTrailer = $state(false);
-    let showPlexPlayer = $state(false);
+    let showMediaPlayer = $state(false);
+    let mediaStreamUrl = $state<string | null>(null);
 
     function toggleTrailer() {
         showTrailer = !showTrailer;
     }
 
-    let plexMediaUrl = $state<string | null>(null);
+    async function toggleMediaPlayer() {
+        if (showMediaPlayer) {
+            showMediaPlayer = false;
+            mediaStreamUrl = null;
+            return;
+        }
 
-    async function togglePlexPlayer() {
-        if (showPlexPlayer) {
-            showPlexPlayer = false;
+        const activeService = mediaPlayerManager.getActiveService();
+        if (!activeService) {
+            toast.error("No media player configured");
             return;
         }
 
         try {
-            // Get the title from the media details
-            const title = data.mediaDetails?.details.title;
-            if (!title) {
-                toast.error("Title not found for this media");
-                return;
+            // Prepare media info from the current page data
+            const mediaInfo: MediaInfo = {
+                imdbId: data.mediaDetails?.details.imdb_id,
+                tmdbId: data.mediaDetails?.details.id?.toString(),
+                title: data.mediaDetails?.details.title || "",
+                year: data.mediaDetails?.details.year,
+                mediaType: data.mediaDetails?.type === "movie" ? "movie" : "tv"
+            };
+
+            // Get stream URL from the active service
+            const result = await mediaPlayerManager.playMedia(mediaInfo);
+
+            if (result.success && result.streamUrl) {
+                mediaStreamUrl = result.streamUrl;
+                showMediaPlayer = true;
+            } else {
+                toast.error(result.error || "Failed to load media");
             }
-
-            // Search Plex for the media item using title
-            const searchUrl = `${data.plex.url}/search?query=${encodeURIComponent(title)}&X-Plex-Token=${data.plex.token}`;
-            console.log("Searching Plex with URL:", searchUrl);
-            const searchResponse = await fetch(searchUrl);
-            const searchText = await searchResponse.text();
-
-            // Parse XML response to get ratingKey
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(searchText, "text/xml");
-            const videoElement = xmlDoc.querySelector('Video[type="movie"], Directory[type="show"]');
-
-            if (!videoElement) {
-                console.log("No media found in Plex search results", xmlDoc);
-                toast.error("Media not found in your Plex library");
-                return;
-            }
-
-            const ratingKey = videoElement.getAttribute("ratingKey");
-            if (!ratingKey) {
-                toast.error("Could not retrieve Plex rating key");
-                return;
-            }
-
-            // Construct the playback URL
-            plexMediaUrl = `${data.plex.url}/video/:/transcode/universal/start.m3u8?path=/library/metadata/${ratingKey}&X-Plex-Token=${data.plex.token}&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&X-Plex-Platform=Web&X-Plex-Client-Identifier=riven`;
-            showPlexPlayer = true;
         } catch (error) {
-            console.error("Error loading Plex media:", error);
-            toast.error("Failed to load media from Plex");
+            console.error("Error loading media:", error);
+            toast.error("Failed to load media from media server");
         }
     }
 
@@ -144,10 +162,10 @@
         <div
             class={cn(
                 "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]",
-                !showTrailer && !showPlexPlayer && "p-8"
+                !showTrailer && !showMediaPlayer && "p-8"
             )}
             style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
-            {#if !showTrailer && !showPlexPlayer}
+            {#if !showTrailer && !showMediaPlayer}
                 {#if data.mediaDetails.details.logo}
                     <div>
                         <img
@@ -162,17 +180,17 @@
                 {/if}
 
                 <div class="flex gap-2">
-                    {#if data.plex.enabled && data.riven && data.riven.state === "Completed"}
+                    {#if configuredServices.length > 0 && data.riven && data.riven.state === "Completed"}
                         <Button
                             variant="ghost"
                             class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                            onclick={togglePlexPlayer}
-                            aria-label="Play on Plex">
+                            onclick={toggleMediaPlayer}
+                            aria-label="Play on {mediaPlayerManager.getActiveService()?.getDisplayName() || 'Media Server'}">
                             <img
-                                alt="Plex Logo"
+                                alt="{mediaPlayerManager.getActiveService()?.getDisplayName() || 'Media Server'} Logo"
                                 src="https://api.iconify.design/mdi:plex.svg"
                                 class="h-5 w-5 invert" />
-                            <span class="hidden md:block">Plex</span>
+                            <span class="hidden md:block">{mediaPlayerManager.getActiveService()?.getDisplayName() || 'Play'}</span>
                         </Button>
                     {/if}
 
@@ -209,16 +227,16 @@
                         </Button>
                     </div>
                 </div>
-            {:else if showPlexPlayer}
+            {:else if showMediaPlayer}
                 <div class="relative h-full w-full">
-                    <VideoPlayer src={plexMediaUrl} />
+                    <VideoPlayer src={mediaStreamUrl} />
 
                     <div class="absolute top-4 right-4">
                         <Button
                             variant="ghost"
                             class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
-                            onclick={togglePlexPlayer}
-                            aria-label="Close Plex Player">
+                            onclick={toggleMediaPlayer}
+                            aria-label="Close Media Player">
                             <X size={16} />
                         </Button>
                     </div>
