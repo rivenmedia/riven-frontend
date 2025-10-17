@@ -6,7 +6,7 @@ import type {
     ParsedShowDetails
 } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
-import { getItem } from "$lib/api";
+import { getItem, getSettings } from "$lib/api";
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
@@ -85,6 +85,16 @@ export const load = (async ({ fetch, params, cookies }) => {
         }
     });
 
+    const settings = await getSettings({
+        path: {paths: "updaters.plex"},
+        auth: process.env.BACKEND_API_KEY || ""
+    });
+
+    console.log("Settings:", settings);
+
+
+    const settingsData = settings.data as Record<string, any>;
+
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
             `/3/movie/{movie_id}`,
@@ -118,7 +128,8 @@ export const load = (async ({ fetch, params, cookies }) => {
             mediaDetails: {
                 type: "movie",
                 details: parsedDetails as ParsedMovieDetails
-            } as MediaDetails
+            } as MediaDetails,
+            plex: settingsData["updaters.plex"]
         };
     } else if (mediaType === "tv") {
         const { data: details, error: detailsError } = await providers.tvdb.GET(
@@ -152,7 +163,8 @@ export const load = (async ({ fetch, params, cookies }) => {
             mediaDetails: {
                 type: "tv",
                 details: parsedDetails as ParsedShowDetails
-            } as MediaDetails
+            } as MediaDetails,
+            plex: settingsData["updaters.plex"]
         };
     } else {
         error(400, "Invalid media type");

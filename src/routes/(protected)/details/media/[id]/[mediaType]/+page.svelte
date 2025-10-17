@@ -15,6 +15,7 @@
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
+    import VideoPlayer from "$lib/components/video-player.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -64,9 +65,58 @@
     }
 
     let showTrailer = $state(false);
+    let showPlexPlayer = $state(false);
 
     function toggleTrailer() {
         showTrailer = !showTrailer;
+    }
+
+    let plexMediaUrl = $state<string | null>(null);
+
+    async function togglePlexPlayer() {
+        if (showPlexPlayer) {
+            showPlexPlayer = false;
+            return;
+        }
+
+        try {
+            // Get the title from the media details
+            const title = data.mediaDetails?.details.title;
+            if (!title) {
+                toast.error("Title not found for this media");
+                return;
+            }
+
+            // Search Plex for the media item using title
+            const searchUrl = `${data.plex.url}/search?query=${encodeURIComponent(title)}&X-Plex-Token=${data.plex.token}`;
+            console.log("Searching Plex with URL:", searchUrl);
+            const searchResponse = await fetch(searchUrl);
+            const searchText = await searchResponse.text();
+
+            // Parse XML response to get ratingKey
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(searchText, "text/xml");
+            const videoElement = xmlDoc.querySelector('Video[type="movie"], Directory[type="show"]');
+
+            if (!videoElement) {
+                console.log("No media found in Plex search results", xmlDoc);
+                toast.error("Media not found in your Plex library");
+                return;
+            }
+
+            const ratingKey = videoElement.getAttribute("ratingKey");
+            if (!ratingKey) {
+                toast.error("Could not retrieve Plex rating key");
+                return;
+            }
+
+            // Construct the playback URL
+            plexMediaUrl = `${data.plex.url}/video/:/transcode/universal/start.m3u8?path=/library/metadata/${ratingKey}&X-Plex-Token=${data.plex.token}&mediaIndex=0&partIndex=0&protocol=hls&fastSeek=1&X-Plex-Platform=Web&X-Plex-Client-Identifier=riven`;
+            showPlexPlayer = true;
+        } catch (error) {
+            console.error("Error loading Plex media:", error);
+            toast.error("Failed to load media from Plex");
+        }
     }
 
     let selectedSeason: string | undefined = $state("1");
@@ -94,10 +144,10 @@
         <div
             class={cn(
                 "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]",
-                !showTrailer && "p-8"
+                !showTrailer && !showPlexPlayer && "p-8"
             )}
             style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
-            {#if !showTrailer}
+            {#if !showTrailer && !showPlexPlayer}
                 {#if data.mediaDetails.details.logo}
                     <div>
                         <img
@@ -112,10 +162,12 @@
                 {/if}
 
                 <div class="flex gap-2">
-                    {#if data.riven && data.riven.state === "Completed"}
+                    {#if data.plex.enabled && data.riven && data.riven.state === "Completed"}
                         <Button
                             variant="ghost"
-                            class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105">
+                            class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
+                            onclick={togglePlexPlayer}
+                            aria-label="Play on Plex">
                             <img
                                 alt="Plex Logo"
                                 src="https://api.iconify.design/mdi:plex.svg"
@@ -135,7 +187,7 @@
                         </Button>
                     {/if}
                 </div>
-            {:else}
+            {:else if showTrailer}
                 <div class="relative h-full w-full">
                     <iframe
                         class="h-full w-full"
@@ -153,6 +205,20 @@
                             class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
                             onclick={toggleTrailer}
                             aria-label="Close Trailer">
+                            <X size={16} />
+                        </Button>
+                    </div>
+                </div>
+            {:else if showPlexPlayer}
+                <div class="relative h-full w-full">
+                    <VideoPlayer src={plexMediaUrl} />
+
+                    <div class="absolute top-4 right-4">
+                        <Button
+                            variant="ghost"
+                            class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
+                            onclick={togglePlexPlayer}
+                            aria-label="Close Plex Player">
                             <X size={16} />
                         </Button>
                     </div>
