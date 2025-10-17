@@ -77,7 +77,7 @@ export type LibraryProfileZodType = z.infer<typeof zLibraryProfile>;
  */
 export const zFilesystemModel = z.object({
     mount_path: z.string().describe('Path where Riven will mount the virtual filesystem').optional().default('/path/to/riven/mount'),
-    library_profiles: z.record(zLibraryProfile).describe('Library profiles for organizing media into different libraries based on metadata. Example profiles are provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates additional VFS paths. Media always appears at the base path (/movies, /shows) plus any matching profile paths (e.g., /kids/movies, /anime/movies).').optional(),
+    library_profiles: z.record(zLibraryProfile).describe("Library profiles for organizing media into different libraries based on metadata. An example profile is provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates VFS paths. Media appears in all matching profile paths. Use '!' prefix in filter lists to exclude values (e.g., genres: ['action', '!horror'] = action movies but not horror).").optional(),
     cache_dir: z.string().describe('Directory for caching downloaded chunks').optional().default('/dev/shm/riven-cache'),
     cache_max_size_mb: z.number().int().gte(0).describe('Maximum cache size in MB (10 GiB default)').optional().default(10240),
     cache_ttl_seconds: z.number().int().describe('Cache time-to-live in seconds (2 hours default)').optional().default(7200),
@@ -846,16 +846,6 @@ export const zDownloaderUserInfoResponse = z.object({
 }).describe('Response containing user info for all initialized downloader services');
 
 export type DownloaderUserInfoResponseZodType = z.infer<typeof zDownloaderUserInfoResponse>;
-
-/**
- * FfprobeResponse
- */
-export const zFfprobeResponse = z.object({
-    message: z.string(),
-    data: z.record(z.unknown())
-});
-
-export type FfprobeResponseZodType = z.infer<typeof zFfprobeResponse>;
 
 /**
  * ValidationError
@@ -1938,23 +1928,6 @@ export type CompositeReindexerDataZodType = z.infer<typeof zCompositeReindexerDa
 export const zCompositeReindexerResponse = zReindexResponse;
 
 export type CompositeReindexerResponseZodType = z.infer<typeof zCompositeReindexerResponse>;
-
-export const zFfprobeMediaFilesData = z.object({
-    body: z.never().optional(),
-    path: z.never().optional(),
-    query: z.object({
-        id: z.number().int()
-    })
-});
-
-export type FfprobeMediaFilesDataZodType = z.infer<typeof zFfprobeMediaFilesData>;
-
-/**
- * Successful Response
- */
-export const zFfprobeMediaFilesResponse = zFfprobeResponse;
-
-export type FfprobeMediaFilesResponseZodType = z.infer<typeof zFfprobeMediaFilesResponse>;
 
 export const zScrapeItemData = z.object({
     body: z.never().optional(),

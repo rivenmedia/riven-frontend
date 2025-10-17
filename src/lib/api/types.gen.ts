@@ -390,22 +390,6 @@ export type ExtrasRankModel = {
 };
 
 /**
- * FfprobeResponse
- */
-export type FfprobeResponse = {
-    /**
-     * Message
-     */
-    message: string;
-    /**
-     * Data
-     */
-    data: {
-        [key: string]: unknown;
-    };
-};
-
-/**
  * FilesystemModel
  */
 export type FilesystemModel = {
@@ -416,7 +400,7 @@ export type FilesystemModel = {
     mount_path?: string;
     /**
      * Library Profiles
-     * Library profiles for organizing media into different libraries based on metadata. Example profiles are provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates additional VFS paths. Media always appears at the base path (/movies, /shows) plus any matching profile paths (e.g., /kids/movies, /anime/movies).
+     * Library profiles for organizing media into different libraries based on metadata. An example profile is provided (disabled by default) - enable them or create your own. Each profile filters media by metadata (genres, ratings, etc.) and creates VFS paths. Media appears in all matching profile paths. Use '!' prefix in filter lists to exclude values (e.g., genres: ['action', '!horror'] = action movies but not horror).
      */
     library_profiles?: {
         [key: string]: LibraryProfile;
@@ -632,12 +616,12 @@ export type LibraryProfileFilterRules = {
     content_types?: Array<string> | null;
     /**
      * Genres
-     * Include if ANY genre matches (OR logic). None/omit = no genre filter
+     * Genres to include/exclude. Prefix with '!' to exclude. Examples: ['action', 'adventure'] = include these genres, ['action', '!horror'] = include action but exclude horror. None/omit = no genre filter
      */
     genres?: Array<string> | null;
     /**
      * Exclude Genres
-     * Exclude if ANY genre matches. None/omit = no exclusion
+     * DEPRECATED: Use genres with '!' prefix instead. This field is kept for backward compatibility and will be auto-migrated.
      */
     exclude_genres?: Array<string> | null;
     /**
@@ -657,17 +641,17 @@ export type LibraryProfileFilterRules = {
     is_anime?: boolean | null;
     /**
      * Networks
-     * TV networks to include (OR logic). None/omit = no network filter
+     * TV networks to include/exclude. Prefix with '!' to exclude. Examples: ['HBO', 'Netflix'], ['HBO', '!Fox']. None/omit = no network filter
      */
     networks?: Array<string> | null;
     /**
      * Countries
-     * Countries of origin to include (OR logic). None/omit = no country filter
+     * Countries to include/exclude. Prefix with '!' to exclude. Examples: ['US', 'GB'], ['US', '!CN']. None/omit = no country filter
      */
     countries?: Array<string> | null;
     /**
      * Languages
-     * Original languages to include (OR logic). None/omit = no language filter
+     * Languages to include/exclude. Prefix with '!' to exclude. Examples: ['en', 'es'], ['en', '!zh']. None/omit = no language filter
      */
     languages?: Array<string> | null;
     /**
@@ -682,7 +666,7 @@ export type LibraryProfileFilterRules = {
     max_rating?: number | null;
     /**
      * Content Ratings
-     * Allowed content ratings (G, PG, PG-13, R, TV-MA, etc.). None/omit = no filter
+     * Content ratings to include/exclude. Prefix with '!' to exclude. Examples: ['PG', 'PG-13'], ['PG', '!R']. Common ratings: G, PG, PG-13, R, NC-17, TV-Y, TV-PG, TV-14, TV-MA. None/omit = no rating filter
      */
     content_ratings?: Array<string> | null;
 };
@@ -3210,40 +3194,6 @@ export type CompositeReindexerResponses = {
 };
 
 export type CompositeReindexerResponse = CompositeReindexerResponses[keyof CompositeReindexerResponses];
-
-export type FfprobeMediaFilesData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Id
-         */
-        id: number;
-    };
-    url: '/api/v1/items/ffprobe';
-};
-
-export type FfprobeMediaFilesErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type FfprobeMediaFilesError = FfprobeMediaFilesErrors[keyof FfprobeMediaFilesErrors];
-
-export type FfprobeMediaFilesResponses = {
-    /**
-     * Successful Response
-     */
-    200: FfprobeResponse;
-};
-
-export type FfprobeMediaFilesResponse = FfprobeMediaFilesResponses[keyof FfprobeMediaFilesResponses];
 
 export type ScrapeItemData = {
     body?: never;

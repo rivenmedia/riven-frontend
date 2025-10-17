@@ -91,88 +91,99 @@
         </span>
     </div>
     <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-24">
-        <div class="relative h-96 lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]">
-            <AspectRatio ratio={16 / 9} class="w-full">
-                {#if showTrailer && data.mediaDetails?.details.trailer}
-                    <div class="relative">
-                        <iframe
-                            class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                            src="https://www.youtube-nocookie.com/embed/{data.mediaDetails?.details
-                                .trailer
-                                .key}?autoplay=1&controls=0&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
-                            title={data.mediaDetails?.details.trailer.name ||
-                                data.mediaDetails?.details.title + " Trailer"}
-                            allow="autoplay"
-                            allowfullscreen></iframe>
-
-                        <div class="absolute top-4 right-4">
-                            <Button
-                                variant="ghost"
-                                class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
-                                onclick={toggleTrailer}
-                                aria-label="Close Trailer">
-                                <X size={16} />
-                            </Button>
-                        </div>
-                    </div>
-                {:else if data.mediaDetails?.details.backdrop_path}
-                    <div class="relative">
-                        <img
-                            alt={data.mediaDetails?.details.id?.toString()}
-                            class="h-96 w-full rounded-lg object-cover object-center shadow-lg lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]"
-                            src={data.mediaDetails?.details.backdrop_path}
-                            loading="lazy" />
-
-                        {#if data.mediaDetails?.details.trailer}
-                            <Button
-                                variant="ghost"
-                                class="absolute right-4 bottom-4 z-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                                onclick={toggleTrailer}
-                                aria-label="Play Trailer">
-                                <Play size={18} />
-                            </Button>
-                        {/if}
-                    </div>
-                {/if}
-            </AspectRatio>
-
-            {#if !showTrailer && data.mediaDetails?.details.logo}
-                <div class="absolute inset-0 flex items-end p-4">
+        <div
+            class={cn(
+                "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]",
+                !showTrailer && "p-8"
+            )}
+            style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
+            {#if !showTrailer}
+                {#if data.mediaDetails.details.logo}
                     <div>
                         <img
                             alt="Movie logo"
-                            class="h-14 w-full object-contain drop-shadow-lg md:h-20 lg:h-24"
+                            class="h-8 w-full object-contain drop-shadow-lg md:h-10 lg:h-12"
                             src={data.mediaDetails?.details.logo}
                             loading="lazy" />
+                    </div>
+                {:else}
+                    <!-- Empty div to maintain layout when no logo -->
+                    <div></div>
+                {/if}
+
+                <div class="flex gap-2">
+                    {#if data.riven && data.riven.state === "Completed"}
+                        <Button
+                            variant="ghost"
+                            class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105">
+                            <img
+                                alt="Plex Logo"
+                                src="https://api.iconify.design/mdi:plex.svg"
+                                class="h-5 w-5 invert" />
+                            <span class="hidden md:block">Plex</span>
+                        </Button>
+                    {/if}
+
+                    {#if data.mediaDetails?.details.trailer}
+                        <Button
+                            variant="ghost"
+                            class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
+                            onclick={toggleTrailer}
+                            aria-label="Play Trailer">
+                            <Play size={18} />
+                            <span class="hidden md:block">Trailer</span>
+                        </Button>
+                    {/if}
+                </div>
+            {:else}
+                <div class="relative h-full w-full">
+                    <iframe
+                        class="h-full w-full"
+                        src="https://www.youtube-nocookie.com/embed/{data.mediaDetails?.details
+                            .trailer
+                            ?.key}?autoplay=1&controls=1&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
+                        title={data.mediaDetails?.details.trailer?.name ||
+                            data.mediaDetails?.details.title + " Trailer"}
+                        allow="autoplay"
+                        allowfullscreen></iframe>
+
+                    <div class="absolute top-4 right-4">
+                        <Button
+                            variant="ghost"
+                            class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
+                            onclick={toggleTrailer}
+                            aria-label="Close Trailer">
+                            <X size={16} />
+                        </Button>
                     </div>
                 </div>
             {/if}
         </div>
 
-        <div class="z-2 md:px-8 lg:px-16">
+        <div class="md:px-8 lg:px-16">
             {#if data.riven}
                 <div
-                    class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                    class="border-border mt-6 flex flex-row flex-wrap gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                     <ItemDelete
-                        class="mr-2 bg-white/10"
+                        class="bg-white/10"
                         title={data.mediaDetails?.details.title}
                         ids={[data.riven?.id?.toString()]}
                         variant="destructive" />
 
                     <ItemReset
-                        class="mr-2 bg-white/10"
+                        class="bg-white/10"
                         title={data.mediaDetails?.details.title}
                         ids={[data.riven?.id?.toString()]} />
 
                     {#if data.riven.state !== "Completed"}
                         <ItemPause
-                            class="mr-2 bg-white/10"
+                            class="bg-white/10"
                             title={data.mediaDetails?.details.title}
                             isPaused={data.riven.state === "Paused"}
                             ids={[data.riven?.id?.toString()]} />
                     {/if}
                     <ItemRetry
-                        class="mr-2 bg-white/10"
+                        class="bg-white/10"
                         title={data.mediaDetails?.details.title}
                         ids={[data.riven?.id?.toString()]} />
                 </div>
