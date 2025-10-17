@@ -4,7 +4,7 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
 import { getUsersCount } from "$lib/server/functions";
 import { sequence } from "@sveltejs/kit/hooks";
-import { BACKEND_URL, BACKEND_API_KEY } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { client } from "$lib/api/client.gen";
 import providers from "$lib/providers";
 import { dev } from "$app/environment";
@@ -51,12 +51,12 @@ export const betterAuthHandler: Handle = async ({ event, resolve }) => {
 };
 
 const configureClientMiddleware: Handle = async ({ event, resolve }) => {
-    event.locals.backendUrl = BACKEND_URL;
-    event.locals.apiKey = BACKEND_API_KEY;
+    event.locals.backendUrl = env.BACKEND_URL;
+    event.locals.apiKey = env.BACKEND_API_KEY;
     client.setConfig({
-        baseUrl: BACKEND_URL,
+        baseUrl: env.BACKEND_URL,
         headers: {
-            "x-api-key": BACKEND_API_KEY
+            "x-api-key": env.BACKEND_API_KEY
         }
     });
 

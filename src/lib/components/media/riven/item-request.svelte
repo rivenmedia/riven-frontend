@@ -21,7 +21,6 @@
     }
     let { title, ids, mediaType, variant = "ghost", size = "sm", ...restProps }: Props = $props();
 
-    
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: "movie" | "tv") {
         console.log("IDs:", ids);
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);

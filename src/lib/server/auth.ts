@@ -5,7 +5,6 @@
 
 import { betterAuth } from "better-auth";
 import Database from "better-sqlite3";
-import { DATABASE_URL } from "$env/static/private";
 import { env } from "$env/dynamic/private";
 import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
@@ -14,7 +13,7 @@ import { admin, openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 
 export const auth = betterAuth({
-    database: new Database(DATABASE_URL),
+    database: new Database(env.DATABASE_URL),
     emailAndPassword: {
         enabled: env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
         disableSignUp: env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false

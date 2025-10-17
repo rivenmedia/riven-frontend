@@ -2,6 +2,7 @@
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
+import "dotenv/config";
 
 const API_OUTPUT_DIR = "src/lib/api";
 

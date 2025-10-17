@@ -101,10 +101,10 @@
 
     <form method="POST" use:enhance class="space-y-8">
         <!-- Mobile: Dropdown category selector -->
-        <div class="md:hidden mb-6">
+        <div class="mb-6 md:hidden">
             <Select.Root type="single" bind:value={activeCategory}>
                 <Select.Trigger class="w-full">
-                    {categories.find(c => c.id === activeCategory)?.label || "Select a category"}
+                    {categories.find((c) => c.id === activeCategory)?.label || "Select a category"}
                 </Select.Trigger>
                 <Select.Content>
                     {#each categories as category}
@@ -115,14 +115,17 @@
         </div>
 
         <!-- Desktop: Two-column layout with tabs -->
-        <div class="flex flex-col md:flex-row gap-6">
+        <div class="flex flex-col gap-6 md:flex-row">
             <!-- Left sidebar: Category tabs (desktop only) -->
-            <Tabs.Root value={activeCategory} onValueChange={(v) => v && (activeCategory = v)} class="hidden md:block md:w-64 flex-shrink-0">
-                <Tabs.List class="flex flex-col h-auto space-y-1 bg-transparent">
+            <Tabs.Root
+                value={activeCategory}
+                onValueChange={(v) => v && (activeCategory = v)}
+                class="hidden flex-shrink-0 md:block md:w-64">
+                <Tabs.List class="flex h-auto flex-col space-y-1 bg-transparent">
                     {#each categories as category}
                         <Tabs.Trigger
                             value={category.id}
-                            class="w-full justify-start text-left px-4 py-3 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                            class="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground w-full justify-start px-4 py-3 text-left">
                             {category.label}
                         </Tabs.Trigger>
                     {/each}
@@ -130,7 +133,7 @@
             </Tabs.Root>
 
             <!-- Right content area: Settings for selected category -->
-            <div class="flex-1 min-w-0">
+            <div class="min-w-0 flex-1">
                 {#key activeCategory}
                     <div class="space-y-6">
                         {#if activeCategory === "general"}
@@ -148,7 +151,7 @@
                             {/each}
                         {:else}
                             <!-- Other categories: Nested object fields -->
-                            {@const category = categories.find(c => c.id === activeCategory)}
+                            {@const category = categories.find((c) => c.id === activeCategory)}
                             {#if category?.schema}
                                 {@const unwrappedSchema = unwrapSchema(category.schema)}
                                 {#if unwrappedSchema instanceof z.ZodObject}
@@ -166,7 +169,7 @@
                     </div>
                 {/key}
 
-                <div class="flex justify-end mt-8">
+                <div class="mt-8 flex justify-end">
                     <Button type="submit" class="px-6 py-2">Save Settings</Button>
                 </div>
             </div>

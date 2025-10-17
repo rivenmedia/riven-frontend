@@ -11,6 +11,7 @@ import { username } from "better-auth/plugins";
 // import { getRequestEvent } from '$app/server';
 import { admin, openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
+import "dotenv/config";
 
 export const auth = betterAuth({
     database: new Database(process.env.DATABASE_URL!),

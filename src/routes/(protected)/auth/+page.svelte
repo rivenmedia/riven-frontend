@@ -150,7 +150,7 @@
                         {#each userPasskeys as passkey}
                             <div class="flex items-center justify-between rounded-lg border p-3">
                                 <div class="flex flex-1 items-center gap-3">
-                                    <Fingerprint class="h-5 w-5 text-muted-foreground" />
+                                    <Fingerprint class="text-muted-foreground h-5 w-5" />
                                     <div class="flex-1">
                                         {#if editingPasskeyId === passkey.id}
                                             <Input
@@ -159,10 +159,14 @@
                                                 placeholder="Enter passkey name"
                                                 class="h-8" />
                                         {:else}
-                                            <p class="text-sm font-medium">{passkey.name || "Unnamed Passkey"}</p>
+                                            <p class="text-sm font-medium">
+                                                {passkey.name || "Unnamed Passkey"}
+                                            </p>
                                         {/if}
                                         <p class="text-muted-foreground text-xs">
-                                            Created {new Date(passkey.createdAt).toLocaleDateString()}
+                                            Created {new Date(
+                                                passkey.createdAt
+                                            ).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
@@ -202,11 +206,16 @@
                                                         id: passkey.id,
                                                         fetchOptions: {
                                                             onSuccess() {
-                                                                toast.success("Passkey deleted successfully");
+                                                                toast.success(
+                                                                    "Passkey deleted successfully"
+                                                                );
                                                                 loadPasskeys();
                                                             },
                                                             onError(context) {
-                                                                toast.error(context.error.message || "Failed to delete passkey");
+                                                                toast.error(
+                                                                    context.error.message ||
+                                                                        "Failed to delete passkey"
+                                                                );
                                                             }
                                                         }
                                                     });

@@ -1,12 +1,21 @@
+volumes:
+    riven-frontend-data:
+
 services:
     riven-frontend:
         image: spoked/riven-frontend:latest # Tags: latest/dev/x.x.x
+        build:
+            context: .
+            dockerfile: Dockerfile
         container_name: riven-frontend
         restart: unless-stopped
         tty: true
         environment:
             - ORIGIN=http://localhost:3000 # (Optional) No trailing slash, read more below
-            - TZ=America/New_York
+            - TZ=Asia/Kolkata
+            - DATABASE_URL=/riven/data/riven.db
+
+        # Uncomment the following if you plan to bind the port to the host machine
         expose:
             - 3000
 
@@ -14,4 +23,4 @@ services:
         # ports:
         #   - 3000:3000
         volumes:
-            - ./config:/riven/config
+            - riven-frontend-data:/riven/data # Persistent data storage

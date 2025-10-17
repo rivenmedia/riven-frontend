@@ -19,27 +19,34 @@
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
     }
-    let { title, ids, isPaused = false, variant = "ghost", size = "sm", ...restProps }: Props = $props();
+    let {
+        title,
+        ids,
+        isPaused = false,
+        variant = "ghost",
+        size = "sm",
+        ...restProps
+    }: Props = $props();
 
     async function togglePauseMediaItem(ids: (string | null | undefined)[]) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
-        
-        const response = isPaused 
+
+        const response = isPaused
             ? await unpauseItems({
-                query: {
-                    ids: validIds.join(",")
-                }
+                  query: {
+                      ids: validIds.join(",")
+                  }
               })
             : await pauseItems({
-                query: {
-                    ids: validIds.join(",")
-                }
+                  query: {
+                      ids: validIds.join(",")
+                  }
               });
 
         if (response.data) {
-            toast.success(`Media item ${isPaused ? 'unpaused' : 'paused'} successfully!`);
+            toast.success(`Media item ${isPaused ? "unpaused" : "paused"} successfully!`);
         } else {
-            toast.error(`Failed to ${isPaused ? 'unpause' : 'pause'} media item.`);
+            toast.error(`Failed to ${isPaused ? "unpause" : "pause"} media item.`);
         }
     }
 
@@ -50,18 +57,18 @@
     <AlertDialog.Trigger>
         {#snippet child({ props })}
             <Button {variant} {size} {...restProps} {...props}>
-                {isPaused ? 'Resume' : 'Pause'}
+                {isPaused ? "Resume" : "Pause"}
             </Button>
         {/snippet}
     </AlertDialog.Trigger>
     <AlertDialog.Content>
         <AlertDialog.Header>
             <AlertDialog.Title>
-                {isPaused ? 'Resume' : 'Pause'} "{title ?? "Media Item"}"
+                {isPaused ? "Resume" : "Pause"} "{title ?? "Media Item"}"
             </AlertDialog.Title>
             <AlertDialog.Description>
-                This will send a request to Riven to {isPaused ? 'resume' : 'pause'} this media. You will be notified when
-                it's done.
+                This will send a request to Riven to {isPaused ? "resume" : "pause"} this media. You
+                will be notified when it's done.
             </AlertDialog.Description>
         </AlertDialog.Header>
         <AlertDialog.Footer>
@@ -70,7 +77,7 @@
                 onclick={async () => {
                     await togglePauseMediaItem(ids);
                     open = false;
-                }}>{isPaused ? 'Resume' : 'Pause'}</AlertDialog.Action>
+                }}>{isPaused ? "Resume" : "Pause"}</AlertDialog.Action>
         </AlertDialog.Footer>
     </AlertDialog.Content>
 </AlertDialog.Root>

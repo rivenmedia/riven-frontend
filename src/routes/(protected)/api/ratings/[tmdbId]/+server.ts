@@ -94,7 +94,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
                 // const cinemetaResponse = await fetch(cinemetaUrl);
                 // if (cinemetaResponse.ok) {
                 //     const cinemetaData = await cinemetaResponse.json();
-				// 	console.log("cinemetaData", cinemetaData);
+                // 	console.log("cinemetaData", cinemetaData);
                 //     const imdbRating = cinemetaData?.meta?.imdbRating;
 
                 //     if (imdbRating) {
@@ -106,21 +106,20 @@ export const GET: RequestHandler = async ({ params, url }) => {
                 //     }
                 // }
 
+                const url = "https://api.imdbapi.dev/titles/" + imdbId;
+                const imdbResponse = await fetch(url);
+                if (imdbResponse.ok) {
+                    const imdbData = await imdbResponse.json();
+                    const imdbRating = imdbData?.rating?.aggregateRating;
 
-				const url = "https://api.imdbapi.dev/titles/" + imdbId;
-				const imdbResponse = await fetch(url);
-				if (imdbResponse.ok) {
-					const imdbData = await imdbResponse.json();
-					const imdbRating = imdbData?.rating?.aggregateRating;
-
-					if (imdbRating) {
-						scores.push({
-							name: "imdb",
-							image: "imdb.png",
-							score: imdbRating
-						});
-					}
-				}
+                    if (imdbRating) {
+                        scores.push({
+                            name: "imdb",
+                            image: "imdb.png",
+                            score: imdbRating
+                        });
+                    }
+                }
             } catch (e) {
                 console.error("IMDB rating fetch failed:", e);
             }

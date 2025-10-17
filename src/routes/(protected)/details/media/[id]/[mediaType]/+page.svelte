@@ -352,9 +352,11 @@
                                                 >Season {season.number}</span>
                                         </div>
                                     {/if}
-                                    
-                                    {#if data.riven && data.riven.seasons && data.riven.seasons.some(s => s.season_number === season.number)}
-                                        {@const rivenSeason = data.riven.seasons.find(s => s.season_number === season.number)}
+
+                                    {#if data.riven && data.riven.seasons && data.riven.seasons.some((s) => s.season_number === season.number)}
+                                        {@const rivenSeason = data.riven.seasons.find(
+                                            (s) => s.season_number === season.number
+                                        )}
                                         {#if rivenSeason && rivenSeason.state}
                                             <Badge
                                                 class={cn(
@@ -406,11 +408,15 @@
                                 <p class="text-primary-foreground/70 mb-2 text-xs">
                                     {episode.aired} • {episode.runtime} min
                                 </p>
-                                
+
                                 {#if data.riven && data.riven.seasons}
-                                    {@const rivenSeason = data.riven.seasons.find(s => s.season_number === Number(selectedSeason))}
+                                    {@const rivenSeason = data.riven.seasons.find(
+                                        (s) => s.season_number === Number(selectedSeason)
+                                    )}
                                     {#if rivenSeason && rivenSeason.episodes}
-                                        {@const rivenEpisode = rivenSeason.episodes.find(e => e.episode_number === episode.number)}
+                                        {@const rivenEpisode = rivenSeason.episodes.find(
+                                            (e) => e.episode_number === episode.number
+                                        )}
                                         {#if rivenEpisode && rivenEpisode.state}
                                             <Badge
                                                 class={cn(
@@ -426,7 +432,7 @@
                                         {/if}
                                     {/if}
                                 {/if}
-                                
+
                                 <p class="line-clamp-3 text-xs">{episode.overview}</p>
                             </div>
                         </div>

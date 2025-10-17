@@ -1,7 +1,6 @@
-// src/routes/api/logs/+server.ts
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { BACKEND_URL, BACKEND_API_KEY } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 
 export const GET: RequestHandler = async ({ fetch, locals }) => {
     if (!locals.user || !locals.session) {
@@ -9,10 +8,10 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
     }
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/v1/stream/logging`, {
+        const response = await fetch(`${env.BACKEND_URL}/api/v1/stream/logging`, {
             method: "GET",
             headers: {
-                "x-api-key": BACKEND_API_KEY,
+                "x-api-key": env.BACKEND_API_KEY,
                 Accept: "text/event-stream",
                 "Cache-Control": "no-cache"
             }

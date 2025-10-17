@@ -6,3 +6,7 @@ bun.lock
 bun.lockb
 src/lib/api/
 src/lib/components/ui/
+scripts/trakt.apib
+src/lib/providers/*
+!src/lib/providers/index.ts
+!src/lib/providers/parser.ts

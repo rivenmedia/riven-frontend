@@ -1,8 +1,10 @@
 #!/bin/sh
+
+export PROTOCOL_HEADER=x-forwarded-proto
+export HOST_HEADER=x-forwarded-host
+
 if [ -z "$ORIGIN" ]; then
     echo "ORIGIN is not set"
-    export PROTOCOL_HEADER=x-forwarded-proto
-    export HOST_HEADER=x-forwarded-host
 else
     export ORIGIN=${ORIGIN}
 fi

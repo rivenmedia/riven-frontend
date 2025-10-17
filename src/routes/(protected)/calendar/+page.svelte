@@ -46,8 +46,8 @@
     let showEpisodes = $state(true);
 
     const itemsByDate = $derived.by(() => {
-        const items: EntertainmentItem[] = data.calendar?.data 
-            ? Object.values(data.calendar.data) 
+        const items: EntertainmentItem[] = data.calendar?.data
+            ? Object.values(data.calendar.data)
             : [];
 
         const result: Record<string, EntertainmentItem[]> = {};

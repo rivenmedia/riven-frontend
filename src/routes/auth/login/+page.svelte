@@ -109,7 +109,7 @@
             isPasskeyLoading = false;
         }
     }
-  
+
     let activeTab = $state("login");
 </script>
 
@@ -184,28 +184,31 @@
 
                             <div class="flex flex-col gap-2">
                                 <Button
-                                onclick={plexLogin}
-                                variant="outline"
-                                class="w-full"
-                                type="button">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                    <path d="M256 70H148l108 186-108 186h108l108-186z" fill="currentColor"/>
-                                </svg>
-                                Login with Plex
-                            </Button>
-                            {#if supportsPasskey}
-                                <Button
+                                    onclick={plexLogin}
                                     variant="outline"
                                     class="w-full"
-                                    disabled={isPasskeyLoading}
-                                    onclick={handlePasskeySignIn}
                                     type="button">
-                                    <Fingerprint class="mr-2 h-4 w-4" />
-                                    {isPasskeyLoading ? "Authenticating..." : "Sign in with Passkey"}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                        <path
+                                            d="M256 70H148l108 186-108 186h108l108-186z"
+                                            fill="currentColor" />
+                                    </svg>
+                                    Login with Plex
                                 </Button>
-                            {/if}
+                                {#if supportsPasskey}
+                                    <Button
+                                        variant="outline"
+                                        class="w-full"
+                                        disabled={isPasskeyLoading}
+                                        onclick={handlePasskeySignIn}
+                                        type="button">
+                                        <Fingerprint class="mr-2 h-4 w-4" />
+                                        {isPasskeyLoading
+                                            ? "Authenticating..."
+                                            : "Sign in with Passkey"}
+                                    </Button>
+                                {/if}
                             </div>
-
                         </Card.Content>
                     </Card.Root>
                 </Tabs.Content>

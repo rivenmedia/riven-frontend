@@ -316,8 +316,7 @@ export function parseTMDBMovieDetails(
     data: TMDBMovieDetailsExtended | null,
     traktRecs: any[] | null = null
 ): ParsedMovieDetails | null {
-    if (!data)
-        return null;
+    if (!data) return null;
 
     const runtime = data.runtime ?? null;
     const trailer = data.videos ? findTMDBBestTrailer(data.videos.results) : null;
@@ -333,8 +332,11 @@ export function parseTMDBMovieDetails(
 
     // Choose logo: prefer English (iso_639_1 === "en"), otherwise first available, otherwise null
     const chosenLogo = data.images.logos.length
-        ? data.images.logos.find(logo => logo.iso_639_1 === "en")?.file_path 
-            ? buildTMDBImage(data.images.logos.find(logo => logo.iso_639_1 === "en")!.file_path, "w500")
+        ? data.images.logos.find((logo) => logo.iso_639_1 === "en")?.file_path
+            ? buildTMDBImage(
+                  data.images.logos.find((logo) => logo.iso_639_1 === "en")!.file_path,
+                  "w500"
+              )
             : buildTMDBImage(data.images.logos[0].file_path, "w500")
         : null;
 
@@ -753,29 +755,32 @@ function selectArtwork(
     return artworks.find(predicate) ?? artworks[0];
 }
 
-export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[] | null = null): ParsedShowDetails | null {
+export function parseTVDBShowDetails(
+    data: TVDBBaseItem | null,
+    traktRecs: any[] | null = null
+): ParsedShowDetails | null {
     if (!data) return null;
 
     const runtime = data.averageRuntime ?? null;
 
     let title = data.name;
     const originalTitle = data.name;
-    
+
     const engTitle = data.translations?.nameTranslations?.find(
-        t => t.language === "eng" && !t.isAlias
+        (t) => t.language === "eng" && !t.isAlias
     )?.name;
-    
+
     const engAlias = data.translations?.nameTranslations?.find(
-        t => t.language === "eng" && t.isAlias
+        (t) => t.language === "eng" && t.isAlias
     )?.name;
-    
+
     title = engAlias || engTitle || data.name;
-    
+
     let overview = data.overview;
     const engOverview = data.translations?.overviewTranslations?.find(
-        t => t.language === "eng"
+        (t) => t.language === "eng"
     )?.overview;
-    
+
     overview = engOverview || data.overview;
 
     const posterPath = data.image
@@ -899,15 +904,13 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
         });
     }
 
-    const seasons = (data.seasons ?? [])
-        .filter(season => 
-            season.type?.name === "Aired Order" && 
-            season.number !== 0
-        );
+    const seasons = (data.seasons ?? []).filter(
+        (season) => season.type?.name === "Aired Order" && season.number !== 0
+    );
 
     const episodes: TVDBEpisodeItem[] = (data.episodes ?? [])
-        .filter(episode => episode.seasonNumber !== 0)
-        .map(episode => ({
+        .filter((episode) => episode.seasonNumber !== 0)
+        .map((episode) => ({
             ...episode,
             image: buildTVDBImage(episode.image)
         }));
@@ -969,23 +972,30 @@ export function parseTVDBShowDetails(data: TVDBBaseItem | null, traktRecs: any[]
     };
 }
 
-function transformTraktRecommendations(items: any[] | null, isMovie: boolean = false): TMDBTransformedListItem[] {
+function transformTraktRecommendations(
+    items: any[] | null,
+    isMovie: boolean = false
+): TMDBTransformedListItem[] {
     if (!items || !Array.isArray(items)) return [];
-    
-    return items.map(item => {
-        const poster = item.images?.poster?.[0] ? 
-            (item.images.poster[0].startsWith('http') ? item.images.poster[0] : `https://${item.images.poster[0]}`) : 
-            null;
-        
-        const id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
-        const mediaType = isMovie ? "movie" : "tv";
-            
-        return {
-            id: id || 0,
-            title: item.title || "",
-            poster_path: poster,
-            media_type: mediaType,
-            year: item.year || "N/A"
-        };
-    }).filter(item => item.id > 0);
+
+    return items
+        .map((item) => {
+            const poster = item.images?.poster?.[0]
+                ? item.images.poster[0].startsWith("http")
+                    ? item.images.poster[0]
+                    : `https://${item.images.poster[0]}`
+                : null;
+
+            const id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
+            const mediaType = isMovie ? "movie" : "tv";
+
+            return {
+                id: id || 0,
+                title: item.title || "",
+                poster_path: poster,
+                media_type: mediaType,
+                year: item.year || "N/A"
+            };
+        })
+        .filter((item) => item.id > 0);
 }
