@@ -116,7 +116,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         return {
             riven: rivenData.data,
             mediaDetails: {
-                type: "movie",
+                type: "movie" as const,
                 details: parsedDetails as ParsedMovieDetails
             } as MediaDetails
         };
@@ -150,7 +150,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         return {
             riven: rivenData.data,
             mediaDetails: {
-                type: "tv",
+                type: "tv" as const,
                 details: parsedDetails as ParsedShowDetails
             } as MediaDetails
         };
