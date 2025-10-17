@@ -9,7 +9,8 @@ services:
             dockerfile: Dockerfile
         container_name: riven-frontend
         restart: unless-stopped
-        tty: true
+        env_file:
+            - .env # Load environment variables from .env file
         environment:
             - ORIGIN=http://localhost:3000 # (Optional) No trailing slash, read more below
             - TZ=Asia/Kolkata

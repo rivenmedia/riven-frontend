@@ -8,8 +8,39 @@ import { env } from "$env/dynamic/private";
 import { client } from "$lib/api/client.gen";
 import providers from "$lib/providers";
 import { dev } from "$app/environment";
+import { umzug } from "$lib/server/db";
+
+async function runMigrations() {
+    try {
+        console.log("🔄 Running database migrations...");
+
+        const pending = await umzug.pending();
+
+        if (pending.length === 0) {
+            console.log("✓ Database is up to date");
+        } else {
+            console.log(
+                `📝 Found ${pending.length} pending migration(s):`,
+                pending.map((p) => p.name).join(", ")
+            );
+
+            await umzug.up();
+            console.log("✓ All migrations completed successfully");
+        }
+    } catch (error) {
+        console.error("❌ Migration failed:", error);
+
+        if (!dev) {
+            console.error("Exiting due to migration failure in production");
+            process.exit(1);
+        }
+
+        throw error;
+    }
+}
 
 export const init: ServerInit = async () => {
+    await runMigrations();
     const userCount = (await getUsersCount())[0].count;
 
     if (userCount === 0) {

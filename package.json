@@ -14,7 +14,7 @@
         "format": "prettier --write .",
         "lint": "prettier --check . && eslint .",
         "ba:migrate": "pnpx @better-auth/cli migrate --config ./better-auth.config.ts --yes",
-        "ba:generate": "pnpx @better-auth/cli generate --config ./better-auth.config.ts --output ./src/lib/server/migrations.sql --yes",
+        "ba:generate": "pnpx @better-auth/cli generate --config ./better-auth.config.ts --output ./src/lib/server/migrations/migrations.sql --yes",
         "codegen": "kysely-codegen --out-file ./src/lib/server/db.d.ts",
         "generate-client-do-not-use-this": "openapi-ts",
         "generate-api": "tsx scripts/generate-api.ts"
@@ -76,6 +76,7 @@
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "openapi-fetch": "^0.14.1",
+        "umzug": "^3.8.2",
         "zod": "^3.25.76"
     },
     "pnpm": {
