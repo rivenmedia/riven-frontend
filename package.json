@@ -76,7 +76,6 @@
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "openapi-fetch": "^0.14.1",
-        "umzug": "^3.8.2",
         "zod": "^3.25.76"
     },
     "pnpm": {
