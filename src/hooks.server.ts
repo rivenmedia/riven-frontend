@@ -2,7 +2,6 @@ import { auth } from "$lib/server/auth";
 import { redirect, error, type Handle, type ServerInit } from "@sveltejs/kit";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
-import { getUsersCount } from "$lib/server/functions";
 import { sequence } from "@sveltejs/kit/hooks";
 import { env } from "$env/dynamic/private";
 import { client } from "$lib/api/client.gen";
@@ -13,28 +12,6 @@ import { db } from "$lib/server/db";
 
 export const init: ServerInit = async () => {
     migrate(db, { migrationsFolder: "drizzle" });
-
-    const userCount = await getUsersCount();
-    console.log("User count:", userCount);
-
-    if (userCount === 0) {
-        console.warn("No users found in the database. Creating an admin user...");
-
-        const data = await auth.api.createUser({
-            body: {
-                name: "Admin",
-                email: "admin@admin.com",
-                password: "admin",
-                role: ["admin"],
-                data: {
-                    username: "admin",
-                    image: "/images/admin.webp"
-                }
-            }
-        });
-
-        console.log("Admin user created:", data);
-    }
 };
 
 export const betterAuthHandler: Handle = async ({ event, resolve }) => {
