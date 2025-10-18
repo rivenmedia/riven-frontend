@@ -378,67 +378,69 @@
                 </section>
             {/if}
 
-            <section>
-                <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
+            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.episodes}
+                <section>
+                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
 
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
-                        <div
-                            class="border-border flex overflow-hidden rounded-lg border bg-white/10 shadow-lg">
-                            <div class="w-1/3">
-                                {#if episode.image}
-                                    <img
-                                        alt={episode.name}
-                                        class="h-full w-full object-cover object-center"
-                                        src={episode.image}
-                                        loading="lazy" />
-                                {:else}
-                                    <div
-                                        class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
-                                        <Mountain size={32} class="opacity-70" />
-                                        <span class="mt-2 text-xs font-medium"
-                                            >Episode {episode.number}</span>
-                                    </div>
-                                {/if}
-                            </div>
-                            <div class="flex w-2/3 flex-col p-4">
-                                <h3 class="text-sm font-bold">
-                                    {episode.number}. {episode.name}
-                                </h3>
-                                <p class="text-primary-foreground/70 mb-2 text-xs">
-                                    {episode.aired} • {episode.runtime} min
-                                </p>
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
+                            <div
+                                class="border-border flex overflow-hidden rounded-lg border bg-white/10 shadow-lg">
+                                <div class="w-1/3">
+                                    {#if episode.image}
+                                        <img
+                                            alt={episode.name}
+                                            class="h-full w-full object-cover object-center"
+                                            src={episode.image}
+                                            loading="lazy" />
+                                    {:else}
+                                        <div
+                                            class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
+                                            <Mountain size={32} class="opacity-70" />
+                                            <span class="mt-2 text-xs font-medium"
+                                                >Episode {episode.number}</span>
+                                        </div>
+                                    {/if}
+                                </div>
+                                <div class="flex w-2/3 flex-col p-4">
+                                    <h3 class="text-sm font-bold">
+                                        {episode.number}. {episode.name}
+                                    </h3>
+                                    <p class="text-primary-foreground/70 mb-2 text-xs">
+                                        {episode.aired} • {episode.runtime} min
+                                    </p>
 
-                                {#if data.riven && data.riven.seasons}
-                                    {@const rivenSeason = data.riven.seasons.find(
-                                        (s) => s.season_number === Number(selectedSeason)
-                                    )}
-                                    {#if rivenSeason && rivenSeason.episodes}
-                                        {@const rivenEpisode = rivenSeason.episodes.find(
-                                            (e) => e.episode_number === episode.number
+                                    {#if data.riven && data.riven.seasons}
+                                        {@const rivenSeason = data.riven.seasons.find(
+                                            (s) => s.season_number === Number(selectedSeason)
                                         )}
-                                        {#if rivenEpisode && rivenEpisode.state}
-                                            <Badge
-                                                class={cn(
-                                                    "mb-2 text-xs",
-                                                    rivenEpisode.state === "Completed"
-                                                        ? "bg-green-600"
-                                                        : rivenEpisode.state === "Unknown"
-                                                          ? "bg-red-600"
-                                                          : "bg-yellow-600"
-                                                )}>
-                                                {rivenEpisode.state}
-                                            </Badge>
+                                        {#if rivenSeason && rivenSeason.episodes}
+                                            {@const rivenEpisode = rivenSeason.episodes.find(
+                                                (e) => e.episode_number === episode.number
+                                            )}
+                                            {#if rivenEpisode && rivenEpisode.state}
+                                                <Badge
+                                                    class={cn(
+                                                        "mb-2 text-xs",
+                                                        rivenEpisode.state === "Completed"
+                                                            ? "bg-green-600"
+                                                            : rivenEpisode.state === "Unknown"
+                                                              ? "bg-red-600"
+                                                              : "bg-yellow-600"
+                                                    )}>
+                                                    {rivenEpisode.state}
+                                                </Badge>
+                                            {/if}
                                         {/if}
                                     {/if}
-                                {/if}
 
-                                <p class="line-clamp-3 text-xs">{episode.overview}</p>
+                                    <p class="line-clamp-3 text-xs">{episode.overview}</p>
+                                </div>
                             </div>
-                        </div>
-                    {/each}
-                </div>
-            </section>
+                        {/each}
+                    </div>
+                </section>
+            {/if}
 
             <section>
                 <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">More Details</h2>
