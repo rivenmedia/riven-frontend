@@ -8,9 +8,14 @@ import { env } from "$env/dynamic/private";
 import { client } from "$lib/api/client.gen";
 import providers from "$lib/providers";
 import { dev } from "$app/environment";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { db } from "$lib/server/db";
 
 export const init: ServerInit = async () => {
-    const userCount = (await getUsersCount())[0].count;
+    migrate(db, { migrationsFolder: "drizzle" });
+
+    const userCount = await getUsersCount();
+    console.log("User count:", userCount);
 
     if (userCount === 0) {
         console.warn("No users found in the database. Creating an admin user...");

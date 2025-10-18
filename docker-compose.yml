@@ -11,8 +11,9 @@ services:
         restart: unless-stopped
         env_file:
             - .env # Load environment variables from .env file
+
+        # or set individual environment variables here, both methods can be used together
         environment:
-            - ORIGIN=http://localhost:3000 # (Optional) No trailing slash, read more below
             - TZ=Asia/Kolkata
             - DATABASE_URL=/riven/data/riven.db
 

@@ -4,16 +4,19 @@
 //////////////////////////////////////
 
 import { betterAuth } from "better-auth";
-import Database from "better-sqlite3";
 import { env } from "$env/dynamic/private";
 import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { admin, openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
+import { db } from "./db";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 export const auth = betterAuth({
-    database: new Database(env.DATABASE_URL),
+    database: drizzleAdapter(db, {
+        provider: "sqlite"
+    }),
     emailAndPassword: {
         enabled: env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
         disableSignUp: env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
@@ -28,20 +31,18 @@ export const auth = betterAuth({
             disableSignUp: env.DISABLE_PLEX_SIGNUP === "true" || false
         }
     },
-    trustedOrigins: [
-        "http://localhost:5173",
-        "http://192.168.1.*:5173",
-        process.env.PASSKEY_ORIGIN
-    ].filter(Boolean) as string[],
+    trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", env.PASSKEY_ORIGIN].filter(
+        Boolean
+    ) as string[],
     plugins: [
         username(),
         admin(),
         openAPI(),
         sveltekitCookies(getRequestEvent),
         passkey({
-            rpID: process.env.PASSKEY_RP_ID || "localhost",
-            rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
-            origin: process.env.PASSKEY_ORIGIN || "http://localhost:5173"
+            rpID: env.PASSKEY_RP_ID || "localhost",
+            rpName: env.PASSKEY_RP_NAME || "Riven Media",
+            origin: env.PASSKEY_ORIGIN || "http://localhost:5173"
         })
     ],
     advanced: {
