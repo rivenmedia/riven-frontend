@@ -52,7 +52,7 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=sha,commit=${{ github.sha }}
-                      type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}
+                      type=raw,value=v1-beta,enable=${{ github.ref == 'refs/heads/main' }}
 
             - name: Push Service Image to repo
               uses: docker/build-push-action@v5
