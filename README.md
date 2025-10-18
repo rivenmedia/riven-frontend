@@ -1,38 +1,121 @@
-# sv
+<div align="center">
+  <a href="https://github.com/rivenmedia/riven">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/riven-light.png">
+      <img alt="riven" src="https://raw.githubusercontent.com/rivenmedia/riven/main/assets/riven-dark.png">
+    </picture>
+  </a>
+</div>
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+<div align="center">
+  <a href="https://github.com/rivenmedia/riven/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven?label=Riven+Backend"></a>
+    <a href="https://github.com/rivenmedia/riven-frontend/stargazers"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rivenmedia/riven-frontend?label=Riven+Frontend"></a>
+  <a href="https://github.com/rivenmedia/riven/issues"><img alt="Issues" src="https://img.shields.io/github/issues/rivenmedia/riven-frontend" /></a>
+  <a href="https://github.com/rivenmedia/riven/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/rivenmedia/riven-frontend"></a>
+  <a href="https://github.com/rivenmedia/riven/graphs/contributors-frontend"><img alt="Contributors" src="https://img.shields.io/github/contributors/rivenmedia/riven-frontend" /></a>
+  <a href="https://discord.gg/wDgVdH8vNM"><img alt="Discord" src="https://img.shields.io/badge/Join%20discord-8A2BE2" /></a>
+</div>
 
-## Creating a project
+## Riven Frontend
 
-If you're seeing this, you've probably already done this step. Congrats!
+This repository contains the frontend for Riven. It is build with [SvelteKit](https://kit.svelte.dev/).
+
+---
+
+## Running the frontend
+
+To run the frontend, you need to have the backend running. You can find the backend [here](https://github.com/rivenmedia/riven)
+
+### Using docker-compose (recommended)
+
+Make sure you have docker and docker-compose installed on your system.
+
+Edit the [`docker-compose.yml`](./docker-compose.yml) (make sure to replace the environment variables with your own) file to match your setup:
+
+Then run the following command:
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+docker-compose up -d
 ```
 
-## Developing
+It will start the frontend container called `riven-frontend` on port `3000`.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Manual installation
+
+Make sure you have pnpm installed on your system.
+
+Install the dependencies:
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
 ```
 
-## Building
-
-To create a production version of your app:
+Then run the following command:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
-You can preview the production build with `npm run preview`.
+It will build the frontend in the `build` directory.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Then run the following command:
+
+```bash
+ORIGIN=http://localhost:3000 node build
+```
+
+It will start the frontend on port `3000`.
+
+### Environment variables
+
+> [!IMPORTANT]  
+> `ORIGIN` is optional and is not required if you are using reverse proxy, which usually forwards the `x-forwarded-proto` and `x-forwarded-host` headers. If you are running the frontend directly, you should set the `ORIGIN` environment variable to the URL you will use to access the frontend.
+
+`ORIGIN`: It's the URL you will use to access the frontend. If running behind a reverse proxy, you should set it to the URL of the reverse proxy, like `https://riven.example.com`. If running locally, you can let it be `http://localhost:3000` or you local server IP address like `http://192.168.1.45:3000`.
+
+---
+
+## Contributing
+
+We welcome contributions from the community! To ensure a smooth collaboration, please follow these guidelines:
+
+### Submitting Changes
+
+- Open an Issue: For major changes, start by opening an issue to discuss your proposed modifications. This helps us understand your intentions and provide feedback early in the process.
+
+- Pull Requests: Once your changes are ready, submit a pull request. Ensure your code adheres to our coding standards and passes all tests.
+
+### Code Formatting
+
+- **Frontend**: We use [Prettier](https://prettier.io/) for code formatting. Run prettier on your code before submitting.
+
+- **Line Endings**: Use CRLF line endings unless the file is a shell script or another format that requires LF line endings.
+
+### Developing
+
+First install dependencies with `pnpm install`. Then create `.env` with same content as `.env.example` and fill in the values. Then start the development server:
+
+> [!NOTE]  
+> It is recommended to use latest LTS version of Node.js. If using `pnpm` you can run `pnpm env use --global lts` to switch to the latest LTS version.
+
+```bash
+pnpm run dev
+```
+
+## Contributors
+
+Thanks goes to these wonderful people
+
+<a href="https://github.com/rivenmedia/riven-frontend/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=rivenmedia/riven-frontend" />
+</a>
+
+## Star History
+
+<a href="https://www.star-history.com/#rivenmedia/riven&rivenmedia/riven-frontend&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=rivenmedia/riven,rivenmedia/riven-frontend&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=rivenmedia/riven,rivenmedia/riven-frontend&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=rivenmedia/riven,rivenmedia/riven-frontend&type=date&legend=top-left" />
+ </picture>
+</a>

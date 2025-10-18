@@ -35,16 +35,16 @@ export const auth = betterAuth({
     trustedOrigins: [
         "http://localhost:5173",
         "http://192.168.1.*:5173",
-        process.env.PASSKEY_ORIGIN
+        process.env.BETTER_AUTH_URL
     ].filter(Boolean) as string[],
     plugins: [
         username(),
         admin(),
         openAPI(),
         passkey({
-            rpID: process.env.PASSKEY_RP_ID || "localhost",
+            rpID: process.env.PASSKEY_RP_ID || "riven",
             rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
-            origin: process.env.PASSKEY_ORIGIN || "http://localhost:5173"
+            origin: process.env.BETTER_AUTH_URL || "http://localhost:5173"
         })
     ],
     advanced: {
