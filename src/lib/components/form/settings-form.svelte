@@ -10,6 +10,8 @@
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import * as Select from "$lib/components/ui/select/index.js";
     import { z } from "zod";
+    import { page } from "$app/state";
+    import { toast } from "svelte-sonner";
 
     let { data }: { data: { form: SuperValidated<AppModelZodType> } } = $props();
     $inspect(data);
@@ -25,7 +27,7 @@
         }
     });
 
-    const { form: formData, enhance } = form;
+    const { form: formData, enhance, message } = form;
 
     // Define categories based on zAppModel structure
     type Category = {
@@ -94,6 +96,12 @@
         }
         return schema;
     }
+
+    $effect(() => {
+        if (page.status === 200 && $message) {
+            toast.success($message);
+        }
+    });
 </script>
 
 <div class="h-full w-full p-6 md:p-8 md:px-16">

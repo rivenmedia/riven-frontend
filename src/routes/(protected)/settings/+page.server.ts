@@ -1,6 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
-import { getAllSettings, setSettings } from "$lib/api";
+import { getAllSettings, setAllSettings } from "$lib/api";
 import { zAppModel } from "$lib/api/zod.gen";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -32,11 +32,13 @@ export const actions: Actions = {
             return fail(400, { form });
         }
 
-        // const result = await setSettings();
+        const result = await setAllSettings({
+            body: form.data,
+        });
 
-        // if (result.error) {
-        //   return fail(500, { form, error: result.error });
-        // }
+        if (result.error) {
+          return fail(500, { form, error: result.error });
+        }
 
         return message(form, "Settings updated successfully");
     }
