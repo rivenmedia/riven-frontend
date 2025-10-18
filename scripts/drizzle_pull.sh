@@ -19,14 +19,16 @@ if [ $? -eq 0 ]; then
     # mkdir -p "$DEST_DIR"
 
     # Move files
-    # mv "$SOURCE_DIR/schema.ts" "$DEST_DIR/"
-    # mv "$SOURCE_DIR/relations.ts" "$DEST_DIR/"
+    mv "$SOURCE_DIR/schema.ts" "$DEST_DIR/"
+    mv "$SOURCE_DIR/relations.ts" "$DEST_DIR/"
+
+    echo "Files moved to $DEST_DIR"
 
     # Delete Files
-    rm "$SOURCE_DIR/schema.ts"
-    rm "$SOURCE_DIR/relations.ts"
+    # rm "$SOURCE_DIR/schema.ts"
+    # rm "$SOURCE_DIR/relations.ts"
 
-    echo "Files deleted"
+    # echo "Files deleted"
 else
     echo "drizzle-kit pull failed. Exiting..."
     exit 1
