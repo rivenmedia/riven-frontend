@@ -12,7 +12,7 @@ if [ $? -eq 0 ]; then
     echo "drizzle-kit pull completed successfully."
 
     # Define source and destination paths
-    SOURCE_DIR="${DRIZZLE_MIGRATIONS_PATH:-./src/lib/server/migrations}"
+    SOURCE_DIR="${DRIZZLE_MIGRATIONS_PATH:-./drizzle}"
     DEST_DIR="${DRIZZLE_SCHEMA_PATH:-./src/lib/server/schema}"
 
     # # Ensure destination directory exists

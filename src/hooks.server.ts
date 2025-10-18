@@ -12,7 +12,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "$lib/server/db";
 
 export const init: ServerInit = async () => {
-    migrate(db, { migrationsFolder: "./src/lib/server/migrations" });
+    migrate(db, { migrationsFolder: "drizzle" });
 
     const userCount = await getUsersCount();
     console.log("User count:", userCount);
