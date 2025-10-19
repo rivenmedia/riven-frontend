@@ -83,10 +83,7 @@ It will start the frontend on port `3000`.
 
 ### Environment variables
 
-> [!IMPORTANT]  
-> `ORIGIN` is optional and is not required if you are using reverse proxy, which usually forwards the `x-forwarded-proto` and `x-forwarded-host` headers. If you are running the frontend directly, you should set the `ORIGIN` environment variable to the URL you will use to access the frontend.
-
-`ORIGIN`: It's the URL you will use to access the frontend. If running behind a reverse proxy, you should set it to the URL of the reverse proxy, like `https://riven.example.com`. If running locally, you can let it be `http://localhost:3000` or you local server IP address like `http://192.168.1.45:3000`.
+Refer to the [`.env.example`](./.env.example) file for the list of environment variables required to run the frontend.
 
 ---
 

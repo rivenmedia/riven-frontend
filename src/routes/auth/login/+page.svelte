@@ -6,16 +6,16 @@
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { type SuperValidated, type Infer, superForm } from "sveltekit-superforms";
-    import { zodClient } from "sveltekit-superforms/adapters";
+    import { zod4Client } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
-    import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
     import { goto } from "$app/navigation";
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
+    import { dev } from "$app/environment";
 
     let {
         data
@@ -27,12 +27,12 @@
     } = $props();
 
     const loginForm = superForm(data.loginForm, {
-        validators: zodClient(loginSchema),
+        validators: zod4Client(loginSchema),
         resetForm: true
     });
 
     const registerForm = superForm(data.registerForm, {
-        validators: zodClient(registerSchema),
+        validators: zod4Client(registerSchema),
         resetForm: true
     });
 
@@ -64,7 +64,6 @@
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
 
     onMount(async () => {
-        // Check if conditional UI (autofill) is available
         if (
             doesBrowserSupportPasskeys() &&
             typeof window.PublicKeyCredential.isConditionalMediationAvailable === "function"
@@ -72,7 +71,6 @@
             supportsPasskeyAutofill =
                 await window.PublicKeyCredential.isConditionalMediationAvailable();
 
-            // Start passkey autofill if supported
             if (supportsPasskeyAutofill) {
                 void authClient.signIn.passkey({
                     autoFill: true,
@@ -213,9 +211,11 @@
                     </Card.Root>
                 </Tabs.Content>
                 <Tabs.Content value="register">
-                    <div class="my-4">
-                        <SuperDebug data={registerFormData} />
-                    </div>
+                    {#if dev}
+                        <div class="my-4">
+                            <SuperDebug data={registerFormData} />
+                        </div>
+                    {/if}
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Register</Card.Title>

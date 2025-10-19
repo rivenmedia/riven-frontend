@@ -15,12 +15,29 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import "dotenv/config";
 
 export const auth = betterAuth({
+    secret: process.env.AUTH_SECRET,
+    baseURL: process.env.ORIGIN,
     database: drizzleAdapter(db, {
         provider: "sqlite"
     }),
+    user: {
+        changeEmail: {
+            enabled: true
+        },
+        deleteUser: {
+            enabled: true
+        }
+    },
+    account: {
+        accountLinking: {
+            enabled: true,
+            allowDifferentEmails: true,
+            trustedProviders: ["plex"]
+        }
+    },
     emailAndPassword: {
-        enabled: process.env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
-        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
+        enabled: process.env.DISABLE_EMAIL_PASSWORD !== "true",
+        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true"
     },
     socialProviders: {
         plex: {
@@ -28,14 +45,14 @@ export const auth = betterAuth({
             product: "Riven Media",
             version: "1.0",
             platform: "Web",
-            enabled: process.env.DISABLE_PLEX === "true" ? false : true,
-            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true" || false
+            enabled: process.env.DISABLE_PLEX !== "true",
+            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true"
         }
     },
     trustedOrigins: [
         "http://localhost:5173",
         "http://192.168.1.*:5173",
-        process.env.BETTER_AUTH_URL
+        process.env.ORIGIN
     ].filter(Boolean) as string[],
     plugins: [
         username(),
@@ -44,7 +61,7 @@ export const auth = betterAuth({
         passkey({
             rpID: process.env.PASSKEY_RP_ID || "riven",
             rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
-            origin: process.env.BETTER_AUTH_URL || "http://localhost:5173"
+            origin: process.env.ORIGIN || "http://localhost:5173"
         })
     ],
     advanced: {
@@ -56,7 +73,7 @@ export const auth = betterAuth({
     session: {
         cookieCache: {
             enabled: true,
-            maxAge: 5 * 60 // Cache duration in seconds
+            maxAge: 1 * 60 // Cache duration in seconds
         }
     }
 });

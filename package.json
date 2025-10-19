@@ -74,7 +74,7 @@
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "openapi-fetch": "^0.14.1",
-        "zod": "^3.25.76"
+        "zod": "^4.1.12"
     },
     "pnpm": {
         "onlyBuiltDependencies": [

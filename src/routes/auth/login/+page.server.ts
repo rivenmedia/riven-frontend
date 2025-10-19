@@ -2,7 +2,7 @@ import { fail, redirect } from "@sveltejs/kit";
 import { superValidate, message } from "sveltekit-superforms/server";
 import { loginSchema, registerSchema } from "$lib/schemas/auth";
 import type { Actions, PageServerLoad } from "./$types";
-import { zod } from "sveltekit-superforms/adapters";
+import { zod4 } from "sveltekit-superforms/adapters";
 import { auth } from "$lib/server/auth";
 import { APIError } from "better-auth/api";
 import { getUsersCount } from "$lib/server/functions";
@@ -11,36 +11,14 @@ export const load: PageServerLoad = async (event) => {
     if (event.locals.user) {
         return redirect(302, "/auth");
     }
-    const loginForm = await superValidate(zod(loginSchema), {
+    const loginForm = await superValidate(zod4(loginSchema), {
         id: "loginForm"
     });
-    const registerForm = await superValidate(zod(registerSchema), {
+    const registerForm = await superValidate(zod4(registerSchema), {
         id: "registerForm"
     });
     return { loginForm, registerForm };
 };
-
-// const userCount = await getUsersCount();
-// console.log("User count:", userCount);
-
-// if (userCount === 0) {
-//     console.warn("No users found in the database. Creating an admin user...");
-
-//     const data = await auth.api.createUser({
-//         body: {
-//             name: "Admin",
-//             email: "admin@admin.com",
-//             password: "admin",
-//             role: ["admin"],
-//             data: {
-//                 username: "admin",
-//                 image: "/images/admin.webp"
-//             }
-//         }
-//     });
-
-//     console.log("Admin user created:", data);
-// }
 
 async function noUserExists() {
     const count = await getUsersCount();
@@ -49,7 +27,7 @@ async function noUserExists() {
 
 export const actions: Actions = {
     login: async (event) => {
-        const loginForm = await superValidate(event.request, zod(loginSchema));
+        const loginForm = await superValidate(event.request, zod4(loginSchema));
         if (!loginForm.valid) return fail(400, { loginForm });
 
         try {
@@ -78,7 +56,7 @@ export const actions: Actions = {
         return redirect(303, "/");
     },
     register: async (event) => {
-        const registerForm = await superValidate(event.request, zod(registerSchema));
+        const registerForm = await superValidate(event.request, zod4(registerSchema));
         if (!registerForm.valid) return fail(400, { registerForm });
 
         if (registerForm.data.password !== registerForm.data.confirmPassword) {
@@ -101,7 +79,8 @@ export const actions: Actions = {
                         data: {
                             username: registerForm.data.username,
                             image: registerForm.data.image || undefined
-                        }                    }
+                        }
+                    }
                 });
 
                 console.log("First user (admin) created:", data);
@@ -114,6 +93,8 @@ export const actions: Actions = {
                     },
                     headers: event.request.headers
                 });
+
+                console.log("Login response for first user:", signInData);
             } else {
                 const data = await auth.api.signUpEmail({
                     body: {
@@ -139,7 +120,7 @@ export const actions: Actions = {
             });
         }
 
-        console.log("redirecting")
+        console.log("redirecting");
 
         return redirect(303, "/");
     }

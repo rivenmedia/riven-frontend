@@ -8,7 +8,6 @@ export default defineConfig({
         "@hey-api/client-fetch",
         "@hey-api/typescript",
         {
-            compatibilityVersion: 3,
             name: "zod",
             types: {
                 infer: true
