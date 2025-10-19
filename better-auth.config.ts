@@ -33,7 +33,8 @@ export const auth = betterAuth({
             enabled: true,
             allowDifferentEmails: true,
             trustedProviders: ["plex"]
-        }
+        },
+        encryptOAuthTokens: true
     },
     emailAndPassword: {
         enabled: process.env.DISABLE_EMAIL_PASSWORD !== "true",
