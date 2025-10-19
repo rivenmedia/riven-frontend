@@ -3,7 +3,7 @@ volumes:
 
 services:
     riven-frontend:
-        image: spoked/riven-frontend:latest # Tags: latest/dev/x.x.x
+        image: spoked/riven-frontend:v1-beta # Tags: latest/dev/x.x.x
         build:
             context: .
             dockerfile: Dockerfile
@@ -12,10 +12,9 @@ services:
         env_file:
             - .env # Load environment variables from .env file
 
-        # or set individual environment variables here, both methods can be used together
+        # or set individual environment variables here, both methods can be used together, the ones set here will override those in the .env file if present
         environment:
             - TZ=Asia/Kolkata
-            - DATABASE_URL=/riven/data/riven.db
 
         # Uncomment the following if you plan to bind the port to the host machine
         expose:
