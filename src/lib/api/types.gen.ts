@@ -469,10 +469,10 @@ export type HdrRankModel = {
  */
 export type IndexerModel = {
     /**
-     * Reindex Ongoing Interval
-     * Interval in seconds to reindex all ongoing items (24 hours default, 0 to disable)
+     * Schedule Offset Minutes
+     * Offset in minutes after aired_at time to schedule scraping for episodes and movies (30 minutes default)
      */
-    reindex_ongoing_interval?: number;
+    schedule_offset_minutes?: number;
 };
 
 /**
@@ -2100,22 +2100,6 @@ export type UpdateAttributesResponse = {
 };
 
 /**
- * UpdateNewReleasesResponse
- */
-export type UpdateNewReleasesResponse = {
-    /**
-     * Message
-     */
-    message: string;
-    /**
-     * Updated Items
-     */
-    updated_items: Array<{
-        [key: string]: unknown;
-    }>;
-};
-
-/**
  * UpdateOngoingResponse
  */
 export type UpdateOngoingResponse = {
@@ -2873,44 +2857,6 @@ export type UpdateOngoingItemsResponses = {
 
 export type UpdateOngoingItemsResponse = UpdateOngoingItemsResponses[keyof UpdateOngoingItemsResponses];
 
-export type UpdateNewReleasesItemsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Update Type
-         */
-        update_type?: 'series' | 'seasons' | 'episodes';
-        /**
-         * Hours
-         */
-        hours?: number | null;
-    };
-    url: '/api/v1/items/update_new_releases';
-};
-
-export type UpdateNewReleasesItemsErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type UpdateNewReleasesItemsError = UpdateNewReleasesItemsErrors[keyof UpdateNewReleasesItemsErrors];
-
-export type UpdateNewReleasesItemsResponses = {
-    /**
-     * Successful Response
-     */
-    200: UpdateNewReleasesResponse;
-};
-
-export type UpdateNewReleasesItemsResponse = UpdateNewReleasesItemsResponses[keyof UpdateNewReleasesItemsResponses];
-
 export type RemoveItemData = {
     body?: never;
     path?: never;
@@ -3441,6 +3387,40 @@ export type ParseTorrentTitlesResponses = {
 };
 
 export type ParseTorrentTitlesResponse = ParseTorrentTitlesResponses[keyof ParseTorrentTitlesResponses];
+
+export type FetchOverseerrRequestsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter
+         */
+        filter?: string | null;
+        /**
+         * Take
+         */
+        take?: number;
+    };
+    url: '/api/v1/scrape/overseerr/requests';
+};
+
+export type FetchOverseerrRequestsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FetchOverseerrRequestsError = FetchOverseerrRequestsErrors[keyof FetchOverseerrRequestsErrors];
+
+export type FetchOverseerrRequestsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MessageResponse;
+};
+
+export type FetchOverseerrRequestsResponse = FetchOverseerrRequestsResponses[keyof FetchOverseerrRequestsResponses];
 
 export type GetSettingsSchemaData = {
     body?: never;

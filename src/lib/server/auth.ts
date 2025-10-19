@@ -14,9 +14,26 @@ import { db } from "./db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 export const auth = betterAuth({
+    secret: env.AUTH_SECRET,
+    baseURL: env.ORIGIN,
     database: drizzleAdapter(db, {
         provider: "sqlite"
     }),
+    user: {
+        changeEmail: {
+            enabled: true
+        },
+        deleteUser: {
+            enabled: true
+        }
+    },
+    account: {
+        accountLinking: {
+            enabled: true,
+            allowDifferentEmails: true,
+            trustedProviders: ["plex"]
+        }
+    },
     emailAndPassword: {
         enabled: env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
         disableSignUp: env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
