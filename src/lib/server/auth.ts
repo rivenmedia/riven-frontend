@@ -76,3 +76,25 @@ export const auth = betterAuth({
         }
     }
 });
+
+export function getAuthProviders() {
+    const providers = Object.entries(auth.options.socialProviders).reduce(
+        (acc, [key, value]) => {
+            acc[key] = {
+                enabled: value.enabled,
+                disableSignup: value.disableSignUp
+            };
+            return acc;
+        },
+        {} as Record<string, { enabled: boolean; disableSignup: boolean }>
+    );
+
+    if (auth.options.emailAndPassword) {
+        providers.emailAndPassword = {
+            enabled: auth.options.emailAndPassword.enabled,
+            disableSignup: auth.options.emailAndPassword.disableSignUp
+        };
+    }
+
+    return providers;
+}

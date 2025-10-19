@@ -23,6 +23,7 @@
         data: {
             loginForm: SuperValidated<Infer<typeof loginSchema>>;
             registerForm: SuperValidated<Infer<typeof registerSchema>>;
+            authProviders: any;
         };
     } = $props();
 
@@ -109,6 +110,8 @@
     }
 
     let activeTab = $state("login");
+
+    $inspect(data);
 </script>
 
 <div class="grid min-h-svh lg:grid-cols-2">
@@ -181,18 +184,22 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <Button
-                                    onclick={plexLogin}
-                                    variant="outline"
-                                    class="w-full"
-                                    type="button">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                                        <path
-                                            d="M256 70H148l108 186-108 186h108l108-186z"
-                                            fill="currentColor" />
-                                    </svg>
-                                    Login with Plex
-                                </Button>
+                                {#if data.authProviders.plex.enabled}
+                                    <Button
+                                        onclick={plexLogin}
+                                        variant="outline"
+                                        class="w-full"
+                                        type="button">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 512 512">
+                                            <path
+                                                d="M256 70H148l108 186-108 186h108l108-186z"
+                                                fill="currentColor" />
+                                        </svg>
+                                        Login with Plex
+                                    </Button>
+                                {/if}
                                 {#if supportsPasskey}
                                     <Button
                                         variant="outline"

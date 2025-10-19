@@ -6,6 +6,9 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { auth } from "$lib/server/auth";
 import { APIError } from "better-auth/api";
 import { getUsersCount } from "$lib/server/functions";
+import { getAuthProviders } from "$lib/server/auth";
+
+const authProviders = getAuthProviders();
 
 export const load: PageServerLoad = async (event) => {
     if (event.locals.user) {
@@ -17,7 +20,7 @@ export const load: PageServerLoad = async (event) => {
     const registerForm = await superValidate(zod4(registerSchema), {
         id: "registerForm"
     });
-    return { loginForm, registerForm };
+    return { loginForm, registerForm, authProviders: authProviders };
 };
 
 async function noUserExists() {
@@ -119,8 +122,6 @@ export const actions: Actions = {
                 status: 500
             });
         }
-
-        console.log("redirecting");
 
         return redirect(303, "/");
     }

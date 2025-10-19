@@ -50,11 +50,9 @@ export const auth = betterAuth({
             disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true"
         }
     },
-    trustedOrigins: [
-        "http://localhost:5173",
-        "http://192.168.1.*:5173",
-        process.env.ORIGIN
-    ].filter(Boolean) as string[],
+    trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", process.env.ORIGIN].filter(
+        Boolean
+    ) as string[],
     plugins: [
         username(),
         admin(),
@@ -78,3 +76,25 @@ export const auth = betterAuth({
         }
     }
 });
+
+export function getAuthProviders() {
+    const providers = Object.entries(auth.options.socialProviders).reduce(
+        (acc, [key, value]) => {
+            acc[key] = {
+                enabled: value.enabled,
+                disableSignup: value.disableSignUp
+            };
+            return acc;
+        },
+        {} as Record<string, { enabled: boolean; disableSignup: boolean }>
+    );
+
+    if (auth.options.emailAndPassword) {
+        providers.emailAndPassword = {
+            enabled: auth.options.emailAndPassword.enabled,
+            disableSignup: auth.options.emailAndPassword.disableSignUp
+        };
+    }
+
+    return providers;
+}

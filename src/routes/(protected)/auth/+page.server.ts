@@ -1,5 +1,6 @@
 import type { PageServerLoad } from "./$types";
 import { redirect } from "@sveltejs/kit";
+import { getAuthProviders } from "$lib/server/auth";
 
 export const load: PageServerLoad = async (event) => {
     if (!event.locals.user || !event.locals.session) {
@@ -8,6 +9,7 @@ export const load: PageServerLoad = async (event) => {
 
     return {
         user: event.locals.user,
-        session: event.locals.session
+        session: event.locals.session,
+        authProviders: getAuthProviders()
     };
 };
