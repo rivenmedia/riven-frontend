@@ -7,14 +7,18 @@ on:
             - "**"
             - "!release-please--branches--main"
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     build-and-push-dev:
         runs-on: ubuntu-latest
         if: >
-          startsWith(github.event.head_commit.message, 'fix') || 
-          startsWith(github.event.head_commit.message, 'feat') || 
-          startsWith(github.event.head_commit.message, 'build') || 
-          startsWith(github.event.head_commit.message, 'ci')
+            startsWith(github.event.head_commit.message, 'fix') || 
+            startsWith(github.event.head_commit.message, 'feat') || 
+            startsWith(github.event.head_commit.message, 'build') || 
+            startsWith(github.event.head_commit.message, 'ci')
         permissions:
             contents: write
             packages: write
