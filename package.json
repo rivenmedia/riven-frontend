@@ -71,7 +71,6 @@
         "better-sqlite3": "^11.10.0",
         "drizzle-orm": "^0.44.6",
         "embla-carousel-autoplay": "^8.6.0",
-        "lodash": "^4.17.21",
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "openapi-fetch": "^0.14.1",

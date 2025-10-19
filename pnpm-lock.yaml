@@ -20,9 +20,6 @@ importers:
       embla-carousel-autoplay:
         specifier: ^8.6.0
         version: 8.6.0(embla-carousel@8.6.0)
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
       mode-watcher:
         specifier: ^1.1.0
         version: 1.1.0(svelte@5.40.2)
