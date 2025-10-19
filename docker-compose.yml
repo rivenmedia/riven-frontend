@@ -10,7 +10,7 @@ services:
         container_name: riven-frontend
         restart: unless-stopped
         env_file:
-            - .env # Load environment variables from .env file
+            - .env # Load environment variables from .env file. Read .env.example
 
         # or set individual environment variables here, both methods can be used together, the ones set here will override those in the .env file if present
         environment:

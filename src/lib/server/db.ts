@@ -4,4 +4,4 @@ import { env } from "$env/dynamic/private";
 import * as schema from "./schema";
 
 const sqlite = new Database(env.DATABASE_URL);
-export const db = drizzle(sqlite, { schema, logger: true });
+export const db = drizzle(sqlite, { schema, logger: env.DATABASE_LOGGING === "true" });

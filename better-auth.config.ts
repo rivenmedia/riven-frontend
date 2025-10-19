@@ -36,8 +36,8 @@ export const auth = betterAuth({
         }
     },
     emailAndPassword: {
-        enabled: process.env.DISABLE_EMAIL_PASSWORD === "true" ? false : true,
-        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true" || false
+        enabled: process.env.DISABLE_EMAIL_PASSWORD !== "true",
+        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true"
     },
     socialProviders: {
         plex: {
@@ -45,8 +45,8 @@ export const auth = betterAuth({
             product: "Riven Media",
             version: "1.0",
             platform: "Web",
-            enabled: process.env.DISABLE_PLEX === "true" ? false : true,
-            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true" || false
+            enabled: process.env.DISABLE_PLEX !== "true",
+            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true"
         }
     },
     trustedOrigins: [
@@ -73,7 +73,7 @@ export const auth = betterAuth({
     session: {
         cookieCache: {
             enabled: true,
-            maxAge: 5 * 60 // Cache duration in seconds
+            maxAge: 1 * 60 // Cache duration in seconds
         }
     }
 });
