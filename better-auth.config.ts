@@ -8,10 +8,11 @@ import { betterAuth } from "better-auth";
 import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
-import { admin, openAPI } from "better-auth/plugins";
+import { admin as adminPlugin, openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./src/lib/server/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { ac, admin, user, manager } from "./src/lib/server/permissions";
 import "dotenv/config";
 
 export const auth = betterAuth({
@@ -55,7 +56,16 @@ export const auth = betterAuth({
     ) as string[],
     plugins: [
         username(),
-        admin(),
+        adminPlugin({
+            ac,
+            roles: {
+                admin,
+                user,
+                manager
+            },
+            defaultRole: "user",
+            adminRoles: ["admin"]
+        }),
         openAPI(),
         passkey({
             rpID: process.env.PASSKEY_RP_ID || "riven",
