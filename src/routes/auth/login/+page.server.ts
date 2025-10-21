@@ -1,5 +1,5 @@
-import { fail, redirect } from "@sveltejs/kit";
-import { superValidate, message } from "sveltekit-superforms/server";
+import { redirect } from "@sveltejs/kit";
+import { message, superValidate, fail, setError } from "sveltekit-superforms";
 import { loginSchema, registerSchema } from "$lib/schemas/auth";
 import type { Actions, PageServerLoad } from "./$types";
 import { zod4 } from "sveltekit-superforms/adapters";
@@ -34,7 +34,7 @@ export const actions: Actions = {
         if (!loginForm.valid) return fail(400, { loginForm });
 
         try {
-            const data = await auth.api.signInUsername({
+            await auth.api.signInUsername({
                 body: {
                     username: loginForm.data.username,
                     password: loginForm.data.password,
@@ -42,8 +42,6 @@ export const actions: Actions = {
                 },
                 headers: event.request.headers
             });
-
-            console.log("Login response:", data);
         } catch (error) {
             if (error instanceof APIError) {
                 return message(loginForm, error.message, {
@@ -63,9 +61,7 @@ export const actions: Actions = {
         if (!registerForm.valid) return fail(400, { registerForm });
 
         if (registerForm.data.password !== registerForm.data.confirmPassword) {
-            return message(registerForm, "Passwords do not match", {
-                status: 400
-            });
+            return setError(registerForm, "confirmPassword", "Passwords do not match.");
         }
 
         try {
@@ -78,7 +74,7 @@ export const actions: Actions = {
                         name: registerForm.data.username,
                         email: registerForm.data.email,
                         password: registerForm.data.password,
-                        role: ["admin"],
+                        role: "admin",
                         data: {
                             username: registerForm.data.username,
                             image: registerForm.data.image || undefined
@@ -88,7 +84,7 @@ export const actions: Actions = {
 
                 console.log("First user (admin) created:", data);
 
-                const signInData = await auth.api.signInUsername({
+                await auth.api.signInUsername({
                     body: {
                         username: registerForm.data.username,
                         password: registerForm.data.password,
@@ -96,20 +92,16 @@ export const actions: Actions = {
                     },
                     headers: event.request.headers
                 });
-
-                console.log("Login response for first user:", signInData);
             } else {
-                const data = await auth.api.signUpEmail({
+                await auth.api.signUpEmail({
                     body: {
                         name: registerForm.data.username,
                         username: registerForm.data.username,
                         email: registerForm.data.email,
                         password: registerForm.data.password,
-                        image: registerForm.data.image || undefined
+                        image: registerForm.data.image || undefined,
                     }
                 });
-
-                console.log("Sign up response:", data);
             }
         } catch (error) {
             if (error instanceof APIError) {

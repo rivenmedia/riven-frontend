@@ -20,8 +20,7 @@
             <InputGroup.Root>
                 <InputGroup.Input placeholder="Search..." />
                 <InputGroup.Addon align="inline-end">
-                    <Kbd.Root>⌘</Kbd.Root>
-                    <Kbd.Root>K</Kbd.Root>
+                    <Kbd.Root>^K</Kbd.Root>
                 </InputGroup.Addon>
             </InputGroup.Root>
 

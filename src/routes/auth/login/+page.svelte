@@ -16,6 +16,7 @@
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
     import { dev } from "$app/environment";
+    import { page } from "$app/state";
 
     let {
         data
@@ -46,11 +47,19 @@
 
     $effect(() => {
         if ($loginMessage) {
-            toast.error($loginMessage);
+            if (page.status >= 200 && page.status < 300) {
+                toast.success($loginMessage);
+            } else {
+                toast.error($loginMessage);
+            }
         }
 
         if ($registerMessage) {
-            toast.error($registerMessage);
+            if (page.status >= 200 && page.status < 300) {
+                toast.success($registerMessage);
+            } else {
+                toast.error($registerMessage);
+            }
         }
     });
 
@@ -80,7 +89,6 @@
                             goto("/");
                         },
                         onError(context) {
-                            // Silently fail for autofill attempts
                             console.debug("Passkey autofill failed:", context.error);
                         }
                     }

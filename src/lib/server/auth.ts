@@ -90,7 +90,7 @@ export function getAuthProviders() {
     );
 
     if (auth.options.emailAndPassword) {
-        providers.emailAndPassword = {
+        providers.credential = {
             enabled: auth.options.emailAndPassword.enabled,
             disableSignup: auth.options.emailAndPassword.disableSignUp
         };
