@@ -8,6 +8,13 @@
       "when": 1760790149603,
       "tag": "0000_nappy_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1761072026625,
+      "tag": "0001_daffy_white_queen",
+      "breakpoints": true
     }
   ]
 }

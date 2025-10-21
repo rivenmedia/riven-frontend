@@ -17,6 +17,7 @@
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
     import { dev } from "$app/environment";
     import { page } from "$app/state";
+    import Star from "@lucide/svelte/icons/star";
 
     let {
         data
@@ -118,9 +119,14 @@
     }
 
     let activeTab = $state("login");
+    const lastLoginMethod = authClient.getLastUsedLoginMethod();
 
     $inspect(data);
 </script>
+
+{#snippet star()}
+    <Star class="absolute top-0 -right-2 h-4 w-4 rotate-45 animate-pulse text-yellow-400" />
+{/snippet}
 
 <div class="grid min-h-svh lg:grid-cols-2">
     <div class="flex flex-col gap-4 p-6 md:p-10">
@@ -195,8 +201,10 @@
                                 {#if data.authProviders.plex.enabled}
                                     <Button
                                         onclick={plexLogin}
-                                        variant="outline"
-                                        class="w-full"
+                                        variant={lastLoginMethod === "plex"
+                                            ? "secondary"
+                                            : "outline"}
+                                        class="relative w-full"
                                         type="button">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -206,12 +214,17 @@
                                                 fill="currentColor" />
                                         </svg>
                                         Login with Plex
+                                        {#if lastLoginMethod === "plex"}
+                                            {@render star()}
+                                        {/if}
                                     </Button>
                                 {/if}
                                 {#if supportsPasskey}
                                     <Button
-                                        variant="outline"
-                                        class="w-full"
+                                        variant={lastLoginMethod === "passkey"
+                                            ? "secondary"
+                                            : "outline"}
+                                        class="relative w-full"
                                         disabled={isPasskeyLoading}
                                         onclick={handlePasskeySignIn}
                                         type="button">
@@ -219,6 +232,10 @@
                                         {isPasskeyLoading
                                             ? "Authenticating..."
                                             : "Sign in with Passkey"}
+
+                                        {#if lastLoginMethod === "passkey"}
+                                            {@render star()}
+                                        {/if}
                                     </Button>
                                 {/if}
                             </div>

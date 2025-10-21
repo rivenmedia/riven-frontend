@@ -131,7 +131,7 @@
                                 <Button
                                     variant="link"
                                     href="/details/media/{item.id}/movie"
-                                    class="bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10"
+                                    class="bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 w-full md:w-auto"
                                     >View Details</Button>
                             </div>
                         </div>
@@ -179,10 +179,10 @@
 {:else}
     <div class="relative h-96 w-full">
         <div
-            class="absolute inset-0 animate-pulse bg-gradient-to-t from-neutral-950 to-neutral-800">
+            class="absolute inset-0 animate-pulse bg-linear-to-t from-neutral-950 to-neutral-800">
         </div>
 
-        <div class="absolute inset-0 z-[2] flex flex-col gap-4">
+        <div class="absolute inset-0 z-2 flex flex-col gap-4">
             <div class="flex h-full w-full flex-col justify-end gap-2 p-8 md:px-16">
                 <div class="w-full max-w-2xl">
                     <Skeleton class="mb-2 h-9 w-3/4" />

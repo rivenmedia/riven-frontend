@@ -8,7 +8,7 @@ import { betterAuth } from "better-auth";
 import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
-import { admin as adminPlugin, openAPI } from "better-auth/plugins";
+import { admin as adminPlugin, openAPI, lastLoginMethod } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./src/lib/server/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -71,6 +71,9 @@ export const auth = betterAuth({
             rpID: process.env.PASSKEY_RP_ID || "riven",
             rpName: process.env.PASSKEY_RP_NAME || "Riven Media",
             origin: process.env.ORIGIN || "http://localhost:5173"
+        }),
+        lastLoginMethod({
+            storeInDatabase: true
         })
     ],
     advanced: {
