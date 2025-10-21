@@ -69,21 +69,21 @@
         class="relative">
         <Carousel.Content>
             {#each data as item}
-                <Carousel.Item class="relative h-[27.5rem] w-full">
+                <Carousel.Item class="relative h-110 w-full">
                     <img
                         src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
                         alt={item.title || item.original_title}
                         class="w-full object-cover object-center select-none max-md:h-full"
                         loading="lazy" />
                     <div
-                        class="absolute inset-0 z-[1] flex bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent select-none">
+                        class="absolute inset-0 z-1 flex bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent select-none">
                     </div>
 
-                    <div class="absolute inset-0 z-[2] mt-14 flex flex-col gap-4">
+                    <div class="absolute inset-0 z-2 mt-14 flex flex-col gap-4">
                         <div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
                             <div class="w-full max-w-2xl select-none">
                                 <h1
-                                    class="text-3xl leading-tight font-medium break-words drop-shadow-lg md:text-4xl">
+                                    class="text-3xl leading-tight font-medium wrap-break-word drop-shadow-lg md:text-4xl">
                                     {item.title || item.original_title}
                                 </h1>
                                 <div class="mt-2 flex items-center gap-1.5 select-none">
