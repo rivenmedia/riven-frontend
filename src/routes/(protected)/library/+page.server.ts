@@ -61,15 +61,3 @@ export const load: PageServerLoad = async (event) => {
         itemsSearchForm
     };
 };
-
-export const actions: Actions = {
-    itemsSearch: async ({ request }) => {
-        const itemsSearchForm = await superValidate(request, zod4(itemsSearchSchema));
-
-        if (!itemsSearchForm.valid) return fail(400, { itemsSearchForm });
-
-        console.log("Searching items with data:", itemsSearchForm.data);
-
-        return message(itemsSearchForm, "Search executed successfully");
-    }
-};
