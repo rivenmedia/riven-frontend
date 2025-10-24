@@ -84,14 +84,14 @@
                 loading="lazy" />
             <div class="bg-background/70 absolute right-0 bottom-0 left-0 h-full w-full"></div>
             <div
-                class="to-background absolute right-0 bottom-0 left-0 h-full w-full bg-gradient-to-b from-transparent to-100%">
+                class="to-background absolute right-0 bottom-0 left-0 h-full w-full bg-linear-to-b from-transparent to-100%">
             </div>
         </span>
     </div>
-    <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-24">
+    <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-16">
         <div
             class={cn(
-                "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-[30rem] xl:h-[32rem] 2xl:h-[34rem]",
+                "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-120 xl:h-128 2xl:h-136",
                 !showTrailer && "p-8"
             )}
             style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
@@ -194,7 +194,7 @@
                     class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
                     src={data.mediaDetails?.details.poster_path
                         ? data.mediaDetails?.details.poster_path
-                        : "https://avatar.iran.liara.run/public"}
+                        : "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg"}
                     loading="lazy" />
 
                 <div class="flex flex-col">
@@ -341,13 +341,13 @@
                                     {#if season.image}
                                         <img
                                             alt={season.id.toString()}
-                                            class="h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105"
+                                            class="h-32 w-20 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-48 sm:w-32"
                                             src={season.image}
                                             loading="lazy" />
                                     {:else}
                                         <div
-                                            class="flex h-48 w-32 flex-col items-center justify-center rounded-lg border border-white/30 bg-white/20 shadow-md backdrop-blur-md transition-transform duration-300 hover:scale-105">
-                                            <Mountain size={32} class="opacity-70" />
+                                            class="flex h-32 w-20 flex-col items-center justify-center rounded-lg border border-white/30 bg-white/20 shadow-md backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:h-48 sm:w-32">
+                                            <Mountain size={24} class="opacity-70 sm:size-8" />
                                             <span class="mt-2 text-center text-xs font-medium"
                                                 >Season {season.number}</span>
                                         </div>
@@ -385,24 +385,24 @@
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
                             <div
-                                class="border-border flex overflow-hidden rounded-lg border bg-white/10 shadow-lg">
-                                <div class="w-1/3">
+                                class="border-border flex flex-col overflow-hidden rounded-lg border bg-white/10 shadow-lg sm:flex-row">
+                                <div class="w-full sm:w-1/3">
                                     {#if episode.image}
                                         <img
                                             alt={episode.name}
-                                            class="h-full w-full object-cover object-center"
+                                            class="h-48 w-full object-cover object-center sm:h-full"
                                             src={episode.image}
                                             loading="lazy" />
                                     {:else}
                                         <div
-                                            class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
+                                            class="flex h-48 w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md sm:h-full">
                                             <Mountain size={32} class="opacity-70" />
                                             <span class="mt-2 text-xs font-medium"
                                                 >Episode {episode.number}</span>
                                         </div>
                                     {/if}
                                 </div>
-                                <div class="flex w-2/3 flex-col p-4">
+                                <div class="flex w-full flex-col p-4 sm:w-2/3">
                                     <h3 class="text-sm font-bold">
                                         {episode.number}. {episode.name}
                                     </h3>

@@ -770,6 +770,11 @@ export type MdblistModel = {
 };
 
 /**
+ * MediaTypeEnum
+ */
+export type MediaTypeEnum = 'movie' | 'show' | 'season' | 'episode' | 'anime';
+
+/**
  * MediafusionConfig
  */
 export type MediafusionConfig = {
@@ -1661,6 +1666,11 @@ export type ShowFileData = {
 };
 
 /**
+ * SortOrderEnum
+ */
+export type SortOrderEnum = 'title_asc' | 'title_desc' | 'date_asc' | 'date_desc';
+
+/**
  * StartSessionResponse
  */
 export type StartSessionResponse = {
@@ -1702,6 +1712,11 @@ export type StateResponse = {
  * States
  */
 export type States = 'Unknown' | 'Unreleased' | 'Ongoing' | 'Requested' | 'Indexed' | 'Scraped' | 'Downloaded' | 'Symlinked' | 'Completed' | 'PartiallyCompleted' | 'Failed' | 'Paused';
+
+/**
+ * StatesFilter
+ */
+export type StatesFilter = 'All';
 
 /**
  * StatsResponse
@@ -2599,36 +2614,39 @@ export type GetItemsData = {
     query?: {
         /**
          * Limit
+         * Number of items per page
          */
-        limit?: number | null;
+        limit?: number;
         /**
          * Page
+         * Page number
          */
-        page?: number | null;
+        page?: number;
         /**
          * Type
+         * Filter by media type(s)
          */
-        type?: string | null;
+        type?: Array<MediaTypeEnum> | null;
         /**
          * States
+         * Filter by state(s)
          */
-        states?: string | null;
+        states?: Array<States | StatesFilter> | null;
         /**
          * Sort
+         * Sort order(s). Multiple sorts allowed but only one per type (title or date)
          */
-        sort?: ('date_desc' | 'date_asc' | 'title_asc' | 'title_desc') | null;
+        sort?: Array<SortOrderEnum> | null;
         /**
          * Search
+         * Search by title or IMDB/TVDB/TMDB ID
          */
         search?: string | null;
         /**
          * Extended
+         * Include extended item details
          */
-        extended?: boolean | null;
-        /**
-         * Is Anime
-         */
-        is_anime?: boolean | null;
+        extended?: boolean;
     };
     url: '/api/v1/items';
 };

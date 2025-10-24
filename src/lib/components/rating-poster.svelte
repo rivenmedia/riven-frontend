@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { posterCache, type RatingScore } from "$lib/services/poster-cache";
-    import { AspectRatio } from "$lib/components/ui/aspect-ratio/index.js";
+    import Poster from "$lib/components/poster.svelte";
 
     type Placement = "top" | "bottom" | "left" | "right";
     type Indexer = "tmdb" | "anilist";
@@ -31,7 +31,6 @@
     let error = $state(false);
 
     onMount(async () => {
-        // Check cache first (use indexer as mediaType for anilist)
         const cacheKey: "movie" | "tv" | "anime" =
             indexer === "anilist" ? "anime" : (mediaType as "movie" | "tv") || "movie";
         const cached = posterCache.get(id, cacheKey);
@@ -41,7 +40,6 @@
             return;
         }
 
-        // Fetch from API
         try {
             let response: Response;
             if (indexer === "anilist") {
@@ -66,65 +64,42 @@
     });
 
     const isHorizontal = $derived(placement === "top" || placement === "bottom");
-    const overlayPosition = $derived(
+    const justifyClass = $derived(
         placement === "top"
-            ? "top-0"
+            ? "justify-start"
             : placement === "bottom"
-              ? "bottom-0"
+              ? "justify-end"
               : placement === "left"
-                ? "left-0"
-                : "right-0"
+                ? "items-start"
+                : "items-end"
     );
 </script>
 
-<AspectRatio ratio={2 / 3} class="overflow-hidden rounded-sm">
-    <div class="relative h-full w-full">
-        <div class="relative h-full w-full transition-transform duration-300 hover:scale-105">
-            <img
-                src={posterUrl}
-                {alt}
-                class="h-full w-full object-cover object-center select-none"
-                loading="lazy" />
-
-            {#if !loading && !error && scores.length > 0}
-                <div
-                    class="rating-overlay absolute {overlayPosition} {isHorizontal
-                        ? 'right-0 left-0'
-                        : 'top-0 bottom-0'} flex {isHorizontal
-                        ? 'h-[8%] flex-row items-center justify-evenly'
-                        : 'w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
-                    style="background-color: var(--secondary); opacity: {overlayOpacity};">
-                    {#each scores as score}
-                        <div
-                            class="rating-item flex text-xs text-white {isHorizontal
-                                ? 'flex-row'
-                                : 'flex-col'}">
-                            {#if score.image}
-                                <img
-                                    src="/rating-logos/{score.image}"
-                                    alt={score.name}
-                                    class="rating-logo {indexer === 'anilist'
-                                        ? 'h-[1rem]'
-                                        : 'h-[0.8rem]'}" />
-                            {/if}
-                            <span class="font-medium">{score.score}</span>
-                        </div>
-                    {/each}
-                </div>
-            {/if}
-        </div>
-    </div>
-</AspectRatio>
-
-<style>
-    .rating-item {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .rating-logo {
-        width: auto;
-        object-fit: contain;
-    }
-</style>
+<Poster src={posterUrl} {alt} class="flex {isHorizontal ? 'flex-col' : 'flex-row'} {justifyClass}">
+    {#snippet children()}
+        {#if !loading && !error && scores.length > 0}
+            <div
+                class="flex {isHorizontal
+                    ? 'h-[8%] w-full flex-row items-center justify-evenly'
+                    : 'h-full w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
+                style="background-color: var(--secondary); opacity: {overlayOpacity};">
+                {#each scores as score}
+                    <div
+                        class="flex items-center gap-1 text-xs text-white {isHorizontal
+                            ? 'flex-row'
+                            : 'flex-col'}">
+                        {#if score.image}
+                            <img
+                                src="/rating-logos/{score.image}"
+                                alt={score.name}
+                                class="w-auto object-contain {indexer === 'anilist'
+                                    ? 'h-4'
+                                    : 'h-[0.8rem]'}" />
+                        {/if}
+                        <span class="font-medium">{score.score}</span>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+    {/snippet}
+</Poster>

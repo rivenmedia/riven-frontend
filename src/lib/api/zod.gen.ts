@@ -1206,6 +1206,19 @@ export const zLogsResponse = z.object({
 export type LogsResponseZodType = z.infer<typeof zLogsResponse>;
 
 /**
+ * MediaTypeEnum
+ */
+export const zMediaTypeEnum = z.enum([
+    'movie',
+    'show',
+    'season',
+    'episode',
+    'anime'
+]);
+
+export type MediaTypeEnumZodType = z.infer<typeof zMediaTypeEnum>;
+
+/**
  * MessageResponse
  */
 export const zMessageResponse = z.object({
@@ -1482,6 +1495,18 @@ export const zShowFileData = z.record(z.string(), z.record(z.string(), zDebridFi
 export type ShowFileDataZodType = z.infer<typeof zShowFileData>;
 
 /**
+ * SortOrderEnum
+ */
+export const zSortOrderEnum = z.enum([
+    'title_asc',
+    'title_desc',
+    'date_asc',
+    'date_desc'
+]);
+
+export type SortOrderEnumZodType = z.infer<typeof zSortOrderEnum>;
+
+/**
  * TorrentInfo
  * Torrent information from a debrid service
  */
@@ -1602,6 +1627,15 @@ export const zStates = z.enum([
 ]);
 
 export type StatesZodType = z.infer<typeof zStates>;
+
+/**
+ * StatesFilter
+ */
+export const zStatesFilter = z.enum([
+    'All'
+]);
+
+export type StatesFilterZodType = z.infer<typeof zStatesFilter>;
 
 /**
  * StatsResponse
@@ -1925,43 +1959,34 @@ export const zGetItemsData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.object({
-        limit: z.optional(z.union([
-            z.int(),
-            z.null()
-        ])),
-        page: z.optional(z.union([
-            z.int(),
-            z.null()
-        ])),
+        limit: z.optional(z.int().gt(0).register(z.globalRegistry, {
+            description: 'Number of items per page'
+        })).default(50),
+        page: z.optional(z.int().gt(0).register(z.globalRegistry, {
+            description: 'Page number'
+        })).default(1),
         type: z.optional(z.union([
-            z.string(),
+            z.array(zMediaTypeEnum),
             z.null()
         ])),
         states: z.optional(z.union([
-            z.string(),
+            z.array(z.union([
+                zStates,
+                zStatesFilter
+            ])),
             z.null()
         ])),
         sort: z.optional(z.union([
-            z.enum([
-                'date_desc',
-                'date_asc',
-                'title_asc',
-                'title_desc'
-            ]),
+            z.array(zSortOrderEnum),
             z.null()
         ])),
         search: z.optional(z.union([
-            z.string(),
+            z.string().min(1),
             z.null()
         ])),
-        extended: z.optional(z.union([
-            z.boolean(),
-            z.null()
-        ])),
-        is_anime: z.optional(z.union([
-            z.boolean(),
-            z.null()
-        ]))
+        extended: z.optional(z.boolean().register(z.globalRegistry, {
+            description: 'Include extended item details'
+        })).default(false)
     }))
 });
 

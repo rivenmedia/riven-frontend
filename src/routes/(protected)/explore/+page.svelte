@@ -8,7 +8,7 @@
     let { data }: PageProps = $props();
 </script>
 
-<Empty.Root class="mt-14 p-8 md:px-24">
+<Empty.Root class="mt-14 p-8 md:px-16">
     <Empty.Header>
         <Empty.Media variant="icon">
             <Search />

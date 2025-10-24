@@ -39,6 +39,16 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
                     throw error(400, "Invalid media type for tmdb");
             }
 
+        case "tvdb":
+            switch (type) {
+                case "tv":
+                    throw redirect(307, `/details/media/${id}/tv`);
+                case undefined:
+                    throw error(400, "Media type is required for tvdb");
+                default:
+                    throw error(400, "Invalid media type for tvdb");
+            }
+
         case "anilist":
             switch (type) {
                 case "TV":

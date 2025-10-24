@@ -16,9 +16,9 @@
         }}
         class="mt-1.5"
         setApi={(emblaApi) => (api = emblaApi)}>
-        <Carousel.Content class="gap-2">
+        <Carousel.Content>
             {#each data as item}
-                <Carousel.Item class="basis-36 md:basis-40 lg:basis-44">
+                <Carousel.Item class="max-w-max">
                     <ListItem data={item} {indexer} {type} />
                 </Carousel.Item>
             {/each}
@@ -27,8 +27,8 @@
 {:else}
     <div class="flex gap-3 overflow-x-auto pb-2">
         {#each Array(2) as _, i}
-            <div class="w-[140px] flex-none sm:w-[160px] md:w-[180px]">
-                <Skeleton class="aspect-[2/3] w-full rounded-sm" />
+            <div class="w-40 flex-none sm:w-40 md:w-[180px]">
+                <Skeleton class="aspect-2/3 w-full rounded-sm" />
                 <Skeleton class="mt-2 h-4 w-full" />
                 <div class="mt-1 flex items-center justify-between">
                     <div class="flex items-center gap-1">

@@ -146,9 +146,11 @@
                     <Tabs.Trigger value="register">Register</Tabs.Trigger>
                 </Tabs.List>
                 <Tabs.Content value="login">
-                    <div class="my-4">
-                        <SuperDebug data={loginFormData} />
-                    </div>
+                    {#if dev}
+                        <div class="my-4">
+                            <SuperDebug data={loginFormData} />
+                        </div>
+                    {/if}
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Login</Card.Title>
