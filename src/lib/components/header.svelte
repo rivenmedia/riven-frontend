@@ -16,18 +16,20 @@
 <header
     class="absolute z-10 flex h-18 w-full items-center bg-transparent px-2 md:left-14 md:w-[calc(100%-3.5rem)] md:px-4">
     <div class="flex w-full items-center justify-between gap-2">
-        <ButtonGroup.Root class="bg-opacity-75 h-9 w-full backdrop-blur-sm">
-            <InputGroup.Root>
-                <InputGroup.Input placeholder="Search..." />
-                <InputGroup.Addon align="inline-end">
-                    <Kbd.Root>^K</Kbd.Root>
-                </InputGroup.Addon>
-            </InputGroup.Root>
+        <form method="GET" action="/explore" class="w-full">
+            <ButtonGroup.Root class="bg-opacity-75 h-9 w-full backdrop-blur-sm">
+                <InputGroup.Root>
+                    <InputGroup.Input name="query" placeholder="Search..." />
+                    <InputGroup.Addon align="inline-end">
+                        <Kbd.Root>^K</Kbd.Root>
+                    </InputGroup.Addon>
+                </InputGroup.Root>
 
-            <Button variant="outline" size="icon" aria-label="Search">
-                <Search />
-            </Button>
-        </ButtonGroup.Root>
+                <Button type="submit" variant="outline" size="icon" aria-label="Search">
+                    <Search />
+                </Button>
+            </ButtonGroup.Root>
+        </form>
 
         <div class="flex items-center">
             <NotificationCenter />

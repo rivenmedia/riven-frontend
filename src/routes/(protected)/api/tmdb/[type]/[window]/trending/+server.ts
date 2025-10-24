@@ -2,6 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL, TMDBMediaType, TMDBTimeWindow } from "$lib/providers";
 import providers from "$lib/providers";
+import { transformTMDBList } from "$lib/providers/parser";
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -38,15 +39,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 error(500, "Failed to fetch trending movies");
             }
 
-            const transformedResults = trending.data.results?.map((item) => ({
-                id: item.id,
-                title: item.title || item.original_title,
-                poster_path: item.poster_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-                    : null,
-                media_type: "Movie",
-                year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A"
-            }));
+            const transformedResults = transformTMDBList(trending.data.results ?? null);
 
             return json({ results: transformedResults });
         } else if (type === "tv") {
