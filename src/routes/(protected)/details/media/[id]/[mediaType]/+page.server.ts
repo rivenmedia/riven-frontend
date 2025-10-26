@@ -75,15 +75,24 @@ export const load = (async ({ fetch, params, cookies }) => {
         error(400, "Invalid ID");
     }
 
-    const rivenData = await getItem({
-        path: {
-            id: id
-        },
-        query: {
-            media_type: mediaType,
-            extended: true
-        }
-    });
+    console.log("Fetching details for ID:", id, "Media Type:", mediaType);
+
+    let rivenData;
+
+    try {
+        rivenData = await getItem({
+            path: {
+                id: id
+            },
+            query: {
+                media_type: mediaType,
+                extended: true
+            },
+        });
+    } catch { /* empty */ }
+    
+
+    console.log("Riven Data:", rivenData);
 
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
@@ -114,7 +123,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         );
 
         return {
-            riven: rivenData.data,
+            riven: rivenData?.data,
             mediaDetails: {
                 type: "movie" as const,
                 details: parsedDetails as ParsedMovieDetails
@@ -148,7 +157,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
 
         return {
-            riven: rivenData.data,
+            riven: rivenData?.data,
             mediaDetails: {
                 type: "tv" as const,
                 details: parsedDetails as ParsedShowDetails

@@ -3,6 +3,10 @@
 	import ListItem from "$lib/components/list-item.svelte";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+	import { parseSearchQuery } from "$lib/search-parser";
+	import { page } from "$app/stores";
+
+	let { data } = $props();
 
 	const searchStore: any = getContext("searchStore");
 	let loadMoreTrigger: HTMLDivElement;
@@ -31,8 +35,13 @@
 	}
 
 	onMount(() => {
-		// Trigger search when page loads
-		if (searchStore && searchStore.rawSearchString) {
+		// Get search query from URL params
+		const queryParam = $page.url.searchParams.get("q");
+
+		if (queryParam) {
+			// Parse and set search
+			const parsed = parseSearchQuery(queryParam);
+			searchStore.setSearch(queryParam, parsed);
 			searchStore.search();
 		}
 

@@ -2,42 +2,41 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { Input } from "$lib/components/ui/input/index.js";
     import { getContext } from "svelte";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
-    import { parseSearchQuery } from "$lib/tmdb-search-parser";
+    import { parseSearchQuery } from "$lib/search-parser";
     import { goto } from "$app/navigation";
-    import { page } from "$app/stores";
+    import { page } from "$app/state";
 
-    const isMobileStore: any = getContext("ismobilestore");
     const SidebarStore: any = getContext("sidebarStore");
     const searchStore: any = getContext("searchStore");
 
     let searchValue = $state("");
 
-    function handleSearchInput(event: Event) {
-        const target = event.target as HTMLInputElement;
-        searchValue = target.value;
+    async function handleSearchSubmit(event: KeyboardEvent) {
+        if (event.key === "Enter") {
+            await handleSearch();
+        }
     }
 
-    async function handleSearchSubmit(event: KeyboardEvent) {
-        if (event.key === "Enter" && searchValue.trim()) {
+    async function handleSearch() {
+        if (searchValue.trim()) {
             const parsed = parseSearchQuery(searchValue);
 
-            // Store search state and trigger search
+            // Store search state
             if (searchStore) {
                 searchStore.setSearch(searchValue, parsed);
+            }
 
-                // If we're already on the search page, trigger search directly
-                if ($page.url.pathname === "/search") {
+            if (page.url.pathname === "/search") {
                     await searchStore.search();
-                } else {
-                    // Navigate to search results page
-                    await goto("/search");
-                }
+            } else {
+                // Navigate to search page with query parameter
+                const searchParams = new URLSearchParams({ q: searchValue });
+                await goto(`/search?${searchParams.toString()}`, { invalidateAll: true });
             }
         }
     }

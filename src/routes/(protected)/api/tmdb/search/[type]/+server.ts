@@ -85,8 +85,6 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 					release_date: item.release_date
 				}));
 
-				console.log("Transformed Results:", transformedResults);
-
 				return json({
 					results: transformedResults,
 					page: searchResult.data.page,

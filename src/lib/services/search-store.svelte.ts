@@ -1,11 +1,11 @@
 import { browser } from "$app/environment";
-import type { TMDBDiscoverParams, ParsedSearchQuery } from "$lib/tmdb-search-parser";
+import type { ParsedSearchQuery } from "$lib/search-parser";
+import { buildTMDBQueryString, buildTVDBQueryString } from "$lib/utils/query-builder";
 
 export class SearchStore {
 	#searchQuery = $state<string>("");
 	#rawSearchString = $state<string>("");
 	#parsedSearch = $state<ParsedSearchQuery | null>(null);
-	#results = $state<any[]>([]);
 	#movieResults = $state<any[]>([]);
 	#tvResults = $state<any[]>([]);
 	#loading = $state<boolean>(false);
@@ -108,6 +108,8 @@ export class SearchStore {
 			this.#movieResults = [];
 			this.#tvResults = [];
 			this.#totalResults = 0; // Reset total results
+			this.#moviePage = 1;
+			this.#tvPage = 1;
 
 			if (this.#mediaType === "both" || this.#mediaType === "movie") {
 				await this.fetchMovies(1);
@@ -124,29 +126,6 @@ export class SearchStore {
 		}
 	}
 
-	private buildQueryString(page: number): string {
-		if (!this.#parsedSearch) return `page=${page}`;
-
-		const params = new URLSearchParams({ page: page.toString() });
-
-		// Add searchMode
-		params.set("searchMode", this.#parsedSearch.searchMode);
-
-		// Add appropriate params based on mode
-		if (this.#parsedSearch.searchMode === "discover") {
-			// Use all params for discover
-			Object.entries(this.#parsedSearch.params).forEach(([key, value]) => {
-				params.set(key, String(value));
-			});
-		} else {
-			// Use searchParams for search/hybrid mode
-			Object.entries(this.#parsedSearch.searchParams).forEach(([key, value]) => {
-				params.set(key, String(value));
-			});
-		}
-
-		return params.toString();
-	}
 
 	private applyClientFilters(items: any[]): any[] {
 		if (!this.#parsedSearch || Object.keys(this.#parsedSearch.clientFilters).length === 0) {
@@ -260,7 +239,9 @@ export class SearchStore {
 	}
 
 	private async fetchMovies(page: number): Promise<void> {
-		const queryString = this.buildQueryString(page);
+		if (!this.#parsedSearch) return;
+
+		const queryString = buildTMDBQueryString(this.#parsedSearch, page);
 		const response = await fetch(`/api/tmdb/search/movie?${queryString}`);
 
 		if (!response.ok) {
@@ -287,11 +268,14 @@ export class SearchStore {
 	}
 
 	private async fetchTV(page: number): Promise<void> {
-		const queryString = this.buildQueryString(page);
-		const response = await fetch(`/api/tmdb/search/tv?${queryString}`);
+		if (!this.#parsedSearch) return;
+
+		// Use TVDB for TV shows - build query string with the utility
+		const queryString = buildTVDBQueryString(this.#parsedSearch, page);
+		const response = await fetch(`/api/tvdb/search?${queryString}`);
 
 		if (!response.ok) {
-			throw new Error("Failed to fetch TV results");
+			throw new Error("Failed to fetch TV results from TVDB");
 		}
 
 		const result = await response.json();
@@ -314,7 +298,7 @@ export class SearchStore {
 	}
 
 	async loadMore(): Promise<void> {
-		if (!browser || this.#loading || !this.hasMore) return;
+		if (!browser || this.#loading || !this.hasMore || !this.#parsedSearch) return;
 
 		try {
 			this.#loading = true;
@@ -322,7 +306,7 @@ export class SearchStore {
 
 			if ((this.#mediaType === "both" || this.#mediaType === "movie") && this.#movieHasMore) {
 				this.#moviePage += 1;
-				const queryString = this.buildQueryString(this.#moviePage);
+				const queryString = buildTMDBQueryString(this.#parsedSearch, this.#moviePage);
 				const response = await fetch(`/api/tmdb/search/movie?${queryString}`);
 
 				if (!response.ok) {
@@ -342,12 +326,12 @@ export class SearchStore {
 
 			if ((this.#mediaType === "both" || this.#mediaType === "tv") && this.#tvHasMore) {
 				this.#tvPage += 1;
-				const queryString = this.buildQueryString(this.#tvPage);
-				const response = await fetch(`/api/tmdb/search/tv?${queryString}`);
+				const queryString = buildTVDBQueryString(this.#parsedSearch, this.#tvPage);
+				const response = await fetch(`/api/tvdb/search?${queryString}`);
 
 				if (!response.ok) {
 					this.#tvPage -= 1;
-					throw new Error("Failed to fetch more TV results");
+					throw new Error("Failed to fetch more TV results from TVDB");
 				}
 
 				const result = await response.json();
@@ -371,7 +355,6 @@ export class SearchStore {
 		this.#searchQuery = "";
 		this.#rawSearchString = "";
 		this.#parsedSearch = null;
-		this.#results = [];
 		this.#movieResults = [];
 		this.#tvResults = [];
 		this.#moviePage = 1;

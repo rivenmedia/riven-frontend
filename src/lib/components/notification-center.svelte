@@ -14,13 +14,13 @@
 
     let open = $state(false);
 
-    onMount(() => {
-        notificationStore.connect();
-    });
+    // onMount(() => {
+    //     notificationStore.connect();
+    // });
 
-    onDestroy(() => {
-        notificationStore.disconnect();
-    });
+    // onDestroy(() => {
+    //     notificationStore.disconnect();
+    // });
 
     function formatTimestamp(timestamp: string): string {
         const date = new Date(timestamp);
