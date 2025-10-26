@@ -58,14 +58,6 @@ export class SearchStore {
 	}
 
 	get totalResults() {
-		// If we're using client-side filters, return the actual filtered count
-		if (this.#parsedSearch && Object.keys(this.#parsedSearch.clientFilters).length > 0) {
-			if (this.#mediaType === "both") {
-				return this.#movieResults.length + this.#tvResults.length;
-			}
-			return this.#mediaType === "movie" ? this.#movieResults.length : this.#tvResults.length;
-		}
-		// Otherwise return the API's total
 		return this.#totalResults;
 	}
 
@@ -125,119 +117,6 @@ export class SearchStore {
 			this.#loading = false;
 		}
 	}
-
-
-	private applyClientFilters(items: any[]): any[] {
-		if (!this.#parsedSearch || Object.keys(this.#parsedSearch.clientFilters).length === 0) {
-			return items;
-		}
-
-		return items.filter((item) => {
-			const filters = this.#parsedSearch!.clientFilters;
-
-			// Genre filtering
-			if (filters.with_genres) {
-				const requiredGenres = String(filters.with_genres)
-					.split(/[,|]/)
-					.map((g) => Number(g.trim()));
-				const separator = String(filters.with_genres).includes("|") ? "OR" : "AND";
-
-				if (separator === "AND") {
-					// All genres must be present
-					if (
-						!requiredGenres.every((genreId) => item.genre_ids?.includes(genreId))
-					) {
-						return false;
-					}
-				} else {
-					// At least one genre must be present
-					if (!requiredGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-						return false;
-					}
-				}
-			}
-
-			if (filters.without_genres) {
-				const excludedGenres = String(filters.without_genres)
-					.split(/[,|]/)
-					.map((g) => Number(g.trim()));
-
-				// None of the excluded genres should be present
-				if (excludedGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-					return false;
-				}
-			}
-
-			// Vote average filtering
-			if (filters["vote_average.gte"] !== undefined) {
-				if (
-					!item.vote_average ||
-					item.vote_average < Number(filters["vote_average.gte"])
-				) {
-					return false;
-				}
-			}
-
-			if (filters["vote_average.lte"] !== undefined) {
-				if (
-					!item.vote_average ||
-					item.vote_average > Number(filters["vote_average.lte"])
-				) {
-					return false;
-				}
-			}
-
-			// Vote count filtering
-			if (filters["vote_count.gte"] !== undefined) {
-				if (!item.vote_count || item.vote_count < Number(filters["vote_count.gte"])) {
-					return false;
-				}
-			}
-
-			if (filters["vote_count.lte"] !== undefined) {
-				if (!item.vote_count || item.vote_count > Number(filters["vote_count.lte"])) {
-					return false;
-				}
-			}
-
-			// Date filtering
-			const dateField = item.release_date || item.first_air_date;
-			if (dateField) {
-				if (filters["release_date.gte"] || filters["primary_release_date.gte"]) {
-					const minDate =
-						filters["release_date.gte"] || filters["primary_release_date.gte"];
-					if (dateField < String(minDate)) {
-						return false;
-					}
-				}
-
-				if (filters["release_date.lte"] || filters["primary_release_date.lte"]) {
-					const maxDate =
-						filters["release_date.lte"] || filters["primary_release_date.lte"];
-					if (dateField > String(maxDate)) {
-						return false;
-					}
-				}
-
-				if (filters["air_date.gte"] || filters["first_air_date.gte"]) {
-					const minDate = filters["air_date.gte"] || filters["first_air_date.gte"];
-					if (dateField < String(minDate)) {
-						return false;
-					}
-				}
-
-				if (filters["air_date.lte"] || filters["first_air_date.lte"]) {
-					const maxDate = filters["air_date.lte"] || filters["first_air_date.lte"];
-					if (dateField > String(maxDate)) {
-						return false;
-					}
-				}
-			}
-
-			return true;
-		});
-	}
-
 	private async fetchMovies(page: number): Promise<void> {
 		if (!this.#parsedSearch) return;
 
@@ -249,10 +128,9 @@ export class SearchStore {
 		}
 
 		const result = await response.json();
-		const filteredResults = this.applyClientFilters(result.results || []);
 
 		if (page === 1) {
-			this.#movieResults = filteredResults;
+			this.#movieResults = result.results || [];
 			// For page 1, set or add based on media type
 			if (this.#mediaType === "movie") {
 				this.#totalResults = result.total_results || 0;
@@ -261,7 +139,7 @@ export class SearchStore {
 			}
 			console.log("type is {} and total results are now {}", this.#mediaType, this.#totalResults)
 		} else {
-			this.#movieResults = [...this.#movieResults, ...filteredResults];
+			this.#movieResults = [...this.#movieResults, ...(result.results || [])];
 		}
 
 		this.#movieHasMore = result.page < result.total_pages;
@@ -279,10 +157,9 @@ export class SearchStore {
 		}
 
 		const result = await response.json();
-		const filteredResults = this.applyClientFilters(result.results || []);
 
 		if (page === 1) {
-			this.#tvResults = filteredResults;
+			this.#tvResults = result.results || [];
 			// For page 1, set or add based on media type
 			if (this.#mediaType === "tv") {
 				this.#totalResults = result.total_results || 0;
@@ -291,7 +168,7 @@ export class SearchStore {
 			}
 			console.log("type is {} and total results are now {}", this.#mediaType, this.#totalResults)
 		} else {
-			this.#tvResults = [...this.#tvResults, ...filteredResults];
+			this.#tvResults = [...this.#tvResults, ...(result.results || [])];
 		}
 
 		this.#tvHasMore = result.page < result.total_pages;
@@ -315,7 +192,7 @@ export class SearchStore {
 				}
 
 				const result = await response.json();
-				const newItems = this.applyClientFilters(result.results || []);
+				const newItems = result.results || [];
 
 				if (newItems.length > 0) {
 					this.#movieResults = [...this.#movieResults, ...newItems];
@@ -335,7 +212,7 @@ export class SearchStore {
 				}
 
 				const result = await response.json();
-				const newItems = this.applyClientFilters(result.results || []);
+				const newItems = result.results || [];
 
 				if (newItems.length > 0) {
 					this.#tvResults = [...this.#tvResults, ...newItems];

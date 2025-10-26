@@ -9,6 +9,7 @@
 	const searchStore: any = getContext("searchStore");
 	let loadMoreTrigger: HTMLDivElement;
 	let observer: IntersectionObserver | null = null;
+	let lastQuery = $state("");
 
 	function setupObserver() {
 		// Disconnect existing observer if any
@@ -33,12 +34,6 @@
 	}
 
 	onMount(() => {
-		if (data.form.data.query) {
-			searchStore.setSearch(data.form.data.query, data.parsed);
-			searchStore.setMediaType(data.form.data.type || "both");
-			searchStore.search();
-		}
-
 		// Setup initial observer
 		setupObserver();
 
@@ -47,6 +42,19 @@
 				observer.disconnect();
 			}
 		};
+	});
+
+	// Reactive effect to trigger search when query changes
+	$effect(() => {
+		const currentQuery = data.form.data.query;
+
+		// Only trigger search if the query actually changed
+		if (currentQuery && currentQuery !== lastQuery) {
+			lastQuery = currentQuery;
+			searchStore.setSearch(currentQuery, data.parsed);
+			searchStore.setMediaType(data.form.data.type || "both");
+			searchStore.search();
+		}
 	});
 
 	// Reactive effect to re-setup observer when media type changes

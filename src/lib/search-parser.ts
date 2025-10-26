@@ -43,7 +43,6 @@ export interface ParsedSearchQuery {
 	tmdbParams: TMDBParams;
 	tvdbParams: Partial<TVDBParams>;
 	searchMode: SearchMode;
-	clientFilters: TMDBParams;
 	warnings: string[];
 }
 
@@ -151,18 +150,6 @@ const GENRE_MAP: Record<string, number> = {
 };
 
 /**
- * Parameters that can be applied client-side
- */
-const CLIENT_FILTERABLE = new Set([
-	'with_genres',
-	'without_genres',
-	'vote_average.gte',
-	'vote_average.lte',
-	'vote_count.gte',
-	'vote_count.lte'
-]);
-
-/**
  * Parses a search query string into provider-specific parameters
  *
  * @param query - The search query string (e.g., "breaking bad y:2008 net:AMC")
@@ -176,7 +163,6 @@ const CLIENT_FILTERABLE = new Set([
  * //   tmdbParams: { query: "breaking bad", year: 2008 },
  * //   tvdbParams: { query: "breaking bad", year: 2008, network: "AMC" },
  * //   searchMode: "search",
- * //   clientFilters: {},
  * //   warnings: []
  * // }
  * ```
@@ -184,7 +170,6 @@ const CLIENT_FILTERABLE = new Set([
 export function parseSearchQuery(query: string): ParsedSearchQuery {
 	const tmdbParams: TMDBParams = {};
 	const tvdbParams: Partial<TVDBParams> = {};
-	const clientFilters: TMDBParams = {};
 	const words: string[] = [];
 	const warnings: string[] = [];
 
@@ -219,13 +204,7 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 						if (genreIds.length > 0) {
 							const separator = value.includes('|') ? '|' : ',';
 							const genreString = genreIds.join(separator);
-
-							// Check if this should be client-side filtered
-							if (CLIENT_FILTERABLE.has(paramName)) {
-								clientFilters[paramName] = genreString;
-							} else {
-								tmdbParams[paramName] = genreString;
-							}
+							tmdbParams[paramName] = genreString;
 						}
 					}
 					// Handle numeric parameters
@@ -237,11 +216,7 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 					) {
 						const numValue = Number(value);
 						if (!isNaN(numValue)) {
-							if (CLIENT_FILTERABLE.has(paramName)) {
-								clientFilters[paramName] = numValue;
-							} else {
-								tmdbParams[paramName] = numValue;
-							}
+							tmdbParams[paramName] = numValue;
 						}
 					}
 					// Handle string parameters
@@ -305,7 +280,6 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 		tmdbParams,
 		tvdbParams,
 		searchMode,
-		clientFilters,
 		warnings
 	};
 }

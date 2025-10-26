@@ -2,6 +2,63 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 
+/**
+ * Apply server-side filters to TVDB results
+ */
+function applyServerFilters(items: any[], filters: Record<string, any>): any[] {
+	if (!filters || Object.keys(filters).length === 0) {
+		return items;
+	}
+
+	return items.filter((item) => {
+		// Vote average filtering (if TVDB provides ratings)
+		if (filters["vote_average.gte"] !== undefined) {
+			if (!item.vote_average || item.vote_average < Number(filters["vote_average.gte"])) {
+				return false;
+			}
+		}
+
+		if (filters["vote_average.lte"] !== undefined) {
+			if (!item.vote_average || item.vote_average > Number(filters["vote_average.lte"])) {
+				return false;
+			}
+		}
+
+		// Vote count filtering
+		if (filters["vote_count.gte"] !== undefined) {
+			if (!item.vote_count || item.vote_count < Number(filters["vote_count.gte"])) {
+				return false;
+			}
+		}
+
+		if (filters["vote_count.lte"] !== undefined) {
+			if (!item.vote_count || item.vote_count > Number(filters["vote_count.lte"])) {
+				return false;
+			}
+		}
+
+		// Date filtering
+		const dateField = item.first_air_date;
+		if (dateField) {
+			if (filters["air_date.gte"] || filters["first_air_date.gte"]) {
+				const minDate = filters["air_date.gte"] || filters["first_air_date.gte"];
+				if (dateField < String(minDate)) {
+					return false;
+				}
+			}
+
+			if (filters["air_date.lte"] || filters["first_air_date.lte"]) {
+				const maxDate = filters["air_date.lte"] || filters["first_air_date.lte"];
+				if (dateField > String(maxDate)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	});
+}
+
 export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 	if (!locals.user || !locals.session) {
 		error(401, "Unauthorized");
@@ -20,6 +77,32 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 	const page = parseInt(url.searchParams.get("page") || "1");
 	const limit = 20;
 	const offset = (page - 1) * limit;
+
+	// Extract client-side filters
+	const clientFilters: Record<string, any> = {};
+	const CLIENT_FILTERABLE = new Set([
+		'vote_average.gte',
+		'vote_average.lte',
+		'vote_count.gte',
+		'vote_count.lte',
+		'air_date.gte',
+		'air_date.lte',
+		'first_air_date.gte',
+		'first_air_date.lte'
+	]);
+
+	for (const [key, value] of url.searchParams) {
+		if (CLIENT_FILTERABLE.has(key)) {
+			if (key.includes("vote_")) {
+				const numValue = Number(value);
+				if (!isNaN(numValue)) {
+					clientFilters[key] = numValue;
+				}
+			} else {
+				clientFilters[key] = value;
+			}
+		}
+	}
 
 	if (!query && !remote_id) {
 		error(400, "Search query or remote_id is required");
@@ -52,7 +135,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 		// Make search request to TVDB using the provider client
 		const searchResult = await providers.tvdb.GET("/search", {
 			params: {
-				query: searchParams,
+				query: searchParams as any,
 				header: {
 					Authorization: `Bearer ${tvdbToken}`
 				}
@@ -67,10 +150,10 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 
 		// Transform TVDB results to match our frontend format
 		const transformedResults = (searchResult.data?.data || [])
-			.filter((item) => item.type === "series") // Only include series
-			.map((item) => ({
+			.filter((item: any) => item.type === "series") // Only include series
+			.map((item: any) => ({
 				id: item.tvdb_id,
-				title: item.name || item.primary_name || "Unknown",
+				title: item.name || "Unknown",
 				poster_path: item.image_url || null,
 				media_type: "TV",
 				year: item.year || (item.first_air_time ? new Date(item.first_air_time).getFullYear() : "N/A"),
@@ -80,12 +163,15 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 				first_air_date: item.first_air_time || null
 			}));
 
+		// Apply server-side filters
+		const filteredResults = applyServerFilters(transformedResults, clientFilters);
+
 		// Calculate pagination info
-		const totalItems = searchResult.data?.links?.total_items || transformedResults.length;
+		const totalItems = searchResult.data?.links?.total_items || filteredResults.length;
 		const totalPages = Math.ceil(totalItems / limit);
 
 		return json({
-			results: transformedResults,
+			results: filteredResults,
 			page: page,
 			total_pages: totalPages,
 			total_results: totalItems
