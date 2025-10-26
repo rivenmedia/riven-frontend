@@ -5,7 +5,7 @@
     import * as Chart from "$lib/components/ui/chart/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { BarChart, PieChart } from "layerchart";
-    import { formatBytes, formatDate, getServiceDisplayName } from "$lib/format-utils";
+    import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
 
     let { data }: { data: PageData } = $props();
 
