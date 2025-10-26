@@ -2,6 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
+import { transformTMDBList } from "$lib/providers/parser";
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 	if (!locals.user || !locals.session) {
@@ -71,19 +72,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 					error(500, "Failed to search movies");
 				}
 
-				const transformedResults = searchResult.data.results?.map((item) => ({
-					id: item.id,
-					title: item.title || item.original_title,
-					poster_path: item.poster_path
-						? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-						: null,
-					media_type: "Movie",
-					year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A",
-					vote_average: item.vote_average,
-					vote_count: item.vote_count,
-					genre_ids: item.genre_ids,
-					release_date: item.release_date
-				}));
+				const transformedResults = transformTMDBList(searchResult.data.results);
 
 				return json({
 					results: transformedResults,
@@ -104,21 +93,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 					error(500, "Failed to search TV shows");
 				}
 
-				const transformedResults = searchResult.data.results?.map((item) => ({
-					id: item.id,
-					title: item.name || item.original_name,
-					poster_path: item.poster_path
-						? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-						: null,
-					media_type: "TV",
-					year: item.first_air_date
-						? new Date(item.first_air_date).getFullYear()
-						: "N/A",
-					vote_average: item.vote_average,
-					vote_count: item.vote_count,
-					genre_ids: item.genre_ids,
-					first_air_date: item.first_air_date
-				}));
+				const transformedResults = transformTMDBList(searchResult.data.results);
 
 				return json({
 					results: transformedResults,
@@ -142,19 +117,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 					error(500, "Failed to discover movies");
 				}
 
-				const transformedResults = discover.data.results?.map((item) => ({
-					id: item.id,
-					title: item.title || item.original_title,
-					poster_path: item.poster_path
-						? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-						: null,
-					media_type: "Movie",
-					year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A",
-					vote_average: item.vote_average,
-					vote_count: item.vote_count,
-					genre_ids: item.genre_ids,
-					release_date: item.release_date
-				}));
+				const transformedResults = transformTMDBList(discover.data.results);
 
 				return json({
 					results: transformedResults,
@@ -175,21 +138,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 					error(500, "Failed to discover TV shows");
 				}
 
-				const transformedResults = discover.data.results?.map((item) => ({
-					id: item.id,
-					title: item.name || item.original_name,
-					poster_path: item.poster_path
-						? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-						: null,
-					media_type: "TV",
-					year: item.first_air_date
-						? new Date(item.first_air_date).getFullYear()
-						: "N/A",
-					vote_average: item.vote_average,
-					vote_count: item.vote_count,
-					genre_ids: item.genre_ids,
-					first_air_date: item.first_air_date
-				}));
+				const transformedResults = transformTMDBList(discover.data.results);
 
 				return json({
 					results: transformedResults,

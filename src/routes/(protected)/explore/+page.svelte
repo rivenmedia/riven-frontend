@@ -3,8 +3,6 @@
 	import ListItem from "$lib/components/list-item.svelte";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-	import { parseSearchQuery } from "$lib/search-parser";
-	import { page } from "$app/stores";
 
 	let { data } = $props();
 
@@ -35,13 +33,9 @@
 	}
 
 	onMount(() => {
-		// Get search query from URL params
-		const queryParam = $page.url.searchParams.get("query");
-
-		if (queryParam) {
-			// Parse and set search
-			const parsed = parseSearchQuery(queryParam);
-			searchStore.setSearch(queryParam, parsed);
+		if (data.form.data.query) {
+			searchStore.setSearch(data.form.data.query, data.parsed);
+			searchStore.setMediaType(data.form.data.type || "both");
 			searchStore.search();
 		}
 
