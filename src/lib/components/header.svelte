@@ -7,39 +7,8 @@
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
-    import { parseSearchQuery } from "$lib/search-parser";
-    import { goto } from "$app/navigation";
-    import { page } from "$app/state";
 
     const SidebarStore: any = getContext("sidebarStore");
-    const searchStore: any = getContext("searchStore");
-
-    let searchValue = $state("");
-
-    async function handleSearchSubmit(event: KeyboardEvent) {
-        if (event.key === "Enter") {
-            await handleSearch();
-        }
-    }
-
-    async function handleSearch() {
-        if (searchValue.trim()) {
-            const parsed = parseSearchQuery(searchValue);
-
-            // Store search state
-            if (searchStore) {
-                searchStore.setSearch(searchValue, parsed);
-            }
-
-            if (page.url.pathname === "/search") {
-                    await searchStore.search();
-            } else {
-                // Navigate to search page with query parameter
-                const searchParams = new URLSearchParams({ q: searchValue });
-                await goto(`/search?${searchParams.toString()}`, { invalidateAll: true });
-            }
-        }
-    }
 </script>
 
 <header
