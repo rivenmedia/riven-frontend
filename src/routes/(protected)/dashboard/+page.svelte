@@ -4,7 +4,8 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Chart from "$lib/components/ui/chart/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import { BarChart, Pie, PieChart } from "layerchart";
+    import { BarChart, PieChart } from "layerchart";
+    import { formatBytes, formatDate, getServiceDisplayName } from "$lib/format-utils";
 
     let { data }: { data: PageData } = $props();
 
@@ -64,7 +65,7 @@
     </Card.Root>
 {/snippet}
 
-<div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
+<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
     <h1 class="mb-8 text-3xl font-bold tracking-tight">Media Library Statistics</h1>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -87,12 +88,12 @@
         {@render KPICard({
             title: "Completion Rate",
             value:
-                data.statistics && data.statistics.states.Completed !== undefined
+                data.statistics && data.statistics.total_items > 0 && data.statistics.states.Completed !== undefined
                     ? (
                           (data.statistics.states.Completed / data.statistics.total_items) *
                           100
                       ).toFixed(2) + "%"
-                    : undefined,
+                    : '0%',
             sub: "Completed / Total"
         })}
     </section>
@@ -166,4 +167,97 @@
             </Card.Content>
         </Card.Root>
     </section>
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {#each data.downloaderInfo?.services as downloader}
+            <Card.Root class="bg-gradient-to-br bg-card border">
+                <Card.Header class="pb-3">
+                    <div class="flex items-center justify-between">
+                        <Card.Title class="text-lg font-semibold text-neutral-50">
+                            {getServiceDisplayName(downloader.service)}
+                        </Card.Title>
+                        <Badge
+                            variant={downloader.premium_status === "premium"
+                                ? "default"
+                                : "secondary"}
+                            class={downloader.premium_status === "premium"
+                                ? "bg-amber-600/30 text-amber-300 hover:bg-amber-600/40"
+                                : ""}>
+                            {downloader.premium_status === "premium" ? "Premium" : "Free"}
+                        </Badge>
+                    </div>
+                </Card.Header>
+                <Card.Content class="space-y-3">
+                    <!-- Username/Email -->
+                    {#if downloader.username || downloader.email}
+                        <div>
+                            <p class="text-xs font-medium text-neutral-400">Account</p>
+                            <p class="mt-0.5 text-sm font-medium text-neutral-100">
+                                {downloader.username || downloader.email}
+                            </p>
+                        </div>
+                    {/if}
+
+                    <!-- Premium Expiration -->
+                    {#if downloader.premium_status === "premium" && (downloader.premium_expires_at || downloader.premium_days_left !== null)}
+                        <div class="grid grid-cols-2 gap-3">
+                            {#if downloader.premium_expires_at}
+                                <div>
+                                    <p class="text-xs font-medium text-neutral-400">Expires</p>
+                                    <p class="mt-0.5 text-sm font-medium text-neutral-100">
+                                        {formatDate(downloader.premium_expires_at)}
+                                    </p>
+                                </div>
+                            {/if}
+                            {#if downloader.premium_days_left !== null && downloader.premium_days_left !== undefined}
+                                <div>
+                                    <p class="text-xs font-medium text-neutral-400">Days Left</p>
+                                    <p
+                                        class={cn(
+                                            "mt-0.5 text-sm font-semibold",
+                                            downloader.premium_days_left < 7
+                                                ? "text-red-400"
+                                                : downloader.premium_days_left < 30
+                                                    ? "text-amber-300"
+                                                    : "text-green-400"
+                                        )}>
+                                        {downloader.premium_days_left}
+                                    </p>
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+
+                    <!-- Points & Downloaded -->
+                    <div class="grid grid-cols-2 gap-3">
+                        {#if downloader.points !== null && downloader.points !== undefined}
+                            <div>
+                                <p class="text-xs font-medium text-neutral-400">Points</p>
+                                <p class="mt-0.5 text-sm font-medium text-neutral-100">
+                                    {downloader.points.toLocaleString()}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if downloader.total_downloaded_bytes !== null && downloader.total_downloaded_bytes !== undefined}
+                            <div>
+                                <p class="text-xs font-medium text-neutral-400">Downloaded</p>
+                                <p class="mt-0.5 text-sm font-medium text-neutral-100">
+                                    {formatBytes(downloader.total_downloaded_bytes)}
+                                </p>
+                            </div>
+                        {/if}
+                    </div>
+
+                    <!-- Cooldown Warning -->
+                    {#if downloader.cooldown_until}
+                        <div class="rounded-md bg-amber-600/20 p-2">
+                            <p class="text-xs font-medium text-amber-300">
+                                Cooldown until {formatDate(downloader.cooldown_until)}
+                            </p>
+                        </div>
+                    {/if}
+                </Card.Content>
+            </Card.Root>
+        {/each}
+    </section>  
 </div>
