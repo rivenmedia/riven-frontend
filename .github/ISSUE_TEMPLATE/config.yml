@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
     - name: 💁 Support
-      url: https://discord.gg/rivenmedia
+      url: https://discord.riven.tv
       about: "This issue tracker is not for support questions. Join us on Discord for assistance!"
     - name: 📘 Documentation
       url: https://riven.tv
@@ -10,5 +10,5 @@ contact_links:
       url: https://github.com/rivenmedia/riven-frontend/discussions
       about: Propose and discuss future improvements to Riven
     - name: 👾 Chat
-      url: https://discord.gg/rivenmedia
+      url: https://discord.riven.tv
       about: Our Discord server is active, come join us!
