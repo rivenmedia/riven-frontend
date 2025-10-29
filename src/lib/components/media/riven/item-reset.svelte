@@ -3,6 +3,7 @@
     import { toast } from "svelte-sonner";
     import MediaActionDialog from "./media-action-dialog.svelte";
     import type { ButtonWrapperProps } from "$lib/types/button";
+    import { filterValidIds } from "$lib/utils";
 
     interface Props extends ButtonWrapperProps {
         title: string | null | undefined;
@@ -11,7 +12,7 @@
     let { title, ids, variant = "ghost", size = "sm", ...restProps }: Props = $props();
 
     async function resetMediaItem(ids: (string | null | undefined)[]) {
-        const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
+        const validIds = filterValidIds(ids);
 
         const response = await resetItems({
             query: {

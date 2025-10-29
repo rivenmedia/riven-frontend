@@ -3,6 +3,7 @@
     import { toast } from "svelte-sonner";
     import MediaActionDialog from "./media-action-dialog.svelte";
     import type { ButtonWrapperProps } from "$lib/types/button";
+    import { filterValidIds } from "$lib/utils";
 
     interface Props extends ButtonWrapperProps {
         title: string | null | undefined;
@@ -13,7 +14,7 @@
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: "movie" | "tv") {
         console.log("IDs:", ids);
-        const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
+        const validIds = filterValidIds(ids);
 
         const response = await addItems({
             query: {

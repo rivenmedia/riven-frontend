@@ -30,3 +30,14 @@ export function handleFormMessage(message: string | undefined) {
         }
     }
 }
+
+/**
+ * Filters an array of potentially null or undefined IDs to return only valid string IDs.
+ * Useful for ensuring API calls receive valid ID parameters.
+ * 
+ * @param ids - Array of IDs that may be null or undefined
+ * @returns Array of valid string IDs
+ */
+export function filterValidIds(ids: (string | null | undefined)[]): string[] {
+    return ids.filter((id): id is string => id !== null && id !== undefined);
+}
