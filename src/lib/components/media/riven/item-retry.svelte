@@ -21,7 +21,7 @@
         });
 
         if (response.data) {
-            toast.success("Media item retry successfully!");
+            toast.success("Media item retried successfully!");
         } else {
             toast.error("Failed to retry media item.");
         }
