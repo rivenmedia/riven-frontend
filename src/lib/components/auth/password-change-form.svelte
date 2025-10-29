@@ -11,11 +11,10 @@
     import EyeOff from "@lucide/svelte/icons/eye-off";
     import { Switch } from "$lib/components/ui/switch/index.js";
     import SuperDebug from "sveltekit-superforms";
-    import { toast } from "svelte-sonner";
     import type { FsSuperForm } from "formsnap";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import { dev } from "$app/environment";
-    import { page } from "$app/state";
+    import { handleFormMessage } from "$lib/utils";
 
     let {
         data
@@ -42,13 +41,7 @@
     }
 
     $effect(() => {
-        if ($message) {
-            if (page.status >= 200 && page.status < 300) {
-                toast.success($message);
-            } else {
-                toast.error($message);
-            }
-        }
+        handleFormMessage($message);
     });
 </script>
 

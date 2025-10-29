@@ -1,8 +1,7 @@
 <script lang="ts">
     import { removeItem } from "$lib/api";
     import { toast } from "svelte-sonner";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
+    import MediaActionDialog from "./media-action-dialog.svelte";
 
     interface Props {
         title: string | null | undefined;
@@ -30,38 +29,19 @@
         });
 
         if (response.data) {
-            toast.success("Media item retry successfully!");
+            toast.success("Media item deleted successfully!");
         } else {
-            toast.error("Failed to retry media item.");
+            toast.error("Failed to delete media item.");
         }
     }
-
-    let open = $state(false);
 </script>
 
-<AlertDialog.Root bind:open>
-    <AlertDialog.Trigger>
-        {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>Delete</Button>
-        {/snippet}
-    </AlertDialog.Trigger>
-    <AlertDialog.Content>
-        <AlertDialog.Header>
-            <AlertDialog.Title>
-                Deleting "{title ?? "Media Item"}"
-            </AlertDialog.Title>
-            <AlertDialog.Description>
-                This will send a request to Riven to delete this media. You will be notified when
-                it's removed.
-            </AlertDialog.Description>
-        </AlertDialog.Header>
-        <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
-                onclick={async () => {
-                    await removeMediaItem(ids);
-                    open = false;
-                }}>Delete</AlertDialog.Action>
-        </AlertDialog.Footer>
-    </AlertDialog.Content>
-</AlertDialog.Root>
+<MediaActionDialog
+    title={`Deleting "${title ?? "Media Item"}"`}
+    description="This will send a request to Riven to delete this media. You will be notified when it's removed."
+    buttonText="Delete"
+    actionButtonText="Delete"
+    {variant}
+    {size}
+    {...restProps}
+    onAction={() => removeMediaItem(ids)} />

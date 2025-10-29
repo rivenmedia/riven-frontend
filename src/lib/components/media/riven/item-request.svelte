@@ -1,8 +1,7 @@
 <script lang="ts">
     import { addItems } from "$lib/api";
     import { toast } from "svelte-sonner";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
+    import MediaActionDialog from "./media-action-dialog.svelte";
 
     interface Props {
         title: string | null | undefined;
@@ -39,33 +38,14 @@
             toast.error("Failed to request media item.");
         }
     }
-
-    let open = $state(false);
 </script>
 
-<AlertDialog.Root bind:open>
-    <AlertDialog.Trigger>
-        {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>Request</Button>
-        {/snippet}
-    </AlertDialog.Trigger>
-    <AlertDialog.Content>
-        <AlertDialog.Header>
-            <AlertDialog.Title>
-                Requesting "{title ?? "Media Item"}"
-            </AlertDialog.Title>
-            <AlertDialog.Description>
-                This will send a request to Riven to add this media. You will be notified when it's
-                available.
-            </AlertDialog.Description>
-        </AlertDialog.Header>
-        <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
-                onclick={async () => {
-                    await addMediaItem(ids, mediaType);
-                    open = false;
-                }}>Request</AlertDialog.Action>
-        </AlertDialog.Footer>
-    </AlertDialog.Content>
-</AlertDialog.Root>
+<MediaActionDialog
+    title={`Requesting "${title ?? "Media Item"}"`}
+    description="This will send a request to Riven to add this media. You will be notified when it's available."
+    buttonText="Request"
+    actionButtonText="Request"
+    {variant}
+    {size}
+    {...restProps}
+    onAction={() => addMediaItem(ids, mediaType)} />

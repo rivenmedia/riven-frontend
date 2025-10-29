@@ -9,15 +9,14 @@
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
     import SuperDebug from "sveltekit-superforms";
-    import { toast } from "svelte-sonner";
     import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
     import { goto } from "$app/navigation";
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
     import { dev } from "$app/environment";
-    import { page } from "$app/state";
     import Star from "@lucide/svelte/icons/star";
+    import { handleFormMessage } from "$lib/utils";
 
     let {
         data
@@ -47,21 +46,8 @@
     } = registerForm;
 
     $effect(() => {
-        if ($loginMessage) {
-            if (page.status >= 200 && page.status < 300) {
-                toast.success($loginMessage);
-            } else {
-                toast.error($loginMessage);
-            }
-        }
-
-        if ($registerMessage) {
-            if (page.status >= 200 && page.status < 300) {
-                toast.success($registerMessage);
-            } else {
-                toast.error($registerMessage);
-            }
-        }
+        handleFormMessage($loginMessage);
+        handleFormMessage($registerMessage);
     });
 
     async function plexLogin() {

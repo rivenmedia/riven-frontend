@@ -1,8 +1,7 @@
 <script lang="ts">
     import { resetItems } from "$lib/api";
     import { toast } from "svelte-sonner";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
+    import MediaActionDialog from "./media-action-dialog.svelte";
 
     interface Props {
         title: string | null | undefined;
@@ -35,33 +34,14 @@
             toast.error("Failed to reset media item.");
         }
     }
-
-    let open = $state(false);
 </script>
 
-<AlertDialog.Root bind:open>
-    <AlertDialog.Trigger>
-        {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>Reset</Button>
-        {/snippet}
-    </AlertDialog.Trigger>
-    <AlertDialog.Content>
-        <AlertDialog.Header>
-            <AlertDialog.Title>
-                Resetting "{title ?? "Media Item"}"
-            </AlertDialog.Title>
-            <AlertDialog.Description>
-                This will send a request to Riven to reset this media. You will be notified when
-                it's done.
-            </AlertDialog.Description>
-        </AlertDialog.Header>
-        <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
-                onclick={async () => {
-                    await resetMediaItem(ids);
-                    open = false;
-                }}>Reset</AlertDialog.Action>
-        </AlertDialog.Footer>
-    </AlertDialog.Content>
-</AlertDialog.Root>
+<MediaActionDialog
+    title={`Resetting "${title ?? "Media Item"}"`}
+    description="This will send a request to Riven to reset this media. You will be notified when it's done."
+    buttonText="Reset"
+    actionButtonText="Reset"
+    {variant}
+    {size}
+    {...restProps}
+    onAction={() => resetMediaItem(ids)} />

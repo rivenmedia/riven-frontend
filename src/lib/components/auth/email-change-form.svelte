@@ -6,10 +6,9 @@
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import SuperDebug from "sveltekit-superforms";
-    import { toast } from "svelte-sonner";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import { dev } from "$app/environment";
-    import { page } from "$app/state";
+    import { handleFormMessage } from "$lib/utils";
 
     let {
         data
@@ -24,13 +23,7 @@
     const { form: formData, enhance, message, delayed } = form;
 
     $effect(() => {
-        if ($message) {
-            if (page.status >= 200 && page.status < 300) {
-                toast.success($message);
-            } else {
-                toast.error($message);
-            }
-        }
+        handleFormMessage($message);
     });
 </script>
 

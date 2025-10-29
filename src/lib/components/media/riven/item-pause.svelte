@@ -1,8 +1,7 @@
 <script lang="ts">
     import { pauseItems, unpauseItems } from "$lib/api";
     import { toast } from "svelte-sonner";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
+    import MediaActionDialog from "./media-action-dialog.svelte";
 
     interface Props {
         title: string | null | undefined;
@@ -49,35 +48,14 @@
             toast.error(`Failed to ${isPaused ? "unpause" : "pause"} media item.`);
         }
     }
-
-    let open = $state(false);
 </script>
 
-<AlertDialog.Root bind:open>
-    <AlertDialog.Trigger>
-        {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>
-                {isPaused ? "Resume" : "Pause"}
-            </Button>
-        {/snippet}
-    </AlertDialog.Trigger>
-    <AlertDialog.Content>
-        <AlertDialog.Header>
-            <AlertDialog.Title>
-                {isPaused ? "Resume" : "Pause"} "{title ?? "Media Item"}"
-            </AlertDialog.Title>
-            <AlertDialog.Description>
-                This will send a request to Riven to {isPaused ? "resume" : "pause"} this media. You
-                will be notified when it's done.
-            </AlertDialog.Description>
-        </AlertDialog.Header>
-        <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
-                onclick={async () => {
-                    await togglePauseMediaItem(ids);
-                    open = false;
-                }}>{isPaused ? "Resume" : "Pause"}</AlertDialog.Action>
-        </AlertDialog.Footer>
-    </AlertDialog.Content>
-</AlertDialog.Root>
+<MediaActionDialog
+    title={`${isPaused ? "Resume" : "Pause"} "${title ?? "Media Item"}"`}
+    description={`This will send a request to Riven to ${isPaused ? "resume" : "pause"} this media. You will be notified when it's done.`}
+    buttonText={isPaused ? "Resume" : "Pause"}
+    actionButtonText={isPaused ? "Resume" : "Pause"}
+    {variant}
+    {size}
+    {...restProps}
+    onAction={() => togglePauseMediaItem(ids)} />
