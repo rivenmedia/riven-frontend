@@ -1,22 +1,13 @@
 <script lang="ts">
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+    import type { ButtonWrapperProps } from "$lib/types/button";
 
-    interface Props {
+    interface Props extends ButtonWrapperProps {
         title: string;
         description: string;
         buttonText: string;
         actionButtonText: string;
-        variant?:
-            | "ghost"
-            | "default"
-            | "link"
-            | "destructive"
-            | "outline"
-            | "secondary"
-            | undefined;
-        size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
-        class?: string;
         onAction: () => Promise<void>;
     }
 

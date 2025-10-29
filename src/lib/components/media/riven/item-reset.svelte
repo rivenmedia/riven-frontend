@@ -2,20 +2,11 @@
     import { resetItems } from "$lib/api";
     import { toast } from "svelte-sonner";
     import MediaActionDialog from "./media-action-dialog.svelte";
+    import type { ButtonWrapperProps } from "$lib/types/button";
 
-    interface Props {
+    interface Props extends ButtonWrapperProps {
         title: string | null | undefined;
         ids: (string | null | undefined)[];
-        variant?:
-            | "ghost"
-            | "default"
-            | "link"
-            | "destructive"
-            | "outline"
-            | "secondary"
-            | undefined;
-        size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
-        class?: string;
     }
     let { title, ids, variant = "ghost", size = "sm", ...restProps }: Props = $props();
 
