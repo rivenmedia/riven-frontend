@@ -3,6 +3,7 @@
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+    import { invalidateAll } from "$app/navigation";
 
     interface Props {
         title: string | null | undefined;
@@ -28,6 +29,8 @@
                 ids: validIds.join(",")
             }
         });
+
+        invalidateAll();
 
         if (response.data) {
             toast.success("Media item retry successfully!");
