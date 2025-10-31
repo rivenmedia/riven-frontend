@@ -162,7 +162,7 @@
 
     {#if data.items && data.items.length > 0}
         <div class="mt-8 flex flex-wrap gap-2">
-            {#each data.items as item}
+            {#each data.items as item (item.id)}
                 <ListItem data={item} indexer={item.indexer} type={item.type} />
             {/each}
         </div>
