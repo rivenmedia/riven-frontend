@@ -203,18 +203,18 @@ export const zRealDebridModel = z.object({
 export type RealDebridModelZodType = z.infer<typeof zRealDebridModel>;
 
 /**
- * TorBoxModel
+ * DebridLinkModel
  */
-export const zTorBoxModel = z.object({
+export const zDebridLinkModel = z.object({
     enabled: z.optional(z.boolean().register(z.globalRegistry, {
-        description: 'Enable TorBox'
+        description: 'Enable Debrid-Link'
     })).default(false),
     api_key: z.optional(z.string().register(z.globalRegistry, {
-        description: 'TorBox API key'
+        description: 'Debrid-Link API key'
     })).default('')
 });
 
-export type TorBoxModelZodType = z.infer<typeof zTorBoxModel>;
+export type DebridLinkModelZodType = z.infer<typeof zDebridLinkModel>;
 
 /**
  * DownloadersModel
@@ -239,7 +239,7 @@ export const zDownloadersModel = z.object({
         description: 'Proxy URL for downloaders (optional)'
     })).default(''),
     real_debrid: z.optional(zRealDebridModel),
-    torbox: z.optional(zTorBoxModel)
+    debrid_link: z.optional(zDebridLinkModel)
 });
 
 export type DownloadersModelZodType = z.infer<typeof zDownloadersModel>;
@@ -864,9 +864,12 @@ export type CustomRanksConfigZodType = z.infer<typeof zCustomRanksConfig>;
  * RTNSettingsModel
  */
 export const zRtnSettingsModel = z.object({
-    profile: z.optional(z.string().register(z.globalRegistry, {
-        description: 'Identifier for the settings profile'
-    })).default('default'),
+    name: z.optional(z.string().register(z.globalRegistry, {
+        description: 'Name of the settings'
+    })).default('example'),
+    enabled: z.optional(z.boolean().register(z.globalRegistry, {
+        description: 'Whether these settings will be used or not'
+    })).default(true),
     require: z.optional(z.array(z.string()).register(z.globalRegistry, {
         description: 'Patterns torrents must match to be considered'
     })),
@@ -1102,8 +1105,8 @@ export type ContainerZodType = z.infer<typeof zContainer>;
 export const zDownloaderUserInfo = z.object({
     service: z.enum([
         'realdebrid',
-        'torbox',
-        'alldebrid'
+        'alldebrid',
+        'debridlink'
     ]),
     username: z.optional(z.union([
         z.string(),

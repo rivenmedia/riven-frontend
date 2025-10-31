@@ -66,7 +66,7 @@ export const health = <ThrowOnError extends boolean = false>(options?: Options<H
  * Get normalized user information from all initialized downloader services.
  *
  * Returns user info including premium status, expiration, and service-specific details
- * for all active downloader services (Real-Debrid, TorBox, AllDebrid, etc.)
+ * for all active downloader services (Real-Debrid, Debrid-Link, AllDebrid, etc.)
  */
 export const downloadUserInfo = <ThrowOnError extends boolean = false>(options?: Options<DownloadUserInfoData, ThrowOnError>) => {
     return (options?.client ?? _heyApiClient).get<DownloadUserInfoResponses, DownloadUserInfoErrors, ThrowOnError>({
