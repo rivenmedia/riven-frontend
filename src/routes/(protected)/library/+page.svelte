@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { PageProps } from "./$types";
+    import { fly } from "svelte/transition";
     import * as Form from "$lib/components/ui/form/index.js";
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
@@ -19,6 +20,11 @@
     import ListChecks from "@lucide/svelte/icons/list-checks";
     import * as Select from "$lib/components/ui/select/index.js";
     import ArrowUpDown from "@lucide/svelte/icons/arrow-up-down";
+    import { ItemStore } from "$lib/stores/library-items.svelte";
+    import { removeItem, resetItems, retryItems, pauseItems, unpauseItems } from "$lib/api";
+    import * as Pagination from "$lib/components/ui/pagination/index.js";
+    import Loading2Circle from "@lucide/svelte/icons/loader-2";
+    import { toast } from "svelte-sonner";
 
     let { data }: PageProps = $props();
 
@@ -29,17 +35,24 @@
 
     const { form: formData, enhance, message, delayed } = form;
 
+    const itemsStore = new ItemStore();
+
+    $inspect(itemsStore.items);
     $inspect(data);
+
+    let actionInProgress = $state(false);
+
+    let formElement: HTMLFormElement;
 </script>
 
 <div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
     {#if dev}
-        <div class="h-full">
+        <div class="w-full">
             <SuperDebug data={$formData} />
         </div>
     {/if}
 
-    <form class="flex flex-col" method="GET">
+    <form bind:this={formElement} class="flex flex-col" method="GET">
         <Form.Field {form} name="search">
             <Form.Control>
                 {#snippet children({ props })}
@@ -57,12 +70,12 @@
             <Form.FieldErrors />
         </Form.Field>
 
-        <div class="mt-2 flex items-center gap-2">
-            <Form.Field {form} name="type">
+        <div class="mt-2 flex flex-col items-center gap-2 md:flex-row">
+            <Form.Field {form} name="type" class="w-full md:w-auto">
                 <Form.Control>
                     {#snippet children({ props })}
                         <Select.Root type="multiple" bind:value={$formData.type} name={props.name}>
-                            <Select.Trigger {...props}>
+                            <Select.Trigger {...props} class="w-full md:w-71">
                                 {$formData.type
                                     ? $formData.type.join(", ")
                                     : "Select a type to display"}
@@ -77,14 +90,14 @@
                 </Form.Control>
             </Form.Field>
 
-            <Form.Field {form} name="states">
+            <Form.Field {form} name="states" class="w-full md:w-auto">
                 <Form.Control>
                     {#snippet children({ props })}
                         <Select.Root
                             type="multiple"
                             bind:value={$formData.states}
                             name={props.name}>
-                            <Select.Trigger {...props}>
+                            <Select.Trigger {...props} class="w-full md:w-71">
                                 {$formData.states
                                     ? $formData.states.join(", ")
                                     : "Select a state to display"}
@@ -160,12 +173,175 @@
         </div>
     </form>
 
+    {#if itemsStore && itemsStore.count > 0}
+        <p class="text-muted-foreground text-sm">
+            {itemsStore.count} item{itemsStore.count === 1 ? "" : "s"} selected
+        </p>
+
+        <div transition:fly class="flex gap-2">
+            {#snippet actionButton(
+                label: string,
+                variant: "destructive" | "outline",
+                action: () => Promise<void>
+            )}
+                <Button
+                    {variant}
+                    disabled={actionInProgress}
+                    size="sm"
+                    onclick={async () => {
+                        await action();
+                    }}>
+                    {#if actionInProgress}
+                        <Loading2Circle class="mr-0.5 h-5 w-5 animate-spin" />
+                    {/if}
+                    {label}
+                </Button>
+            {/snippet}
+
+            {@render actionButton("Remove Selected", "destructive", async () => {
+                actionInProgress = true;
+                const data = await removeItem({
+                    query: {
+                        ids: itemsStore.items.join(",")
+                    }
+                });
+                if (data.error) {
+                    toast.error(`Failed to remove items: ${data.error}`);
+                } else {
+                    toast.success(
+                        `Successfully removed ${itemsStore.count} item${itemsStore.count === 1 ? "" : "s"}`
+                    );
+                    itemsStore.clear();
+                }
+                actionInProgress = false;
+            })}
+
+            {@render actionButton("Reset Selected", "outline", async () => {
+                actionInProgress = true;
+                const data = await resetItems({
+                    query: {
+                        ids: itemsStore.items.join(",")
+                    }
+                });
+                if (data.error) {
+                    toast.error(`Failed to reset items: ${data.error}`);
+                } else {
+                    toast.success(
+                        `Successfully reset ${itemsStore.count} item${itemsStore.count === 1 ? "" : "s"}`
+                    );
+                    itemsStore.clear();
+                }
+                actionInProgress = false;
+            })}
+
+            {@render actionButton("Retry Selected", "outline", async () => {
+                actionInProgress = true;
+                const data = await retryItems({
+                    query: {
+                        ids: itemsStore.items.join(",")
+                    }
+                });
+                if (data.error) {
+                    toast.error(`Failed to retry items: ${data.error}`);
+                } else {
+                    toast.success(
+                        `Successfully retried ${itemsStore.count} item${itemsStore.count === 1 ? "" : "s"}`
+                    );
+                    itemsStore.clear();
+                }
+                actionInProgress = false;
+            })}
+
+            {@render actionButton("Pause Selected", "outline", async () => {
+                actionInProgress = true;
+                const data = await pauseItems({
+                    query: {
+                        ids: itemsStore.items.join(",")
+                    }
+                });
+                if (data.error) {
+                    toast.error(`Failed to pause items: ${data.error}`);
+                } else {
+                    toast.success(
+                        `Successfully paused ${itemsStore.count} item${itemsStore.count === 1 ? "" : "s"}`
+                    );
+                    itemsStore.clear();
+                }
+                actionInProgress = false;
+            })}
+
+            {@render actionButton("Unpause Selected", "outline", async () => {
+                actionInProgress = true;
+                const data = await unpauseItems({
+                    query: {
+                        ids: itemsStore.items.join(",")
+                    }
+                });
+                if (data.error) {
+                    toast.error(`Failed to unpause items: ${data.error}`);
+                } else {
+                    toast.success(
+                        `Successfully unpaused ${itemsStore.count} item${itemsStore.count === 1 ? "" : "s"}`
+                    );
+                    itemsStore.clear();
+                }
+                actionInProgress = false;
+            })}
+        </div>
+    {/if}
+
     {#if data.items && data.items.length > 0}
         <div class="mt-8 flex flex-wrap gap-2">
-            {#each data.items as item (item.id)}
-                <ListItem data={item} indexer={item.indexer} type={item.type} />
+            {#each data.items as item (item.riven_id)}
+                <ListItem
+                    data={item}
+                    indexer={item.indexer}
+                    type={item.type}
+                    isSelectable
+                    selectStore={itemsStore} />
             {/each}
         </div>
+
+        <div class="mt-4">
+            <p class="text-muted-foreground text-sm">
+                Showing page <span class="font-semibold text-purple-400">{$formData.page}</span> of
+                <span class="font-semibold text-purple-400">{data.totalPages}</span> pages ({data.totalItems}
+                items total)
+            </p>
+        </div>
+
+        <Pagination.Root
+            count={data.totalItems}
+            perPage={$formData.limit}
+            bind:page={$formData.page}
+            onPageChange={() => {
+                form.submit(formElement);
+            }}
+            class="mt-2 pb-16">
+            {#snippet children({ pages, currentPage })}
+                <Pagination.Content>
+                    <Pagination.Item>
+                        <Pagination.PrevButton />
+                    </Pagination.Item>
+                    {#each pages as page (page.key)}
+                        {#if page.type === "ellipsis"}
+                            <Pagination.Item>
+                                <Pagination.Ellipsis />
+                            </Pagination.Item>
+                        {:else}
+                            <Pagination.Item>
+                                <Pagination.Link {page} isActive={currentPage === page.value}>
+                                    {page.value}
+                                </Pagination.Link>
+                            </Pagination.Item>
+                        {/if}
+                    {/each}
+                    <Pagination.Item>
+                        <Pagination.NextButton />
+                    </Pagination.Item>
+                </Pagination.Content>
+            {/snippet}
+        </Pagination.Root>
     {:else}
         <div class="flex flex-1 items-center justify-center">
             <p class="text-muted-foreground text-lg">No items found in your library</p>

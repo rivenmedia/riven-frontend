@@ -37,7 +37,8 @@ function transformItems(items: any[]) {
                     ? "season"
                     : item.type === "Episode"
                       ? "episode"
-                      : "unknown"
+                      : "unknown",
+        riven_id: item.id
     }));
 }
 
@@ -58,6 +59,10 @@ export const load: PageServerLoad = async (event) => {
 
     return {
         items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
+        page: itemsResponse.data ? itemsResponse.data.page : 1,
+        totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
+        limit: itemsResponse.data ? itemsResponse.data.limit : 20,
+        totalItems: itemsResponse.data ? itemsResponse.data.total_items : 0,
         itemsSearchForm
     };
 };
