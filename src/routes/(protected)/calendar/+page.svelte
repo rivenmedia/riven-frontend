@@ -140,9 +140,9 @@
 
 {#snippet itemIcon(item: EntertainmentItem, size = 4)}
     {#if item.item_type === "episode"}
-        <Tv class={`h-${size} w-${size} flex-shrink-0 text-blue-400`} />
+        <Tv class={`h-${size} w-${size} shrink-0 text-blue-400`} />
     {:else}
-        <Film class={`h-${size} w-${size} flex-shrink-0 text-orange-400`} />
+        <Film class={`h-${size} w-${size} shrink-0 text-orange-400`} />
     {/if}
 {/snippet}
 
