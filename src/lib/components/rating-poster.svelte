@@ -83,7 +83,7 @@
                     ? 'h-[8%] w-full flex-row items-center justify-evenly'
                     : 'h-full w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
                 style="background-color: var(--secondary); opacity: {overlayOpacity};">
-                {#each scores as score}
+                {#each scores as score (score.name)}
                     <div
                         class="flex items-center gap-1 text-xs text-white {isHorizontal
                             ? 'flex-row'

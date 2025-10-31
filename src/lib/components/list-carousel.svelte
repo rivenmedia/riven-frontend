@@ -17,7 +17,7 @@
         class="mt-1.5"
         setApi={(emblaApi) => (api = emblaApi)}>
         <Carousel.Content>
-            {#each data as item}
+            {#each data as item (item.id)}
                 <Carousel.Item class="max-w-max">
                     <ListItem data={item} {indexer} {type} />
                 </Carousel.Item>

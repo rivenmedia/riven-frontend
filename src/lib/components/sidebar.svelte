@@ -45,7 +45,7 @@
         </div>
     </div>
     <nav class="mt-4 flex flex-col items-center gap-3.5">
-        {#each navItems as item}
+        {#each navItems as item (item.href)}
             <Tooltip>
                 {#snippet trigger()}
                     <a
