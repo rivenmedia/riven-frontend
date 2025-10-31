@@ -41,7 +41,7 @@
     {#if Array.isArray(anilistTrendingStore.items) && anilistTrendingStore.items.length > 0}
         <div
             class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {#each anilistTrendingStore.items as item}
+            {#each anilistTrendingStore.items as item (item.id)}
                 <div>
                     <ListItem data={item} indexer="anilist" type="anime" />
                 </div>
@@ -49,7 +49,7 @@
             {#if anilistTrendingStore.loading}
                 {#each Array(6) as _}
                     <div class="w-full">
-                        <Skeleton class="aspect-[2/3] w-full rounded-sm" />
+                        <Skeleton class="aspect-2/3 w-full rounded-sm" />
                         <Skeleton class="mt-2 h-4 w-full" />
                         <div class="mt-1 flex items-center justify-between">
                             <Skeleton class="h-4 w-12 rounded-full" />
@@ -64,7 +64,7 @@
             class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {#each Array(12) as _}
                 <div>
-                    <Skeleton class="aspect-[2/3] w-full rounded-sm" />
+                    <Skeleton class="aspect-2/3 w-full rounded-sm" />
                     <Skeleton class="mt-2 h-4 w-full" />
                     <div class="mt-1 flex items-center justify-between">
                         <Skeleton class="h-4 w-12 rounded-full" />

@@ -32,7 +32,7 @@
     </Card.Header>
     <Card.Content>
         <div class="flex flex-col gap-4">
-            {#each Object.entries(providers) as [providerId, config]}
+            {#each Object.entries(providers) as [providerId, config] (providerId)}
                 {#if config.enabled && providerId !== "credential"}
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">

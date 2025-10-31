@@ -106,7 +106,7 @@
             <p class="text-muted-foreground text-sm">Loading passkeys...</p>
         {:else if userPasskeys.length > 0}
             <div class="mb-4 space-y-2">
-                {#each userPasskeys as passkey}
+                {#each userPasskeys as passkey (passkey.id)}
                     <div class="flex items-center justify-between rounded-lg border p-3">
                         <div class="flex flex-1 items-center gap-3">
                             <Fingerprint class="text-muted-foreground h-5 w-5" />

@@ -143,7 +143,7 @@
             <Card.Content>
                 <div class="flex flex-wrap gap-4">
                     {#if data.services && Object.keys(data.services).length > 0}
-                        {#each Object.entries(data.services) as [serviceName, status]}
+                        {#each Object.entries(data.services) as [serviceName, status] (serviceName)}
                             {#if status === true}
                                 <Badge
                                     variant="default"
@@ -169,8 +169,8 @@
     </section>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {#each data.downloaderInfo?.services as downloader}
-            <Card.Root class="bg-gradient-to-br bg-card border">
+        {#each data.downloaderInfo?.services as downloader (downloader.service)}
+            <Card.Root class="bg-linear-to-br bg-card border">
                 <Card.Header class="pb-3">
                     <div class="flex items-center justify-between">
                         <Card.Title class="text-lg font-semibold text-neutral-50">
@@ -188,7 +188,6 @@
                     </div>
                 </Card.Header>
                 <Card.Content class="space-y-3">
-                    <!-- Username/Email -->
                     {#if downloader.username || downloader.email}
                         <div>
                             <p class="text-xs font-medium text-neutral-400">Account</p>
@@ -198,7 +197,6 @@
                         </div>
                     {/if}
 
-                    <!-- Premium Expiration -->
                     {#if downloader.premium_status === "premium" && (downloader.premium_expires_at || downloader.premium_days_left !== null)}
                         <div class="grid grid-cols-2 gap-3">
                             {#if downloader.premium_expires_at}
@@ -228,7 +226,6 @@
                         </div>
                     {/if}
 
-                    <!-- Points & Downloaded -->
                     <div class="grid grid-cols-2 gap-3">
                         {#if downloader.points !== null && downloader.points !== undefined}
                             <div>
@@ -248,7 +245,6 @@
                         {/if}
                     </div>
 
-                    <!-- Cooldown Warning -->
                     {#if downloader.cooldown_until}
                         <div class="rounded-md bg-amber-600/20 p-2">
                             <p class="text-xs font-medium text-amber-300">
