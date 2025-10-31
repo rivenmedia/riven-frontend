@@ -4,7 +4,7 @@
     import Calender from "@lucide/svelte/icons/calendar";
     import Tv from "@lucide/svelte/icons/tv";
 
-    let { data, indexer, type } = $props();
+    let { data, indexer, type, isSelectable = false, selectStore = undefined } = $props();
 
     if (indexer === "anilist" && !type) {
         type = data.media_type;
@@ -23,14 +23,23 @@
 <div class="flex w-36 flex-col md:w-40 lg:w-44">
     {#if useDynamicPoster}
         <RatingPoster
+            {isSelectable}
+            {selectStore}
             id={data.id}
             {indexer}
             mediaType={type}
             posterUrl={data.poster_path}
             alt={data.title}
+            riven_id={data.riven_id ?? undefined}
             placement="bottom" />
     {:else}
-        <Poster src={data.poster_path} alt={data.title} />
+        <Poster
+            id={data.id}
+            riven_id={data.riven_id ?? undefined}
+            src={data.poster_path}
+            alt={data.title}
+            {isSelectable}
+            {selectStore} />
     {/if}
     <a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">
         <p class="line-clamp-2">
