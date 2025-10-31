@@ -245,6 +245,22 @@ export type DebridFile = {
 };
 
 /**
+ * DebridLinkModel
+ */
+export type DebridLinkModel = {
+    /**
+     * Enabled
+     * Enable Debrid-Link
+     */
+    enabled?: boolean;
+    /**
+     * Api Key
+     * Debrid-Link API key
+     */
+    api_key?: string;
+};
+
+/**
  * DownloaderUserInfo
  * Normalized downloader user information response
  */
@@ -252,7 +268,7 @@ export type DownloaderUserInfo = {
     /**
      * Service
      */
-    service: 'realdebrid' | 'torbox' | 'alldebrid';
+    service: 'realdebrid' | 'alldebrid' | 'debridlink';
     /**
      * Username
      */
@@ -341,9 +357,9 @@ export type DownloadersModel = {
      */
     real_debrid?: RealDebridModel;
     /**
-     * TorBox downloader configuration
+     * Debrid-Link downloader configuration
      */
-    torbox?: TorBoxModel;
+    debrid_link?: DebridLinkModel;
 };
 
 /**
@@ -1315,10 +1331,15 @@ export type QualityRankModel = {
  */
 export type RtnSettingsModel = {
     /**
-     * Profile
-     * Identifier for the settings profile
+     * Name
+     * Name of the settings
      */
-    profile?: string;
+    name?: string;
+    /**
+     * Enabled
+     * Whether these settings will be used or not
+     */
+    enabled?: boolean;
     /**
      * Require
      * Patterns torrents must match to be considered
@@ -1835,22 +1856,6 @@ export type SubtitleProvidersDict = {
      * OpenSubtitles provider configuration
      */
     opensubtitles?: SubtitleProviderConfig;
-};
-
-/**
- * TorBoxModel
- */
-export type TorBoxModel = {
-    /**
-     * Enabled
-     * Enable TorBox
-     */
-    enabled?: boolean;
-    /**
-     * Api Key
-     * TorBox API key
-     */
-    api_key?: string;
 };
 
 /**
