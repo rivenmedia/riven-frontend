@@ -13,6 +13,7 @@
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
+    import ItemManualScrape from "$lib/components/media/riven/item-manual-scrape.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -191,6 +192,15 @@
                         title={data.mediaDetails?.details.title}
                         ids={[data.riven?.id?.toString()]} />
                 </div>
+            {/if}
+
+            {#if data.mediaDetails?.details.id}
+                <ItemManualScrape
+                            class="bg-white/10"
+                            title={data.mediaDetails?.details.title}
+                            itemId={data.riven?.id?.toString()}
+                            externalId={data.mediaDetails?.details.id?.toString()}
+                            mediaType={data.mediaDetails?.type} />
             {/if}
 
             <div
