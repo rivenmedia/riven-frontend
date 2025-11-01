@@ -31,7 +31,7 @@
     'vertical'
         ? 'flex-col'
         : 'flex-col sm:flex-row'}">
-    <div class="{layout === 'vertical' ? 'aspect-[2/3] w-full' : 'w-full sm:w-1/3'}">
+    <div class="{layout === 'vertical' ? 'aspect-2/3 w-full' : 'w-full sm:w-1/3'}">
         {#if posterPath}
             <img
                 alt={title}
@@ -56,13 +56,13 @@
             {title}
         </h3>
         {#if subtitle}
-            <p class="text-primary-foreground/70 line-clamp-1 text-{layout === 'vertical' ? 'xs' : 'sm'}">
+            <p class="text-primary line-clamp-1 text-{layout === 'vertical' ? 'xs' : 'sm'}">
                 {subtitle}
             </p>
         {/if}
         {#if metadata}
             <p
-                class="text-primary-foreground/70 {layout === 'vertical' ? 'text-xs' : 'mb-2 text-sm'}">
+                class="text-primary {layout === 'vertical' ? 'text-xs' : 'mb-2 text-sm'}">
                 {metadata}
             </p>
         {/if}

@@ -2,7 +2,7 @@
     import { type PageProps } from "./$types";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import Mountain from "@lucide/svelte/icons/mountain";
-    import MediaCard from "$lib/components/media-card.svelte";
+    import MediaCard from "$lib/components/media/media-card.svelte";
     import {
         calculateAge,
         formatDate,

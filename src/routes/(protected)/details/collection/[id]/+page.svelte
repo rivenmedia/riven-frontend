@@ -1,7 +1,7 @@
 <script lang="ts">
     import { type PageProps } from "./$types";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import MediaCard from "$lib/components/media-card.svelte";
+    import MediaCard from "$lib/components/media/media-card.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
