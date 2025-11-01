@@ -40,12 +40,12 @@
 <aside
     class="bg-opacity-75 top-0 left-0 z-5 hidden h-screen w-14 flex-col items-center bg-transparent backdrop-blur-sm md:flex">
     <div class="flex h-18 w-full items-center justify-center">
-        <div class="text-primary-foreground flex items-center justify-center">
+        <div class="text-primary flex items-center justify-center">
             <Mountain class="size-5" />
         </div>
     </div>
     <nav class="mt-4 flex flex-col items-center gap-3.5">
-        {#each navItems as item}
+        {#each navItems as item (item.href)}
             <Tooltip>
                 {#snippet trigger()}
                     <a

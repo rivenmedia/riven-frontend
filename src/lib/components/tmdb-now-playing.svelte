@@ -68,7 +68,7 @@
         opts={{ loop: true }}
         class="relative">
         <Carousel.Content>
-            {#each data as item}
+            {#each data as item (item.id)}
                 <Carousel.Item class="relative h-110 w-full">
                     <img
                         src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
@@ -76,7 +76,7 @@
                         class="w-full object-cover object-center select-none max-md:h-full"
                         loading="lazy" />
                     <div
-                        class="absolute inset-0 z-1 flex bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent select-none">
+                        class="absolute inset-0 z-1 flex bg-linear-to-t from-background via-background/60 to-transparent select-none">
                     </div>
 
                     <div class="absolute inset-0 z-2 mt-14 flex flex-col gap-4">
@@ -112,7 +112,7 @@
                                     {item.overview || "No overview available."}
                                 </p>
                                 <div class="mt-1.5 flex flex-wrap items-center">
-                                    {#each item.genre_ids as genreId}
+                                    {#each item.genre_ids as genreId (genreId)}
                                         {#if TMDB_GENRES[genreId]}
                                             <Badge
                                                 variant="outline"

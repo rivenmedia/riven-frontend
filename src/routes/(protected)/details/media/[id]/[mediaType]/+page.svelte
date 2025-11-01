@@ -229,14 +229,14 @@
                     {/if}
 
                     {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
-                        <p class="text-primary-foreground/70 mb-2 text-sm">
+                        <p class="text-muted-foreground mb-2 text-sm">
                             Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data
                                 .mediaDetails?.details.airing.time}
                         </p>
                     {/if}
 
                     {#if data.mediaDetails?.details.tagline}
-                        <p class="text-primary-foreground/70 mb-2 text-sm font-semibold italic">
+                        <p class="text-muted-foreground mb-2 text-sm font-semibold italic">
                             {data.mediaDetails?.details.tagline}
                         </p>
                     {/if}
@@ -265,7 +265,7 @@
                     {#if data.mediaDetails?.details.genres && data.mediaDetails?.details.genres.length > 0}
                         <div class="mb-3 flex flex-wrap gap-2">
                             {#each data.mediaDetails?.details.genres as genre (genre.id)}
-                                <Badge variant="outline">
+                                <Badge variant="outline" class="border-primary">
                                     {genre.name}
                                 </Badge>
                             {/each}
@@ -406,7 +406,7 @@
                                     <h3 class="text-sm font-bold">
                                         {episode.number}. {episode.name}
                                     </h3>
-                                    <p class="text-primary-foreground/70 mb-2 text-xs">
+                                    <p class="text-muted-foreground mb-2 text-xs">
                                         {episode.aired} • {episode.runtime} min
                                     </p>
 
@@ -449,7 +449,7 @@
                         class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                         {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.budget}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Budget</p>
+                                <p class="text-primary text-xs">Budget</p>
                                 <p class="text-sm font-medium">
                                     {data.mediaDetails?.details.budget
                                         ? new Intl.NumberFormat("en-US", {
@@ -464,7 +464,7 @@
 
                         {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.revenue}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Revenue</p>
+                                <p class="text-primary text-xs">Revenue</p>
                                 <p class="text-sm font-medium">
                                     {data.mediaDetails?.details.revenue
                                         ? new Intl.NumberFormat("en-US", {
@@ -479,7 +479,7 @@
 
                         {#if data.mediaDetails?.details.homepage}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Homepage</p>
+                                <p class="text-primary text-xs">Homepage</p>
                                 {#if data.mediaDetails?.details.homepage}
                                     <a
                                         href={data.mediaDetails?.details.homepage}
@@ -496,7 +496,7 @@
 
                         {#if data.mediaDetails?.details.origin_country && data.mediaDetails?.details.origin_country.length > 0}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Origin Country</p>
+                                <p class="text-primary text-xs">Origin Country</p>
                                 <p class="text-sm font-medium">
                                     {data.mediaDetails?.details.origin_country.length > 0
                                         ? data.mediaDetails?.details.origin_country.join(", ")
@@ -507,7 +507,7 @@
 
                         {#if data.mediaDetails?.details.production_companies && data.mediaDetails?.details.production_companies.length > 0}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">
+                                <p class="text-primary text-xs">
                                     Production Companies
                                 </p>
                                 <div class="flex flex-row flex-wrap">
@@ -546,7 +546,7 @@
 
                         {#if data.mediaDetails?.details.spoken_languages && data.mediaDetails?.details.spoken_languages.length > 0}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Spoken Languages</p>
+                                <p class="text-primary text-xs">Spoken Languages</p>
                                 <p class="text-sm font-medium">
                                     {data.mediaDetails?.details.spoken_languages.length > 0
                                         ? data.mediaDetails?.details.spoken_languages
@@ -559,7 +559,7 @@
 
                         {#if data.mediaDetails?.details.external_ids}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">External Links</p>
+                                <p class="text-primary text-xs">External Links</p>
 
                                 <div class="flex flex-row flex-wrap items-center">
                                     {#each Object.entries(data.mediaDetails?.details.external_ids) as [key, value] (key)}
@@ -580,7 +580,7 @@
 
                         {#if data.mediaDetails?.details.imdb_id && getExternalMetadata("imdb")}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Parental Guide</p>
+                                <p class="text-primary text-xs">Parental Guide</p>
                                 <a
                                     href={`${getExternalMetadata("imdb").baseUrl}${data.mediaDetails?.details.imdb_id}/parentalguide/`}
                                     target="_blank"
@@ -599,7 +599,7 @@
 
                             {#if data.riven.parsed_data?.raw_title}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">
+                                    <p class="text-primary text-xs">
                                         Original Filename
                                     </p>
                                     <p class="text-sm font-medium break-all">
@@ -610,7 +610,7 @@
 
                             {#if data.riven.probed_data?.filename}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">
+                                    <p class="text-primary text-xs">
                                         Current Filename
                                     </p>
                                     <p class="text-sm font-medium break-all">
@@ -620,7 +620,7 @@
                             {/if}
 
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Video</p>
+                                <p class="text-primary text-xs">Video</p>
                                 <div class="flex flex-wrap gap-x-2 text-sm">
                                     {#if data.riven.parsed_data?.resolution}
                                         <Badge variant="outline"
@@ -648,7 +648,7 @@
 
                             {#if data.riven.probed_data?.audio && data.riven.probed_data.audio.length > 0}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">Audio</p>
+                                    <p class="text-primary text-xs">Audio</p>
                                     <div class="flex flex-wrap gap-x-2 text-sm">
                                         {#each data.riven.probed_data.audio as audioTrack, i}
                                             <Badge variant="outline">
@@ -669,7 +669,7 @@
 
                             {#if data.riven.probed_data?.subtitles && data.riven.probed_data.subtitles.length > 0}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">Subtitles</p>
+                                    <p class="text-primary text-xs">Subtitles</p>
                                     <div class="flex flex-wrap gap-x-2 text-sm">
                                         {#each data.riven.probed_data.subtitles as subtitle}
                                             <Badge variant="outline">
@@ -688,7 +688,7 @@
                             {/if}
 
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs">Source</p>
+                                <p class="text-primary text-xs">Source</p>
                                 <div class="flex flex-wrap gap-x-2 text-sm">
                                     {#if data.riven.parsed_data?.quality}
                                         <Badge variant="outline"
@@ -703,7 +703,7 @@
 
                             {#if data.riven.parsed_data?.group}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">Release Group</p>
+                                    <p class="text-primary text-xs">Release Group</p>
                                     <p class="text-sm font-medium">
                                         {data.riven.parsed_data.group}
                                     </p>
@@ -712,7 +712,7 @@
 
                             {#if data.riven.probed_data?.file_size}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">File Size</p>
+                                    <p class="text-primary text-xs">File Size</p>
                                     <p class="text-sm font-medium">
                                         {(data.riven.probed_data.file_size / 1073741824).toFixed(2)}
                                         GB
@@ -722,7 +722,7 @@
 
                             {#if data.riven.probed_data?.duration}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary-foreground/70 text-xs">Duration</p>
+                                    <p class="text-primary text-xs">Duration</p>
                                     <p class="text-sm font-medium">
                                         {Math.floor(data.riven.probed_data.duration / 3600)}h
                                         {Math.floor((data.riven.probed_data.duration % 3600) / 60)}m

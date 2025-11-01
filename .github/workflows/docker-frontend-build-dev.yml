@@ -151,8 +151,23 @@ jobs:
                   docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
                     $(printf '${{ env.REGISTRY_IMAGE_GHCR }}@sha256:%s ' *)
 
-                  docker buildx imagetools create $(jq -cr '.tags | map(gsub("ghcr.io/rivenmedia"; "docker.io/spoked") | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-                   $(printf '${{ env.REGISTRY_IMAGE_DOCKERHUB }}@sha256:%s ' *)
+                  # Push to Docker Hub with retry logic
+                  for attempt in {1..3}; do
+                    echo "Attempt $attempt of 3: Pushing to Docker Hub..."
+                    if docker buildx imagetools create $(jq -cr '.tags | map(gsub("ghcr.io/rivenmedia"; "docker.io/spoked") | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+                       $(printf '${{ env.REGISTRY_IMAGE_DOCKERHUB }}@sha256:%s ' *); then
+                      echo "Successfully pushed to Docker Hub"
+                      break
+                    else
+                      if [ $attempt -lt 3 ]; then
+                        echo "Push failed, waiting 15 seconds before retry..."
+                        sleep 15
+                      else
+                        echo "All retry attempts failed"
+                        exit 1
+                      fi
+                    fi
+                  done
 
             - name: Inspect image
               run: |
