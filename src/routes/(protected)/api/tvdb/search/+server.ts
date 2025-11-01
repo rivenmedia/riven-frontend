@@ -148,19 +148,19 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
 			error(500, "Failed to search TVDB");
 		}
 
-		// Transform TVDB results to match our frontend format
 		const transformedResults = (searchResult.data?.data || [])
-			.filter((item: any) => item.type === "series") // Only include series
+			.filter((item: any) => item.type === "series")
 			.map((item: any) => ({
 				id: item.tvdb_id,
 				title: item.name || "Unknown",
 				poster_path: item.image_url || null,
-				media_type: "TV",
+				media_type: "tv",
 				year: item.year || (item.first_air_time ? new Date(item.first_air_time).getFullYear() : "N/A"),
-				vote_average: null, // TVDB doesn't provide ratings in search results
+				vote_average: null,
 				vote_count: null,
 				overview: item.overview || null,
-				first_air_date: item.first_air_time || null
+				first_air_date: item.first_air_time || null,
+				indexer: "tvdb"
 			}));
 
 		// Apply server-side filters

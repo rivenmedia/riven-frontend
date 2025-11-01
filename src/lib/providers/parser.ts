@@ -265,6 +265,9 @@ interface TMDBTransformedListItem {
     poster_path: string | null;
     media_type: string;
     year: string | number;
+    vote_average: number | null;
+    vote_count: number | null;
+    indexer: "tmdb";
 }
 
 export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
@@ -292,7 +295,10 @@ export function transformTMDBList(items: TMDBListItem[] | null) {
             title: item.title || item.original_title,
             poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
             media_type: "movie",
-            year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A"
+            year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A",
+            vote_average: item.vote_average ? item.vote_average : null,
+            vote_count: item.vote_count ? item.vote_count : null,
+            indexer: "tmdb"
         })) || ([] as TMDBTransformedListItem[])
     );
 }
@@ -1129,7 +1135,8 @@ export function parsePersonDetails(personData: any): PersonDetails {
     const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? [])
         .map((credit: any) => ({
             id: credit.id ?? 0,
-            title: credit.title || credit.name || credit.original_title || credit.original_name || "",
+            title:
+                credit.title || credit.name || credit.original_title || credit.original_name || "",
             original_title: credit.original_title || credit.original_name || "",
             character: credit.character ?? null,
             poster_path: credit.poster_path
@@ -1157,7 +1164,8 @@ export function parsePersonDetails(personData: any): PersonDetails {
     const crewCredits: PersonCreditCrew[] = (personData.combined_credits?.crew ?? [])
         .map((credit: any) => ({
             id: credit.id ?? 0,
-            title: credit.title || credit.name || credit.original_title || credit.original_name || "",
+            title:
+                credit.title || credit.name || credit.original_title || credit.original_name || "",
             original_title: credit.original_title || credit.original_name || "",
             job: credit.job ?? null,
             department: credit.department ?? null,
