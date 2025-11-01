@@ -9,6 +9,16 @@
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
 
     const SidebarStore: any = getContext("sidebarStore");
+
+    const onKeydown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            const searchInput = document.querySelector('input[name="query"]') as HTMLInputElement;
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+    };
 </script>
 
 <header
@@ -41,3 +51,4 @@
         </div>
     </div>
 </header>
+<svelte:document onkeydown={onKeydown} />

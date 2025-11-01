@@ -22,7 +22,7 @@
     <title>Profile - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
+<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
     <h1 class="text-3xl font-bold tracking-tight">{data.user.name}'s Profile</h1>
 
     <div class="mt-4 flex flex-col gap-4">
