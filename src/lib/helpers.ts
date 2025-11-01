@@ -66,3 +66,35 @@ export function flattenObject<T>(data: T): Record<string, unknown> {
 
     return flattened;
 }
+
+export function calculateAge(birthday: string | null, deathday: string | null = null): number | null {
+    if (!birthday) return null;
+    const birthDate = new Date(birthday);
+    const endDate = deathday ? new Date(deathday) : new Date();
+    let age = endDate.getFullYear() - birthDate.getFullYear();
+    const monthDiff = endDate.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+}
+
+export function formatDate(dateStr: string | null): string | null {
+    if (!dateStr) return null;
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
+}
+
+function isSameDayAndMonth(date1: Date, date2: Date): boolean {
+    return date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
+}
+
+export function isDayAndMonthToday(dateStr: string | null): boolean {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const today = new Date();
+    return isSameDayAndMonth(date, today);
+}

@@ -999,3 +999,206 @@ function transformTraktRecommendations(
         })
         .filter((item) => item.id > 0);
 }
+
+// ---------------------------------------------------------------------------------
+// Collection Parser
+// ---------------------------------------------------------------------------------
+
+export interface CollectionMovie {
+    id: number;
+    title: string;
+    original_title: string;
+    overview: string | null;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    release_date: string | null;
+    year: number | null;
+    vote_average: number | null;
+    vote_count: number | null;
+}
+
+export interface CollectionDetails {
+    id: number;
+    name: string;
+    overview: string | null;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    parts: CollectionMovie[];
+}
+
+export function parseCollectionDetails(collectionData: any): CollectionDetails {
+    return {
+        id: collectionData.id ?? 0,
+        name: collectionData.name ?? "",
+        overview: collectionData.overview ?? null,
+        poster_path: collectionData.poster_path
+            ? `${TMDB_IMAGE_BASE_URL}/w500${collectionData.poster_path}`
+            : null,
+        backdrop_path: collectionData.backdrop_path
+            ? `${TMDB_IMAGE_BASE_URL}/original${collectionData.backdrop_path}`
+            : null,
+        parts: (collectionData.parts ?? [])
+            .map((movie: any) => ({
+                id: movie.id ?? 0,
+                title: movie.title ?? movie.original_title ?? "",
+                original_title: movie.original_title ?? "",
+                overview: movie.overview ?? null,
+                poster_path: movie.poster_path
+                    ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}`
+                    : null,
+                backdrop_path: movie.backdrop_path
+                    ? `${TMDB_IMAGE_BASE_URL}/original${movie.backdrop_path}`
+                    : null,
+                release_date: movie.release_date ?? null,
+                year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+                vote_average: movie.vote_average ?? null,
+                vote_count: movie.vote_count ?? null
+            }))
+            .sort((a: CollectionMovie, b: CollectionMovie) => {
+                // Sort by release date
+                if (a.release_date && b.release_date) {
+                    return new Date(a.release_date).getTime() - new Date(b.release_date).getTime();
+                }
+                return 0;
+            })
+    };
+}
+
+// ---------------------------------------------------------------------------------
+// Person Parser
+// ---------------------------------------------------------------------------------
+
+export interface PersonCreditCast {
+    id: number;
+    title: string;
+    original_title: string;
+    character: string | null;
+    poster_path: string | null;
+    release_date: string | null;
+    year: number | null;
+    media_type: "movie" | "tv";
+    vote_average: number | null;
+}
+
+export interface PersonCreditCrew {
+    id: number;
+    title: string;
+    original_title: string;
+    job: string | null;
+    department: string | null;
+    poster_path: string | null;
+    release_date: string | null;
+    year: number | null;
+    media_type: "movie" | "tv";
+    vote_average: number | null;
+}
+
+export interface PersonDetails {
+    id: number;
+    name: string;
+    biography: string | null;
+    birthday: string | null;
+    deathday: string | null;
+    place_of_birth: string | null;
+    profile_path: string | null;
+    known_for_department: string | null;
+    gender: string | null;
+    popularity: number | null;
+    homepage: string | null;
+    imdb_id: string | null;
+    also_known_as: string[];
+    cast_credits: PersonCreditCast[];
+    crew_credits: PersonCreditCrew[];
+}
+
+function getGenderString(gender: number | null): string | null {
+    switch (gender) {
+        case 1:
+            return "Female";
+        case 2:
+            return "Male";
+        case 3:
+            return "Non-binary";
+        default:
+            return null;
+    }
+}
+
+export function parsePersonDetails(personData: any): PersonDetails {
+    // Transform cast credits
+    const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? [])
+        .map((credit: any) => ({
+            id: credit.id ?? 0,
+            title: credit.title || credit.name || credit.original_title || credit.original_name || "",
+            original_title: credit.original_title || credit.original_name || "",
+            character: credit.character ?? null,
+            poster_path: credit.poster_path
+                ? `${TMDB_IMAGE_BASE_URL}/w500${credit.poster_path}`
+                : null,
+            release_date: credit.release_date || credit.first_air_date || null,
+            year:
+                credit.release_date || credit.first_air_date
+                    ? new Date(credit.release_date || credit.first_air_date || "").getFullYear()
+                    : null,
+            media_type: credit.media_type === "tv" ? "tv" : "movie",
+            vote_average: credit.vote_average ?? null
+        }))
+        .sort((a: PersonCreditCast, b: PersonCreditCast) => {
+            // Sort by release date (newest first)
+            if (a.release_date && b.release_date) {
+                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+            }
+            if (a.release_date) return -1;
+            if (b.release_date) return 1;
+            return 0;
+        });
+
+    // Transform crew credits
+    const crewCredits: PersonCreditCrew[] = (personData.combined_credits?.crew ?? [])
+        .map((credit: any) => ({
+            id: credit.id ?? 0,
+            title: credit.title || credit.name || credit.original_title || credit.original_name || "",
+            original_title: credit.original_title || credit.original_name || "",
+            job: credit.job ?? null,
+            department: credit.department ?? null,
+            poster_path: credit.poster_path
+                ? `${TMDB_IMAGE_BASE_URL}/w500${credit.poster_path}`
+                : null,
+            release_date: credit.release_date || credit.first_air_date || null,
+            year:
+                credit.release_date || credit.first_air_date
+                    ? new Date(credit.release_date || credit.first_air_date || "").getFullYear()
+                    : null,
+            media_type: credit.media_type === "tv" ? "tv" : "movie",
+            vote_average: credit.vote_average ?? null
+        }))
+        .sort((a: PersonCreditCrew, b: PersonCreditCrew) => {
+            // Sort by release date (newest first)
+            if (a.release_date && b.release_date) {
+                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+            }
+            if (a.release_date) return -1;
+            if (b.release_date) return 1;
+            return 0;
+        });
+
+    return {
+        id: personData.id ?? 0,
+        name: personData.name ?? "",
+        biography: personData.biography ?? null,
+        birthday: personData.birthday ?? null,
+        deathday: personData.deathday ?? null,
+        place_of_birth: personData.place_of_birth ?? null,
+        profile_path: personData.profile_path
+            ? `${TMDB_IMAGE_BASE_URL}/h632${personData.profile_path}`
+            : null,
+        known_for_department: personData.known_for_department ?? null,
+        gender: getGenderString(personData.gender ?? null),
+        popularity: personData.popularity ?? null,
+        homepage: personData.homepage ?? null,
+        imdb_id: personData.external_ids?.imdb_id ?? null,
+        also_known_as: personData.also_known_as ?? [],
+        cast_credits: castCredits,
+        crew_credits: crewCredits
+    };
+}

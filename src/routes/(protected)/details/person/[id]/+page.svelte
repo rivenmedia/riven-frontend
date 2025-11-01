@@ -2,53 +2,20 @@
     import { type PageProps } from "./$types";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import Mountain from "@lucide/svelte/icons/mountain";
+    import MediaCard from "$lib/components/media-card.svelte";
+    import {
+        calculateAge,
+        formatDate,
+        isDayAndMonthToday
+    } from "$lib/helpers";
 
     let { data }: PageProps = $props();
     $inspect(data);
 
-    function calculateAge(birthday: string | null, deathday: string | null = null) {
-        if (!birthday) return null;
-        const birthDate = new Date(birthday);
-        const endDate = deathday ? new Date(deathday) : new Date();
-        let age = endDate.getFullYear() - birthDate.getFullYear();
-        const monthDiff = endDate.getMonth() - birthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        return age;
-    }
-
-    function formatDate(dateStr: string | null) {
-        if (!dateStr) return null;
-        return new Date(dateStr).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
-    }
-
-    function isSameDayAndMonth(date1: Date, date2: Date) {
-        return date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
-    }
-
-    function isBirthdayToday(birthday: string | null) {
-        if (!birthday) return false;
-        const birthDate = new Date(birthday);
-        const today = new Date();
-        return isSameDayAndMonth(birthDate, today);
-    }
-
-    function isMemorialDay(deathday: string | null) {
-        if (!deathday) return false;
-        const deathDate = new Date(deathday);
-        const today = new Date();
-        return isSameDayAndMonth(deathDate, today);
-    }
-
     let selectedTab = $state<"acting" | "crew">("acting");
 
-    const birthdayToday = isBirthdayToday(data.person.birthday);
-    const memorialToday = isMemorialDay(data.person.deathday);
+    const birthdayToday = isDayAndMonthToday(data.person.birthday);
+    const memorialToday = isDayAndMonthToday(data.person.deathday);
 </script>
 
 <svelte:head>
@@ -292,77 +259,25 @@
                 {#if selectedTab === "acting"}
                     <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {#each data.person.cast_credits as credit (credit.id + credit.character)}
-                            <a
+                            <MediaCard
                                 href="/details/media/{credit.id}/{credit.media_type}"
-                                class="border-border flex flex-col overflow-hidden rounded-lg border bg-white/10 shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white/15">
-                                <div class="aspect-[2/3] w-full">
-                                    {#if credit.poster_path}
-                                        <img
-                                            alt={credit.title}
-                                            class="h-full w-full object-cover object-center"
-                                            src={credit.poster_path}
-                                            loading="lazy" />
-                                    {:else}
-                                        <div
-                                            class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
-                                            <Mountain size={32} class="opacity-70" />
-                                        </div>
-                                    {/if}
-                                </div>
-                                <div class="flex flex-col p-3">
-                                    <h3 class="line-clamp-2 text-sm font-bold">
-                                        {credit.title}
-                                    </h3>
-                                    {#if credit.character}
-                                        <p class="text-primary-foreground/70 line-clamp-1 text-xs">
-                                            as {credit.character}
-                                        </p>
-                                    {/if}
-                                    {#if credit.year}
-                                        <p class="text-primary-foreground/70 text-xs">
-                                            {credit.year}
-                                        </p>
-                                    {/if}
-                                </div>
-                            </a>
+                                title={credit.title}
+                                posterPath={credit.poster_path}
+                                subtitle={credit.character ? `as ${credit.character}` : null}
+                                metadata={credit.year?.toString() ?? null}
+                                layout="vertical" />
                         {/each}
                     </div>
                 {:else}
                     <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {#each data.person.crew_credits as credit (credit.id + credit.job)}
-                            <a
+                            <MediaCard
                                 href="/details/media/{credit.id}/{credit.media_type}"
-                                class="border-border flex flex-col overflow-hidden rounded-lg border bg-white/10 shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white/15">
-                                <div class="aspect-[2/3] w-full">
-                                    {#if credit.poster_path}
-                                        <img
-                                            alt={credit.title}
-                                            class="h-full w-full object-cover object-center"
-                                            src={credit.poster_path}
-                                            loading="lazy" />
-                                    {:else}
-                                        <div
-                                            class="flex h-full w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md">
-                                            <Mountain size={32} class="opacity-70" />
-                                        </div>
-                                    {/if}
-                                </div>
-                                <div class="flex flex-col p-3">
-                                    <h3 class="line-clamp-2 text-sm font-bold">
-                                        {credit.title}
-                                    </h3>
-                                    {#if credit.job}
-                                        <p class="text-primary-foreground/70 line-clamp-1 text-xs">
-                                            {credit.job}
-                                        </p>
-                                    {/if}
-                                    {#if credit.year}
-                                        <p class="text-primary-foreground/70 text-xs">
-                                            {credit.year}
-                                        </p>
-                                    {/if}
-                                </div>
-                            </a>
+                                title={credit.title}
+                                posterPath={credit.poster_path}
+                                subtitle={credit.job}
+                                metadata={credit.year?.toString() ?? null}
+                                layout="vertical" />
                         {/each}
                     </div>
                 {/if}

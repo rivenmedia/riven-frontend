@@ -1,7 +1,7 @@
 <script lang="ts">
     import { type PageProps } from "./$types";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import Mountain from "@lucide/svelte/icons/mountain";
+    import MediaCard from "$lib/components/media-card.svelte";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -74,46 +74,14 @@
 
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     {#each data.collection.parts as movie (movie.id)}
-                        <a
+                        <MediaCard
                             href="/details/media/{movie.id}/movie"
-                            class="border-border flex flex-col overflow-hidden rounded-lg border bg-white/10 shadow-lg transition-all duration-200 hover:scale-102 hover:bg-white/15 sm:flex-row">
-                            <div class="w-full sm:w-1/3">
-                                {#if movie.poster_path}
-                                    <img
-                                        alt={movie.title}
-                                        class="h-48 w-full object-cover object-center sm:h-full"
-                                        src={movie.poster_path}
-                                        loading="lazy" />
-                                {:else}
-                                    <div
-                                        class="flex h-48 w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md sm:h-full">
-                                        <Mountain size={32} class="opacity-70" />
-                                    </div>
-                                {/if}
-                            </div>
-                            <div class="flex w-full flex-col p-4 sm:w-2/3">
-                                <h3 class="text-base font-bold">
-                                    {movie.title}
-                                </h3>
-                                {#if movie.year}
-                                    <p class="text-primary-foreground/70 mb-2 text-sm">
-                                        {movie.year}
-                                    </p>
-                                {/if}
-
-                                {#if movie.vote_average}
-                                    <div class="mb-2 flex items-center gap-2">
-                                        <Badge variant="outline" class="text-xs">
-                                            ⭐ {movie.vote_average.toFixed(1)}
-                                        </Badge>
-                                    </div>
-                                {/if}
-
-                                {#if movie.overview}
-                                    <p class="line-clamp-3 text-xs">{movie.overview}</p>
-                                {/if}
-                            </div>
-                        </a>
+                            title={movie.title}
+                            posterPath={movie.poster_path}
+                            metadata={movie.year?.toString() ?? null}
+                            rating={movie.vote_average}
+                            overview={movie.overview}
+                            layout="horizontal" />
                     {/each}
                 </div>
             </section>
