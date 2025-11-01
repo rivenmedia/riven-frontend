@@ -127,24 +127,27 @@
                     </p>
                 </div>
 
-                <Button
-                    onclick={async () => {
-                        await authClient.signOut({
-                            fetchOptions: {
-                                onSuccess: () => {
-                                    goto("/auth/login");
+                <div class="flex items-center gap-2">
+                    <ThemeSwitcher />
+                    <Button
+                        onclick={async () => {
+                            await authClient.signOut({
+                                fetchOptions: {
+                                    onSuccess: () => {
+                                        goto("/auth/login");
+                                    }
                                 }
-                            }
-                        });
-                    }}
-                    variant="ghost"
-                    size="icon"
-                    class="size-10 rounded-md"
-                    aria-label="Logout">
-                    <Drawer.Close class="text-muted-foreground">
-                        <LogOut class="h-5 w-5" />
-                    </Drawer.Close>
-                </Button>
+                            });
+                        }}
+                        variant="ghost"
+                        size="icon"
+                        class="size-10 rounded-md"
+                        aria-label="Logout">
+                        <Drawer.Close class="text-muted-foreground">
+                            <LogOut class="h-5 w-5" />
+                        </Drawer.Close>
+                    </Button>
+                </div>
             {:else}
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-pointer">
@@ -153,6 +156,8 @@
                     </Avatar.Root>
                     <p class="font-medium">Guest</p>
                 </div>
+
+                <ThemeSwitcher />
             {/if}
         </Drawer.Header>
 

@@ -172,7 +172,7 @@
 			class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 			{#each Array(12) as _}
 				<div>
-					<Skeleton class="aspect-[2/3] w-full rounded-sm" />
+					<Skeleton class="aspect-2/3 w-full rounded-sm" />
 					<Skeleton class="mt-2 h-4 w-full" />
 					<div class="mt-1 flex items-center justify-between">
 						<Skeleton class="h-4 w-12 rounded-full" />
