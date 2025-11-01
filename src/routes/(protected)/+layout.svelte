@@ -10,8 +10,11 @@
     import { SidebarStore, isMobileStore } from "$lib/stores/global.svelte";
     import { setContext } from "svelte";
     import Header from "$lib/components/header.svelte";
+    import { SearchStore } from "$lib/services/search-store.svelte";
 
     let { data, children }: LayoutProps = $props();
+
+    const searchStore = new SearchStore();
 
     beforeNavigate(() => {
         NProgress.start();
@@ -25,6 +28,7 @@
 
     setContext("sidebarStore", SidebarStore);
     setContext("ismobilestore", isMobileStore);
+    setContext("searchStore", searchStore);
 </script>
 
 <svelte:head>

@@ -2,14 +2,12 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { Input } from "$lib/components/ui/input/index.js";
     import { getContext } from "svelte";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
 
-    const isMobileStore: any = getContext("ismobilestore");
     const SidebarStore: any = getContext("sidebarStore");
 </script>
 
