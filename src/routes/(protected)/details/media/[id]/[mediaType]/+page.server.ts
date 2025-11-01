@@ -87,10 +87,11 @@ export const load = (async ({ fetch, params, cookies }) => {
             query: {
                 media_type: mediaType,
                 extended: true
-            },
+            }
         });
-    } catch { /* empty */ }
-    
+    } catch {
+        /* empty */
+    }
 
     console.log("Riven Data:", rivenData);
 
