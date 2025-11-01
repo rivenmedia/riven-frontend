@@ -283,7 +283,7 @@
                                     <div class="flex flex-col items-center">
                                         <Tooltip>
                                             {#snippet trigger()}
-                                                <a href="/media/person/tmdb/{cast.id}">
+                                                <a href="/details/person/{cast.id}">
                                                     <img
                                                         alt={cast.name}
                                                         class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
