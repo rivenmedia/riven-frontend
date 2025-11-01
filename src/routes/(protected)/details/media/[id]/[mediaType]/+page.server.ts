@@ -75,8 +75,6 @@ export const load = (async ({ fetch, params, cookies }) => {
         error(400, "Invalid ID");
     }
 
-    console.log("Fetching details for ID:", id, "Media Type:", mediaType);
-
     let rivenData;
 
     try {
@@ -85,15 +83,11 @@ export const load = (async ({ fetch, params, cookies }) => {
                 id: id
             },
             query: {
-                media_type: mediaType,
-                extended: true
-            }
-        });
-    } catch {
-        /* empty */
-    }
-
-    console.log("Riven Data:", rivenData);
+            media_type: mediaType,
+            extended: true
+        }
+    });
+    } catch { /* empty */ }
 
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
