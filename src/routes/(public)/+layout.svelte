@@ -24,7 +24,7 @@
     <title>Riven</title>
 </svelte:head>
 
-<ModeWatcher defaultMode={"dark"} />
+<ModeWatcher defaultMode={"dark"} defaultTheme={"darkmatter"}/>
 <Toaster richColors closeButton />
 
 <div class="bg-background h-screen overflow-hidden">

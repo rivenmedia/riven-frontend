@@ -19,6 +19,7 @@
     import User from "@lucide/svelte/icons/user";
     import { getContext } from "svelte";
     import Tooltip from "./tooltip.svelte";
+    import ThemeSwitcher from "./theme-switcher.svelte";
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
@@ -66,6 +67,7 @@
     </nav>
 
     <div class="mt-auto flex flex-col items-center gap-3.5 pb-4">
+        <ThemeSwitcher />
         {#if user}
             <Tooltip>
                 {#snippet trigger()}
