@@ -14,7 +14,7 @@
         type = "tv";
     }
 
-    const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
+    const mediaURL = `/details/media/${data.id}/${type}`;
     const useDynamicPoster = $derived(
         (indexer === "tmdb" && (type === "movie" || type === "tv")) || indexer === "anilist"
     );
