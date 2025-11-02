@@ -5,14 +5,19 @@
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 
     const themes = {
-        darkmatter: "Dark Matter",
         amberminimal: "Amber Minimal",
+        amethysthaze: "Amethyst Haze",
         bubblegum: "Bubblegum",
         caffeine: "Caffeine",
         cyberpunk: "Cyberpunk",
+        darkmatter: "Dark Matter",
         doom64: "Doom 64",
+        galacticglitch: "Galactic Glitch",
+        graphite: "Graphite",
+        mochamousse: "Mocha Mousse",
         mono: "Mono",
-        neobrutalism: "Neo Brutalism"
+        neobrutalism: "Neo Brutalism",
+        solardusk: "Solar Dusk"
     };
 </script>
 
