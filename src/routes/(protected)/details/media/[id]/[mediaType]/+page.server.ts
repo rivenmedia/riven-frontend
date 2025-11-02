@@ -83,11 +83,13 @@ export const load = (async ({ fetch, params, cookies }) => {
                 id: id
             },
             query: {
-            media_type: mediaType,
-            extended: true
-        }
-    });
-    } catch { /* empty */ }
+                media_type: mediaType,
+                extended: true
+            }
+        });
+    } catch {
+        /* empty */
+    }
 
     if (mediaType === "movie") {
         const { data: details, error: detailsError } = await providers.tmdb.GET(
@@ -145,6 +147,43 @@ export const load = (async ({ fetch, params, cookies }) => {
 
         if (detailsError) {
             error(500, detailsError);
+        }
+
+        if (
+            details?.data &&
+            details?.data.originalLanguage &&
+            details.data.originalLanguage === "jpn"
+        ) {
+            const { data: engEpisodesData, error: engEpisodesError } = await providers.tvdb.GET(
+                "/series/{id}/episodes/{season-type}/{lang}",
+                {
+                    params: {
+                        path: {
+                            id: Number(id),
+                            "season-type": "official",
+                            lang: "eng"
+                        },
+                        query: {
+                            page: 0
+                        }
+                    },
+                    headers: {
+                        Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
+                    },
+                    fetch: fetch
+                }
+            );
+
+            if (
+                !engEpisodesError &&
+                engEpisodesData &&
+                engEpisodesData.data &&
+                // @ts-expect-error it says data.series.episodes but it's actually data.episodes
+                engEpisodesData.data.episodes
+            ) {
+                // @ts-expect-error it says data.series.episodes but it's actually data.episodes
+                details.data.episodes = engEpisodesData.data.episodes;
+            }
         }
 
         const { traktRecs } = await getTraktData(fetch, id, false);

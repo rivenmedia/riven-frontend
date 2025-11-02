@@ -250,22 +250,30 @@
 {/snippet}
 
 {#snippet calendarDayCard(day: CalendarDay)}
+    {@const isToday = day.dateKey === new Date().toISOString().split("T")[0]}
     <div
         class={cn(
             "min-h-[120px] rounded-lg border p-2 transition-colors",
             day.isCurrentMonth
                 ? "bg-card border-border hover:bg-accent/50"
-                : "bg-muted/30 border-muted text-muted-foreground"
+                : "bg-muted/30 border-muted text-muted-foreground",
+            isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
         )}>
-        <div class="mb-2 text-base font-medium">{day.day}</div>
+        <div class={cn("mb-2 text-base font-medium", isToday && "text-primary")}>
+            {day.day}
+        </div>
         {@render dayItemsList(day, 3, true)}
     </div>
 {/snippet}
 
 {#snippet mobileDayCard(day: CalendarDay)}
-    <div class="bg-card border-border rounded-lg border p-3">
+    {@const isToday = day.dateKey === new Date().toISOString().split("T")[0]}
+    <div class={cn(
+        "bg-card border-border rounded-lg border p-3",
+        isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+    )}>
         <div class="mb-3 flex items-center justify-between">
-            <div class="text-lg font-semibold">
+            <div class={cn("text-lg font-semibold", isToday && "text-primary")}>
                 {formatDayTitle(day.date)}
             </div>
             <div class="text-muted-foreground text-sm">
