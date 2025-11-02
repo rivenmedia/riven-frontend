@@ -25,6 +25,7 @@
     import * as Pagination from "$lib/components/ui/pagination/index.js";
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
+    import { goto } from "$app/navigation";
 
     let { data }: PageProps = $props();
 
@@ -163,7 +164,7 @@
                     disabled={$delayed}
                     type="reset"
                     onclick={() => {
-                        form.reset();
+                        goto("/library", { invalidateAll: true });
                     }}>
                     {#if $delayed}
                         <LoaderCircle class="mr-0.5 h-5 w-5 animate-spin" />
