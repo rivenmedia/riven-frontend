@@ -755,10 +755,21 @@ function getAirDaysList(airsDays: TVDBAirsDays | null | undefined) {
 
 function selectArtwork(
     artworks: TVDBArtworkItem[] | null | undefined,
-    predicate: (art: TVDBArtworkItem) => boolean
+    predicate: (art: TVDBArtworkItem) => boolean,
+    preferredLanguage: string | null = "eng"
 ) {
     if (!artworks || artworks.length === 0) return null;
-    return artworks.find(predicate) ?? artworks[0];
+    
+    const matchingArtworks = artworks.filter(predicate);
+    if (matchingArtworks.length === 0) return null;
+    
+    const preferredArtworks = matchingArtworks.filter(art => art.language === preferredLanguage);
+    
+    if (preferredArtworks.length > 0) {
+        return preferredArtworks.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+    }
+    
+    return matchingArtworks.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
 }
 
 export function parseTVDBShowDetails(
@@ -789,19 +800,17 @@ export function parseTVDBShowDetails(
 
     overview = engOverview || data.overview;
 
-    const posterPath = data.image
-        ? buildTVDBImage(data.image)
-        : buildTVDBImage(
-              selectArtwork(data.artworks, (art) => art.type === 2 || art.type === 14)?.image ??
-                  null
-          );
+    const posterPath = buildTVDBImage(
+        selectArtwork(data.artworks, (art) => art.type === 2 || art.type === 14, "eng")?.image ??
+            data.image
+    );
 
     const backdropPath = buildTVDBImage(
-        selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15)?.image ?? null
+        selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15, null)?.image ?? null
     );
 
     const logoPath = buildTVDBImage(
-        selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25)?.image ?? null
+        selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25, "eng")?.image ?? null
     );
 
     function extractYoutubeKey(url: string | null): string | undefined {
