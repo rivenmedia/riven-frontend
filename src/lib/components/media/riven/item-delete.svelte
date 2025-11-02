@@ -30,9 +30,9 @@
         });
 
         if (response.data) {
-            toast.success("Media item retry successfully!");
+            toast.success("Media item deletion successfully!");
         } else {
-            toast.error("Failed to retry media item.");
+            toast.error("Failed to delete media item.");
         }
     }
 
