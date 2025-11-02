@@ -8,7 +8,7 @@
     import "@fontsource/merriweather";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
 
-    import { afterNavigate, beforeNavigate } from "$app/navigation";
+    import { afterNavigate, onNavigate, beforeNavigate } from "$app/navigation";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
     import NProgress from "nprogress";
@@ -17,14 +17,25 @@
 
     let { children }: LayoutProps = $props();
 
+    onNavigate((navigation) => {
+        if (!document.startViewTransition) return;
+
+        return new Promise((resolve) => {
+            document.startViewTransition(async () => {
+                resolve();
+                await navigation.complete;
+            });
+        });
+    });
+
+    NProgress.configure({
+        showSpinner: false
+    });
     beforeNavigate(() => {
         NProgress.start();
     });
     afterNavigate(() => {
         NProgress.done();
-    });
-    NProgress.configure({
-        showSpinner: false
     });
 </script>
 

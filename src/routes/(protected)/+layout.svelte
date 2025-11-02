@@ -8,7 +8,7 @@
     import "@fontsource/merriweather";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
 
-    import { afterNavigate, beforeNavigate } from "$app/navigation";
+    import { afterNavigate, onNavigate, beforeNavigate } from "$app/navigation";
     import Sidebar from "$lib/components/sidebar.svelte";
     import { Separator } from "$lib/components/ui/separator/index.js";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
@@ -25,14 +25,25 @@
 
     const searchStore = new SearchStore();
 
+    onNavigate((navigation) => {
+        if (!document.startViewTransition) return;
+
+        return new Promise((resolve) => {
+            document.startViewTransition(async () => {
+                resolve();
+                await navigation.complete;
+            });
+        });
+    });
+
+    NProgress.configure({
+        showSpinner: false
+    });
     beforeNavigate(() => {
         NProgress.start();
     });
     afterNavigate(() => {
         NProgress.done();
-    });
-    NProgress.configure({
-        showSpinner: false
     });
 
     setContext("sidebarStore", SidebarStore);
