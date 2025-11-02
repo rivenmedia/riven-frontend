@@ -341,7 +341,7 @@
                         class="border-border flex flex-wrap gap-4 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                         {#each data.mediaDetails?.details.seasons as season (season.id)}
                             <button onclick={() => (selectedSeason = season.number?.toString())}>
-                                <div class={{"relative": true, "opacity-50": selectedSeason !== season.number?.toString()}}>
+                                <div class={cn("relative", selectedSeason !== season.number?.toString() && "opacity-50")}>
                                     {#if season.image}
                                         <img
                                             alt={season.id.toString()}
