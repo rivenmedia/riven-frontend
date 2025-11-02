@@ -39,6 +39,15 @@ importers:
       '@eslint/js':
         specifier: ^9.37.0
         version: 9.38.0
+      '@fontsource/jetbrains-mono':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/merriweather':
+        specifier: ^5.2.11
+        version: 5.2.11
+      '@fontsource/oxanium':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@hey-api/openapi-ts':
         specifier: 0.80.11
         version: 0.80.11(typescript@5.9.3)
@@ -585,6 +594,15 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@fontsource/jetbrains-mono@5.2.8':
+    resolution: {integrity: sha512-6w8/SG4kqvIMu7xd7wt6x3idn1Qux3p9N62s6G3rfldOUYHpWcc2FKrqf+Vo44jRvqWj2oAtTHrZXEP23oSKwQ==}
+
+  '@fontsource/merriweather@5.2.11':
+    resolution: {integrity: sha512-ZiIMeUh5iT8d73o6xlSF8GKgjV5pgiFrufYc5jZTVAfExtWKqM2vQHnsqXSFMv4ELhAcjt6Vf+5T3oVGXhAizQ==}
+
+  '@fontsource/oxanium@5.2.8':
+    resolution: {integrity: sha512-69zbaespIFhjwCWgs2axD6wiwUhtEDK/R9512mv5h/U2/iv7zJowneRFt2y1aYet6RDLDWyK23F+ltbOhFIngg==}
 
   '@gcornut/valibot-json-schema@0.42.0':
     resolution: {integrity: sha512-4Et4AN6wmqeA0PfU5Clkv/IS27wiefsWf6TemAZrb75uzkClYEFavim7SboeKwbll9Nbsn2Iv0LT/HS5H7orZg==}
@@ -3256,6 +3274,12 @@ snapshots:
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@fontsource/jetbrains-mono@5.2.8': {}
+
+  '@fontsource/merriweather@5.2.11': {}
+
+  '@fontsource/oxanium@5.2.8': {}
 
   '@gcornut/valibot-json-schema@0.42.0(esbuild@0.25.11)(typescript@5.9.3)':
     dependencies:

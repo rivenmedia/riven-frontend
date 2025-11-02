@@ -23,6 +23,9 @@
     "devDependencies": {
         "@eslint/compat": "^1.4.0",
         "@eslint/js": "^9.37.0",
+        "@fontsource/jetbrains-mono": "^5.2.8",
+        "@fontsource/merriweather": "^5.2.11",
+        "@fontsource/oxanium": "^5.2.8",
         "@hey-api/openapi-ts": "0.80.11",
         "@internationalized/date": "^3.10.0",
         "@lucide/svelte": "^0.544.0",

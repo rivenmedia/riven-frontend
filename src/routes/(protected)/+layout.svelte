@@ -1,4 +1,13 @@
 <script lang="ts">
+    import "@fontsource/oxanium/300.css";
+    import "@fontsource/oxanium/400.css";
+    import "@fontsource/oxanium/500.css";
+    import "@fontsource/oxanium/600.css";
+    import "@fontsource/oxanium/700.css";
+    import "@fontsource/jetbrains-mono";
+    import "@fontsource/merriweather";
+    import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
+
     import { afterNavigate, beforeNavigate } from "$app/navigation";
     import Sidebar from "$lib/components/sidebar.svelte";
     import { Separator } from "$lib/components/ui/separator/index.js";
@@ -33,6 +42,12 @@
 
 <svelte:head>
     <title>Riven</title>
+    <link
+        rel="preload"
+        as="font"
+        type="font/woff2"
+        href={oxanium400Woff2}
+        crossorigin="anonymous" />
 </svelte:head>
 
 <ModeWatcher defaultMode={"dark"} defaultTheme={"darkmatter"} />
