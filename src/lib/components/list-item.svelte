@@ -31,6 +31,7 @@
             posterUrl={data.poster_path}
             alt={data.title}
             riven_id={data.riven_id ?? undefined}
+            href={mediaURL}
             placement="bottom" />
     {:else}
         <Poster
@@ -39,7 +40,8 @@
             src={data.poster_path}
             alt={data.title}
             {isSelectable}
-            {selectStore} />
+            {selectStore}
+            href={mediaURL} />
     {/if}
     <a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">
         <p class="line-clamp-2">

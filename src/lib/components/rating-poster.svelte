@@ -17,6 +17,7 @@
         overlayOpacity?: number;
         isSelectable?: boolean;
         selectStore?: any;
+        href?: string;
     }
 
     let {
@@ -29,7 +30,8 @@
         placement = "bottom",
         overlayOpacity = 0.9,
         isSelectable = false,
-        selectStore = undefined
+        selectStore = undefined,
+        href = undefined
     }: Props = $props();
 
     let scores = $state<RatingScore[]>([]);
@@ -88,6 +90,7 @@
     {selectStore}
     {isSelectable}
     {alt}
+    {href}
     class="flex {isHorizontal ? 'flex-col' : 'flex-row'} {justifyClass}">
     {#snippet children()}
         {#if !loading && !error && scores.length > 0}
