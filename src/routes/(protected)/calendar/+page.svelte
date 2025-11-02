@@ -44,6 +44,8 @@
     let currentDate = $state(new Date());
     let showMovies = $state(true);
     let showEpisodes = $state(true);
+    let showShows = $state(true);
+    let showSeasons = $state(true);
 
     const itemsByDate = $derived.by(() => {
         const items: EntertainmentItem[] = data.calendar?.data
@@ -71,6 +73,8 @@
             result[dateKey] = items.filter((item) => {
                 if (item.item_type === "episode" && !showEpisodes) return false;
                 if (item.item_type === "movie" && !showMovies) return false;
+                if (item.item_type === "show" && !showShows) return false;
+                if (item.item_type === "season" && !showSeasons) return false;
                 return true;
             });
         }
@@ -121,6 +125,8 @@
         return days;
     });
 
+    $inspect(calendarDays);
+
     function navigateMonth(direction: "prev" | "next") {
         if (direction === "prev") {
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
@@ -141,6 +147,10 @@
 {#snippet itemIcon(item: EntertainmentItem, size = 4)}
     {#if item.item_type === "episode"}
         <Tv class={`h-${size} w-${size} shrink-0 text-blue-400`} />
+    {:else if item.item_type === "show"}
+        <Tv class={`h-${size} w-${size} shrink-0 text-purple-400`} />
+    {:else if item.item_type === "season"}
+        <Tv class={`h-${size} w-${size} shrink-0 text-green-400`} />
     {:else}
         <Film class={`h-${size} w-${size} shrink-0 text-orange-400`} />
     {/if}
@@ -156,10 +166,20 @@
                       "border border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30",
                       compact && "text-blue-300"
                   ]
-                : [
-                      "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
-                      compact && "text-orange-300"
-                  ]
+                : item.item_type === "show"
+                  ? [
+                        "border border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/30",
+                        compact && "text-purple-300"
+                    ]
+                  : item.item_type === "season"
+                    ? [
+                          "border border-green-500/30 bg-green-500/20 hover:bg-green-500/30",
+                          compact && "text-green-300"
+                      ]
+                    : [
+                          "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
+                          compact && "text-orange-300"
+                      ]
         )}
         title={compact
             ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
@@ -170,14 +190,25 @@
             <div class={cn(compact && "truncate", `text-${compact ? "xs" : "xs font-medium"}`)}>
                 {item.show_title}
                 {#if item.season && compact}
-                    S{item.season}E{item.episode}
+                    S{item.season}
+                    {#if item.episode}
+                        E{item.episode}
+                    {/if}
                 {/if}
             </div>
             {#if item.season && !compact}
                 <div class="text-muted-foreground text-xs">
-                    {compact
-                        ? `S${item.season}E${item.episode}`
-                        : `Season ${item.season}, Episode ${item.episode}`}
+                    {#if compact}
+                        S{item.season}
+                        {#if item.episode}
+                            E{item.episode}
+                        {/if}
+                    {:else}
+                        Season {item.season}
+                        {#if item.episode}
+                            , Episode {item.episode}
+                        {/if}
+                    {/if}
                 </div>
             {/if}
         </div>
@@ -262,7 +293,7 @@
                     <ChevronRight class="h-4 w-4" />
                 </Button>
             </div>
-            <div class="mt-4 flex items-center justify-center gap-6 border-t pt-4">
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-4 border-t pt-4 md:gap-6">
                 <div class="flex items-center space-x-2">
                     <Checkbox
                         id="movies"
@@ -284,7 +315,31 @@
                         for="episodes"
                         class="flex cursor-pointer items-center gap-2 text-sm font-medium">
                         <Tv class="h-4 w-4 text-blue-400" />
-                        TV Episodes
+                        Episodes
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <Checkbox
+                        id="shows"
+                        checked={showShows}
+                        onCheckedChange={(checked) => (showShows = !!checked)} />
+                    <label
+                        for="shows"
+                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                        <Tv class="h-4 w-4 text-purple-400" />
+                        Shows
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <Checkbox
+                        id="seasons"
+                        checked={showSeasons}
+                        onCheckedChange={(checked) => (showSeasons = !!checked)} />
+                    <label
+                        for="seasons"
+                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                        <Tv class="h-4 w-4 text-green-400" />
+                        Seasons
                     </label>
                 </div>
             </div>
