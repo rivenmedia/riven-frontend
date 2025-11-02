@@ -3,6 +3,8 @@
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+        import Loader2 from "@lucide/svelte/icons/loader-2";
+
 
     interface Props {
         title: string | null | undefined;
@@ -37,6 +39,7 @@
     }
 
     let open = $state(false);
+    let loading = $state(false);
 </script>
 
 <AlertDialog.Root bind:open>
@@ -58,10 +61,18 @@
         <AlertDialog.Footer>
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
             <AlertDialog.Action
+                disabled={loading}
                 onclick={async () => {
+                    loading = true;
                     await removeMediaItem(ids);
+                    loading = false;
                     open = false;
-                }}>Delete</AlertDialog.Action>
+                }}>
+                {#if loading}
+                    <Loader2 class="animate-spin mr-2 inline-block" />
+                {/if}
+                Delete
+            </AlertDialog.Action>
         </AlertDialog.Footer>
     </AlertDialog.Content>
 </AlertDialog.Root>
