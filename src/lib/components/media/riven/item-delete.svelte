@@ -69,7 +69,7 @@
                     open = false;
                 }}>
                 {#if loading}
-                    <Loader2 class="animate-spin mr-2 inline-block" />
+                    <Loader2 class="animate-spin mr-1 inline-block" />
                 {/if}
                 Delete
             </AlertDialog.Action>

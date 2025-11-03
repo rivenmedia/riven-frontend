@@ -3,26 +3,17 @@
     import { posterCache, type RatingScore } from "$lib/services/poster-cache";
     import Poster from "$lib/components/poster.svelte";
 
-    type Placement = "top" | "bottom" | "left" | "right";
     type Indexer = "tmdb" | "anilist";
 
     interface Props {
         id: number;
         indexer: Indexer;
         mediaType?: "movie" | "tv";
-        placement?: Placement;
         overlayOpacity?: number;
         [key: string]: any;
     }
 
-    let {
-        id,
-        indexer,
-        mediaType,
-        placement = "bottom",
-        overlayOpacity = 0.9,
-        ...restProps
-    }: Props = $props();
+    let { id, indexer, mediaType, overlayOpacity = 0.9, ...restProps }: Props = $props();
 
     let scores = $state<RatingScore[]>([]);
     let loading = $state(true);
@@ -60,32 +51,16 @@
             loading = false;
         }
     });
-
-    const isHorizontal = $derived(placement === "top" || placement === "bottom");
-    const justifyClass = $derived(
-        placement === "top"
-            ? "justify-start"
-            : placement === "bottom"
-              ? "justify-end"
-              : placement === "left"
-                ? "items-start"
-                : "items-end"
-    );
 </script>
 
-<Poster {...restProps} class="flex {isHorizontal ? 'flex-col' : 'flex-row'} {justifyClass}">
-    {#snippet children()}
+<Poster {...restProps} class="flex flex-col justify-end">
+    {#snippet rating()}
         {#if !loading && !error && scores.length > 0}
             <div
-                class="flex {isHorizontal
-                    ? 'h-[8%] w-full flex-row items-center justify-evenly'
-                    : 'h-full w-[16%] flex-col items-center justify-start gap-2 pt-2'}"
-                style="background-color: var(--secondary); opacity: {overlayOpacity};">
+                class="bg-secondary flex w-full flex-row items-center justify-evenly"
+                style="opacity: {overlayOpacity};">
                 {#each scores as score (score.name)}
-                    <div
-                        class="flex items-center gap-1 text-xs text-white {isHorizontal
-                            ? 'flex-row'
-                            : 'flex-col'}">
+                    <div class="flex flex-row items-center gap-1 text-xs text-white">
                         {#if score.image}
                             <img
                                 src="/rating-logos/{score.image}"

@@ -24,14 +24,13 @@
     {#if useDynamicPoster}
         <RatingPoster
             {isSelectable}
-            {selectStore}
             id={data.id}
+            {selectStore}
             {indexer}
             mediaType={type}
             src={data.poster_path}
             alt={data.title}
-            riven_id={data.riven_id ?? undefined}
-            placement="bottom" />
+            riven_id={data.riven_id ?? undefined} />
     {:else}
         <Poster
             id={data.id}

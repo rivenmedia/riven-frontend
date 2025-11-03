@@ -84,7 +84,7 @@
                     open = false;
                 }}>
                 {#if loading}
-                    <Loader2 class="mr-2 inline-block animate-spin" />
+                    <Loader2 class="mr-1 inline-block animate-spin" />
                 {/if}
                 {isPaused ? "Resume" : "Pause"}
             </AlertDialog.Action>

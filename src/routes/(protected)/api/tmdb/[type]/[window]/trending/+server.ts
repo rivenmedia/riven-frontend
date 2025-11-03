@@ -59,15 +59,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 error(500, "Failed to fetch trending TV shows");
             }
 
-            const transformedResults = trending.data.results?.map((item) => ({
-                id: item.id,
-                title: item.name || item.original_name,
-                poster_path: item.poster_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
-                    : null,
-                media_type: "TV",
-                year: item.first_air_date ? new Date(item.first_air_date).getFullYear() : "N/A"
-            }));
+            const transformedResults = transformTMDBList(trending.data.results ?? null);
 
             return json({ results: transformedResults });
         }
