@@ -80,8 +80,7 @@ jobs:
                   file: ./Dockerfile
                   platforms: ${{ matrix.platform }}
                   labels: ${{ steps.meta.outputs.labels }}
-                  # temp disable provenance
-                  provenance: false
+                  provenance: mode=min
                   outputs: type=image,name=${{ env.REGISTRY_IMAGE_GHCR }},push-by-digest=true,name-canonical=true,push=true
                   cache-from: type=gha,scope=${{ github.workflow }}-${{ env.PLATFORM_PAIR }}
                   cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ env.PLATFORM_PAIR }}
