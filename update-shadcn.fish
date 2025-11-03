@@ -7,7 +7,7 @@ if not test -d src/lib/components/ui
     exit 1
 end
 
-set components (find src/lib/components/ui -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename)
+set components (find src/lib/components/ui -mindepth 1 -maxdepth 1 -type d -not -name extras | xargs -n 1 basename)
 
 if test -z "$components"
     echo "No component directories found in src/lib/components/ui"
