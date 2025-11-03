@@ -8,28 +8,20 @@
 
     interface Props {
         id: number;
-        riven_id?: number;
         indexer: Indexer;
         mediaType?: "movie" | "tv";
-        posterUrl: string;
-        alt: string;
         placement?: Placement;
         overlayOpacity?: number;
-        isSelectable?: boolean;
-        selectStore?: any;
+        [key: string]: any;
     }
 
     let {
         id,
-        riven_id = undefined,
         indexer,
         mediaType,
-        posterUrl,
-        alt,
         placement = "bottom",
         overlayOpacity = 0.9,
-        isSelectable = false,
-        selectStore = undefined
+        ...restProps
     }: Props = $props();
 
     let scores = $state<RatingScore[]>([]);
@@ -81,14 +73,7 @@
     );
 </script>
 
-<Poster
-    {id}
-    riven_id={riven_id}
-    src={posterUrl}
-    {selectStore}
-    {isSelectable}
-    {alt}
-    class="flex {isHorizontal ? 'flex-col' : 'flex-row'} {justifyClass}">
+<Poster {...restProps} class="flex {isHorizontal ? 'flex-col' : 'flex-row'} {justifyClass}">
     {#snippet children()}
         {#if !loading && !error && scores.length > 0}
             <div

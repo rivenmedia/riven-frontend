@@ -28,7 +28,7 @@
             id={data.id}
             {indexer}
             mediaType={type}
-            posterUrl={data.poster_path}
+            src={data.poster_path}
             alt={data.title}
             riven_id={data.riven_id ?? undefined}
             placement="bottom" />

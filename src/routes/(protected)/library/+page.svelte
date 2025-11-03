@@ -177,11 +177,17 @@
         </div>
 
         {#if itemsStore && itemsStore.count > 0}
-            <p class="text-muted-foreground text-sm">
-                {itemsStore.count} item{itemsStore.count === 1 ? "" : "s"} selected
-            </p>
+            <div class="mt-2 flex items-center gap-2 text-sm">
+                <p class="text-muted-foreground">
+                    {itemsStore.count} item{itemsStore.count === 1 ? "" : "s"} selected
+                </p>
 
-            <div transition:fly class="flex gap-2">
+                <button class="underline" onclick={() => itemsStore.clear()}>
+                    Clear Selection
+                </button>
+            </div>
+
+            <div transition:fly class="mt-2 flex gap-2">
                 {#snippet actionButton(
                     label: string,
                     variant: "destructive" | "outline",

@@ -6,8 +6,8 @@
     interface Props {
         id?: number;
         riven_id?: number;
-        src: string;
-        alt: string;
+        src?: string;
+        alt?: string;
         class?: string;
         isSelectable?: boolean;
         selectStore?: any;
