@@ -27,6 +27,8 @@
         rating,
         children
     }: Props = $props();
+
+    let showDetail = $state(false);
 </script>
 
 <div
@@ -52,8 +54,34 @@
         </button>
     {/if}
 
-    <div class="flex flex-1 flex-col items-start justify-end ">
-        <!--details, buttons here!-->
+    <div
+        class="flex flex-1 flex-col items-start justify-end"
+        role="link"
+        tabindex="0"
+        onmouseenter={() => {
+            if (window.matchMedia("(hover: hover)").matches) {
+                showDetail = true;
+            }
+        }}
+        onmouseleave={() => {
+            if (window.matchMedia("(hover: hover)").matches) {
+                showDetail = false;
+            }
+        }}
+        onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                showDetail = !showDetail;
+            }
+        }}
+        onblur={() => {
+            showDetail = false;
+        }}
+        onclick={() => {
+            showDetail = !showDetail;
+        }}>
+        <!-- {#if showDetail}
+            
+        {/if} -->
     </div>
 
     <div class="flex max-h-4 w-full items-end">

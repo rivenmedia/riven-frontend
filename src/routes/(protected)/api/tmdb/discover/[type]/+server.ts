@@ -5,96 +5,96 @@ import providers from "$lib/providers";
 import { transformTMDBList } from "$lib/providers/parser";
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
-	if (!locals.user || !locals.session) {
-		error(401, "Unauthorized");
-	}
+    if (!locals.user || !locals.session) {
+        error(401, "Unauthorized");
+    }
 
-	const { type } = params;
+    const { type } = params;
 
-	if (type !== "movie" && type !== "tv") {
-		error(400, "Invalid media type. Must be 'movie' or 'tv'");
-	}
+    if (type !== "movie" && type !== "tv") {
+        error(400, "Invalid media type. Must be 'movie' or 'tv'");
+    }
 
-	console.log(`Discovering ${type}s with params:`, Object.fromEntries(url.searchParams));
+    console.log(`Discovering ${type}s with params:`, Object.fromEntries(url.searchParams));
 
-	try {
-		// Get all query parameters from the URL
-		const queryParams: Record<string, unknown> = {};
+    try {
+        // Get all query parameters from the URL
+        const queryParams: Record<string, unknown> = {};
 
-		// Convert URL search params to object
-		for (const [key, value] of url.searchParams) {
-			// Handle numeric parameters
-			if (
-				key.includes("year") ||
-				key.includes("vote_") ||
-				key.includes("runtime") ||
-				key === "page" ||
-				key === "with_networks" ||
-				key === "with_release_type"
-			) {
-				const numValue = Number(value);
-				if (!isNaN(numValue)) {
-					queryParams[key] = numValue;
-				}
-			}
-			// Handle boolean parameters
-			else if (
-				key === "include_adult" ||
-				key === "include_video" ||
-				key === "include_null_first_air_dates" ||
-				key === "screened_theatrically"
-			) {
-				queryParams[key] = value === "true" || value === "1";
-			}
-			// Handle string parameters
-			else {
-				queryParams[key] = value;
-			}
-		}
+        // Convert URL search params to object
+        for (const [key, value] of url.searchParams) {
+            // Handle numeric parameters
+            if (
+                key.includes("year") ||
+                key.includes("vote_") ||
+                key.includes("runtime") ||
+                key === "page" ||
+                key === "with_networks" ||
+                key === "with_release_type"
+            ) {
+                const numValue = Number(value);
+                if (!isNaN(numValue)) {
+                    queryParams[key] = numValue;
+                }
+            }
+            // Handle boolean parameters
+            else if (
+                key === "include_adult" ||
+                key === "include_video" ||
+                key === "include_null_first_air_dates" ||
+                key === "screened_theatrically"
+            ) {
+                queryParams[key] = value === "true" || value === "1";
+            }
+            // Handle string parameters
+            else {
+                queryParams[key] = value;
+            }
+        }
 
-		if (type === "movie") {
-			const discover = await providers.tmdb.GET("/3/discover/movie", {
-				params: {
-					query: queryParams
-				},
-				fetch
-			});
+        if (type === "movie") {
+            const discover = await providers.tmdb.GET("/3/discover/movie", {
+                params: {
+                    query: queryParams
+                },
+                fetch
+            });
 
-			if (discover.error) {
-				console.error("TMDB API error:", discover.error);
-				error(500, "Failed to discover movies");
-			}
-			const transformedResults = transformTMDBList(discover.data.results || []);
+            if (discover.error) {
+                console.error("TMDB API error:", discover.error);
+                error(500, "Failed to discover movies");
+            }
+            const transformedResults = transformTMDBList(discover.data.results || []);
 
-			return json({
-				results: transformedResults,
-				page: discover.data.page,
-				total_pages: discover.data.total_pages,
-				total_results: discover.data.total_results
-			});
-		} else {
-			const discover = await providers.tmdb.GET("/3/discover/tv", {
-				params: {
-					query: queryParams
-				},
-				fetch
-			});
+            return json({
+                results: transformedResults,
+                page: discover.data.page,
+                total_pages: discover.data.total_pages,
+                total_results: discover.data.total_results
+            });
+        } else {
+            const discover = await providers.tmdb.GET("/3/discover/tv", {
+                params: {
+                    query: queryParams
+                },
+                fetch
+            });
 
-			if (discover.error) {
-				console.error("TMDB API error:", discover.error);
-				error(500, "Failed to discover TV shows");
-			}
-			const transformedResults = transformTMDBList(discover.data.results || []);
+            if (discover.error) {
+                console.error("TMDB API error:", discover.error);
+                error(500, "Failed to discover TV shows");
+            }
+            const transformedResults = transformTMDBList(discover.data.results || [], "tv");
 
-			return json({
-				results: transformedResults,
-				page: discover.data.page,
-				total_pages: discover.data.total_pages,
-				total_results: discover.data.total_results
-			});
-		}
-	} catch (err) {
-		console.error("Error discovering media:", err);
-		error(500, "Failed to discover media");
-	}
+            return json({
+                results: transformedResults,
+                page: discover.data.page,
+                total_pages: discover.data.total_pages,
+                total_results: discover.data.total_results
+            });
+        }
+    } catch (err) {
+        console.error("Error discovering media:", err);
+        error(500, "Failed to discover media");
+    }
 };

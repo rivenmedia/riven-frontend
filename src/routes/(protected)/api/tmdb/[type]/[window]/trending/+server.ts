@@ -59,7 +59,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 error(500, "Failed to fetch trending TV shows");
             }
 
-            const transformedResults = transformTMDBList(trending.data.results ?? null);
+            const transformedResults = transformTMDBList(trending.data.results ?? null, "tv");
 
             return json({ results: transformedResults });
         }

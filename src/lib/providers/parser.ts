@@ -288,14 +288,21 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
     trakt_recommendations: TMDBTransformedListItem[];
 }
 
-export function transformTMDBList(items: TMDBListItem[] | null) {
+export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | "tv" = "movie") {
     return (
         items?.map((item) => ({
             id: item.id,
-            title: item.title || item.original_title,
+            title: item.title || item.name || item.original_title || item.original_name,
             poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
-            media_type: "movie",
-            year: item.release_date ? new Date(item.release_date).getFullYear() : "N/A",
+            media_type: type,
+            year:
+                type === "movie"
+                    ? item.release_date
+                        ? new Date(item.release_date).getFullYear()
+                        : "N/A"
+                    : item.first_air_date
+                      ? new Date(item.first_air_date).getFullYear()
+                      : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
             indexer: "tmdb"
@@ -759,16 +766,16 @@ function selectArtwork(
     preferredLanguage: string | null = "eng"
 ) {
     if (!artworks || artworks.length === 0) return null;
-    
+
     const matchingArtworks = artworks.filter(predicate);
     if (matchingArtworks.length === 0) return null;
-    
-    const preferredArtworks = matchingArtworks.filter(art => art.language === preferredLanguage);
-    
+
+    const preferredArtworks = matchingArtworks.filter((art) => art.language === preferredLanguage);
+
     if (preferredArtworks.length > 0) {
         return preferredArtworks.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
     }
-    
+
     return matchingArtworks.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
 }
 
@@ -806,11 +813,13 @@ export function parseTVDBShowDetails(
     );
 
     const backdropPath = buildTVDBImage(
-        selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15, null)?.image ?? null
+        selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15, null)?.image ??
+            null
     );
 
     const logoPath = buildTVDBImage(
-        selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25, "eng")?.image ?? null
+        selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25, "eng")?.image ??
+            null
     );
 
     function extractYoutubeKey(url: string | null): string | undefined {
