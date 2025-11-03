@@ -10,12 +10,11 @@
     import Eye from "@lucide/svelte/icons/eye";
     import EyeOff from "@lucide/svelte/icons/eye-off";
     import { Switch } from "$lib/components/ui/switch/index.js";
-    import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
     import type { FsSuperForm } from "formsnap";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import { dev } from "$app/environment";
     import { page } from "$app/state";
+    import FormBase from "./form-base.svelte";
 
     let {
         data
@@ -84,35 +83,41 @@
     </Form.Field>
 {/snippet}
 
-<div class="flex flex-col">
-    {#if dev}
-        <!-- <SuperDebug data={formData} /> -->
-    {/if}
-    <h2 class="text-lg font-semibold">Change Password</h2>
-    <form class="mt-4" method="POST" use:enhance action="?/passwordChange">
-        {@render passwordFormField(form, "oldPassword", "Current Password")}
+<FormBase
+    title="Change Password"
+    description="Update your account password to keep your account secure.">
+    {#snippet content()}
+        <form method="POST" use:enhance action="?/passwordChange">
+            {@render passwordFormField(form, "oldPassword", "Current Password")}
+            {@render passwordFormField(form, "newPassword", "New Password")}
+            {@render passwordFormField(form, "confirmNewPassword", "Confirm New Password")}
 
-        {@render passwordFormField(form, "newPassword", "New Password")}
+            <Form.Field {form} name="revokeSessions" class="mt-4">
+                <Form.Control>
+                    {#snippet children({ props })}
+                        <div class="flex items-center gap-2">
+                            <Switch {...props} bind:checked={$formData.revokeSessions} />
+                            <Form.Label for="revokeSessions">Revoke all other sessions</Form.Label>
+                        </div>
+                    {/snippet}
+                </Form.Control>
+                <Form.FieldErrors />
+            </Form.Field>
+        </form>
+    {/snippet}
 
-        {@render passwordFormField(form, "confirmNewPassword", "Confirm New Password")}
-
-        <Form.Field {form} name="revokeSessions" class="mt-4">
-            <Form.Control>
-                {#snippet children({ props })}
-                    <div class="flex items-center gap-2">
-                        <Switch {...props} bind:checked={$formData.revokeSessions} />
-                        <Form.Label for="revokeSessions">Revoke all other sessions</Form.Label>
-                    </div>
-                {/snippet}
-            </Form.Control>
-            <Form.FieldErrors />
-        </Form.Field>
-
-        <Form.Button class="mt-2" variant="secondary" size="sm" disabled={$delayed}>
+    {#snippet footer()}
+        <Form.Button
+            variant="secondary"
+            size="sm"
+            disabled={$delayed}
+            onclick={() => {
+                form.submit();
+            }}>
             {#if $delayed}
                 <LoaderCircle class="mr-2 h-5 w-5 animate-spin" />
             {/if}
             Change Password
         </Form.Button>
-    </form>
-</div>
+    {/snippet}
+</FormBase>
