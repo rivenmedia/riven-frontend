@@ -44,7 +44,7 @@
     <a {href} class="block">
         <AspectRatio
             ratio={2 / 3}
-            class="w-36 overflow-hidden rounded-sm md:w-40 lg:w-44 {className} transition-transform duration-300 hover:scale-105 cursor-pointer">
+            class="w-36 overflow-hidden rounded-sm md:w-40 lg:w-44 {className} cursor-pointer">
             <img
                 src={src
                     ? src
@@ -59,10 +59,8 @@
     <AspectRatio
         ratio={2 / 3}
         onclick={handlePosterClick}
-        class="w-36 overflow-hidden rounded-sm md:w-40 lg:w-44 {className} transition-all duration-300 hover:scale-105 {isSelectable
+        class="w-36 overflow-hidden rounded-sm md:w-40 lg:w-44 {className} {isSelectable
             ? 'cursor-pointer'
-            : ''} {isSelected
-            ? 'ring-4 ring-primary ring-offset-2'
             : ''}">
         <img
             src={src
