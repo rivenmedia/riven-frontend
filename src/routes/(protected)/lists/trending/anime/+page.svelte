@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MediaListStore } from "../../../../../lib/services/lists-cache.svelte";
+    import { MediaListStore } from "$lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { onMount } from "svelte";
@@ -40,10 +40,10 @@
 
     {#if Array.isArray(anilistTrendingStore.items) && anilistTrendingStore.items.length > 0}
         <div
-            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            class="flex flex-wrap gap-4">
             {#each anilistTrendingStore.items as item (item.id)}
                 <div>
-                    <ListItem data={item} indexer="anilist" type="anime" />
+                    <ListItem data={item} indexer="anilist" type={item.media_type} />
                 </div>
             {/each}
             {#if anilistTrendingStore.loading}
@@ -61,7 +61,7 @@
         </div>
     {:else}
         <div
-            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            class="flex flex-wrap gap-4">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />

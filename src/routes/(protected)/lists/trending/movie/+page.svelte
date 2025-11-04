@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MediaListStore } from "../../../../../lib/services/lists-cache.svelte";
+    import { MediaListStore } from "$lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
@@ -57,7 +57,7 @@
 
     {#if Array.isArray(trendingMoviesStore.items) && trendingMoviesStore.items.length > 0}
         <div
-            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            class="flex flex-wrap gap-4">
             {#each trendingMoviesStore.items as item (item.id)}
                 <div>
                     <ListItem data={item} indexer="tmdb" type="movie" />
@@ -78,7 +78,7 @@
         </div>
     {:else}
         <div
-            class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            class="flex flex-wrap gap-4">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />

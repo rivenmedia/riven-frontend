@@ -53,6 +53,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
             switch (type) {
                 case "TV":
                 case "TV_SHORT":
+                case "MOVIE":
                 case "ONA": {
                     const anilistExternalIDsResponse = await fetch(
                         `https://api.ani.zip/v1/mappings?anilist_id=${id}`,
