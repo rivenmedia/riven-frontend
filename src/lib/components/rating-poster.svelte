@@ -1,19 +1,15 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { posterCache, type RatingScore } from "$lib/services/poster-cache";
-    import Poster from "$lib/components/poster.svelte";
-
-    type Indexer = "tmdb" | "anilist";
 
     interface Props {
         id: number;
-        indexer: Indexer;
-        mediaType?: "movie" | "tv";
+        indexer: string; //"tmdb" | "anilist"
+        mediaType?: string; //movie" | "tv"
         overlayOpacity?: number;
-        [key: string]: any;
     }
 
-    let { id, indexer, mediaType, overlayOpacity = 0.9, ...restProps }: Props = $props();
+    let { id, indexer, mediaType, overlayOpacity = 0.9 }: Props = $props();
 
     let scores = $state<RatingScore[]>([]);
     let loading = $state(true);
@@ -53,26 +49,22 @@
     });
 </script>
 
-<Poster {...restProps} class="flex flex-col justify-end">
-    {#snippet rating()}
-        {#if !loading && !error && scores.length > 0}
-            <div
-                class="bg-secondary flex w-full flex-row items-center justify-evenly"
-                style="opacity: {overlayOpacity};">
-                {#each scores as score (score.name)}
-                    <div class="flex flex-row items-center gap-1 text-xs text-white">
-                        {#if score.image}
-                            <img
-                                src="/rating-logos/{score.image}"
-                                alt={score.name}
-                                class="w-auto object-contain {indexer === 'anilist'
-                                    ? 'h-4'
-                                    : 'h-[0.8rem]'}" />
-                        {/if}
-                        <span class="font-medium">{score.score}</span>
-                    </div>
-                {/each}
+{#if !loading && !error && scores.length > 0}
+    <div
+        class="bg-secondary flex w-full flex-row items-center justify-evenly"
+        style="opacity: {overlayOpacity};">
+        {#each scores as score (score.name)}
+            <div class="flex flex-row items-center gap-1 text-xs text-white">
+                {#if score.image}
+                    <img
+                        src="/rating-logos/{score.image}"
+                        alt={score.name}
+                        class="w-auto object-contain {indexer === 'anilist'
+                            ? 'h-4'
+                            : 'h-[0.8rem]'}" />
+                {/if}
+                <span class="font-medium">{score.score}</span>
             </div>
-        {/if}
-    {/snippet}
-</Poster>
+        {/each}
+    </div>
+{/if}
