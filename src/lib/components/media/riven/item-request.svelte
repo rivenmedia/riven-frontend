@@ -4,11 +4,12 @@
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
+    import { cn } from "$lib/utils";
 
     interface Props {
         title: string | null | undefined;
         ids: (string | null | undefined)[];
-        mediaType: "movie" | "tv";
+        mediaType: string; //"movie" | "tv"
         variant?:
             | "ghost"
             | "default"
@@ -20,15 +21,23 @@
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
     }
-    let { title, ids, mediaType, variant = "ghost", size = "sm", ...restProps }: Props = $props();
+    let {
+        title,
+        ids,
+        mediaType,
+        variant = "ghost",
+        size = "sm",
+        class: className = "",
+        ...restProps
+    }: Props = $props();
 
-    async function addMediaItem(ids: (string | null | undefined)[], mediaType: "movie" | "tv") {
+    async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         console.log("IDs:", ids);
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = await addItems({
             query: {
-                media_type: mediaType,
+                media_type: mediaType as "movie" | "tv",
                 tmdb_ids: mediaType === "movie" ? validIds.join(",") : "",
                 tvdb_ids: mediaType === "tv" ? validIds.join(",") : ""
             }
@@ -43,12 +52,15 @@
 
     let open = $state(false);
     let loading = $state(false);
+
+    $inspect(open);
 </script>
 
 <AlertDialog.Root bind:open>
     <AlertDialog.Trigger>
         {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>Request</Button>
+            <Button {variant} {size} class={className} {...restProps} {...props}
+                >Request</Button>
         {/snippet}
     </AlertDialog.Trigger>
     <AlertDialog.Content>
@@ -65,7 +77,9 @@
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
             <AlertDialog.Action
                 disabled={loading}
-                onclick={async () => {
+                onclick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     loading = true;
                     await addMediaItem(ids, mediaType);
                     loading = false;
