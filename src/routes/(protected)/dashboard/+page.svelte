@@ -4,8 +4,10 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Chart from "$lib/components/ui/chart/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import { BarChart, PieChart, Text } from "layerchart";
+    import { BarChart, PieChart, LineChart } from "layerchart";
     import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
+    import Heatmap from "$lib/components/heatmap.svelte";
+    import { curveCatmullRom } from "d3-shape";
 
     let { data }: { data: PageData } = $props();
 
@@ -28,6 +30,14 @@
         ];
     });
 
+    const heatmapLegend = [
+        { label: "No Activity", color: "var(--muted)" },
+        { label: "Low", color: "var(--chart-4)" },
+        { label: "Medium", color: "var(--chart-3)" },
+        { label: "High", color: "var(--chart-2)" },
+        { label: "Very High", color: "var(--chart-1)" }
+    ];
+    
     $inspect(data);
 </script>
 
@@ -100,6 +110,36 @@
         })}
     </section>
 
+    <section class="mb-8 grid grid-cols-1 gap-4">
+        <Card.Root>
+            <Card.Header class="pb-2">
+                <Card.Title class="text-sm font-medium text-neutral-300">Activity Chart</Card.Title>
+            </Card.Header>
+            <Card.Content>
+                <Heatmap
+                    data={data.statistics?.activity}
+                    colors={[
+                        "var(--muted)",
+                        "var(--chart-4)",
+                        "var(--chart-3)",
+                        "var(--chart-2)",
+                        "var(--chart-1)"
+                    ]} />
+
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
+                    {#each heatmapLegend as item}
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="inline-block h-3 w-3 shrink-0 rounded-sm"
+                                style="background-color: {item.color}"></span>
+                            <span class="text-xs text-neutral-400">{item.label}</span>
+                        </div>
+                    {/each}
+                </div>
+            </Card.Content>
+        </Card.Root>
+    </section>
+
     <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card.Root>
             <Card.Header class="pb-2">
@@ -113,7 +153,12 @@
                         y="value"
                         c="state"
                         labels
-                        props={{}}>
+                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
+                        props={{
+                            bars: {
+                                class: "fill-primary"
+                            }
+                        }}>
                         {#snippet tooltip()}
                             <Chart.Tooltip />
                         {/snippet}
@@ -147,7 +192,7 @@
                         innerRadius={-20}
                         cornerRadius={5}
                         padAngle={0.02}
-                        padding={{ left: 25, bottom: 50 }}
+                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
                         legend={{
                             classes: {
                                 root: "w-full",
@@ -173,6 +218,36 @@
                         </span>
                     </div>
                 {/each}
+            </Card.Content>
+        </Card.Root>
+    </section>
+
+    <section class="mb-8 grid grid-cols-1">
+        <Card.Root>
+            <Card.Header class="pb-2">
+                <Card.Title class="text-sm font-medium text-neutral-300">Release Year</Card.Title>
+            </Card.Header>
+            <Card.Content>
+                <Chart.Container config={{}} class="aspect-3/1 md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1 w-full">
+                    <LineChart
+                        data={data.statistics?.media_year_releases || []}
+                        x="year"
+                        series={[
+                            {
+                                key: "count",
+                                color: "var(--chart-1)"
+                            }
+                        ]}
+                        labels={{ offset: 10 }}
+                        points
+                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
+                        props={{ spline: { curve: curveCatmullRom } }}
+                        >
+                        {#snippet tooltip()}
+                            <Chart.Tooltip />
+                        {/snippet}
+                    </LineChart>
+                </Chart.Container>
             </Card.Content>
         </Card.Root>
     </section>

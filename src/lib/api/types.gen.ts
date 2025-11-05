@@ -1844,18 +1844,25 @@ export type StatsResponse = {
      */
     incomplete_items: number;
     /**
-     * Incomplete Retries
-     * Media item log string: number of retries
-     */
-    incomplete_retries: {
-        [key: string]: number;
-    };
-    /**
      * States
      */
     states: {
         [key in States]?: number;
     };
+    /**
+     * Activity
+     * Dictionary mapping date strings to count of items requested on that day
+     */
+    activity: {
+        [key: string]: number;
+    };
+    /**
+     * Media Year Releases
+     * List of dictionaries with 'year' and 'count' keys representing media item releases per year
+     */
+    media_year_releases: Array<{
+        [key: string]: number | null;
+    }>;
 };
 
 /**

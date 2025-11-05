@@ -123,3 +123,41 @@ export const getServiceDisplayName = (service: string): string => {
             return service;
     }
 };
+
+export const getLastMonday = (start: Date) => {
+    const diff = (start.getDay() + 6) % 7;
+    start.setDate(start.getDate() - diff);
+    return start;
+};
+
+export const getColor = (colors: string[], max: number, value: number) => {
+    if (!value) return colors[0];
+    const p = (value / max) * (colors.length - 1);
+    return colors[Math.ceil(p)];
+};
+
+export const getCalendar = (data: { [key: string]: number }, year: number) => {
+    const base = getLastMonday(new Date(year, 0, 1));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out: any = {}; // >:)
+
+    out.max = 0;
+    out.calendar = Array.from({ length: 7 }, (_, i) => {
+        const start = new Date(base);
+        start.setDate(start.getDate() + i);
+        return Array.from({ length: 53 }, (_, j) => {
+            const day = new Date(start);
+            day.setDate(start.getDate() + j * 7);
+            if (day.getFullYear() == year) {
+                const date = day.toISOString().split("T")[0];
+                const value = data[date] ?? 0;
+                if (value > out.max) {
+                    out.max = value;
+                }
+                return { date, value };
+            }
+        });
+    });
+
+    return out;
+};

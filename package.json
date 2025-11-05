@@ -36,6 +36,7 @@
         "@tailwindcss/typography": "^0.5.19",
         "@tailwindcss/vite": "^4.1.14",
         "@types/better-sqlite3": "^7.6.13",
+        "@types/d3-shape": "^3.1.7",
         "@types/node": "^22.18.9",
         "@types/nprogress": "^0.2.3",
         "bits-ui": "^2.11.5",
@@ -74,6 +75,7 @@
     "dependencies": {
         "better-auth": "https://pkg.pr.new/better-auth/better-auth@5237",
         "better-sqlite3": "^11.10.0",
+        "d3-shape": "^3.2.0",
         "drizzle-orm": "^0.44.6",
         "embla-carousel-autoplay": "^8.6.0",
         "mode-watcher": "^1.1.0",

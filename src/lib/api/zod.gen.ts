@@ -1705,10 +1705,16 @@ export const zStatsResponse = z.object({
     total_episodes: z.int(),
     total_symlinks: z.int(),
     incomplete_items: z.int(),
-    incomplete_retries: z.record(z.string(), z.int()).register(z.globalRegistry, {
-        description: 'Media item log string: number of retries'
+    states: z.record(z.string(), z.int()),
+    activity: z.record(z.string(), z.int()).register(z.globalRegistry, {
+        description: 'Dictionary mapping date strings to count of items requested on that day'
     }),
-    states: z.record(z.string(), z.int())
+    media_year_releases: z.array(z.record(z.string(), z.union([
+        z.int(),
+        z.null()
+    ]))).register(z.globalRegistry, {
+        description: "List of dictionaries with 'year' and 'count' keys representing media item releases per year"
+    })
 });
 
 export type StatsResponseZodType = z.infer<typeof zStatsResponse>;
