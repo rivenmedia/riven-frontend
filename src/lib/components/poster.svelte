@@ -36,8 +36,6 @@
         mediaURL,
         children
     }: Props = $props();
-
-    let showDetail = $state(false);
 </script>
 
 <div
@@ -45,7 +43,7 @@
         ? src
         : 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg'}');"
     class={cn(
-        "relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm bg-cover bg-center transition-transform duration-300 hover:scale-105 md:w-40 lg:w-44",
+        "relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm bg-cover bg-center transition-transform duration-300 hover:scale-105 md:w-40 lg:w-44 group",
         className
     )}>
     {#if isSelectable}
@@ -63,32 +61,8 @@
         </button>
     {/if}
 
-    <div
-        class="relative flex flex-1 flex-col items-start justify-end p-2 transition-all"
-        role="link"
-        tabindex="0"
-        onmouseenter={() => {
-            if (window.matchMedia("(hover: hover)").matches) {
-                showDetail = true;
-            }
-        }}
-        onmouseleave={() => {
-            if (window.matchMedia("(hover: hover)").matches) {
-                showDetail = false;
-            }
-        }}
-        onkeydown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                showDetail = !showDetail;
-            }
-        }}
-        onblur={() => {
-            showDetail = false;
-        }}
-        onclick={() => {
-            showDetail = !showDetail;
-        }}>
-        {#if showDetail}
+    <div class="relative flex flex-1 p-2 transition-all">
+        <div class="hidden h-full w-full flex-col group-hover:flex items-start justify-end">
             <div class="bg-background/70 absolute top-0 right-0 bottom-0 left-0 h-full w-full">
             </div>
             <div
@@ -97,19 +71,19 @@
             {#if title}
                 <a
                     href={mediaURL}
-                    class="relative z-1 line-clamp-2 w-full text-center text-sm font-semibold text-white">
+                    class="relative z-1 line-clamp-2 w-full text-sm font-semibold text-white text-left">
                     {title}
                 </a>
             {/if}
 
             <ItemRequest
-                class="text-background relative z-1 mt-2 w-full bg-white/90 hover:bg-white/60"
+                class="text-background relative z-1 mt-2 w-full bg-white/90 hover:bg-white/60 p-0"
                 variant="default"
                 ids={[id ? id.toString() : null]}
                 {title}
                 {mediaType} />
-            {@render children?.()}
-        {/if}
+        </div>
+        {@render children?.()}
     </div>
 
     <div class="flex max-h-4 w-full items-end">

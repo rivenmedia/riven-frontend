@@ -1,6 +1,7 @@
 import type { RequestHandler } from "./$types";
 import { error, redirect, json } from "@sveltejs/kit";
 import providers from "$lib/providers";
+import { getItem } from "$lib/api";
 
 export const GET: RequestHandler = async ({ params, fetch }) => {
     const { indexer, type, id } = params;
@@ -100,6 +101,47 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
                         }
                     }
                 }
+            }
+            break;
+
+        case "riven":
+            switch (type) {
+                case "tv": {
+                    const tvItem = await getItem({
+                        path: {
+                            id: id
+                        },
+                        query: {
+                            media_type: "tv"
+                        }
+                    });
+
+                    if (tvItem.error) {
+                        throw error(404, "TV item not found");
+                    }
+
+                    throw redirect(307, `/details/media/${tvItem.data?.tvdb_id}/tv`);
+                }
+
+                case "movie": {
+                    const movieItem = await getItem({
+                        path: {
+                            id: id
+                        },
+                        query: {
+                            media_type: "movie"
+                        }
+                    });
+
+                    if (movieItem.error) {
+                        throw error(404, "Movie item not found");
+                    }
+
+                    throw redirect(307, `/details/media/${movieItem.data?.tmdb_id}/movie`);
+                }
+
+                default:
+                    throw error(400, "Invalid media type for riven");
             }
     }
 
