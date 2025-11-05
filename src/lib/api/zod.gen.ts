@@ -3,6 +3,20 @@
 import { z } from 'zod';
 
 /**
+ * AllDebridModel
+ */
+export const zAllDebridModel = z.object({
+    enabled: z.optional(z.boolean().register(z.globalRegistry, {
+        description: 'Enable AllDebrid'
+    })).default(false),
+    api_key: z.optional(z.string().register(z.globalRegistry, {
+        description: 'AllDebrid API key'
+    })).default('')
+});
+
+export type AllDebridModelZodType = z.infer<typeof zAllDebridModel>;
+
+/**
  * LibraryProfileFilterRules
  * Filter rules for library profile matching (metadata-only)
  */
@@ -239,7 +253,8 @@ export const zDownloadersModel = z.object({
         description: 'Proxy URL for downloaders (optional)'
     })).default(''),
     real_debrid: z.optional(zRealDebridModel),
-    debrid_link: z.optional(zDebridLinkModel)
+    debrid_link: z.optional(zDebridLinkModel),
+    all_debrid: z.optional(zAllDebridModel)
 });
 
 export type DownloadersModelZodType = z.infer<typeof zDownloadersModel>;
@@ -433,6 +448,9 @@ export const zTorrentioConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true),
@@ -459,6 +477,12 @@ export const zJackettConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
+    infohash_fetch_timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Timeout in seconds for parallel infohash fetching from URLs'
+    })).default(30),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -481,6 +505,12 @@ export const zProwlarrConfig = z.object({
     })).default(''),
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
+    })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
+    infohash_fetch_timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Timeout in seconds for parallel infohash fetching from URLs'
     })).default(30),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
@@ -526,6 +556,9 @@ export const zOrionoidConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -546,6 +579,9 @@ export const zMediafusionConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -566,6 +602,9 @@ export const zZileanConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -586,6 +625,9 @@ export const zCometConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -606,6 +648,9 @@ export const zRarbgConfig = z.object({
     timeout: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Request timeout in seconds'
     })).default(30),
+    retries: z.optional(z.int().gte(0).register(z.globalRegistry, {
+        description: 'Number of retries for failed requests'
+    })).default(1),
     ratelimit: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable rate limiting'
     })).default(true)
@@ -1184,6 +1229,15 @@ export const zHttpValidationError = z.object({
 });
 
 export type HttpValidationErrorZodType = z.infer<typeof zHttpValidationError>;
+
+/**
+ * ItemAliasesResponse
+ */
+export const zItemAliasesResponse = z.object({
+    aliases: z.record(z.string(), z.array(z.string()))
+});
+
+export type ItemAliasesResponseZodType = z.infer<typeof zItemAliasesResponse>;
 
 /**
  * ItemsResponse
@@ -2251,6 +2305,23 @@ export type CompositeReindexerDataZodType = z.infer<typeof zCompositeReindexerDa
 export const zCompositeReindexerResponse = zReindexResponse;
 
 export type CompositeReindexerResponseZodType = z.infer<typeof zCompositeReindexerResponse>;
+
+export const zGetItemAliasesData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        item_id: z.int()
+    }),
+    query: z.optional(z.never())
+});
+
+export type GetItemAliasesDataZodType = z.infer<typeof zGetItemAliasesData>;
+
+/**
+ * Successful Response
+ */
+export const zGetItemAliasesResponse = zItemAliasesResponse;
+
+export type GetItemAliasesResponseZodType = z.infer<typeof zGetItemAliasesResponse>;
 
 export const zScrapeItemData = z.object({
     body: z.optional(z.never()),
