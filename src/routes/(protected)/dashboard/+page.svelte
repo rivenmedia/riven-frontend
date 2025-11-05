@@ -4,7 +4,7 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Chart from "$lib/components/ui/chart/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import { BarChart, PieChart } from "layerchart";
+    import { BarChart, PieChart, Text } from "layerchart";
     import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
 
     let { data }: { data: PageData } = $props();
@@ -88,17 +88,19 @@
         {@render KPICard({
             title: "Completion Rate",
             value:
-                data.statistics && data.statistics.total_items > 0 && data.statistics.states.Completed !== undefined
+                data.statistics &&
+                data.statistics.total_items > 0 &&
+                data.statistics.states.Completed !== undefined
                     ? (
                           (data.statistics.states.Completed / data.statistics.total_items) *
                           100
                       ).toFixed(2) + "%"
-                    : '0%',
+                    : "0%",
             sub: "Completed / Total"
         })}
     </section>
 
-    <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card.Root>
             <Card.Header class="pb-2">
                 <Card.Title class="text-sm font-medium text-neutral-300">Library States</Card.Title>
@@ -109,12 +111,24 @@
                         data={transformedStates}
                         x="state"
                         y="value"
-                        props={{ bars: { class: "fill-primary" } }}>
+                        c="state"
+                        labels
+                        props={{}}>
                         {#snippet tooltip()}
                             <Chart.Tooltip />
                         {/snippet}
                     </BarChart>
                 </Chart.Container>
+
+                {#each transformedStates as item (item.state)}
+                    <div class="mt-4 flex items-center gap-2">
+                        <!-- <span class="bg-primary inline-block h-3 w-3 shrink-0 rounded-sm"></span> -->
+                        <span class="text-sm text-neutral-300">{item.state}</span>
+                        <span class="ml-auto font-mono text-sm text-neutral-50">
+                            {item.value.toLocaleString()}
+                        </span>
+                    </div>
+                {/each}
             </Card.Content>
         </Card.Root>
 
@@ -125,19 +139,47 @@
             </Card.Header>
             <Card.Content>
                 <Chart.Container config={{}} class="w-full">
-                    <PieChart data={contentBreakdown} key="key" value="value" c="c">
+                    <PieChart
+                        data={contentBreakdown}
+                        key="key"
+                        value="value"
+                        c="c"
+                        innerRadius={-20}
+                        cornerRadius={5}
+                        padAngle={0.02}
+                        padding={{ left: 25, bottom: 50 }}
+                        legend={{
+                            classes: {
+                                root: "w-full",
+                                items: "justify-center",
+                                swatch: "size-2",
+                                item: "text-xs"
+                            }
+                        }}>
                         {#snippet tooltip()}
                             <Chart.Tooltip />
                         {/snippet}
                     </PieChart>
                 </Chart.Container>
+
+                {#each contentBreakdown as item (item.key)}
+                    <div class="mt-4 flex items-center gap-2">
+                        <span
+                            class="inline-block h-3 w-3 shrink-0 rounded-sm"
+                            style="background-color: {item.c}"></span>
+                        <span class="text-sm text-neutral-300">{item.key}</span>
+                        <span class="ml-auto font-mono text-sm text-neutral-50">
+                            {item.value.toLocaleString()}
+                        </span>
+                    </div>
+                {/each}
             </Card.Content>
         </Card.Root>
     </section>
 
-    <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card.Root class="lg:col-span-2">
-            <Card.Header class="pb-2">
+    <section class="mb-8 grid grid-cols-1">
+        <Card.Root>
+            <Card.Header>
                 <Card.Title class="text-sm font-medium text-neutral-300">Service Status</Card.Title>
             </Card.Header>
             <Card.Content>
@@ -168,9 +210,9 @@
         </Card.Root>
     </section>
 
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {#each data.downloaderInfo?.services as downloader (downloader.service)}
-            <Card.Root class="bg-linear-to-br bg-card border">
+            <Card.Root class="bg-card border bg-linear-to-br">
                 <Card.Header class="pb-3">
                     <div class="flex items-center justify-between">
                         <Card.Title class="text-lg font-semibold text-neutral-50">
@@ -216,8 +258,8 @@
                                             downloader.premium_days_left < 7
                                                 ? "text-red-400"
                                                 : downloader.premium_days_left < 30
-                                                    ? "text-amber-300"
-                                                    : "text-green-400"
+                                                  ? "text-amber-300"
+                                                  : "text-green-400"
                                         )}>
                                         {downloader.premium_days_left}
                                     </p>
@@ -255,5 +297,5 @@
                 </Card.Content>
             </Card.Root>
         {/each}
-    </section>  
+    </section>
 </div>
