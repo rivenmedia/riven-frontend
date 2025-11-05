@@ -76,12 +76,12 @@
                 </a>
             {/if}
 
-            <ItemRequest
-                class="text-background relative z-1 mt-2 w-full bg-white/90 hover:bg-white/60 p-0"
+            <!-- <ItemRequest
+                class="text-background relative z-1 mt-2 w-full bg-white/90 hover:bg-white/60"
                 variant="default"
                 ids={[id ? id.toString() : null]}
                 {title}
-                {mediaType} />
+                {mediaType} /> -->
         </div>
         {@render children?.()}
     </div>
