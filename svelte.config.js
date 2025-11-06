@@ -8,9 +8,6 @@ const config = {
         adapter: adapter(),
         experimental: {
             remoteFunctions: true
-        },
-        router: {
-            resolution: "server"
         }
     },
     extensions: [".svelte", ".svx"],
