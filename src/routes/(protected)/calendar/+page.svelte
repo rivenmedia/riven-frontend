@@ -22,6 +22,7 @@
         aired_at: string;
         season?: number;
         episode?: number;
+        last_state?: string;
     }
 
     const monthNames = [
@@ -179,7 +180,8 @@
                     : [
                           "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
                           compact && "text-orange-300"
-                      ]
+                      ],
+            item.last_state === "Completed" && "line-through opacity-60"
         )}
         title={compact
             ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
