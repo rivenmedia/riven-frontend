@@ -3,10 +3,12 @@
     import { createMeta, SvelteKitForm } from "@sjsf/sveltekit/client";
     import * as defaults from "$lib/components/settings/form-defaults";
     import { setShadcnContext } from "$lib/components/shadcn-context";
+    import { toast } from "svelte-sonner";
+    import { icons } from "@sjsf/lucide-icons";
     setShadcnContext();
 
     let { data }: { data: PageData } = $props();
-    $inspect(data);
+    $inspect(data.form);
 
     const meta = createMeta<ActionData, PageData>().form;
 </script>
@@ -18,10 +20,11 @@
 <div class="mt-14 h-full w-full p-6 md:p-8 md:px-16">
     <SvelteKitForm
         {...defaults}
+        {icons}
         {meta}
         onSuccess={(result: any) => {
             if (result.type === "success") {
-                console.log(result.data?.post);
+                toast.success("Settings saved");
             }
         }} />
 </div>

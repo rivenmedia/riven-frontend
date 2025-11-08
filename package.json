@@ -83,6 +83,7 @@
         "@sjsf-lab/shadcn-extras-theme": "^3.0.0",
         "@sjsf/ajv8-validator": "^3.0.0",
         "@sjsf/form": "^3.0.0",
+        "@sjsf/lucide-icons": "^3.0.0",
         "@sjsf/shadcn4-theme": "^3.0.0",
         "@sjsf/sveltekit": "^3.0.0",
         "ajv": "^8.17.1",
