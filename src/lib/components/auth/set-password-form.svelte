@@ -85,8 +85,7 @@
 
 <FormBase
     title="Set Password"
-    description="Update your user profile information including username, name, and avatar."
-    >
+    description="Update your user profile information including username, name, and avatar.">
     {#snippet content()}
         <form method="POST" use:enhance action="?/setPassword">
             {@render passwordFormField(form, "newPassword", "New Password")}

@@ -259,7 +259,7 @@
             day.isCurrentMonth
                 ? "bg-card border-border hover:bg-accent/50"
                 : "bg-muted/30 border-muted text-muted-foreground",
-            isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+            isToday && "ring-primary ring-offset-background ring-2 ring-offset-2"
         )}>
         <div class={cn("mb-2 text-base font-medium", isToday && "text-primary")}>
             {day.day}
@@ -270,10 +270,11 @@
 
 {#snippet mobileDayCard(day: CalendarDay)}
     {@const isToday = day.dateKey === new Date().toISOString().split("T")[0]}
-    <div class={cn(
-        "bg-card border-border rounded-lg border p-3",
-        isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-    )}>
+    <div
+        class={cn(
+            "bg-card border-border rounded-lg border p-3",
+            isToday && "ring-primary ring-offset-background ring-2 ring-offset-2"
+        )}>
         <div class="mb-3 flex items-center justify-between">
             <div class={cn("text-lg font-semibold", isToday && "text-primary")}>
                 {formatDayTitle(day.date)}
@@ -303,7 +304,8 @@
                     <ChevronRight class="h-4 w-4" />
                 </Button>
             </div>
-            <div class="mt-4 flex flex-wrap items-center justify-center gap-4 border-t pt-4 md:gap-6">
+            <div
+                class="mt-4 flex flex-wrap items-center justify-center gap-4 border-t pt-4 md:gap-6">
                 <div class="flex items-center space-x-2">
                     <Checkbox
                         id="movies"

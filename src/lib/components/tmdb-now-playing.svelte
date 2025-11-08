@@ -76,7 +76,7 @@
                         class="w-full object-cover object-center select-none max-md:h-full"
                         loading="lazy" />
                     <div
-                        class="absolute inset-0 z-1 flex bg-linear-to-t from-background via-background/60 to-transparent select-none">
+                        class="from-background via-background/60 absolute inset-0 z-1 flex bg-linear-to-t to-transparent select-none">
                     </div>
 
                     <div class="absolute inset-0 z-2 mt-14 flex flex-col gap-4">
@@ -131,7 +131,7 @@
                                 <Button
                                     variant="link"
                                     href="/details/media/{item.id}/movie"
-                                    class="bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 w-full md:w-auto"
+                                    class="w-full bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 md:w-auto"
                                     >View Details</Button>
                             </div>
                         </div>
@@ -178,8 +178,7 @@
     </Carousel.Root>
 {:else}
     <div class="relative h-96 w-full">
-        <div
-            class="absolute inset-0 animate-pulse bg-linear-to-t from-neutral-950 to-neutral-800">
+        <div class="absolute inset-0 animate-pulse bg-linear-to-t from-neutral-950 to-neutral-800">
         </div>
 
         <div class="absolute inset-0 z-2 flex flex-col gap-4">

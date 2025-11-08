@@ -134,7 +134,7 @@ export const actions: Actions = {
 
         try {
             const formData = changeUserDataForm.data;
-            
+
             if (formData.newUsername && formData.newUsername !== locals.user.username) {
                 const usernameCheckResponse = await auth.api.isUsernameAvailable({
                     body: {
@@ -152,19 +152,19 @@ export const actions: Actions = {
             }
 
             const updatePayload: Record<string, string> = {};
-            
-            if (formData.newUsername && formData.newUsername.trim() !== '') {
+
+            if (formData.newUsername && formData.newUsername.trim() !== "") {
                 updatePayload.username = formData.newUsername;
             }
-            
-            if (formData.newName && formData.newName.trim() !== '') {
+
+            if (formData.newName && formData.newName.trim() !== "") {
                 updatePayload.name = formData.newName;
             }
-            
-            if (formData.newAvatar && formData.newAvatar.trim() !== '') {
+
+            if (formData.newAvatar && formData.newAvatar.trim() !== "") {
                 updatePayload.image = formData.newAvatar;
             }
-            
+
             if (Object.keys(updatePayload).length > 0) {
                 await auth.api.updateUser({
                     body: updatePayload,

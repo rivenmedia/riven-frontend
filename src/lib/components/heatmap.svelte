@@ -72,7 +72,7 @@
                 {#each w as d}
                     {#if d}
                         <td
-                            class="h-[1em] w-[1em] border border-muted-foreground/10"
+                            class="border-muted-foreground/10 h-[1em] w-[1em] border"
                             style="background:{getColor(colors, max, d.value)}"
                             data-date={d.date}
                             data-value={d.value}

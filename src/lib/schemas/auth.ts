@@ -62,7 +62,8 @@ export const changeUserDataSchema = z.object({
     newUsername: z
         .union([
             z.literal(""),
-            z.string()
+            z
+                .string()
                 .min(3, "Username must be at least 3 characters long")
                 .max(31, "Username must be at most 31 characters long")
         ])

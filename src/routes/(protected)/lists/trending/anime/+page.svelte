@@ -39,8 +39,7 @@
     </div>
 
     {#if Array.isArray(anilistTrendingStore.items) && anilistTrendingStore.items.length > 0}
-        <div
-            class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4">
             {#each anilistTrendingStore.items as item (item.id)}
                 <div>
                     <ListItem data={item} indexer="anilist" type={item.media_type} />
@@ -60,8 +59,7 @@
             {/if}
         </div>
     {:else}
-        <div
-            class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />

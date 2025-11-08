@@ -1,4 +1,4 @@
-import type { ParsedSearchQuery, TMDBParams, TVDBParams } from '$lib/search-parser';
+import type { ParsedSearchQuery, TMDBParams, TVDBParams } from "$lib/search-parser";
 
 /**
  * Builds a query string for TMDB API requests
@@ -9,24 +9,24 @@ import type { ParsedSearchQuery, TMDBParams, TVDBParams } from '$lib/search-pars
  * @returns URL query string
  */
 export function buildTMDBQueryString(
-	parsed: ParsedSearchQuery,
-	page: number,
-	searchMode?: string
+    parsed: ParsedSearchQuery,
+    page: number,
+    searchMode?: string
 ): string {
-	const params = new URLSearchParams({ page: page.toString() });
+    const params = new URLSearchParams({ page: page.toString() });
 
-	// Add search mode
-	const mode = searchMode || parsed.searchMode;
-	params.set('searchMode', mode);
+    // Add search mode
+    const mode = searchMode || parsed.searchMode;
+    params.set("searchMode", mode);
 
-	// Add TMDB parameters
-	Object.entries(parsed.tmdbParams).forEach(([key, value]) => {
-		if (value !== undefined && value !== null) {
-			params.set(key, String(value));
-		}
-	});
+    // Add TMDB parameters
+    Object.entries(parsed.tmdbParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            params.set(key, String(value));
+        }
+    });
 
-	return params.toString();
+    return params.toString();
 }
 
 /**
@@ -37,19 +37,19 @@ export function buildTMDBQueryString(
  * @returns URL query string
  */
 export function buildTVDBQueryString(parsed: ParsedSearchQuery, page: number): string {
-	const params = new URLSearchParams({ page: page.toString() });
+    const params = new URLSearchParams({ page: page.toString() });
 
-	// Add type (always series for TV)
-	params.set('type', 'series');
+    // Add type (always series for TV)
+    params.set("type", "series");
 
-	// Add TVDB parameters
-	Object.entries(parsed.tvdbParams).forEach(([key, value]) => {
-		if (value !== undefined && value !== null) {
-			params.set(key, String(value));
-		}
-	});
+    // Add TVDB parameters
+    Object.entries(parsed.tvdbParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            params.set(key, String(value));
+        }
+    });
 
-	return params.toString();
+    return params.toString();
 }
 
 /**
@@ -60,10 +60,10 @@ export function buildTVDBQueryString(parsed: ParsedSearchQuery, page: number): s
  * @returns Query parameters object
  */
 export function buildTMDBParams(parsed: ParsedSearchQuery, page: number): TMDBParams {
-	return {
-		...parsed.tmdbParams,
-		page
-	};
+    return {
+        ...parsed.tmdbParams,
+        page
+    };
 }
 
 /**
@@ -74,13 +74,13 @@ export function buildTMDBParams(parsed: ParsedSearchQuery, page: number): TMDBPa
  * @returns Query parameters object
  */
 export function buildTVDBParams(parsed: ParsedSearchQuery, page: number): Partial<TVDBParams> {
-	const limit = 20;
-	const offset = (page - 1) * limit;
+    const limit = 20;
+    const offset = (page - 1) * limit;
 
-	return {
-		...parsed.tvdbParams,
-		type: 'series',
-		limit,
-		offset
-	};
+    return {
+        ...parsed.tvdbParams,
+        type: "series",
+        limit,
+        offset
+    };
 }

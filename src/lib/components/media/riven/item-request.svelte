@@ -59,8 +59,7 @@
 <AlertDialog.Root bind:open>
     <AlertDialog.Trigger>
         {#snippet child({ props })}
-            <Button {variant} {size} class={className} {...restProps} {...props}
-                >Request</Button>
+            <Button {variant} {size} class={className} {...restProps} {...props}>Request</Button>
         {/snippet}
     </AlertDialog.Trigger>
     <AlertDialog.Content>

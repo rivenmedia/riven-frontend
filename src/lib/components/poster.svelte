@@ -43,7 +43,7 @@
         ? src
         : 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg'}');"
     class={cn(
-        "relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm bg-cover bg-center transition-transform duration-300 hover:scale-105 md:w-40 lg:w-44 group",
+        "group relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm bg-cover bg-center transition-transform duration-300 hover:scale-105 md:w-40 lg:w-44",
         className
     )}>
     {#if isSelectable}
@@ -62,7 +62,7 @@
     {/if}
 
     <div class="relative flex flex-1 p-2 transition-all">
-        <div class="hidden h-full w-full flex-col group-hover:flex items-start justify-end">
+        <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">
             <div class="bg-background/70 absolute top-0 right-0 bottom-0 left-0 h-full w-full">
             </div>
             <div
@@ -71,7 +71,7 @@
             {#if title}
                 <a
                     href={mediaURL}
-                    class="relative z-1 line-clamp-2 w-full text-sm font-semibold text-white text-left">
+                    class="relative z-1 line-clamp-2 w-full text-left text-sm font-semibold text-white">
                     {title}
                 </a>
             {/if}

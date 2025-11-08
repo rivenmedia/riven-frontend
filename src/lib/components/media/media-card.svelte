@@ -31,7 +31,7 @@
     'vertical'
         ? 'flex-col'
         : 'flex-col sm:flex-row'}">
-    <div class="{layout === 'vertical' ? 'aspect-2/3 w-full' : 'w-full sm:w-1/3'}">
+    <div class={layout === "vertical" ? "aspect-2/3 w-full" : "w-full sm:w-1/3"}>
         {#if posterPath}
             <img
                 alt={title}
@@ -61,8 +61,7 @@
             </p>
         {/if}
         {#if metadata}
-            <p
-                class="text-primary {layout === 'vertical' ? 'text-xs' : 'mb-2 text-sm'}">
+            <p class="text-primary {layout === 'vertical' ? 'text-xs' : 'mb-2 text-sm'}">
                 {metadata}
             </p>
         {/if}

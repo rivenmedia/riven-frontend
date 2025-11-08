@@ -99,7 +99,7 @@ export const actions: Actions = {
                         username: registerForm.data.username,
                         email: registerForm.data.email,
                         password: registerForm.data.password,
-                        image: registerForm.data.image || undefined,
+                        image: registerForm.data.image || undefined
                     }
                 });
             }

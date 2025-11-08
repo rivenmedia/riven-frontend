@@ -3,8 +3,7 @@
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-        import Loader2 from "@lucide/svelte/icons/loader-2";
-
+    import Loader2 from "@lucide/svelte/icons/loader-2";
 
     interface Props {
         title: string | null | undefined;
@@ -69,7 +68,7 @@
                     open = false;
                 }}>
                 {#if loading}
-                    <Loader2 class="animate-spin mr-1 inline-block" />
+                    <Loader2 class="mr-1 inline-block animate-spin" />
                 {/if}
                 Delete
             </AlertDialog.Action>

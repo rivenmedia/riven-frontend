@@ -37,7 +37,7 @@
         { label: "High", color: "var(--chart-2)" },
         { label: "Very High", color: "var(--chart-1)" }
     ];
-    
+
     $inspect(data);
 </script>
 
@@ -228,7 +228,9 @@
                 <Card.Title class="text-sm font-medium text-neutral-300">Release Year</Card.Title>
             </Card.Header>
             <Card.Content>
-                <Chart.Container config={{}} class="aspect-3/1 md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1 w-full">
+                <Chart.Container
+                    config={{}}
+                    class="aspect-3/1 w-full md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1">
                     <LineChart
                         data={data.statistics?.media_year_releases || []}
                         x="year"
@@ -241,8 +243,7 @@
                         labels={{ offset: 10 }}
                         points
                         padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
-                        props={{ spline: { curve: curveCatmullRom } }}
-                        >
+                        props={{ spline: { curve: curveCatmullRom } }}>
                         {#snippet tooltip()}
                             <Chart.Tooltip />
                         {/snippet}

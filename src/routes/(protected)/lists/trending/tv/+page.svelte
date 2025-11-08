@@ -56,8 +56,7 @@
     </div>
 
     {#if Array.isArray(trendingShowsStore.items) && trendingShowsStore.items.length > 0}
-        <div
-            class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4">
             {#each trendingShowsStore.items as item (item.id)}
                 <div>
                     <ListItem data={item} indexer="tmdb" type="tv" />
@@ -77,8 +76,7 @@
             {/if}
         </div>
     {:else}
-        <div
-            class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4">
             {#each Array(12) as _}
                 <div>
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />

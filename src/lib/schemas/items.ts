@@ -45,6 +45,6 @@ export const itemsSearchSchema = z.object({
 });
 
 export type ItemsSearchSchema = z.infer<typeof itemsSearchSchema>;
-export const typeOptions = typeEnum.enum
+export const typeOptions = typeEnum.enum;
 export const stateOptions = stateEnum.enum;
 export const sortOptions = sortEnum.enum;

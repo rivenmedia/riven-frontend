@@ -3,7 +3,6 @@ import { stats, services, downloadUserInfo } from "$lib/api";
 import { error } from "@sveltejs/kit";
 
 export const load = (async () => {
-
     const [statistics, svc, downloaderInfo] = await Promise.all([
         stats(),
         services(),

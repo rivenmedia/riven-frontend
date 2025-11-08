@@ -61,7 +61,9 @@
         return externalMetaData[normalizedKey];
     }
 
-    let showTrailer = $state(!data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer);
+    let showTrailer = $state(
+        !data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer
+    );
 
     function toggleTrailer() {
         showTrailer = !showTrailer;
@@ -341,7 +343,11 @@
                         class="border-border flex flex-wrap gap-4 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                         {#each data.mediaDetails?.details.seasons as season (season.id)}
                             <button onclick={() => (selectedSeason = season.number?.toString())}>
-                                <div class={cn("relative", selectedSeason !== season.number?.toString() && "opacity-50")}>
+                                <div
+                                    class={cn(
+                                        "relative",
+                                        selectedSeason !== season.number?.toString() && "opacity-50"
+                                    )}>
                                     {#if season.image}
                                         <img
                                             alt={season.id.toString()}
@@ -511,9 +517,7 @@
 
                         {#if data.mediaDetails?.details.production_companies && data.mediaDetails?.details.production_companies.length > 0}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">
-                                    Production Companies
-                                </p>
+                                <p class="text-primary text-xs">Production Companies</p>
                                 <div class="flex flex-row flex-wrap">
                                     {#if data.mediaDetails.type === "movie"}
                                         {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
@@ -603,9 +607,7 @@
 
                             {#if data.riven.parsed_data?.raw_title}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">
-                                        Original Filename
-                                    </p>
+                                    <p class="text-primary text-xs">Original Filename</p>
                                     <p class="text-sm font-medium break-all">
                                         {data.riven.parsed_data.raw_title}
                                     </p>
@@ -614,9 +616,7 @@
 
                             {#if data.riven.probed_data?.filename}
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">
-                                        Current Filename
-                                    </p>
+                                    <p class="text-primary text-xs">Current Filename</p>
                                     <p class="text-sm font-medium break-all">
                                         {data.riven.probed_data.filename}
                                     </p>
