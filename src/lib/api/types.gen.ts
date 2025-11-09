@@ -481,6 +481,31 @@ export type FilesystemModel = {
      * Number of chunks to fetch ahead when streaming
      */
     fetch_ahead_chunks?: number;
+    /**
+     * Movie Dir Template
+     * Template for movie directory names. Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, is_remux, is_proper, is_repack, is_extended, is_directors_cut, container. Example: '{title} ({year})' or '{title} ({year}) [{resolution}]'
+     */
+    movie_dir_template?: string;
+    /**
+     * Movie File Template
+     * Template for movie file names (without extension). Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, remux, proper, repack, extended, directors_cut, edition (string flags, empty if false). Example: '{title} ({year})' or '{title} ({year}) {edition} [{resolution}] {remux}'
+     */
+    movie_file_template?: string;
+    /**
+     * Show Dir Template
+     * Template for show directory names. Available variables: title, year, tvdb_id, imdb_id. Example: '{title} ({year})' or '{title} ({year}) {{tvdb-{tvdb_id}}}'
+     */
+    show_dir_template?: string;
+    /**
+     * Season Dir Template
+     * Template for season directory names. Available variables: season (number), show (parent show data with [title], [year], [tvdb_id], [imdb_id]). Example: 'Season {season:02d}' or 'S{season:02d}' or '{show[title]} - Season {season}'
+     */
+    season_dir_template?: string;
+    /**
+     * Episode File Template
+     * Template for episode file names (without extension). Available variables: title, season, episode, show (parent show data with [title], [year], [tvdb_id], [imdb_id]), resolution, codec, hdr, audio, quality, remux, proper, repack, extended, directors_cut, edition. Example: '{show[title]} - s{season:02d}e{episode:02d}' or 'S{season:02d}E{episode:02d} - {title}'. Multi-episode files automatically use range format (e.g., e01-05) based on episode number formatting.
+     */
+    episode_file_template?: string;
 };
 
 /**
@@ -3286,6 +3311,43 @@ export type GetItemAliasesResponses = {
 };
 
 export type GetItemAliasesResponse = GetItemAliasesResponses[keyof GetItemAliasesResponses];
+
+export type GetItemMetadataData = {
+    body?: never;
+    path: {
+        /**
+         * Item Id
+         */
+        item_id: number;
+    };
+    query?: never;
+    url: '/api/v1/items/{item_id}/metadata';
+};
+
+export type GetItemMetadataErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetItemMetadataError = GetItemMetadataErrors[keyof GetItemMetadataErrors];
+
+export type GetItemMetadataResponses = {
+    /**
+     * Response Get Item Metadata
+     * Successful Response
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type GetItemMetadataResponse = GetItemMetadataResponses[keyof GetItemMetadataResponses];
 
 export type ScrapeItemData = {
     body?: never;

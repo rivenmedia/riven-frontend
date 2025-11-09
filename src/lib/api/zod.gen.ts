@@ -129,7 +129,22 @@ export const zFilesystemModel = z.object({
     })).default(8),
     fetch_ahead_chunks: z.optional(z.int().gte(0).register(z.globalRegistry, {
         description: 'Number of chunks to fetch ahead when streaming'
-    })).default(4)
+    })).default(4),
+    movie_dir_template: z.optional(z.string().register(z.globalRegistry, {
+        description: "Template for movie directory names. Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, is_remux, is_proper, is_repack, is_extended, is_directors_cut, container. Example: '{title} ({year})' or '{title} ({year}) [{resolution}]'"
+    })).default('{title} ({year}) {{tmdb-{tmdb_id}}}'),
+    movie_file_template: z.optional(z.string().register(z.globalRegistry, {
+        description: "Template for movie file names (without extension). Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, remux, proper, repack, extended, directors_cut, edition (string flags, empty if false). Example: '{title} ({year})' or '{title} ({year}) {edition} [{resolution}] {remux}'"
+    })).default('{title} ({year})'),
+    show_dir_template: z.optional(z.string().register(z.globalRegistry, {
+        description: "Template for show directory names. Available variables: title, year, tvdb_id, imdb_id. Example: '{title} ({year})' or '{title} ({year}) {{tvdb-{tvdb_id}}}'"
+    })).default('{title} ({year}) {{tvdb-{tvdb_id}}}'),
+    season_dir_template: z.optional(z.string().register(z.globalRegistry, {
+        description: "Template for season directory names. Available variables: season (number), show (parent show data with [title], [year], [tvdb_id], [imdb_id]). Example: 'Season {season:02d}' or 'S{season:02d}' or '{show[title]} - Season {season}'"
+    })).default('Season {season:02d}'),
+    episode_file_template: z.optional(z.string().register(z.globalRegistry, {
+        description: "Template for episode file names (without extension). Available variables: title, season, episode, show (parent show data with [title], [year], [tvdb_id], [imdb_id]), resolution, codec, hdr, audio, quality, remux, proper, repack, extended, directors_cut, edition. Example: '{show[title]} - s{season:02d}e{episode:02d}' or 'S{season:02d}E{episode:02d} - {title}'. Multi-episode files automatically use range format (e.g., e01-05) based on episode number formatting."
+    })).default('{show[title]} - s{season:02d}e{episode:02d}')
 });
 
 export type FilesystemModelZodType = z.infer<typeof zFilesystemModel>;
@@ -2328,6 +2343,26 @@ export type GetItemAliasesDataZodType = z.infer<typeof zGetItemAliasesData>;
 export const zGetItemAliasesResponse = zItemAliasesResponse;
 
 export type GetItemAliasesResponseZodType = z.infer<typeof zGetItemAliasesResponse>;
+
+export const zGetItemMetadataData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        item_id: z.int()
+    }),
+    query: z.optional(z.never())
+});
+
+export type GetItemMetadataDataZodType = z.infer<typeof zGetItemMetadataData>;
+
+/**
+ * Response Get Item Metadata
+ * Successful Response
+ */
+export const zGetItemMetadataResponse = z.record(z.string(), z.unknown()).register(z.globalRegistry, {
+    description: 'Successful Response'
+});
+
+export type GetItemMetadataResponseZodType = z.infer<typeof zGetItemMetadataResponse>;
 
 export const zScrapeItemData = z.object({
     body: z.optional(z.never()),
