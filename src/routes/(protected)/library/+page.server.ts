@@ -1,4 +1,4 @@
-import type { Actions, PageServerLoad } from "./$types";
+import type { PageServerLoad } from "./$types";
 import { redirect, error } from "@sveltejs/kit";
 import { getItems } from "$lib/api";
 import { itemsSearchSchema } from "$lib/schemas/items";
@@ -50,6 +50,7 @@ export const load: PageServerLoad = async (event) => {
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
 
     const itemsResponse = await getItems({
+        fetch: event.fetch,
         query: itemsSearchForm.data
     });
 

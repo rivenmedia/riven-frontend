@@ -79,6 +79,7 @@ export const load = (async ({ fetch, params, cookies }) => {
 
     try {
         rivenData = await getItem({
+            fetch: fetch,
             path: {
                 id: id
             },
@@ -135,6 +136,7 @@ export const load = (async ({ fetch, params, cookies }) => {
                         id: Number(id)
                     },
                     query: {
+                        // @ts-expect-error schema says only one meta allowed but multiple are valid
                         meta: "episodes,translations"
                     }
                 },
