@@ -1,49 +1,58 @@
-import type { PageServerLoad } from "./$types";
-import { error } from "@sveltejs/kit";
-import { getAllSettings, setAllSettings } from "$lib/api";
-import { zAppModel } from "$lib/api/zod.gen";
-import { superValidate } from "sveltekit-superforms";
-import { zod4 } from "sveltekit-superforms/adapters";
-import { fail } from "@sveltejs/kit";
-import type { Actions } from "./$types";
-import { message } from "sveltekit-superforms";
+import type { Actions, PageServerLoad } from "./$types";
+import { error, fail } from "@sveltejs/kit";
+import { getSettingsSchema, getAllSettings, setAllSettings } from "$lib/api";
+import type { InitialFormData } from "@sjsf/sveltekit";
+import { createFormHandler } from "@sjsf/sveltekit/server";
+import * as defaults from "$lib/components/settings/form-defaults";
 
-export const load: PageServerLoad = async () => {
-    const settings = await getAllSettings({
-        auth: process.env.BACKEND_API_KEY || ""
+const getSchema = async () => {
+    const settingsSchema = await getSettingsSchema();
+    if (settingsSchema.error) {
+        throw new Error("Failed to load settings schema");
+    }
+
+    return settingsSchema.data;
+};
+export const load: PageServerLoad = async ({ fetch }) => {
+    const allSettings = await getAllSettings({
+        fetch: fetch
     });
 
-    const adapter = zod4(zAppModel);
-
-    if (settings.error) {
+    if (allSettings.error) {
         error(500, "Failed to load settings");
     }
 
-    const form = await superValidate(settings.data, adapter);
-
     return {
-        form,
-        schema: adapter.jsonSchema
+        form: {
+            schema: await getSchema(),
+            initialValue: allSettings.data
+        } satisfies InitialFormData
     };
 };
 
-export const actions: Actions = {
-    default: async ({ request }) => {
-        const form = await superValidate(request, zod4(zAppModel));
-        console.log("Form Data:", form);
+export const actions = {
+    default: async ({ request, fetch }) => {
+        const handleForm = createFormHandler<any, true>({
+            ...defaults,
+            // @ts-expect-error - it's valid
+            schema: await getSchema(),
+            sendData: true
+        });
 
-        if (!form.valid) {
+        const [form, , invalid] = await handleForm(request.signal, await request.formData());
+        if (!form.isValid) {
             return fail(400, { form });
         }
 
-        const result = await setAllSettings({
+        const res = await setAllSettings({
+            fetch: fetch,
             body: form.data
         });
 
-        if (result.error) {
-            return fail(500, { form, error: result.error });
+        if (res.error) {
+            return fail(500, { form });
         }
 
-        return message(form, "Settings updated successfully");
+        return { form };
     }
-};
+} satisfies Actions;
