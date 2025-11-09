@@ -600,25 +600,25 @@
                         {/if}
                     </div>
 
-                    {#if data.riven && data.mediaDetails?.type === "movie" && (data.riven.parsed_data || data.riven.probed_data)}
+                    {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
                         <div
                             class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                             <h3 class="text-base font-semibold">File Information</h3>
 
-                            {#if data.riven.parsed_data?.raw_title}
+                            {#if data.riven.media_metadata?.original_filename || data.riven.filesystem_entry?.original_filename}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Original Filename</p>
                                     <p class="text-sm font-medium break-all">
-                                        {data.riven.parsed_data.raw_title}
+                                        {data.riven.media_metadata?.original_filename || data.riven.filesystem_entry?.original_filename}
                                     </p>
                                 </div>
                             {/if}
 
-                            {#if data.riven.probed_data?.filename}
+                            {#if data.riven.media_metadata?.filename}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Current Filename</p>
                                     <p class="text-sm font-medium break-all">
-                                        {data.riven.probed_data.filename}
+                                        {data.riven.media_metadata.filename}
                                     </p>
                                 </div>
                             {/if}
@@ -626,65 +626,71 @@
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Video</p>
                                 <div class="flex flex-wrap gap-x-2 text-sm">
-                                    {#if data.riven.parsed_data?.resolution}
-                                        <Badge variant="outline"
-                                            >{data.riven.parsed_data.resolution}</Badge>
+                                    {#if data.riven.media_metadata?.video?.resolution_width && data.riven.media_metadata?.video?.resolution_height}
+                                        <Badge variant="outline">
+                                            {data.riven.media_metadata.video.resolution_width}x{data.riven.media_metadata.video.resolution_height}
+                                        </Badge>
                                     {/if}
-                                    {#if data.riven.parsed_data?.codec}
-                                        <Badge variant="outline"
-                                            >{data.riven.parsed_data.codec.toUpperCase()}</Badge>
+                                    {#if data.riven.media_metadata?.video?.codec}
+                                        <Badge variant="outline">
+                                            {data.riven.media_metadata.video.codec.toUpperCase()}
+                                        </Badge>
                                     {/if}
-                                    {#if data.riven.parsed_data?.bit_depth}
-                                        <Badge variant="outline"
-                                            >{data.riven.parsed_data.bit_depth}-bit</Badge>
+                                    {#if data.riven.media_metadata?.video?.bit_depth}
+                                        <Badge variant="outline">
+                                            {data.riven.media_metadata.video.bit_depth}-bit
+                                        </Badge>
                                     {/if}
-                                    {#if data.riven.parsed_data?.hdr && data.riven.parsed_data.hdr.length > 0}
-                                        {#each data.riven.parsed_data.hdr as hdrType}
-                                            <Badge variant="outline">{hdrType}</Badge>
-                                        {/each}
+                                    {#if data.riven.media_metadata?.video?.hdr_type}
+                                        <Badge variant="outline">{data.riven.media_metadata.video.hdr_type}</Badge>
                                     {/if}
-                                    {#if data.riven.probed_data?.bitrate}
-                                        <Badge variant="outline"
-                                            >{Math.round(data.riven.probed_data.bitrate / 1000000)} Mbps</Badge>
+                                    {#if data.riven.media_metadata?.bitrate}
+                                        <Badge variant="outline">
+                                            {Math.round(data.riven.media_metadata.bitrate / 1000000)} Mbps
+                                        </Badge>
+                                    {/if}
+
+                                    {#if data.riven.media_metadata?.video.frame_rate}
+                                        <Badge variant="outline">
+                                            {data.riven.media_metadata.video.frame_rate} FPS
+                                        </Badge>
                                     {/if}
                                 </div>
                             </div>
 
-                            {#if data.riven.probed_data?.audio && data.riven.probed_data.audio.length > 0}
+                            {#if data.riven.media_metadata?.audio_tracks && data.riven.media_metadata.audio_tracks.length > 0}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Audio</p>
                                     <div class="flex flex-wrap gap-x-2 text-sm">
-                                        {#each data.riven.probed_data.audio as audioTrack, i}
+                                        {#each data.riven.media_metadata.audio_tracks as audioTrack}
                                             <Badge variant="outline">
-                                                {audioTrack.codec.toUpperCase()}
-                                                {audioTrack.channels === 8
-                                                    ? "7.1"
-                                                    : audioTrack.channels === 6
-                                                      ? "5.1"
-                                                      : audioTrack.channels + "ch"}
-                                                {audioTrack.language
-                                                    ? `(${audioTrack.language.toUpperCase()})`
+                                                {audioTrack.codec}
+                                                {audioTrack.channels
+                                                    ? audioTrack.channels === 8
+                                                        ? "7.1"
+                                                        : audioTrack.channels === 6
+                                                          ? "5.1"
+                                                          : audioTrack.channels + "ch"
                                                     : ""}
+                                                {audioTrack.language ? `(${audioTrack.language.toUpperCase()})` : ""}
                                             </Badge>
                                         {/each}
                                     </div>
                                 </div>
                             {/if}
 
-                            {#if data.riven.probed_data?.subtitles && data.riven.probed_data.subtitles.length > 0}
+                            {#if data.riven.media_metadata?.subtitle_tracks && data.riven.media_metadata.subtitle_tracks.length > 0}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Subtitles</p>
                                     <div class="flex flex-wrap gap-x-2 text-sm">
-                                        {#each data.riven.probed_data.subtitles as subtitle}
+                                        {#each data.riven.media_metadata.subtitle_tracks as subtitle}
                                             <Badge variant="outline">
                                                 {subtitle.codec === "subrip"
                                                     ? "SRT"
                                                     : subtitle.codec === "hdmv_pgs_subtitle"
                                                       ? "PGS"
-                                                      : subtitle.codec.toUpperCase()}
-                                                {subtitle.language
-                                                    ? `(${subtitle.language.toUpperCase()})`
-                                                    : ""}
+                                                      : subtitle.codec?.toUpperCase() || "Unknown"}
+                                                {subtitle.language ? `(${subtitle.language.toUpperCase()})` : ""}
                                             </Badge>
                                         {/each}
                                     </div>
@@ -694,43 +700,42 @@
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Source</p>
                                 <div class="flex flex-wrap gap-x-2 text-sm">
-                                    {#if data.riven.parsed_data?.quality}
-                                        <Badge variant="outline"
-                                            >{data.riven.parsed_data.quality}</Badge>
+                                    {#if data.riven.media_metadata?.quality_source}
+                                        <Badge variant="outline">{data.riven.media_metadata.quality_source}</Badge>
                                     {/if}
-                                    {#if data.riven.parsed_data?.container}
-                                        <Badge variant="outline"
-                                            >{data.riven.parsed_data.container.toUpperCase()}</Badge>
+                                    {#if data.riven.media_metadata?.container_format && data.riven.media_metadata.container_format.length > 0}
+                                        {#each data.riven.media_metadata.container_format as container}
+                                            <Badge variant="outline">{container.toUpperCase()}</Badge>
+                                        {/each}
+                                    {/if}
+                                    {#if data.riven.media_metadata?.is_remux}
+                                        <Badge variant="outline">REMUX</Badge>
+                                    {/if}
+                                    {#if data.riven.media_metadata?.is_proper}
+                                        <Badge variant="outline">PROPER</Badge>
+                                    {/if}
+                                    {#if data.riven.media_metadata?.is_repack}
+                                        <Badge variant="outline">REPACK</Badge>
                                     {/if}
                                 </div>
                             </div>
 
-                            {#if data.riven.parsed_data?.group}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Release Group</p>
-                                    <p class="text-sm font-medium">
-                                        {data.riven.parsed_data.group}
-                                    </p>
-                                </div>
-                            {/if}
-
-                            {#if data.riven.probed_data?.file_size}
+                            {#if data.riven.filesystem_entry?.file_size}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">File Size</p>
                                     <p class="text-sm font-medium">
-                                        {(data.riven.probed_data.file_size / 1073741824).toFixed(2)}
-                                        GB
+                                        {(data.riven.filesystem_entry.file_size / 1073741824).toFixed(2)} GB
                                     </p>
                                 </div>
                             {/if}
 
-                            {#if data.riven.probed_data?.duration}
+                            {#if data.riven.media_metadata?.duration}
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Duration</p>
                                     <p class="text-sm font-medium">
-                                        {Math.floor(data.riven.probed_data.duration / 3600)}h
-                                        {Math.floor((data.riven.probed_data.duration % 3600) / 60)}m
-                                        {Math.floor(data.riven.probed_data.duration % 60)}s
+                                        {Math.floor(data.riven.media_metadata.duration / 3600)}h
+                                        {Math.floor((data.riven.media_metadata.duration % 3600) / 60)}m
+                                        {Math.floor(data.riven.media_metadata.duration % 60)}s
                                     </p>
                                 </div>
                             {/if}
