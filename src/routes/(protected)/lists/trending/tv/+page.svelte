@@ -57,14 +57,14 @@
 
     {#if Array.isArray(trendingShowsStore.items) && trendingShowsStore.items.length > 0}
         <div class="flex flex-wrap gap-4">
-            {#each trendingShowsStore.items as item (item.id)}
+            {#each trendingShowsStore.items as item, index (index)}
                 <div>
                     <ListItem data={item} indexer="tmdb" type="tv" />
                 </div>
             {/each}
             {#if trendingShowsStore.loading}
                 {#each Array(6) as _}
-                    <div class="w-full">
+                    <div class="w-36 md:w-40 lg:w-44">
                         <Skeleton class="aspect-2/3 w-full rounded-sm" />
                         <Skeleton class="mt-2 h-4 w-full" />
                         <div class="mt-1 flex items-center justify-between">
@@ -78,7 +78,7 @@
     {:else}
         <div class="flex flex-wrap gap-4">
             {#each Array(12) as _}
-                <div>
+                <div class="w-36 md:w-40 lg:w-44">
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />
                     <Skeleton class="mt-2 h-4 w-full" />
                     <div class="mt-1 flex items-center justify-between">
