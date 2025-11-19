@@ -3,7 +3,7 @@ volumes:
 
 services:
     riven-frontend:
-        image: spoked/riven-frontend:v1-beta # Tags: latest/dev/x.x.x
+        image: spoked/riven-frontend:dev # Tags: latest/dev/x.x.x
         build:
             context: .
             dockerfile: Dockerfile
