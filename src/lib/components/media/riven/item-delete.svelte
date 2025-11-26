@@ -1,6 +1,7 @@
 <script lang="ts">
     import { removeItem } from "$lib/api";
     import { toast } from "svelte-sonner";
+    import { invalidateAll } from "$app/navigation";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
