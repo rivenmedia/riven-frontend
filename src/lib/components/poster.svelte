@@ -53,13 +53,15 @@
                     selectStore.toggle(riven_id!);
                 }
             }}
-            class="focus-visible:ring-ring/50 absolute top-2 left-2 z-10 flex size-3 shrink-0 items-center justify-center rounded-full border-2 border-white bg-black/50 shadow-xs transition-[color,box-shadow] outline-none hover:bg-black/70 focus-visible:ring-[3px]"
+            class="focus-visible:ring-ring/50 absolute top-2 left-2 z-20 flex size-3 shrink-0 items-center justify-center rounded-full border-2 border-white bg-black/50 shadow-xs transition-[color,box-shadow] outline-none hover:bg-black/70 focus-visible:ring-[3px]"
             aria-label="Select poster">
             {#if selectStore.has(riven_id!)}
                 <Circle class="size-1.5 fill-white text-white" />
             {/if}
         </button>
     {/if}
+
+    <a href={mediaURL} class="absolute inset-0 z-10" aria-label={title || "View details"}></a>
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">
@@ -69,11 +71,10 @@
                 class="to-background absolute top-0 right-0 bottom-0 left-0 h-full w-full bg-linear-to-b from-transparent to-100%">
             </div>
             {#if title}
-                <a
-                    href={mediaURL}
+                <p
                     class="relative z-1 line-clamp-2 w-full text-left text-sm font-semibold text-white">
                     {title}
-                </a>
+                </p>
             {/if}
 
             <!-- <ItemRequest
