@@ -62,6 +62,25 @@
 		episode?: number;
 	}
 
+	interface ParsedTitleData {
+		seasons?: number[];
+		episodes?: number[];
+		resolution?: string;
+		quality?: string;
+		hdr?: string[];
+		codec?: string;
+		audio?: string[];
+		languages?: string[];
+	}
+
+	interface FileSelection {
+		file_id: number;
+		filename: string;
+		filesize: number;
+	}
+
+	type UpdateBody = FileSelection | Record<string, Record<string, FileSelection>>;
+
 	let open = $state(false);
 	let step = $state(1);
 	let loading = $state(false);
@@ -88,13 +107,38 @@
 		error = null;
 
 		try {
-			const response = await scrapeItem({
-				query: {
-					item_id: itemId,
-					tmdb_id: mediaType === "movie" ? externalId : undefined,
-					tvdb_id: mediaType === "tv" ? externalId : undefined,
-					media_type: mediaType
+			// Construct query parameters, only including non-null values
+			const queryParams: {
+				item_id?: string;
+				tmdb_id?: string;
+				tvdb_id?: string;
+				media_type: "movie" | "tv";
+			} = {
+				media_type: mediaType
+			};
+
+			// Always prioritize item_id if available
+			if (itemId) {
+				queryParams.item_id = itemId;
+			} else {
+				// If no itemId, we must have external IDs to proceed
+				if (!externalId) {
+					error = "No item ID or external ID available";
+					toast.error(error);
+					loading = false;
+					return;
 				}
+			}
+			
+			if (mediaType === "movie" && externalId) {
+				queryParams.tmdb_id = externalId;
+			}
+			if (mediaType === "tv" && externalId) {
+				queryParams.tvdb_id = externalId;
+			}
+
+			const response = await scrapeItem({
+				query: queryParams
 			});
 
 			if (response.data) {
@@ -119,19 +163,46 @@
 		}
 	}
 
-	async function handleSelectStream(magnet: string) {
+	async function handleSelectStream(infohash: string) {
 		loading = true;
 		error = null;
 
 		try {
-			const response = await startManualSession({
-				query: {
-					item_id: itemId,
-					tmdb_id: mediaType === "movie" ? externalId : undefined,
-					tvdb_id: mediaType === "tv" ? externalId : undefined,
-					media_type: mediaType,
-					magnet
+			// Construct query parameters, only including non-null values
+			const queryParams: {
+				item_id?: string;
+				tmdb_id?: string;
+				tvdb_id?: string;
+				media_type: "movie" | "tv";
+				magnet: string;
+			} = {
+				media_type: mediaType,
+				// Construct proper magnet URI from infohash
+				magnet: `magnet:?xt=urn:btih:${infohash}`
+			};
+
+			// Always prioritize item_id if available
+			if (itemId) {
+				queryParams.item_id = itemId;
+			} else {
+				// If no itemId, we must have external IDs to proceed
+				if (!externalId) {
+					error = "No item ID or external ID available";
+					toast.error(error);
+					loading = false;
+					return;
 				}
+			}
+			
+			if (mediaType === "movie" && externalId) {
+				queryParams.tmdb_id = externalId;
+			}
+			if (mediaType === "tv" && externalId) {
+				queryParams.tvdb_id = externalId;
+			}
+
+			const response = await startManualSession({
+				query: queryParams
 			});
 
 			if (response.data) {
@@ -171,13 +242,13 @@
 
 			if (parseResponse.data) {
 				selectedFilesMappings = sessionData.containers.files.map((file, idx) => {
-					const parsedData = parseResponse.data.data[idx] as any;
+					const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
 					return {
 						file_id: file.file_id?.toString() || "",
 						filename: file.filename || "",
 						filesize: file.filesize || 0,
-						season: parsedData?.seasons?.[0] as number | undefined,
-						episode: parsedData?.episodes?.[0] as number | undefined
+						season: parsedData?.seasons?.[0],
+						episode: parsedData?.episodes?.[0]
 					};
 				});
 				step = 4;
@@ -226,7 +297,7 @@
 			}
 
 			// Step 2: Update attributes
-			let updateBody: any;
+			let updateBody: UpdateBody;
 
 			if (mediaType === "movie") {
 				// For movies, select the largest file
@@ -246,11 +317,11 @@
 						const seasonKey = mapping.season.toString();
 						const episodeKey = mapping.episode.toString();
 
-						if (!updateBody[seasonKey]) {
-							updateBody[seasonKey] = {};
+						if (!(updateBody as Record<string, any>)[seasonKey]) {
+							(updateBody as Record<string, any>)[seasonKey] = {};
 						}
 
-						updateBody[seasonKey][episodeKey] = {
+						(updateBody as Record<string, any>)[seasonKey][episodeKey] = {
 							file_id: parseInt(mapping.file_id),
 							filename: mapping.filename,
 							filesize: mapping.filesize
@@ -338,19 +409,13 @@
 	<Dialog.Trigger>
 		{#snippet child({ props })}
 			<Button {variant} {size} {...restProps} {...props}>
-				<Search class="mr-2 h-4 w-4" />
+				<Search class="mr-1 h-4 w-4" />
 				Manual Scrape
 			</Button>
 		{/snippet}
 	</Dialog.Trigger>
-	<Dialog.Content
-		class={cn(
-			"max-w-4xl",
-			step === 2 && "max-h-[80vh] overflow-y-auto",
-			step === 3 && "max-h-[80vh] overflow-y-auto",
-			step === 4 && "max-h-[80vh] overflow-y-auto"
-		)}>
-		<Dialog.Header>
+	<Dialog.Content class="max-w-4xl flex flex-col max-h-[90vh] overflow-hidden">
+		<Dialog.Header class="flex-shrink-0">
 			<Dialog.Title>
 				{#if step === 1}
 					Manual Scrape - Fetch Streams
@@ -378,13 +443,13 @@
 		</Dialog.Header>
 
 		{#if error}
-			<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Root variant="destructive" class="mb-4 flex-shrink-0">
 				<AlertCircle class="h-4 w-4" />
 				<Alert.Description>{error}</Alert.Description>
 			</Alert.Root>
 		{/if}
 
-		<div class="py-4">
+		<div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-6 px-6 py-4">
 			{#if step === 1}
 				<div class="flex flex-col gap-4">
 					<div class="flex flex-col gap-2">
@@ -425,8 +490,8 @@
 							<Card.Content class="px-4">
 								<div class="flex flex-col gap-2">
 									<div class="flex items-start justify-between gap-2">
-										<p class="text-sm font-medium">{stream.raw_title}</p>
-										<Badge variant={stream.rank > 0 ? "default" : "destructive"}>
+										<p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
+										<Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
 											Rank: {stream.rank}
 										</Badge>
 									</div>
@@ -482,8 +547,8 @@
 								<Card.Root>
 									<Card.Content class="flex items-start gap-3 px-4">
 										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1">
-											<p class="text-sm font-medium">{file.filename}</p>
+										<div class="flex-1 min-w-0">
+											<p class="text-sm font-medium break-words">{file.filename}</p>
 											{#if file.filesize}
 												<p class="text-muted-foreground text-xs">
 													{formatFileSize(file.filesize)}
@@ -522,8 +587,8 @@
 								<Card.Content class="flex flex-col gap-3 px-4">
 									<div class="flex items-start gap-3">
 										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1">
-											<p class="text-sm font-medium">{mapping.filename}</p>
+										<div class="flex-1 min-w-0">
+											<p class="text-sm font-medium break-words">{mapping.filename}</p>
 											<p class="text-muted-foreground text-xs">
 												{formatFileSize(mapping.filesize)}
 											</p>
