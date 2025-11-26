@@ -165,33 +165,10 @@
         {/if}
 
         <div class="md:px-8 lg:px-16">
-            {#if data.riven}
-                <div
-                    class="border-border mt-6 flex flex-row flex-wrap gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                    <ItemDelete
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]}
-                        variant="destructive" />
 
-                    <ItemReset
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]} />
 
-                    {#if data.riven.state !== "Completed"}
-                        <ItemPause
-                            class="bg-white/10"
-                            title={data.mediaDetails?.details.title}
-                            isPaused={data.riven.state === "Paused"}
-                            ids={[data.riven?.id?.toString()]} />
-                    {/if}
-                    <ItemRetry
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]} />
-                </div>
-            {/if}
+
+
 
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
@@ -208,17 +185,49 @@
                         {data.mediaDetails?.details.title}
                     </h1>
 
-                    {#if !data.riven}
-                        <div class="flex">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        {#if !data.riven}
                             <ItemRequest
-                                class="mt-1 mb-2 bg-white/10"
+                                class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={data.mediaDetails.type
                                     ? [data.mediaDetails?.details.id?.toString()]
                                     : []}
                                 mediaType={data.mediaDetails.type} />
-                        </div>
-                    {/if}
+                        {:else}
+                            <ItemDelete
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]}
+                                variant="destructive" />
+
+                            <ItemReset
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]} />
+
+                            {#if data.riven.state !== "Completed"}
+                                <ItemPause
+                                    class="bg-white/10"
+                                    title={data.mediaDetails?.details.title}
+                                    isPaused={data.riven.state === "Paused"}
+                                    ids={[data.riven?.id?.toString()]} />
+                            {/if}
+                            <ItemRetry
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]} />
+                        {/if}
+
+                        {#if data.mediaDetails?.details.id}
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                itemId={data.riven?.id?.toString()}
+                                externalId={data.mediaDetails?.details.id?.toString()}
+                                mediaType={data.mediaDetails?.type} />
+                        {/if}
+                    </div>
 
                     {#if data.riven?.state}
                         <Badge
