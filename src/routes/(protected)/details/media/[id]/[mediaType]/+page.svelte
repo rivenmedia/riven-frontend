@@ -287,12 +287,12 @@
                         </div>
                     {/if}
 
-                    <div class="flex flex-col gap-8">
+                    <div class="flex flex-col gap-4">
                         <p class="max-w-max text-sm leading-relaxed">
                             {data.mediaDetails?.details.overview}
                         </p>
 
-                        <div class="flex flex-wrap">
+                        <div class="flex flex-wrap gap-4">
                             {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
                                 {#if index < 8}
                                     <div class="flex flex-col items-center">
