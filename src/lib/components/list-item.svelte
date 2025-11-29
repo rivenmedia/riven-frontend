@@ -16,13 +16,23 @@
         type = data.media_type;
     }
 
-    if (indexer === "tvdb" && type === "show") {
+    if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") {
         type = "tv";
     }
 
-    const mediaURL = data.id
-        ? `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`
-        : "javascript:void(0)";
+    let mediaURL = $state("javascript:void(0)");
+
+    $effect(() => {
+        if (data.id) {
+            if (indexer === "tmdb" && type === "movie") {
+                mediaURL = `/details/media/${data.id}/movie`;
+            } else if (indexer === "tvdb" && type === "tv") {
+                mediaURL = `/details/media/${data.id}/tv`;
+            } else {
+                mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
+            }
+        }
+    });
 </script>
 
 <div class="flex w-36 flex-col md:w-40 lg:w-44">
