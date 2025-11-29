@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import {
 		scrapeItem,
 		startManualSession,
@@ -25,13 +26,21 @@
 	import { Badge } from "$lib/components/ui/badge/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
-    import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
 	import AlertCircle from "@lucide/svelte/icons/alert-circle";
 	import FileIcon from "@lucide/svelte/icons/file";
 	import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 	import Search from "@lucide/svelte/icons/search";
     import Zap from "@lucide/svelte/icons/zap";
+    import Monitor from "@lucide/svelte/icons/monitor";
+    import Star from "@lucide/svelte/icons/star";
+    import Disc from "@lucide/svelte/icons/disc";
+    import Sun from "@lucide/svelte/icons/sun";
+    import Volume2 from "@lucide/svelte/icons/volume-2";
+    import Plus from "@lucide/svelte/icons/plus";
+    import Trash2 from "@lucide/svelte/icons/trash-2";
+    import Magnet from "@lucide/svelte/icons/magnet";
+    import Download from "@lucide/svelte/icons/download";
 
 	interface Props {
 		title: string | null | undefined;
@@ -98,6 +107,7 @@
 	let open = $state(false);
 	let step = $state(1);
 	let loading = $state(false);
+    let settingsLoading = $state(false);
 	let error = $state<string | null>(null);
 	let magnetLink = $state("");
 	let streams = $state<{ magnet: string; stream: Stream }[]>([]);
@@ -114,19 +124,28 @@
         extras: [],
         trash: []
     });
-    let autoScrapeMode = $state(false);
     let canStartAutoScrape = $derived(Object.values(selectedOptions).some(arr => arr.length > 0));
+
+    const categoryIcons: Record<string, any> = {
+        resolutions: Monitor,
+        quality: Star,
+        rips: Disc,
+        hdr: Sun,
+        audio: Volume2,
+        extras: Plus,
+        trash: Trash2
+    };
 
 	function resetFlow() {
 		step = 1;
 		loading = false;
+        settingsLoading = false;
 		error = null;
 		magnetLink = "";
 		streams = [];
 		sessionId = null;
 		sessionData = null;
 		selectedFilesMappings = [];
-        autoScrapeMode = false;
         selectedOptions = {
             resolutions: [],
             quality: [],
@@ -139,6 +158,7 @@
 	}
 
     async function fetchSettings() {
+        settingsLoading = true;
         try {
             const response = await getSettings({
                 path: { paths: "ranking" }
@@ -180,6 +200,8 @@
             }
         } catch (e) {
             console.error("Failed to fetch settings", e);
+        } finally {
+            settingsLoading = false;
         }
     }
 
@@ -264,10 +286,25 @@
 			});
 
 			if (response.data) {
-				const streamArray = Object.entries(response.data.streams).map(([magnet, stream]) => ({
+				let streamArray = Object.entries(response.data.streams).map(([magnet, stream]) => ({
 					magnet,
 					stream
 				}));
+
+                // Filter streams based on selected options
+                if (selectedOptions.resolutions.length > 0) {
+                    streamArray = streamArray.filter(s => s.stream.parsed_data.resolution && selectedOptions.resolutions.includes(s.stream.parsed_data.resolution));
+                }
+                if (selectedOptions.quality.length > 0) {
+                    streamArray = streamArray.filter(s => s.stream.parsed_data.quality && selectedOptions.quality.includes(s.stream.parsed_data.quality));
+                }
+                if (selectedOptions.hdr.length > 0) {
+                    streamArray = streamArray.filter(s => s.stream.parsed_data.hdr && s.stream.parsed_data.hdr.some(h => selectedOptions.hdr.includes(h)));
+                }
+                if (selectedOptions.audio.length > 0) {
+                    streamArray = streamArray.filter(s => s.stream.parsed_data.audio && s.stream.parsed_data.audio.some(a => selectedOptions.audio.includes(a)));
+                }
+
 				streams = streamArray.sort((a, b) => b.stream.rank - a.stream.rank);
 				step = 2;
 				toast.success("Streams fetched successfully!");
@@ -541,10 +578,8 @@
 	<Dialog.Content class="max-w-4xl flex flex-col max-h-[90vh] overflow-hidden">
 		<Dialog.Header class="flex-shrink-0">
 			<Dialog.Title>
-				{#if autoScrapeMode}
-                    Auto Scrape - Select Resolutions
-                {:else if step === 1}
-					Manual Scrape - Fetch Streams
+				{#if step === 1}
+					Manual Scrape - Options
 				{:else if step === 2}
 					Manual Scrape - Select Stream
 				{:else if step === 3}
@@ -554,10 +589,8 @@
 				{/if}
 			</Dialog.Title>
 			<Dialog.Description>
-				{#if autoScrapeMode}
-                    Select resolutions to include in the auto scrape
-                {:else if step === 1}
-					Fetch available streams for "{title}"
+				{#if step === 1}
+					Configure scraping options and fetch streams for "{title}"
 				{:else if step === 2}
 					Choose a stream to download
 				{:else if step === 3}
@@ -578,94 +611,93 @@
 		{/if}
 
 		<div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-6 px-6 py-4">
-            {#if autoScrapeMode}
-                <div class="flex flex-col gap-4">
-                    <Button variant="ghost" size="sm" onclick={() => (autoScrapeMode = false)} class="w-fit">
-                        <ChevronLeft class="mr-1 h-4 w-4" />
-                        Back
-                    </Button>
-
-                    <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2">
-                        <Label>Scraping Options</Label>
-                        <p class="text-xs text-muted-foreground mb-2">Select options to ENABLE for this scrape. Unselected options will be disabled.</p>
+			{#if step === 1}
+				<div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2 max-h-[40vh] overflow-y-auto pr-2 border rounded-md p-2">
+                        <Label>Quality Constraints</Label>
+                        <p class="text-xs text-muted-foreground mb-2">Select options to filter streams (Fetch) or constrain (Auto Scrape).</p>
                         
-                        <Accordion.Root type="multiple" class="w-full">
-                            {#each Object.entries(rankingOptions) as [category, options] (category)}
-                                <Accordion.Item value={category}>
-                                    <Accordion.Trigger class="capitalize text-sm py-2">{category}</Accordion.Trigger>
-                                    <Accordion.Content>
-                                        <div class="grid grid-cols-2 gap-2 pt-2">
-                                            {#each options as option (option)}
-                                                <div class="flex items-center space-x-2">
-                                                    <Checkbox 
-                                                        id={`${category}-${option}`} 
-                                                        checked={selectedOptions[category]?.includes(option)}
-                                                        onCheckedChange={(checked) => {
-                                                            if (checked) {
-                                                                selectedOptions[category] = [...(selectedOptions[category] || []), option];
-                                                            } else {
+                        {#if settingsLoading}
+                            <div class="space-y-2">
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                            </div>
+                        {:else}
+                            <Accordion.Root type="multiple" class="w-full">
+                                {#each Object.entries(rankingOptions) as [category, options] (category)}
+                                    <Accordion.Item value={category}>
+                                        <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
+                                            <div class="flex items-center gap-2">
+                                                {#if categoryIcons[category]}
+                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
+                                                {/if}
+                                                {category === 'trash' ? 'Bin' : category}
+                                            </div>
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="flex flex-wrap gap-2 pt-2">
+                                                {#each options as option (option)}
+                                                    {@const isSelected = selectedOptions[category]?.includes(option)}
+                                                    <Badge 
+                                                        variant={isSelected ? "default" : "outline"}
+                                                        class="cursor-pointer hover:bg-primary/90 transition-colors"
+                                                        onclick={() => {
+                                                            if (isSelected) {
                                                                 selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
+                                                            } else {
+                                                                selectedOptions[category] = [...(selectedOptions[category] || []), option];
                                                             }
                                                         }}
-                                                    />
-                                                    <Label for={`${category}-${option}`} class="text-sm font-normal cursor-pointer break-all">
+                                                    >
                                                         {option.replace(/^r/, '')}
-                                                    </Label>
-                                                </div>
-                                            {/each}
-                                        </div>
-                                    </Accordion.Content>
-                                </Accordion.Item>
-                            {/each}
-                        </Accordion.Root>
+                                                    </Badge>
+                                                {/each}
+                                            </div>
+                                        </Accordion.Content>
+                                    </Accordion.Item>
+                                {/each}
+                            </Accordion.Root>
+                        {/if}
                     </div>
 
-                    <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full mt-4">
-                        {#if loading}
-                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                            Starting Auto Scrape...
-                        {:else}
-                            Start Auto Scrape
-                        {/if}
-                    </Button>
-                </div>
-			{:else if step === 1}
-				<div class="flex flex-col gap-4">
 					<div class="flex flex-col gap-2">
 						<Label for="magnet">Magnet Link (Optional)</Label>
-						<Input
-							id="magnet"
-							type="text"
-							placeholder="magnet:?xt=urn:btih:..."
-							bind:value={magnetLink}
-							disabled={loading} />
+                        <div class="relative">
+                            <Magnet class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="magnet"
+                                type="text"
+                                class="pl-9"
+                                placeholder="magnet:?xt=urn:btih:..."
+                                bind:value={magnetLink}
+                                disabled={loading} />
+                        </div>
 						<p class="text-muted-foreground text-xs">
 							Leave empty to fetch streams automatically
 						</p>
 					</div>
 
-					<Button onclick={handleFetchStreams} disabled={loading} class="w-full">
-						{#if loading}
-							<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-							Fetching Streams...
-						{:else}
-							Fetch Streams
-						{/if}
-					</Button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
+                            {#if loading}
+                                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                                Fetching...
+                            {:else}
+                                <Download class="mr-2 h-4 w-4" />
+                                Fetch Streams
+                            {/if}
+                        </Button>
 
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <span class="w-full border-t"></span>
-                        </div>
-                        <div class="relative flex justify-center text-xs uppercase">
-                            <span class="bg-background text-muted-foreground px-2">Or</span>
-                        </div>
+                        <Button variant="secondary" onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
+                            <Zap class="mr-2 h-4 w-4" />
+                            Auto Scrape
+                        </Button>
                     </div>
-
-                    <Button variant="secondary" onclick={() => (autoScrapeMode = true)} disabled={loading} class="w-full">
-                        <Zap class="mr-2 h-4 w-4" />
-                        Auto Scrape
-                    </Button>
 				</div>
 			{:else if step === 2}
 				<div class="flex flex-col gap-3">
