@@ -7,6 +7,8 @@
 		completeManualSession,
 		abortManualSession,
 		parseTorrentTitles,
+        autoScrapeItem,
+        getSettings,
 		type Stream,
 		type StartSessionResponse,
 		type DebridFile,
@@ -16,16 +18,19 @@
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import * as Alert from "$lib/components/ui/alert/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
+    import * as Accordion from "$lib/components/ui/accordion/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
+    import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import { cn } from "$lib/utils";
 	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
 	import AlertCircle from "@lucide/svelte/icons/alert-circle";
 	import FileIcon from "@lucide/svelte/icons/file";
 	import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 	import Search from "@lucide/svelte/icons/search";
+    import Zap from "@lucide/svelte/icons/zap";
 
 	interface Props {
 		title: string | null | undefined;
@@ -90,6 +95,17 @@
 	let sessionId = $state<string | null>(null);
 	let sessionData = $state<StartSessionResponse | null>(null);
 	let selectedFilesMappings = $state<FileMapping[]>([]);
+    let rankingOptions = $state<Record<string, string[]>>({});
+    let selectedOptions = $state<Record<string, string[]>>({
+        resolutions: [],
+        quality: [],
+        rips: [],
+        hdr: [],
+        audio: [],
+        extras: [],
+        trash: []
+    });
+    let autoScrapeMode = $state(false);
 
 	function resetFlow() {
 		step = 1;
@@ -100,7 +116,102 @@
 		sessionId = null;
 		sessionData = null;
 		selectedFilesMappings = [];
+        autoScrapeMode = false;
+        selectedOptions = {
+            resolutions: [],
+            quality: [],
+            rips: [],
+            hdr: [],
+            audio: [],
+            extras: [],
+            trash: []
+        };
 	}
+
+    async function fetchSettings() {
+        try {
+            const response = await getSettings({
+                path: { paths: "ranking" }
+            });
+            if (response.data) {
+                const ranking = response.data.ranking;
+                const newSelectedOptions = { ...selectedOptions };
+                
+                // Resolutions
+                if (ranking.resolutions) {
+                    rankingOptions.resolutions = Object.keys(ranking.resolutions).filter(k => k !== "unknown");
+                    // Populate selected resolutions
+                    newSelectedOptions.resolutions = Object.entries(ranking.resolutions)
+                        .filter(([k, v]) => v === true && k !== "unknown")
+                        .map(([k]) => k);
+                }
+                
+                // Custom Ranks
+                const categories = ["quality", "rips", "hdr", "audio", "extras", "trash"];
+                categories.forEach(cat => {
+                    if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
+                        const categoryObj = ranking.custom_ranks[cat];
+                        rankingOptions[cat] = Object.keys(categoryObj);
+                        
+                        // Populate selected options for this category
+                        newSelectedOptions[cat] = Object.entries(categoryObj)
+                            .filter(([_, val]) => {
+                                if (typeof val === 'object' && val !== null && 'fetch' in val) {
+                                    return (val as any).fetch === true;
+                                }
+                                return val === true;
+                            })
+                            .map(([key]) => key);
+                    }
+                });
+                
+                selectedOptions = newSelectedOptions;
+            }
+        } catch (e) {
+            console.error("Failed to fetch settings", e);
+        }
+    }
+
+    $effect(() => {
+        if (open) {
+            fetchSettings();
+        }
+    });
+
+    async function handleAutoScrape() {
+        // itemId is optional now, as we can fallback to externalId
+        
+        loading = true;
+        error = null;
+
+        try {
+            const response = await autoScrapeItem({
+                body: {
+                    ...selectedOptions,
+                    item_id: itemId || undefined,
+                    tmdb_id: externalId && mediaType === "movie" ? externalId : undefined,
+                    tvdb_id: externalId && mediaType === "tv" ? externalId : undefined,
+                    media_type: mediaType
+                }
+            });
+
+            if (response.data) {
+                toast.success(response.data.message);
+                open = false;
+                resetFlow();
+            } else {
+                const errorMsg = (response.error as any)?.message || "Failed to start auto scrape";
+                error = errorMsg;
+                toast.error(errorMsg);
+            }
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
 
 	async function handleFetchStreams() {
 		loading = true;
@@ -417,7 +528,9 @@
 	<Dialog.Content class="max-w-4xl flex flex-col max-h-[90vh] overflow-hidden">
 		<Dialog.Header class="flex-shrink-0">
 			<Dialog.Title>
-				{#if step === 1}
+				{#if autoScrapeMode}
+                    Auto Scrape - Select Resolutions
+                {:else if step === 1}
 					Manual Scrape - Fetch Streams
 				{:else if step === 2}
 					Manual Scrape - Select Stream
@@ -428,7 +541,9 @@
 				{/if}
 			</Dialog.Title>
 			<Dialog.Description>
-				{#if step === 1}
+				{#if autoScrapeMode}
+                    Select resolutions to include in the auto scrape
+                {:else if step === 1}
 					Fetch available streams for "{title}"
 				{:else if step === 2}
 					Choose a stream to download
@@ -450,7 +565,58 @@
 		{/if}
 
 		<div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-6 px-6 py-4">
-			{#if step === 1}
+            {#if autoScrapeMode}
+                <div class="flex flex-col gap-4">
+                    <Button variant="ghost" size="sm" onclick={() => (autoScrapeMode = false)} class="w-fit">
+                        <ChevronLeft class="mr-1 h-4 w-4" />
+                        Back
+                    </Button>
+
+                    <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2">
+                        <Label>Scraping Options</Label>
+                        <p class="text-xs text-muted-foreground mb-2">Select options to ENABLE for this scrape. Unselected options will be disabled.</p>
+                        
+                        <Accordion.Root type="multiple" class="w-full">
+                            {#each Object.entries(rankingOptions) as [category, options]}
+                                <Accordion.Item value={category}>
+                                    <Accordion.Trigger class="capitalize text-sm py-2">{category}</Accordion.Trigger>
+                                    <Accordion.Content>
+                                        <div class="grid grid-cols-2 gap-2 pt-2">
+                                            {#each options as option}
+                                                <div class="flex items-center space-x-2">
+                                                    <Checkbox 
+                                                        id={`${category}-${option}`} 
+                                                        checked={selectedOptions[category]?.includes(option)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                selectedOptions[category] = [...(selectedOptions[category] || []), option];
+                                                            } else {
+                                                                selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Label for={`${category}-${option}`} class="text-sm font-normal cursor-pointer break-all">
+                                                        {option.replace(/^r/, '')}
+                                                    </Label>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </Accordion.Content>
+                                </Accordion.Item>
+                            {/each}
+                        </Accordion.Root>
+                    </div>
+
+                    <Button onclick={handleAutoScrape} disabled={loading || Object.values(selectedOptions).every(arr => arr.length === 0)} class="w-full mt-4">
+                        {#if loading}
+                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                            Starting Auto Scrape...
+                        {:else}
+                            Start Auto Scrape
+                        {/if}
+                    </Button>
+                </div>
+			{:else if step === 1}
 				<div class="flex flex-col gap-4">
 					<div class="flex flex-col gap-2">
 						<Label for="magnet">Magnet Link (Optional)</Label>
@@ -473,6 +639,20 @@
 							Fetch Streams
 						{/if}
 					</Button>
+
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <span class="w-full border-t" />
+                        </div>
+                        <div class="relative flex justify-center text-xs uppercase">
+                            <span class="bg-background text-muted-foreground px-2">Or</span>
+                        </div>
+                    </div>
+
+                    <Button variant="secondary" onclick={() => (autoScrapeMode = true)} disabled={loading} class="w-full">
+                        <Zap class="mr-2 h-4 w-4" />
+                        Auto Scrape
+                    </Button>
 				</div>
 			{:else if step === 2}
 				<div class="flex flex-col gap-3">
