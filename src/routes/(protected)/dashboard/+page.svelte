@@ -184,7 +184,6 @@
             </Card.Header>
             <Card.Content>
                 {#if contentBreakdown.length > 0}
-                    <!--
                     <Chart.Container config={{}} class="w-full">
                         <PieChart
                             data={contentBreakdown}
@@ -207,7 +206,6 @@
                             {/snippet}
                         </PieChart>
                     </Chart.Container>
-                    -->
                 {/if}
                 {#each contentBreakdown as item (item.key)}
                     <div class="mt-4 flex items-center gap-2">
