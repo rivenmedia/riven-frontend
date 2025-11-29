@@ -10,7 +10,6 @@
     import ListItem from "$lib/components/list-item.svelte";
     import { itemsSearchSchema, typeOptions, stateOptions, sortOptions } from "$lib/schemas/items";
     import Trash from "@lucide/svelte/icons/trash";
-    import SuperDebug from "sveltekit-superforms";
     import Search from "@lucide/svelte/icons/search";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
@@ -38,18 +37,13 @@
 
     const itemsStore = new ItemStore();
 
-    $inspect(itemsStore.items);
-    $inspect(data);
+
 
     let actionInProgress = $state(false);
 </script>
 
 <div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
-    {#if dev}
-        <div class="w-full">
-            <SuperDebug data={$formData} />
-        </div>
-    {/if}
+
 
     <form method="GET" class="flex flex-col">
         <div class="flex flex-col">

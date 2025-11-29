@@ -2,7 +2,6 @@
     import { cn } from "$lib/utils";
     import Circle from "@lucide/svelte/icons/circle";
     import type { Snippet } from "svelte";
-    import ItemRequest from "./media/riven/item-request.svelte";
     import RatingPoster from "./rating-poster.svelte";
 
     interface Props {

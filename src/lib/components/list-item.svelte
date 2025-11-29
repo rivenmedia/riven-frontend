@@ -20,7 +20,9 @@
         type = "tv";
     }
 
-    const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
+    const mediaURL = data.id
+        ? `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`
+        : "javascript:void(0)";
 </script>
 
 <div class="flex w-36 flex-col md:w-40 lg:w-44">

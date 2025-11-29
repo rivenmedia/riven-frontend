@@ -33,12 +33,12 @@ export const betterAuthHandler: Handle = async ({ event, resolve }) => {
 };
 
 const configureClientMiddleware: Handle = async ({ event, resolve }) => {
-    event.locals.backendUrl = env.BACKEND_URL;
-    event.locals.apiKey = env.BACKEND_API_KEY;
+    event.locals.backendUrl = env.BACKEND_URL || "";
+    event.locals.apiKey = env.BACKEND_API_KEY || "";
     client.setConfig({
-        baseUrl: env.BACKEND_URL,
+        baseUrl: env.BACKEND_URL || "",
         headers: {
-            "x-api-key": env.BACKEND_API_KEY
+            "x-api-key": env.BACKEND_API_KEY || ""
         }
     });
 
