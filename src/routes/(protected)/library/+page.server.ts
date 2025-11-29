@@ -14,30 +14,30 @@ function extractYear(airedAt: string | null): number | null {
 function transformItems(items: any[]) {
     return items.map((item) => ({
         id:
-            item.type === "Movie"
+            item.type === "movie"
                 ? item.tmdb_id
-                : item.type === "Show"
-                  ? item.tvdb_id
-                  : item.type === "Season"
-                    ? item.parent_ids.tvdb_id
-                    : item.type === "Episode"
-                      ? item.parent_ids.tvdb_id
-                      : null,
+                : item.type === "show"
+                    ? item.tvdb_id
+                    : item.type === "season"
+                        ? item.parent_ids.tvdb_id
+                        : item.type === "episode"
+                            ? item.parent_ids.tvdb_id
+                            : null,
         title: item.title,
         poster_path: item.poster_path,
         media_type: item.type,
         year: extractYear(item.aired_at),
-        indexer: item.type === "Movie" ? "tmdb" : "tvdb",
+        indexer: item.type === "movie" ? "tmdb" : "tvdb",
         type:
-            item.type === "Movie"
+            item.type === "movie"
                 ? "movie"
-                : item.type === "Show"
-                  ? "show"
-                  : item.type === "Season"
-                    ? "season"
-                    : item.type === "Episode"
-                      ? "episode"
-                      : "unknown",
+                : item.type === "show"
+                    ? "show"
+                    : item.type === "season"
+                        ? "season"
+                        : item.type === "episode"
+                            ? "episode"
+                            : "unknown",
         riven_id: item.id
     }));
 }

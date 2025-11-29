@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
         const response = await fetch(`${env.BACKEND_URL}/api/v1/stream/notifications`, {
             method: "GET",
             headers: {
-                "x-api-key": env.BACKEND_API_KEY,
+                "x-api-key": env.BACKEND_API_KEY || "",
                 Accept: "text/event-stream",
                 "Cache-Control": "no-cache"
             }

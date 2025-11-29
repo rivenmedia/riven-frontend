@@ -8,12 +8,14 @@
 		abortManualSession,
 		parseTorrentTitles,
         autoScrapeItem,
-        getSettings,
-		type Stream,
-		type StartSessionResponse,
-		type DebridFile,
-		type Container
+        getSettings
 	} from "$lib/api";
+	import type {
+        StartSessionResponse,
+        Stream,
+        RtnSettingsModel,
+        Container
+    } from "$lib/api/types.gen";
 	import { toast } from "svelte-sonner";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import * as Alert from "$lib/components/ui/alert/index.js";
@@ -24,7 +26,6 @@
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-	import { cn } from "$lib/utils";
 	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
 	import AlertCircle from "@lucide/svelte/icons/alert-circle";
 	import FileIcon from "@lucide/svelte/icons/file";
@@ -86,6 +87,14 @@
 
 	type UpdateBody = FileSelection | Record<string, Record<string, FileSelection>>;
 
+    interface RankingOptionWithFetch {
+        fetch: boolean;
+    }
+
+    function hasFetchProperty(val: unknown): val is RankingOptionWithFetch {
+        return typeof val === 'object' && val !== null && 'fetch' in val;
+    }
+
 	let open = $state(false);
 	let step = $state(1);
 	let loading = $state(false);
@@ -106,6 +115,7 @@
         trash: []
     });
     let autoScrapeMode = $state(false);
+    let canStartAutoScrape = $derived(Object.values(selectedOptions).some(arr => arr.length > 0));
 
 	function resetFlow() {
 		step = 1;
@@ -134,7 +144,7 @@
                 path: { paths: "ranking" }
             });
             if (response.data) {
-                const ranking = response.data.ranking;
+                const ranking = response.data.ranking as RtnSettingsModel;
                 const newSelectedOptions = { ...selectedOptions };
                 
                 // Resolutions
@@ -149,15 +159,16 @@
                 // Custom Ranks
                 const categories = ["quality", "rips", "hdr", "audio", "extras", "trash"];
                 categories.forEach(cat => {
-                    if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
-                        const categoryObj = ranking.custom_ranks[cat];
+                    const key = cat as keyof typeof ranking.custom_ranks;
+                    if (ranking.custom_ranks && ranking.custom_ranks[key]) {
+                        const categoryObj = ranking.custom_ranks[key];
                         rankingOptions[cat] = Object.keys(categoryObj);
                         
                         // Populate selected options for this category
                         newSelectedOptions[cat] = Object.entries(categoryObj)
                             .filter(([_, val]) => {
-                                if (typeof val === 'object' && val !== null && 'fetch' in val) {
-                                    return (val as any).fetch === true;
+                                if (hasFetchProperty(val)) {
+                                    return val.fetch === true;
                                 }
                                 return val === true;
                             })
@@ -509,7 +520,9 @@
 		if (!open) {
 			// Cleanup: abort session if not completed
 			if (sessionId && step < 4) {
-				abortManualSession({ path: { session_id: sessionId } });
+				abortManualSession({ path: { session_id: sessionId } }).catch(() => {
+					// Silently ignore cleanup errors (session may already be expired/aborted)
+				});
 			}
 			resetFlow();
 		}
@@ -577,12 +590,12 @@
                         <p class="text-xs text-muted-foreground mb-2">Select options to ENABLE for this scrape. Unselected options will be disabled.</p>
                         
                         <Accordion.Root type="multiple" class="w-full">
-                            {#each Object.entries(rankingOptions) as [category, options]}
+                            {#each Object.entries(rankingOptions) as [category, options] (category)}
                                 <Accordion.Item value={category}>
                                     <Accordion.Trigger class="capitalize text-sm py-2">{category}</Accordion.Trigger>
                                     <Accordion.Content>
                                         <div class="grid grid-cols-2 gap-2 pt-2">
-                                            {#each options as option}
+                                            {#each options as option (option)}
                                                 <div class="flex items-center space-x-2">
                                                     <Checkbox 
                                                         id={`${category}-${option}`} 
@@ -607,7 +620,7 @@
                         </Accordion.Root>
                     </div>
 
-                    <Button onclick={handleAutoScrape} disabled={loading || Object.values(selectedOptions).every(arr => arr.length === 0)} class="w-full mt-4">
+                    <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full mt-4">
                         {#if loading}
                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                             Starting Auto Scrape...
@@ -642,7 +655,7 @@
 
                     <div class="relative">
                         <div class="absolute inset-0 flex items-center">
-                            <span class="w-full border-t" />
+                            <span class="w-full border-t"></span>
                         </div>
                         <div class="relative flex justify-center text-xs uppercase">
                             <span class="bg-background text-muted-foreground px-2">Or</span>
@@ -686,7 +699,7 @@
 											<Badge variant="outline">{stream.parsed_data.quality}</Badge>
 										{/if}
 										{#if stream.parsed_data.hdr}
-											{#each stream.parsed_data.hdr as hdr}
+											{#each stream.parsed_data.hdr as hdr (hdr)}
 												<Badge variant="outline">{hdr}</Badge>
 											{/each}
 										{/if}
@@ -694,12 +707,12 @@
 											<Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
 										{/if}
 										{#if stream.parsed_data.audio}
-											{#each stream.parsed_data.audio as audio}
+											{#each stream.parsed_data.audio as audio (audio)}
 												<Badge variant="outline">{audio}</Badge>
 											{/each}
 										{/if}
 										{#if stream.parsed_data.languages}
-											{#each stream.parsed_data.languages as lang}
+											{#each stream.parsed_data.languages as lang (lang)}
 												<Badge variant="outline">{lang.toUpperCase()}</Badge>
 											{/each}
 										{/if}

@@ -31,9 +31,8 @@
             }
         });
 
-        invalidateAll();
-
         if (response.data) {
+            invalidateAll();
             toast.success("Media item deletion successfully!");
         } else {
             toast.error("Failed to delete media item.");

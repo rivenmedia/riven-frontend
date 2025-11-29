@@ -29,7 +29,7 @@ export const load = (async ({ fetch }) => {
 
     return {
         statistics: statistics.data,
-        services: svc.data,
+        services: svc.data || {},
         downloaderInfo: downloaderInfo.data
     };
 }) satisfies PageServerLoad;

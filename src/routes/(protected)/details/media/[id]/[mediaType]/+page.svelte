@@ -659,7 +659,7 @@
                                         </Badge>
                                     {/if}
 
-                                    {#if data.riven.media_metadata?.video.frame_rate}
+                                    {#if data.riven.media_metadata?.video?.frame_rate}
                                         <Badge variant="outline">
                                             {data.riven.media_metadata.video.frame_rate} FPS
                                         </Badge>

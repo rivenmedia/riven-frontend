@@ -112,22 +112,26 @@ function resolveTrailerSite(url: string | null) {
 // TMDB Interfaces and Functions
 // ---------------------------------------------------------------------------------
 
-interface TMDBListItem {
+export interface TMDBListItem {
     adult: boolean;
     backdrop_path: string | null;
     id: number;
-    title: string;
-    original_title: string;
+    title?: string;
+    name?: string;
+    original_title?: string;
+    original_name?: string;
     overview: string;
     poster_path: string | null;
-    media_type: "movie";
+    media_type: "movie" | "tv";
     original_language: string;
     genre_ids: number[];
     popularity: number;
-    release_date: string;
-    video: boolean;
+    release_date?: string;
+    first_air_date?: string;
+    video?: boolean;
     vote_average: number;
     vote_count: number;
+    origin_country?: string[];
 }
 
 interface TMDBCollectionItem {
@@ -292,7 +296,7 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
     return (
         items?.map((item) => ({
             id: item.id,
-            title: item.title || item.name || item.original_title || item.original_name,
+            title: item.title || item.name || item.original_title || item.original_name || "",
             poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
             media_type: type,
             year:
@@ -305,7 +309,7 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
                         : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
-            indexer: "tmdb"
+            indexer: "tmdb" as const
         })) || ([] as TMDBTransformedListItem[])
     );
 }
@@ -1018,7 +1022,10 @@ function transformTraktRecommendations(
                 title: item.title || "",
                 poster_path: poster,
                 media_type: mediaType,
-                year: item.year || "N/A"
+                year: item.year || "N/A",
+                vote_average: null,
+                vote_count: null,
+                indexer: "tmdb" as const
             };
         })
         .filter((item) => item.id > 0);

@@ -38,7 +38,7 @@
         { label: "Very High", color: "var(--chart-1)" }
     ];
 
-    $inspect(data);
+
 </script>
 
 <svelte:head>
@@ -117,7 +117,7 @@
             </Card.Header>
             <Card.Content>
                 <Heatmap
-                    data={data.statistics?.activity}
+                    data={data.statistics?.activity ?? {}}
                     colors={[
                         "var(--muted)",
                         "var(--chart-4)",
@@ -183,30 +183,32 @@
                     >Content Breakdown</Card.Title>
             </Card.Header>
             <Card.Content>
-                <Chart.Container config={{}} class="w-full">
-                    <PieChart
-                        data={contentBreakdown}
-                        key="key"
-                        value="value"
-                        c="c"
-                        innerRadius={-20}
-                        cornerRadius={5}
-                        padAngle={0.02}
-                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
-                        legend={{
-                            classes: {
-                                root: "w-full",
-                                items: "justify-center",
-                                swatch: "size-2",
-                                item: "text-xs"
-                            }
-                        }}>
-                        {#snippet tooltip()}
-                            <Chart.Tooltip />
-                        {/snippet}
-                    </PieChart>
-                </Chart.Container>
-
+                {#if contentBreakdown.length > 0}
+                    <!--
+                    <Chart.Container config={{}} class="w-full">
+                        <PieChart
+                            data={contentBreakdown}
+                            key="key"
+                            value="value"
+                            innerRadius={-20}
+                            cornerRadius={5}
+                            padAngle={0.02}
+                            padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
+                            legend={{
+                                classes: {
+                                    root: "w-full",
+                                    items: "justify-center",
+                                    swatch: "size-2",
+                                    item: "text-xs"
+                                }
+                            }}>
+                            {#snippet tooltip()}
+                                <Chart.Tooltip />
+                            {/snippet}
+                        </PieChart>
+                    </Chart.Container>
+                    -->
+                {/if}
                 {#each contentBreakdown as item (item.key)}
                     <div class="mt-4 flex items-center gap-2">
                         <span
