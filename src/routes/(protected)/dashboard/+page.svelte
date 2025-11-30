@@ -139,12 +139,12 @@
     </section>
 
     <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card.Root>
+        <Card.Root class="flex h-full flex-col">
             <Card.Header class="pb-2">
                 <Card.Title class="text-sm font-medium text-neutral-300">Library States</Card.Title>
             </Card.Header>
-            <Card.Content>
-                <Chart.Container config={{}} class="w-full">
+            <Card.Content class="flex flex-1 flex-col">
+                <Chart.Container config={{}} class="min-h-[300px] w-full flex-1">
                     <BarChart
                         data={transformedStates}
                         x="state"
@@ -163,59 +163,55 @@
                     </BarChart>
                 </Chart.Container>
 
-                {#each transformedStates as item (item.state)}
-                    <div class="mt-4 flex items-center gap-2">
-                        <!-- <span class="bg-primary inline-block h-3 w-3 shrink-0 rounded-sm"></span> -->
-                        <span class="text-sm text-neutral-300">{item.state}</span>
-                        <span class="ml-auto font-mono text-sm text-neutral-50">
-                            {item.value.toLocaleString()}
-                        </span>
-                    </div>
-                {/each}
+                <div class="mt-auto pt-4">
+                    {#each transformedStates as item (item.state)}
+                        <div class="mt-4 flex items-center gap-2 first:mt-0">
+                            <!-- <span class="bg-primary inline-block h-3 w-3 shrink-0 rounded-sm"></span> -->
+                            <span class="text-sm text-neutral-300">{item.state}</span>
+                            <span class="ml-auto font-mono text-sm text-neutral-50">
+                                {item.value.toLocaleString()}
+                            </span>
+                        </div>
+                    {/each}
+                </div>
             </Card.Content>
         </Card.Root>
 
-        <Card.Root>
+        <Card.Root class="flex h-full flex-col">
             <Card.Header class="pb-2">
                 <Card.Title class="text-sm font-medium text-neutral-300"
                     >Content Breakdown</Card.Title>
             </Card.Header>
-            <Card.Content>
-                <Chart.Container config={{}} class="w-full">
+            <Card.Content class="flex flex-1 flex-col">
+                <Chart.Container config={{}} class="min-h-[300px] w-full flex-1">
                     <PieChart
                         data={contentBreakdown}
                         key="key"
                         value="value"
                         c="c"
-                        innerRadius={-20}
+                        innerRadius={-50}
                         cornerRadius={5}
                         padAngle={0.02}
-                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
-                        legend={{
-                            classes: {
-                                root: "w-full",
-                                items: "justify-center",
-                                swatch: "size-2",
-                                item: "text-xs"
-                            }
-                        }}>
+                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}>
                         {#snippet tooltip()}
                             <Chart.Tooltip />
                         {/snippet}
                     </PieChart>
                 </Chart.Container>
 
-                {#each contentBreakdown as item (item.key)}
-                    <div class="mt-4 flex items-center gap-2">
-                        <span
-                            class="inline-block h-3 w-3 shrink-0 rounded-sm"
-                            style="background-color: {item.c}"></span>
-                        <span class="text-sm text-neutral-300">{item.key}</span>
-                        <span class="ml-auto font-mono text-sm text-neutral-50">
-                            {item.value.toLocaleString()}
-                        </span>
-                    </div>
-                {/each}
+                <div class="mt-auto pt-4">
+                    {#each contentBreakdown as item (item.key)}
+                        <div class="mt-4 flex items-center gap-2 first:mt-0">
+                            <span
+                                class="inline-block h-3 w-3 shrink-0 rounded-sm"
+                                style="background-color: {item.c}"></span>
+                            <span class="text-sm text-neutral-300">{item.key}</span>
+                            <span class="ml-auto font-mono text-sm text-neutral-50">
+                                {item.value.toLocaleString()}
+                            </span>
+                        </div>
+                    {/each}
+                </div>
             </Card.Content>
         </Card.Root>
     </section>
