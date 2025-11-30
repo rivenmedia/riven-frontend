@@ -20,17 +20,15 @@
         type = "tv";
     }
 
-    let mediaURL = $state("javascript:void(0)");
+    let mediaURL = $derived.by(() => {
+        if (!data.id) return "javascript:void(0)";
 
-    $effect(() => {
-        if (data.id) {
-            if (indexer === "tmdb" && type === "movie") {
-                mediaURL = `/details/media/${data.id}/movie`;
-            } else if (indexer === "tvdb" && type === "tv") {
-                mediaURL = `/details/media/${data.id}/tv`;
-            } else {
-                mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
-            }
+        if (indexer === "tmdb" && type === "movie") {
+            return `/details/media/${data.id}/movie`;
+        } else if (indexer === "tvdb" && type === "tv") {
+            return `/details/media/${data.id}/tv`;
+        } else {
+            return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
         }
     });
 </script>
