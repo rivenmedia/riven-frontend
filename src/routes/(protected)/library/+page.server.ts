@@ -49,21 +49,34 @@ export const load: PageServerLoad = async (event) => {
 
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
 
-    const itemsResponse = await getItems({
+    const countResponse = await getItems({
         fetch: event.fetch,
-        query: itemsSearchForm.data
+        query: {
+            ...itemsSearchForm.data,
+            count_only: true
+        } as any
     });
 
-    if (itemsResponse.error) {
-        error(500, "Failed to fetch items");
+    if (countResponse.error) {
+        error(500, "Failed to fetch items count");
     }
 
+    const itemsPromise = getItems({
+        fetch: event.fetch,
+        query: itemsSearchForm.data
+    }).then((response) => {
+        if (response.error) {
+            throw new Error("Failed to fetch items");
+        }
+        return response.data ? transformItems(response.data.items) : [];
+    });
+
     return {
-        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
-        page: itemsResponse.data ? itemsResponse.data.page : 1,
-        totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
-        limit: itemsResponse.data ? itemsResponse.data.limit : 20,
-        totalItems: itemsResponse.data ? itemsResponse.data.total_items : 0,
+        items: itemsPromise,
+        page: countResponse.data ? countResponse.data.page : 1,
+        totalPages: countResponse.data ? countResponse.data.total_pages : 1,
+        limit: countResponse.data ? countResponse.data.limit : 20,
+        totalItems: countResponse.data ? countResponse.data.total_items : 0,
         itemsSearchForm
     };
 };

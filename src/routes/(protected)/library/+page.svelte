@@ -25,6 +25,7 @@
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
     import { goto } from "$app/navigation";
+    import { Skeleton } from "$lib/components/ui/skeleton";
 
     let { data }: PageProps = $props();
 
@@ -293,17 +294,32 @@
             </div>
         {/if}
 
-        {#if data.items && data.items.length > 0}
-            <div class="mt-8 flex flex-wrap gap-2">
-                {#each data.items as item (item.riven_id)}
-                    <ListItem
-                        data={item}
-                        indexer={item.indexer}
-                        type={item.type}
-                        isSelectable
-                        selectStore={itemsStore} />
-                {/each}
-            </div>
+        {#if data.totalItems > 0}
+            {#await data.items}
+                <div class="mt-8 flex flex-wrap gap-2">
+                    {#each { length: Math.min(data.limit, data.totalItems) } as _}
+                        <div class="flex w-36 flex-col gap-2 md:w-40 lg:w-44">
+                            <Skeleton class="aspect-[2/3] w-full rounded-xl" />
+                            <Skeleton class="h-4 w-full" />
+                            <div class="flex justify-between">
+                                <Skeleton class="h-3 w-10" />
+                                <Skeleton class="h-3 w-10" />
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {:then items}
+                <div class="mt-8 flex flex-wrap gap-2">
+                    {#each items as item (item.riven_id)}
+                        <ListItem
+                            data={item}
+                            indexer={item.indexer}
+                            type={item.type}
+                            isSelectable
+                            selectStore={itemsStore} />
+                    {/each}
+                </div>
+            {/await}
 
             <div class="mt-4">
                 <p class="text-muted-foreground text-sm">
