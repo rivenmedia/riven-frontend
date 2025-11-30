@@ -3363,6 +3363,8 @@ export type AutoScrapeItemData = {
         audio?: Array<string>;
         extras?: Array<string>;
         trash?: Array<string>;
+        require?: Array<string>;
+        exclude?: Array<string>;
     };
     path?: never;
     query?: never;
