@@ -101,7 +101,7 @@
                 )}
                 style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
                 {#if !showTrailer}
-                    {#if data.mediaDetails.details.logo}
+                    {#if data.mediaDetails?.details.logo}
                         <div>
                             <img
                                 alt="Movie logo"
@@ -190,10 +190,10 @@
                             <ItemRequest
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails.type
+                                ids={data.mediaDetails?.type
                                     ? [data.mediaDetails?.details.id?.toString()]
                                     : []}
-                                mediaType={data.mediaDetails.type} />
+                                mediaType={data.mediaDetails?.type} />
                         {:else}
                             <ItemDelete
                                 class="bg-white/10"
@@ -323,7 +323,7 @@
                 </div>
             </div>
 
-            {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.collection}
+            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.collection}
                 <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
                 <div class="relative">
                     <img
@@ -344,7 +344,7 @@
                 </div>
             {/if}
 
-            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.seasons}
+            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.seasons}
                 <section>
                     <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seasons</h2>
 
@@ -397,7 +397,7 @@
                 </section>
             {/if}
 
-            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.episodes}
+            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.episodes}
                 <section>
                     <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
 
@@ -466,7 +466,7 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div
                         class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                        {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.budget}
+                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Budget</p>
                                 <p class="text-sm font-medium">
@@ -481,7 +481,7 @@
                             </div>
                         {/if}
 
-                        {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.revenue}
+                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.revenue}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Revenue</p>
                                 <p class="text-sm font-medium">
@@ -528,7 +528,7 @@
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Production Companies</p>
                                 <div class="flex flex-row flex-wrap">
-                                    {#if data.mediaDetails.type === "movie"}
+                                    {#if data.mediaDetails?.type === "movie"}
                                         {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
                                             <Tooltip>
                                                 {#snippet trigger()}
@@ -550,7 +550,7 @@
                                                 {/snippet}
                                             </Tooltip>
                                         {/each}
-                                    {:else if data.mediaDetails.type === "tv"}
+                                    {:else if data.mediaDetails?.type === "tv"}
                                         <p class="text-sm font-medium">
                                             {data.mediaDetails?.details.production_companies
                                                 .map((company) => company.name)
@@ -773,7 +773,7 @@
                 </div>
             {/if}
 
-            {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
+            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Like This (Trakt)</h2>
                     <ListCarousel
