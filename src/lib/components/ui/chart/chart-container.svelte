@@ -33,7 +33,9 @@
         if (!ref) return;
         const ro = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                width = entry.contentRect.width;
+                requestAnimationFrame(() => {
+                    width = entry.contentRect.width;
+                });
             }
         });
         ro.observe(ref);
