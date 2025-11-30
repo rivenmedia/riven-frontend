@@ -1,6 +1,7 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
+import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 
 export const GET: RequestHandler = async ({ fetch, locals }) => {
     if (!locals.user || !locals.session) {
@@ -22,7 +23,11 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
             error(500, "Failed to fetch now playing movies");
         }
 
-        return json(nowPlaying.data);
+        const transformedResults = transformTMDBList(
+            (nowPlaying.data?.results as unknown as TMDBListItem[]) ?? null
+        );
+
+        return json({ results: transformedResults });
     } catch (err) {
         console.error("Error fetching now playing data:", err);
         error(500, "Failed to fetch now playing data");

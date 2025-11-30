@@ -756,30 +756,21 @@
             {#if data.mediaDetails?.details.recommendations && data.mediaDetails?.details.recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Recommendations</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.recommendations}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.recommendations} />
                 </div>
             {/if}
 
             {#if data.mediaDetails?.details.similar && data.mediaDetails?.details.similar.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.similar}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.similar} />
                 </div>
             {/if}
 
             {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Like This (Trakt)</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.trakt_recommendations}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.trakt_recommendations} />
                 </div>
             {/if}
         </div>

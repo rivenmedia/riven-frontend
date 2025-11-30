@@ -271,7 +271,7 @@ interface TMDBTransformedListItem {
     year: string | number;
     vote_average: number | null;
     vote_count: number | null;
-    indexer: "tmdb";
+    indexer: "tmdb" | "tvdb";
 }
 
 export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
@@ -298,9 +298,9 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
             id: item.id,
             title: item.title || item.name || item.original_title || item.original_name || "",
             poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
-            media_type: type,
+            media_type: item.media_type || type,
             year:
-                type === "movie"
+                (item.media_type || type) === "movie"
                     ? item.release_date
                         ? new Date(item.release_date).getFullYear()
                         : "N/A"
@@ -312,6 +312,49 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
             indexer: "tmdb" as const
         })) || ([] as TMDBTransformedListItem[])
     );
+}
+
+function transformTraktRecommendations(
+    items: any[] | null,
+    isMovie: boolean = false
+): TMDBTransformedListItem[] {
+    if (!items || !Array.isArray(items)) return [];
+
+    return items
+        .map((item) => {
+            const poster = item.images?.poster?.[0]
+                ? item.images.poster[0].startsWith("http")
+                    ? item.images.poster[0]
+                    : `https://${item.images.poster[0]}`
+                : null;
+
+            let mediaType = isMovie ? "movie" : "tv";
+            let id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
+            let indexer: "tmdb" | "tvdb" = isMovie ? "tmdb" : "tvdb";
+
+            // Try to detect actual type from Trakt response
+            if (item.type === "movie" || item.movie) {
+                mediaType = "movie";
+                id = item.ids?.tmdb || item.movie?.ids?.tmdb;
+                indexer = "tmdb";
+            } else if (item.type === "show" || item.show) {
+                mediaType = "tv";
+                id = item.ids?.tvdb || item.show?.ids?.tvdb;
+                indexer = "tvdb";
+            }
+
+            return {
+                id: id || 0,
+                title: item.title || item.movie?.title || item.show?.title || "",
+                poster_path: poster,
+                media_type: mediaType,
+                year: item.year || item.movie?.year || item.show?.year || "N/A",
+                vote_average: null,
+                vote_count: null,
+                indexer: indexer
+            };
+        })
+        .filter((item) => item.id > 0);
 }
 
 function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
@@ -1000,36 +1043,7 @@ export function parseTVDBShowDetails(
     };
 }
 
-function transformTraktRecommendations(
-    items: any[] | null,
-    isMovie: boolean = false
-): TMDBTransformedListItem[] {
-    if (!items || !Array.isArray(items)) return [];
 
-    return items
-        .map((item) => {
-            const poster = item.images?.poster?.[0]
-                ? item.images.poster[0].startsWith("http")
-                    ? item.images.poster[0]
-                    : `https://${item.images.poster[0]}`
-                : null;
-
-            const id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
-            const mediaType = isMovie ? "movie" : "tv";
-
-            return {
-                id: id || 0,
-                title: item.title || "",
-                poster_path: poster,
-                media_type: mediaType,
-                year: item.year || "N/A",
-                vote_average: null,
-                vote_count: null,
-                indexer: "tmdb" as const
-            };
-        })
-        .filter((item) => item.id > 0);
-}
 
 // ---------------------------------------------------------------------------------
 // Collection Parser
