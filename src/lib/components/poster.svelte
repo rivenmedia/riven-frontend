@@ -38,13 +38,16 @@
 </script>
 
 <div
-    style="background-image: url('{src
-        ? src
-        : 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg'}');"
     class={cn(
-        "group relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm bg-cover bg-center transition-transform duration-300 hover:scale-105 md:w-40 lg:w-44",
+        "group relative flex aspect-2/3 w-36 flex-col justify-between overflow-hidden rounded-sm md:w-40 lg:w-44",
         className
     )}>
+    <div
+        style="background-image: url('{src
+            ? src
+            : 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg'}');"
+        class="absolute inset-0 size-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105">
+    </div>
     {#if isSelectable}
         <button
             onclick={() => {
@@ -64,7 +67,8 @@
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">
-            <div class="bg-background/70 absolute top-0 right-0 bottom-0 left-0 h-full w-full">
+
+            <!-- <div class="bg-background/70 absolute top-0 right-0 bottom-0 left-0 h-full w-full">
             </div>
             <div
                 class="to-background absolute top-0 right-0 bottom-0 left-0 h-full w-full bg-linear-to-b from-transparent to-100%">
@@ -74,7 +78,7 @@
                     class="relative z-1 line-clamp-2 w-full text-left text-sm font-semibold text-white">
                     {title}
                 </p>
-            {/if}
+            {/if} -->
 
             <!-- <ItemRequest
                 class="text-background relative z-1 mt-2 w-full bg-white/90 hover:bg-white/60"

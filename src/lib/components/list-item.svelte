@@ -46,7 +46,7 @@
         riven_id={data.riven_id ?? undefined}
         {mediaURL}
         {useDynamicPoster} />
-    <a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">
+    <a href={mediaURL} class="mt-2 block h-10 text-sm font-semibold hover:underline">
         <p class="line-clamp-2">
             {data.title}
         </p>
