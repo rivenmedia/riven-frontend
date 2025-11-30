@@ -31,6 +31,7 @@
 	import ChevronLeft from "@lucide/svelte/icons/chevron-left";
 	import Search from "@lucide/svelte/icons/search";
     import Zap from "@lucide/svelte/icons/zap";
+    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
 	interface Props {
 		title: string | null | undefined;
@@ -89,6 +90,7 @@
 	let open = $state(false);
 	let step = $state(1);
 	let loading = $state(false);
+    let settingsLoading = $state(false);
 	let error = $state<string | null>(null);
 	let magnetLink = $state("");
 	let streams = $state<{ magnet: string; stream: Stream }[]>([]);
@@ -103,7 +105,10 @@
         hdr: [],
         audio: [],
         extras: [],
-        trash: []
+
+        trash: [],
+        require: [],
+        exclude: []
     });
     let canStartAutoScrape = $derived(
         Object.values(selectedOptions).some(arr => arr.length > 0)
@@ -126,11 +131,15 @@
             hdr: [],
             audio: [],
             extras: [],
-            trash: []
+
+            trash: [],
+            require: [],
+            exclude: []
         };
 	}
 
     async function fetchSettings() {
+        settingsLoading = true;
         try {
             const response = await getSettings({
                 path: { paths: "ranking" }
@@ -171,6 +180,8 @@
             }
         } catch (e) {
             console.error("Failed to fetch settings", e);
+        } finally {
+            settingsLoading = false;
         }
     }
 
@@ -734,19 +745,84 @@
                         <Label>Quality Constraints</Label>
                         <p class="text-xs text-muted-foreground mb-2">Configure constraints for the auto scrape process.</p>
                         
-                        <Accordion.Root type="multiple" class="w-full">
-                            {#each Object.entries(rankingOptions) as [category, options]}
-                                <Accordion.Item value={category}>
-                                    <Accordion.Trigger class="capitalize text-sm py-2">{category}</Accordion.Trigger>
-                                    <Accordion.Content>
-                                        <div class="grid grid-cols-2 gap-2 pt-2">
-                                            {#each options as option}
-                                                <div class="flex items-center space-x-2">
-                                                    <Checkbox 
-                                                        id={`${category}-${option}`} 
-                                                        checked={selectedOptions[category]?.includes(option)}
-                                                        onCheckedChange={(checked) => {
-                                                            if (checked) {
+                        {#if settingsLoading}
+                            <div class="space-y-2">
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                                <Skeleton class="h-10 w-full" />
+                            </div>
+                        {:else}
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="flex flex-col gap-2">
+                                    <Label>Require</Label>
+                                    <Input 
+                                        placeholder="e.g. 4K, HDR (comma separated)"
+                                        value={selectedOptions.require?.join(", ") || ""}
+                                        oninput={(e) => {
+                                            const val = e.currentTarget.value;
+                                            selectedOptions.require = val ? val.split(",").map(s => s.trim()).filter(Boolean) : [];
+                                        }}
+                                    />
+                                    <p class="text-[10px] text-muted-foreground">Must contain ANY of these terms</p>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Label>Exclude</Label>
+                                    <Input 
+                                        placeholder="e.g. CAM, TS (comma separated)"
+                                        value={selectedOptions.exclude?.join(", ") || ""}
+                                        oninput={(e) => {
+                                            const val = e.currentTarget.value;
+                                            selectedOptions.exclude = val ? val.split(",").map(s => s.trim()).filter(Boolean) : [];
+                                        }}
+                                    />
+                                    <p class="text-[10px] text-muted-foreground">Must NOT contain ANY of these terms</p>
+                                </div>
+                            </div>
+
+                            <Accordion.Root type="multiple" class="w-full">
+                                {#each Object.entries(rankingOptions) as [category, options] (category)}
+                                    <Accordion.Item value={category}>
+                                        <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
+                                            <div class="flex items-center gap-2">
+                                                {category}
+                                                {#if selectedOptions[category]?.length}
+                                                    <Badge variant="secondary" class="text-[10px] h-5 px-1.5">
+                                                        {selectedOptions[category].length}
+                                                    </Badge>
+                                                {/if}
+                                            </div>
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="grid grid-cols-2 gap-2 pt-2">
+                                                {#each options as option}
+                                                    <div class="flex items-center space-x-2">
+                                                        <Checkbox 
+                                                            id={`${category}-${option}`} 
+                                                            checked={selectedOptions[category]?.includes(option)}
+                                                            onCheckedChange={(checked) => {
+                                                                if (checked) {
+                                                {#if categoryIcons[category]}
+                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
+                                                {/if}
+                                                {category === 'trash' ? 'Bin' : category}
+                                            </div>
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="flex flex-wrap gap-2 pt-2">
+                                                {#each options as option (option)}
+                                                    {@const isSelected = selectedOptions[category]?.includes(option)}
+                                                    <Badge 
+                                                        variant={isSelected ? "default" : "outline"}
+                                                        class="cursor-pointer hover:bg-primary/90 transition-colors"
+                                                        onclick={() => {
+                                                            if (isSelected) {
+                                                                selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
+                                                            } else {
+>>>>>>> ab4ca29 (UI: Add require, exclude to interface)
                                                                 selectedOptions[category] = [...(selectedOptions[category] || []), option];
                                                             } else {
                                                                 selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
