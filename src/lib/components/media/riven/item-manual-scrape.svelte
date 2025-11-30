@@ -218,14 +218,22 @@
         error = null;
 
         try {
-            const response = await autoScrapeItem({
-                body: {
-                    ...selectedOptions,
-                    item_id: itemId || undefined,
-                    tmdb_id: externalId && mediaType === "movie" ? externalId : undefined,
-                    tvdb_id: externalId && mediaType === "tv" ? externalId : undefined,
-                    media_type: mediaType
+            const body: any = {
+                item_id: itemId || undefined,
+                tmdb_id: externalId && mediaType === "movie" ? externalId : undefined,
+                tvdb_id: externalId && mediaType === "tv" ? externalId : undefined,
+                media_type: mediaType
+            };
+
+            // Only include selected options if they have values
+            Object.entries(selectedOptions).forEach(([key, value]) => {
+                if (value.length > 0) {
+                    body[key] = value;
                 }
+            });
+
+            const response = await autoScrapeItem({
+                body
             });
 
             if (response.data) {
@@ -290,20 +298,6 @@
 					magnet,
 					stream
 				}));
-
-                // Filter streams based on selected options
-                if (selectedOptions.resolutions.length > 0) {
-                    streamArray = streamArray.filter(s => s.stream.parsed_data.resolution && selectedOptions.resolutions.includes(s.stream.parsed_data.resolution));
-                }
-                if (selectedOptions.quality.length > 0) {
-                    streamArray = streamArray.filter(s => s.stream.parsed_data.quality && selectedOptions.quality.includes(s.stream.parsed_data.quality));
-                }
-                if (selectedOptions.hdr.length > 0) {
-                    streamArray = streamArray.filter(s => s.stream.parsed_data.hdr && s.stream.parsed_data.hdr.some(h => selectedOptions.hdr.includes(h)));
-                }
-                if (selectedOptions.audio.length > 0) {
-                    streamArray = streamArray.filter(s => s.stream.parsed_data.audio && s.stream.parsed_data.audio.some(a => selectedOptions.audio.includes(a)));
-                }
 
 				streams = streamArray.sort((a, b) => b.stream.rank - a.stream.rank);
 				step = 2;
@@ -586,6 +580,8 @@
 					Manual Scrape - Select Files
 				{:else if step === 4}
 					Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
+                {:else if step === 5}
+                    Manual Scrape - Auto Scrape Config
 				{/if}
 			</Dialog.Title>
 			<Dialog.Description>
@@ -599,6 +595,8 @@
 					{mediaType === "movie"
 						? "Confirm your file selection"
 						: "Map files to seasons and episodes"}
+                {:else if step === 5}
+                    Configure constraints for auto scraping
 				{/if}
 			</Dialog.Description>
 		</Dialog.Header>
@@ -613,9 +611,157 @@
 		<div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-6 px-6 py-4">
 			{#if step === 1}
 				<div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2 max-h-[40vh] overflow-y-auto pr-2 border rounded-md p-2">
+					<div class="flex flex-col gap-2">
+						<Label for="magnet">Magnet Link (Optional)</Label>
+                        <div class="relative">
+                            <Magnet class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="magnet"
+                                type="text"
+                                class="pl-9"
+                                placeholder="magnet:?xt=urn:btih:..."
+                                bind:value={magnetLink}
+                                disabled={loading} />
+                        </div>
+						<p class="text-muted-foreground text-xs">
+							Leave empty to fetch streams automatically
+						</p>
+					</div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
+                            {#if loading}
+                                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                                Fetching...
+                            {:else}
+                                <Download class="mr-2 h-4 w-4" />
+                                Fetch Streams
+                            {/if}
+                        </Button>
+
+                        <Button variant="secondary" onclick={() => (step = 5)} disabled={loading} class="w-full">
+                            <Zap class="mr-2 h-4 w-4" />
+                            Auto Scrape
+                        </Button>
+                    </div>
+				</div>
+			{:else if step === 2}
+				<div class="flex flex-col gap-3">
+					{#if step > 1}
+						<Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
+							<ChevronLeft class="mr-1 h-4 w-4" />
+							Back
+						</Button>
+					{/if}
+
+                    {#if streams.length === 0}
+                        <div class="flex flex-col items-center justify-center p-8 text-center">
+                            <p class="text-muted-foreground mb-2">No streams found.</p>
+                            <Button variant="outline" size="sm" onclick={() => (step = 1)}>
+                                Back to Options
+                            </Button>
+                        </div>
+                    {:else}
+                        {#each streams as { magnet, stream } (magnet)}
+                            <Card.Root
+                                class="cursor-pointer transition-all hover:border-primary hover:shadow-md"
+                                onclick={() => handleSelectStream(magnet)}>
+                                <Card.Content class="px-4">
+                                    <div class="flex flex-col gap-2">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
+                                            <Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
+                                                Rank: {stream.rank}
+                                            </Badge>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-2">
+                                            {#if stream.parsed_data.resolution}
+                                                <Badge class={getResolutionColor(stream.parsed_data.resolution)}>
+                                                    {stream.parsed_data.resolution}
+                                                </Badge>
+                                            {/if}
+                                            {#if stream.parsed_data.quality}
+                                                <Badge variant="outline">{stream.parsed_data.quality}</Badge>
+                                            {/if}
+                                            {#if stream.parsed_data.hdr}
+                                                {#each stream.parsed_data.hdr as hdr (hdr)}
+                                                    <Badge variant="outline">{hdr}</Badge>
+                                                {/each}
+                                            {/if}
+                                            {#if stream.parsed_data.codec}
+                                                <Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
+                                            {/if}
+                                            {#if stream.parsed_data.audio}
+                                                {#each stream.parsed_data.audio as audio (audio)}
+                                                    <Badge variant="outline">{audio}</Badge>
+                                                {/each}
+                                            {/if}
+                                            {#if stream.parsed_data.languages}
+                                                {#each stream.parsed_data.languages as lang (lang)}
+                                                    <Badge variant="outline">{lang.toUpperCase()}</Badge>
+                                                {/each}
+                                            {/if}
+                                            {#if stream.is_cached}
+                                                <Badge class="bg-green-600">Cached</Badge>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </Card.Content>
+                            </Card.Root>
+                        {/each}
+                    {/if}
+				</div>
+			{:else if step === 3}
+				<div class="flex flex-col gap-3">
+					{#if step > 1}
+						<Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
+							<ChevronLeft class="mr-1 h-4 w-4" />
+							Back
+						</Button>
+					{/if}
+
+					{#if sessionData?.containers?.files}
+						<div class="mb-4 flex flex-col gap-3">
+							{#each sessionData.containers.files as file (file.file_id)}
+								<Card.Root>
+									<Card.Content class="flex items-start gap-3 px-4">
+										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
+										<div class="flex-1 min-w-0">
+											<p class="text-sm font-medium break-words">{file.filename}</p>
+											{#if file.filesize}
+												<p class="text-muted-foreground text-xs">
+													{formatFileSize(file.filesize)}
+												</p>
+											{/if}
+										</div>
+									</Card.Content>
+								</Card.Root>
+							{/each}
+						</div>
+
+						<Button onclick={handleSelectAllFiles} disabled={loading} class="w-full">
+							{#if loading}
+								<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+								Processing Files...
+							{:else}
+								Select All Files
+							{/if}
+						</Button>
+					{:else}
+						<p class="text-muted-foreground text-center text-sm">No files available</p>
+					{/if}
+				</div>
+            {:else if step === 5}
+                <div class="flex flex-col gap-4">
+                    <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
+                        <ChevronLeft class="mr-1 h-4 w-4" />
+                        Back
+                    </Button>
+
+                    <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 border rounded-md p-2">
                         <Label>Quality Constraints</Label>
-                        <p class="text-xs text-muted-foreground mb-2">Select options to filter streams (Fetch) or constrain (Auto Scrape).</p>
+                        <p class="text-xs text-muted-foreground mb-2">Configure constraints for the auto scrape process.</p>
                         
                         {#if settingsLoading}
                             <div class="space-y-2">
@@ -665,138 +811,16 @@
                         {/if}
                     </div>
 
-					<div class="flex flex-col gap-2">
-						<Label for="magnet">Magnet Link (Optional)</Label>
-                        <div class="relative">
-                            <Magnet class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="magnet"
-                                type="text"
-                                class="pl-9"
-                                placeholder="magnet:?xt=urn:btih:..."
-                                bind:value={magnetLink}
-                                disabled={loading} />
-                        </div>
-						<p class="text-muted-foreground text-xs">
-							Leave empty to fetch streams automatically
-						</p>
-					</div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
-                            {#if loading}
-                                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                                Fetching...
-                            {:else}
-                                <Download class="mr-2 h-4 w-4" />
-                                Fetch Streams
-                            {/if}
-                        </Button>
-
-                        <Button variant="secondary" onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
+                    <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
+                        {#if loading}
+                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                            Starting...
+                        {:else}
                             <Zap class="mr-2 h-4 w-4" />
-                            Auto Scrape
-                        </Button>
-                    </div>
-				</div>
-			{:else if step === 2}
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
-
-					{#each streams as { magnet, stream } (magnet)}
-						<Card.Root
-							class="cursor-pointer transition-all hover:border-primary hover:shadow-md"
-							onclick={() => handleSelectStream(magnet)}>
-							<Card.Content class="px-4">
-								<div class="flex flex-col gap-2">
-									<div class="flex items-start justify-between gap-2">
-										<p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
-										<Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
-											Rank: {stream.rank}
-										</Badge>
-									</div>
-
-									<div class="flex flex-wrap gap-2">
-										{#if stream.parsed_data.resolution}
-											<Badge class={getResolutionColor(stream.parsed_data.resolution)}>
-												{stream.parsed_data.resolution}
-											</Badge>
-										{/if}
-										{#if stream.parsed_data.quality}
-											<Badge variant="outline">{stream.parsed_data.quality}</Badge>
-										{/if}
-										{#if stream.parsed_data.hdr}
-											{#each stream.parsed_data.hdr as hdr (hdr)}
-												<Badge variant="outline">{hdr}</Badge>
-											{/each}
-										{/if}
-										{#if stream.parsed_data.codec}
-											<Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
-										{/if}
-										{#if stream.parsed_data.audio}
-											{#each stream.parsed_data.audio as audio (audio)}
-												<Badge variant="outline">{audio}</Badge>
-											{/each}
-										{/if}
-										{#if stream.parsed_data.languages}
-											{#each stream.parsed_data.languages as lang (lang)}
-												<Badge variant="outline">{lang.toUpperCase()}</Badge>
-											{/each}
-										{/if}
-										{#if stream.is_cached}
-											<Badge class="bg-green-600">Cached</Badge>
-										{/if}
-									</div>
-								</div>
-							</Card.Content>
-						</Card.Root>
-					{/each}
-				</div>
-			{:else if step === 3}
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
-
-					{#if sessionData?.containers?.files}
-						<div class="mb-4 flex flex-col gap-3">
-							{#each sessionData.containers.files as file (file.file_id)}
-								<Card.Root>
-									<Card.Content class="flex items-start gap-3 px-4">
-										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1 min-w-0">
-											<p class="text-sm font-medium break-words">{file.filename}</p>
-											{#if file.filesize}
-												<p class="text-muted-foreground text-xs">
-													{formatFileSize(file.filesize)}
-												</p>
-											{/if}
-										</div>
-									</Card.Content>
-								</Card.Root>
-							{/each}
-						</div>
-
-						<Button onclick={handleSelectAllFiles} disabled={loading} class="w-full">
-							{#if loading}
-								<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-								Processing Files...
-							{:else}
-								Select All Files
-							{/if}
-						</Button>
-					{:else}
-						<p class="text-muted-foreground text-center text-sm">No files available</p>
-					{/if}
-				</div>
+                            Start Auto Scrape
+                        {/if}
+                    </Button>
+                </div>
 			{:else if step === 4}
 				<div class="flex flex-col gap-3">
 					{#if step > 1}
