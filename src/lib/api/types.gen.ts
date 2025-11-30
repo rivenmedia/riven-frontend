@@ -3349,6 +3349,26 @@ export type GetItemMetadataResponses = {
 
 export type GetItemMetadataResponse = GetItemMetadataResponses[keyof GetItemMetadataResponses];
 
+export type AutoScrapeItemData = {
+    body: {
+        item_id?: string;
+        tmdb_id?: string;
+        tvdb_id?: string;
+        imdb_id?: string;
+        media_type?: "movie" | "tv";
+        resolutions?: Array<string>;
+        quality?: Array<string>;
+        rips?: Array<string>;
+        hdr?: Array<string>;
+        audio?: Array<string>;
+        extras?: Array<string>;
+        trash?: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/scrape/auto';
+};
+
 export type ScrapeItemData = {
     body?: never;
     path?: never;

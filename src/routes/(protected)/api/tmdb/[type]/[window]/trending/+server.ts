@@ -2,7 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL, TMDBMediaType, TMDBTimeWindow } from "$lib/providers";
 import providers from "$lib/providers";
-import { transformTMDBList } from "$lib/providers/parser";
+import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -30,16 +30,18 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     },
                     query: {
                         page
-                    }
+                    } as any
                 },
                 fetch
             });
 
-            if (trending.error) {
+            if ((trending as any).error) {
                 error(500, "Failed to fetch trending movies");
             }
 
-            const transformedResults = transformTMDBList(trending.data.results ?? null);
+            const transformedResults = transformTMDBList(
+                (trending.data?.results as unknown as TMDBListItem[]) ?? null
+            );
 
             return json({ results: transformedResults });
         } else if (type === "tv") {
@@ -50,16 +52,19 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     },
                     query: {
                         page
-                    }
+                    } as any
                 },
                 fetch
             });
 
-            if (trending.error) {
+            if ((trending as any).error) {
                 error(500, "Failed to fetch trending TV shows");
             }
 
-            const transformedResults = transformTMDBList(trending.data.results ?? null, "tv");
+            const transformedResults = transformTMDBList(
+                (trending.data?.results as unknown as TMDBListItem[]) ?? null,
+                "tv"
+            );
 
             return json({ results: transformedResults });
         }

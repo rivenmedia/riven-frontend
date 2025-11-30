@@ -37,8 +37,6 @@
         { label: "High", color: "var(--chart-2)" },
         { label: "Very High", color: "var(--chart-1)" }
     ];
-
-    $inspect(data);
 </script>
 
 <svelte:head>
@@ -117,7 +115,7 @@
             </Card.Header>
             <Card.Content>
                 <Heatmap
-                    data={data.statistics?.activity}
+                    data={data.statistics?.activity ?? {}}
                     colors={[
                         "var(--muted)",
                         "var(--chart-4)",

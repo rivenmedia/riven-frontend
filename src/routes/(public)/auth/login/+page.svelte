@@ -8,7 +8,6 @@
     import { type SuperValidated, type Infer, superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { loginSchema, registerSchema } from "$lib/schemas/auth";
-    import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
     import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
@@ -121,7 +120,7 @@
     let activeTab = $state("login");
     const lastLoginMethod = authClient.getLastUsedLoginMethod();
 
-    $inspect(data);
+
 </script>
 
 {#snippet star()}
@@ -146,11 +145,7 @@
                     <Tabs.Trigger value="register">Register</Tabs.Trigger>
                 </Tabs.List>
                 <Tabs.Content value="login">
-                    {#if dev}
-                        <div class="my-4">
-                            <SuperDebug data={loginFormData} />
-                        </div>
-                    {/if}
+
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Login</Card.Title>
@@ -245,11 +240,7 @@
                     </Card.Root>
                 </Tabs.Content>
                 <Tabs.Content value="register">
-                    {#if dev}
-                        <div class="my-4">
-                            <SuperDebug data={registerFormData} />
-                        </div>
-                    {/if}
+
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Register</Card.Title>

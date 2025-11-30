@@ -4,6 +4,7 @@
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
+    import { invalidateAll } from "$app/navigation";
 
     interface Props {
         title: string | null | undefined;
@@ -31,6 +32,7 @@
         });
 
         if (response.data) {
+            invalidateAll();
             toast.success("Media item deletion successfully!");
         } else {
             toast.error("Failed to delete media item.");
