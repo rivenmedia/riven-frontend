@@ -37,8 +37,6 @@
         { label: "High", color: "var(--chart-2)" },
         { label: "Very High", color: "var(--chart-1)" }
     ];
-
-
 </script>
 
 <svelte:head>
@@ -146,7 +144,7 @@
                 <Card.Title class="text-sm font-medium text-neutral-300">Library States</Card.Title>
             </Card.Header>
             <Card.Content>
-                <Chart.Container config={{}} class="w-full min-w-[100px]">
+                <Chart.Container config={{}} class="w-full">
                     <BarChart
                         data={transformedStates}
                         x="state"
@@ -183,7 +181,7 @@
                     >Content Breakdown</Card.Title>
             </Card.Header>
             <Card.Content>
-                <Chart.Container config={{}} class="w-full min-w-[100px]">
+                <Chart.Container config={{}} class="w-full">
                     <PieChart
                         data={contentBreakdown}
                         key="key"
@@ -230,7 +228,7 @@
             <Card.Content>
                 <Chart.Container
                     config={{}}
-                    class="aspect-3/1 w-full min-w-[100px] md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1">
+                    class="aspect-3/1 w-full md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1">
                     <LineChart
                         data={data.statistics?.media_year_releases || []}
                         x="year"
