@@ -139,6 +139,7 @@
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
+    let isManualMagnet = $state(false);
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -340,9 +341,79 @@
         }
     }
 
+    // Helper to start a session with a given magnet link
+    async function startScrapeSession(magnet: string, forceDisableFilesizeCheck: boolean = false) {
+        loading = true;
+        error = null;
+
+        try {
+            const queryParams: {
+                item_id?: string;
+                tmdb_id?: string;
+                tvdb_id?: string;
+                media_type: "movie" | "tv";
+                magnet: string;
+                disable_filesize_check?: boolean;
+            } = {
+                media_type: mediaType,
+                magnet: magnet,
+                disable_filesize_check: forceDisableFilesizeCheck || disableFilesizeCheck
+            };
+
+            if (itemId) {
+                queryParams.item_id = itemId;
+            } else {
+                if (!externalId) {
+                    throw new Error("No item ID or external ID available");
+                }
+            }
+            
+            if (mediaType === "movie" && externalId) {
+                queryParams.tmdb_id = externalId;
+            }
+            if (mediaType === "tv" && externalId) {
+                queryParams.tvdb_id = externalId;
+            }
+
+            const response = await startManualSession({
+                query: queryParams
+            });
+
+            if (response.data) {
+                sessionId = response.data.session_id;
+                sessionData = response.data;
+                toast.success("Session started successfully!");
+                await handleSelectAllFiles();
+                if (step !== 4) {
+                    // If parsing failed, we stay on the current step (1 or 2) and show error
+                    // step = 3; // Removed fallback to step 3
+                }
+            } else {
+                const errorMsg = (response.error as any)?.message || "Failed to start session";
+                error = errorMsg;
+                toast.error(errorMsg);
+            }
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
+
 	async function handleFetchStreams() {
 		loading = true;
 		error = null;
+
+        // If magnet link is provided, use it directly
+        if (magnetLink) {
+            isManualMagnet = true;
+            // When manually entering a magnet, we assume the user knows what they are doing,
+            // so we disable the filesize check to allow scraping of any file size.
+            await startScrapeSession(magnetLink, true);
+            return;
+        }
 
 		try {
 			// Construct query parameters, only including non-null values
@@ -402,72 +473,11 @@
 		}
 	}
 
+
+
 	async function handleSelectStream(infohash: string) {
-		loading = true;
-		error = null;
-
-		try {
-			// Construct query parameters, only including non-null values
-			const queryParams: {
-				item_id?: string;
-				tmdb_id?: string;
-				tvdb_id?: string;
-				media_type: "movie" | "tv";
-				magnet: string;
-                disable_filesize_check?: boolean;
-			} = {
-				media_type: mediaType,
-				// Construct proper magnet URI from infohash
-				magnet: `magnet:?xt=urn:btih:${infohash}`,
-                disable_filesize_check: disableFilesizeCheck
-			};
-
-			// Always prioritize item_id if available
-			if (itemId) {
-				queryParams.item_id = itemId;
-			} else {
-				// If no itemId, we must have external IDs to proceed
-				if (!externalId) {
-					error = "No item ID or external ID available";
-					toast.error(error);
-					loading = false;
-					return;
-				}
-			}
-			
-			if (mediaType === "movie" && externalId) {
-				queryParams.tmdb_id = externalId;
-			}
-			if (mediaType === "tv" && externalId) {
-				queryParams.tvdb_id = externalId;
-			}
-
-			const response = await startManualSession({
-				query: queryParams
-			});
-
-			if (response.data) {
-				sessionId = response.data.session_id;
-				sessionData = response.data;
-				toast.success("Session started successfully!");
-				toast.success("Session started successfully!");
-                await handleSelectAllFiles();
-                // If auto-select failed or didn't complete (e.g. no files), fallback to manual selection
-                if (step !== 4) {
-                    step = 3;
-                }
-			} else {
-				const errorMsg = (response.error as any)?.message || "Failed to start session";
-				error = errorMsg;
-				toast.error(errorMsg);
-			}
-		} catch (e) {
-			const errorMsg = e instanceof Error ? e.message : "An error occurred";
-			error = errorMsg;
-			toast.error(errorMsg);
-		} finally {
-			loading = false;
-		}
+        isManualMagnet = false;
+        await startScrapeSession(`magnet:?xt=urn:btih:${infohash}`);
 	}
 
 
@@ -672,10 +682,8 @@
 				{:else if step === 2}
 					Manual Scrape - Select Stream
 				{:else if step === 3}
-					Manual Scrape - Select Files
-				{:else if step === 4}
 					Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
-                {:else if step === 5}
+                {:else if step === 4}
                     Manual Scrape - Auto Scrape Config
 				{/if}
 			</Dialog.Title>
@@ -687,12 +695,10 @@
 				{:else if step === 2}
 					Choose a stream to download
 				{:else if step === 3}
-					Select files from the torrent
-				{:else if step === 4}
 					{mediaType === "movie"
 						? "Confirm your file selection"
 						: "Map files to seasons and episodes"}
-                {:else if step === 5}
+                {:else if step === 4}
                     Configure constraints for auto scraping
 				{/if}
 			</Dialog.Description>
@@ -718,6 +724,12 @@
                                 class="pl-9"
                                 placeholder="magnet:?xt=urn:btih:..."
                                 bind:value={magnetLink}
+                                onkeydown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleFetchStreams();
+                                    }
+                                }}
                                 disabled={loading} />
                         </div>
 						<p class="text-muted-foreground text-xs">
@@ -823,47 +835,7 @@
                         </Tabs.Root>
                     {/if}
 				</div>
-			{:else if step === 3}
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
-
-					{#if sessionData?.containers?.files}
-						<div class="mb-4 flex flex-col gap-3">
-							{#each sessionData.containers.files as file (file.file_id)}
-								<Card.Root>
-									<Card.Content class="flex items-start gap-3 px-4">
-										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1 min-w-0">
-											<p class="text-sm font-medium break-words">{file.filename}</p>
-											{#if file.filesize}
-												<p class="text-muted-foreground text-xs">
-													{formatFileSize(file.filesize)}
-												</p>
-											{/if}
-										</div>
-									</Card.Content>
-								</Card.Root>
-							{/each}
-						</div>
-
-						<Button onclick={handleSelectAllFiles} disabled={loading} class="w-full">
-							{#if loading}
-								<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-								Processing Files...
-							{:else}
-								Select All Files
-							{/if}
-						</Button>
-					{:else}
-						<p class="text-muted-foreground text-center text-sm">No files available</p>
-					{/if}
-				</div>
-            {:else if step === 5}
+			{:else if step === 5}
                 <div class="flex flex-col gap-4">
                     <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
                         <ChevronLeft class="mr-1 h-4 w-4" />
@@ -1112,7 +1084,13 @@
 			{:else if step === 4}
 				<div class="flex flex-col gap-3">
 					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 3)} class="w-fit">
+						<Button variant="ghost" size="sm" onclick={() => {
+                            if (isManualMagnet) {
+                                step = 1;
+                            } else {
+                                step = 2;
+                            }
+                        }} class="w-fit">
 							<ChevronLeft class="mr-1 h-4 w-4" />
 							Back
 						</Button>
