@@ -10,9 +10,10 @@
         isSelected: boolean;
         onSelect: (magnet: string) => void;
         onScrape: (magnet: string) => void;
+        showCheckbox?: boolean;
     }
 
-    let { stream, magnet, isSelected, onSelect, onScrape }: Props = $props();
+    let { stream, magnet, isSelected, onSelect, onScrape, showCheckbox = true }: Props = $props();
 
     function getResolutionColor(resolution?: string): string {
         if (!resolution) return "bg-pink-600";
@@ -25,18 +26,20 @@
 </script>
 
 <div class="flex items-start gap-3">
-    <Checkbox 
-        checked={isSelected}
-        onCheckedChange={() => onSelect(magnet)}
-        class="mt-4"
-    />
+    {#if showCheckbox}
+        <Checkbox 
+            checked={isSelected}
+            onCheckedChange={() => onSelect(magnet)}
+            class="mt-4"
+        />
+    {/if}
     <Card.Root
         class="flex-1 cursor-pointer transition-all hover:border-primary hover:shadow-md"
         onclick={() => onScrape(magnet)}>
         <Card.Content class="px-4 py-3">
             <div class="flex flex-col gap-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
+                    <p class="text-sm font-medium break-all flex-1 min-w-0">{stream.raw_title}</p>
                     <Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
                         Rank: {stream.rank}
                     </Badge>

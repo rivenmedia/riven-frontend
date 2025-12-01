@@ -797,6 +797,7 @@
                                                 isSelected={selectedMagnets.has(magnet)}
                                                 onSelect={toggleMagnetSelection}
                                                 onScrape={handleSelectStream}
+                                                showCheckbox={mediaType === "tv"}
                                             />
                                         {/each}
                                     </div>
