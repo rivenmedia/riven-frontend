@@ -384,7 +384,7 @@
                 sessionData = response.data;
                 toast.success("Session started successfully!");
                 await handleSelectAllFiles();
-                if (step !== 4) {
+                if (step !== 3) {
                     // If parsing failed, we stay on the current step (1 or 2) and show error
                     // step = 3; // Removed fallback to step 3
                 }
@@ -509,7 +509,7 @@
 						episode: parsedData?.episodes?.[0]
 					};
 				});
-				step = 4;
+				step = 3;
 				toast.success("Files selected!");
 			} else {
 				const errorMsg = (parseResponse.error as any)?.message || "Failed to parse filenames";
@@ -655,8 +655,10 @@
 	$effect(() => {
 		if (!open) {
 			// Cleanup: abort session if not completed
-			if (sessionId && step < 4) {
-				abortManualSession({ path: { session_id: sessionId } });
+			if (sessionId) {
+				abortManualSession({ path: { session_id: sessionId } }).catch(() => {
+					// Silently ignore cleanup errors (session may already be expired/aborted)
+				});
 			}
 			resetFlow();
 		}
@@ -748,7 +750,7 @@
                             {/if}
                         </Button>
 
-                        <Button variant="secondary" onclick={() => (step = 5)} disabled={loading} class="w-full">
+                        <Button variant="secondary" onclick={() => (step = 4)} disabled={loading} class="w-full">
                             <Zap class="mr-2 h-4 w-4" />
                             Auto Scrape
                         </Button>
@@ -835,7 +837,7 @@
                         </Tabs.Root>
                     {/if}
 				</div>
-			{:else if step === 5}
+			{:else if step === 4}
                 <div class="flex flex-col gap-4">
                     <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
                         <ChevronLeft class="mr-1 h-4 w-4" />
@@ -942,6 +944,7 @@
                         {/if}
                     </Button>
                 </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
 			{:else if step === 1}
 				<div class="flex flex-col gap-4">
@@ -1082,6 +1085,9 @@
 =======
 >>>>>>> 58cdf7a (UI: Improve manual scrape flow)
 			{:else if step === 4}
+=======
+			{:else if step === 3}
+>>>>>>> 6e20c50 (fix: Optional magnet)
 				<div class="flex flex-col gap-3">
 					{#if step > 1}
 						<Button variant="ghost" size="sm" onclick={() => {
