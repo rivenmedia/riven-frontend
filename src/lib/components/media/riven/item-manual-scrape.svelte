@@ -26,6 +26,8 @@
 	import * as Alert from "$lib/components/ui/alert/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
+    import * as Accordion from "$lib/components/ui/accordion/index.js";
+    import { Switch } from "$lib/components/ui/switch/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
@@ -447,8 +449,13 @@
 			if (response.data) {
 				sessionId = response.data.session_id;
 				sessionData = response.data;
-				step = 3;
 				toast.success("Session started successfully!");
+				toast.success("Session started successfully!");
+                await handleSelectAllFiles();
+                // If auto-select failed or didn't complete (e.g. no files), fallback to manual selection
+                if (step !== 4) {
+                    step = 3;
+                }
 			} else {
 				const errorMsg = (response.error as any)?.message || "Failed to start session";
 				error = errorMsg;
@@ -462,6 +469,8 @@
 			loading = false;
 		}
 	}
+
+
 
 	async function handleSelectAllFiles() {
 		if (!sessionData?.containers?.files) return;
@@ -742,6 +751,11 @@
                                     <ChevronLeft class="mr-1 h-4 w-4" />
                                     Back
                                 </Button>
+
+                                <div class="flex items-center space-x-2">
+                                    <Label for="disable-filesize-check" class="text-xs">Disable Filesize Check</Label>
+                                    <Switch id="disable-filesize-check" bind:checked={disableFilesizeCheck} />
+                                </div>
                                 
                                 {#if selectedMagnets.size > 0}
                                     <Button size="sm" onclick={handleBatchScrape} disabled={loading}>
@@ -765,10 +779,6 @@
                                     bind:value={searchQuery}
                                 />
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <Checkbox id="disable-filesize-check" bind:checked={disableFilesizeCheck} />
-                                <Label for="disable-filesize-check">Disable Filesize Check</Label>
-                            </div>
                         </div>
 					{/if}
 
@@ -790,7 +800,7 @@
                                 </Tabs.List>
                             {/if}
                             
-                            <div class="flex-1 overflow-y-auto min-h-0 pr-2">
+                            <div class="flex-1 overflow-y-auto min-h-0">
                                 {#if filteredStreams.length === 0}
                                     <div class="text-center py-8 text-muted-foreground">
                                         No streams found for this category.
@@ -861,7 +871,13 @@
                     </Button>
 
                     <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 border rounded-md p-2">
-                        <Label>Quality Constraints</Label>
+                        <div class="flex items-center justify-between">
+                            <Label>Quality Constraints</Label>
+                            <div class="flex items-center space-x-2">
+                                <Label for="disable-filesize-check-auto" class="text-xs">Disable Filesize Check</Label>
+                                <Switch id="disable-filesize-check-auto" bind:checked={disableFilesizeCheck} />
+                            </div>
+                        </div>
                         <p class="text-xs text-muted-foreground mb-2">Configure constraints for the auto scrape process.</p>
                         
                         {#if settingsLoading}
@@ -1153,7 +1169,7 @@
 							<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
 							Completing...
 						{:else}
-							Complete
+							Confirm
 						{/if}
 					</Button>
 				</div>
