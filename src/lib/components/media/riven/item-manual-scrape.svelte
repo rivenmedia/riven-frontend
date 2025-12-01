@@ -14,11 +14,19 @@
 		type DebridFile,
 		type Container
 	} from "$lib/api";
+    import { processBatchItem } from "$lib/utils/batch-scrape";
+	import type {
+        StartSessionResponse,
+        Stream,
+        RtnSettingsModel,
+        Container
+    } from "$lib/api/types.gen";
 	import { toast } from "svelte-sonner";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import * as Alert from "$lib/components/ui/alert/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
+    import * as Tabs from "$lib/components/ui/tabs/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
@@ -32,6 +40,16 @@
 	import Search from "@lucide/svelte/icons/search";
     import Zap from "@lucide/svelte/icons/zap";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import Monitor from "@lucide/svelte/icons/monitor";
+    import Star from "@lucide/svelte/icons/star";
+    import Disc from "@lucide/svelte/icons/disc";
+    import Sun from "@lucide/svelte/icons/sun";
+    import Volume2 from "@lucide/svelte/icons/volume-2";
+    import Plus from "@lucide/svelte/icons/plus";
+    import Trash2 from "@lucide/svelte/icons/trash-2";
+    import Magnet from "@lucide/svelte/icons/magnet";
+    import Download from "@lucide/svelte/icons/download";
+    import StreamItem from "./stream-item.svelte";
 
 	interface Props {
 		title: string | null | undefined;
@@ -114,6 +132,87 @@
         Object.values(selectedOptions).some(arr => arr.length > 0)
     );
 
+    let selectedMagnets = $state<Set<string>>(new Set());
+    let activeTab = $state("all");
+    let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
+    let searchQuery = $state("");
+
+    let filteredStreams = $derived.by(() => {
+        let result = streams;
+
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(({ stream }) => stream.raw_title.toLowerCase().includes(query));
+        }
+
+        if (activeTab === "all") return result;
+        
+        return result.filter(({ stream }) => {
+            const seasons = stream.parsed_data.seasons || [];
+            const episodes = stream.parsed_data.episodes || [];
+            const isComplete = stream.parsed_data.complete === true;
+
+            const isShowPack = seasons.length > 1;
+            
+            // Season Pack: Single season AND (marked complete OR no episodes listed OR many episodes listed)
+            const isSeasonPack = seasons.length === 1 && (isComplete || episodes.length === 0 || episodes.length > 2);
+            
+            // Episode: Has episodes AND is not a season pack (so 1 or 2 episodes)
+            const isEpisode = episodes.length > 0 && !isSeasonPack && !isShowPack;
+
+            if (activeTab === "show_packs") return isShowPack;
+            if (activeTab === "season_packs") return isSeasonPack;
+            if (activeTab === "episodes") return isEpisode;
+            return true;
+        });
+    });
+
+    function toggleMagnetSelection(magnet: string) {
+        const newSet = new Set(selectedMagnets);
+        if (newSet.has(magnet)) {
+            newSet.delete(magnet);
+        } else {
+            newSet.add(magnet);
+        }
+        selectedMagnets = newSet;
+    }
+
+    async function handleBatchScrape() {
+        if (selectedMagnets.size === 0) return;
+
+        loading = true;
+        error = null;
+        batchProgress = { current: 0, total: selectedMagnets.size, message: "Starting batch scrape..." };
+
+        try {
+            let processed = 0;
+            for (const magnet of selectedMagnets) {
+                processed++;
+                batchProgress = { current: processed, total: selectedMagnets.size, message: `Processing torrent ${processed}/${selectedMagnets.size}...` };
+
+                await processBatchItem({
+                    magnet,
+                    mediaType,
+                    itemId,
+                    externalId,
+                    streams
+                });
+            }
+
+            toast.success(`Batch scrape completed for ${processed} torrents!`);
+            open = false;
+            resetFlow();
+
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "Batch scrape failed";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+            batchProgress = null;
+        }
+    }
+
 	function resetFlow() {
 		step = 1;
 		loading = false;
@@ -136,6 +235,10 @@
             require: [],
             exclude: []
         };
+        selectedMagnets = new Set();
+        activeTab = "all";
+        batchProgress = null;
+        searchQuery = "";
 	}
 
     async function fetchSettings() {
@@ -628,12 +731,38 @@
                     </div>
 				</div>
 			{:else if step === 2}
-				<div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3 h-full">
 					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
+                                    <ChevronLeft class="mr-1 h-4 w-4" />
+                                    Back
+                                </Button>
+                                
+                                {#if selectedMagnets.size > 0}
+                                    <Button size="sm" onclick={handleBatchScrape} disabled={loading}>
+                                        {#if loading}
+                                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                                            {batchProgress ? `Processing ${batchProgress.current}/${batchProgress.total}` : "Scraping..."}
+                                        {:else}
+                                            <Download class="mr-2 h-4 w-4" />
+                                            Scrape Selected ({selectedMagnets.size})
+                                        {/if}
+                                    </Button>
+                                {/if}
+                            </div>
+                            
+                            <div class="relative">
+                                <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="text"
+                                    placeholder="Search torrents..."
+                                    class="pl-9"
+                                    bind:value={searchQuery}
+                                />
+                            </div>
+                        </div>
 					{/if}
 
                     {#if streams.length === 0}
@@ -644,54 +773,36 @@
                             </Button>
                         </div>
                     {:else}
-                        {#each streams as { magnet, stream } (magnet)}
-                            <Card.Root
-                                class="cursor-pointer transition-all hover:border-primary hover:shadow-md"
-                                onclick={() => handleSelectStream(magnet)}>
-                                <Card.Content class="px-4">
-                                    <div class="flex flex-col gap-2">
-                                        <div class="flex items-start justify-between gap-2">
-                                            <p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
-                                            <Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
-                                                Rank: {stream.rank}
-                                            </Badge>
-                                        </div>
-
-                                        <div class="flex flex-wrap gap-2">
-                                            {#if stream.parsed_data.resolution}
-                                                <Badge class={getResolutionColor(stream.parsed_data.resolution)}>
-                                                    {stream.parsed_data.resolution}
-                                                </Badge>
-                                            {/if}
-                                            {#if stream.parsed_data.quality}
-                                                <Badge variant="outline">{stream.parsed_data.quality}</Badge>
-                                            {/if}
-                                            {#if stream.parsed_data.hdr}
-                                                {#each stream.parsed_data.hdr as hdr (hdr)}
-                                                    <Badge variant="outline">{hdr}</Badge>
-                                                {/each}
-                                            {/if}
-                                            {#if stream.parsed_data.codec}
-                                                <Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
-                                            {/if}
-                                            {#if stream.parsed_data.audio}
-                                                {#each stream.parsed_data.audio as audio (audio)}
-                                                    <Badge variant="outline">{audio}</Badge>
-                                                {/each}
-                                            {/if}
-                                            {#if stream.parsed_data.languages}
-                                                {#each stream.parsed_data.languages as lang (lang)}
-                                                    <Badge variant="outline">{lang.toUpperCase()}</Badge>
-                                                {/each}
-                                            {/if}
-                                            {#if stream.is_cached}
-                                                <Badge class="bg-green-600">Cached</Badge>
-                                            {/if}
-                                        </div>
+                        <Tabs.Root value={activeTab} onValueChange={(v) => activeTab = v} class="w-full flex-1 flex flex-col min-h-0">
+                            {#if mediaType === "tv"}
+                                <Tabs.List class="w-full grid grid-cols-4 mb-4 shrink-0">
+                                    <Tabs.Trigger value="all">All</Tabs.Trigger>
+                                    <Tabs.Trigger value="show_packs">Show Packs</Tabs.Trigger>
+                                    <Tabs.Trigger value="season_packs">Season Packs</Tabs.Trigger>
+                                    <Tabs.Trigger value="episodes">Episodes</Tabs.Trigger>
+                                </Tabs.List>
+                            {/if}
+                            
+                            <div class="flex-1 overflow-y-auto min-h-0 pr-2">
+                                {#if filteredStreams.length === 0}
+                                    <div class="text-center py-8 text-muted-foreground">
+                                        No streams found for this category.
                                     </div>
-                                </Card.Content>
-                            </Card.Root>
-                        {/each}
+                                {:else}
+                                    <div class="flex flex-col gap-3">
+                                        {#each filteredStreams as { magnet, stream } (magnet)}
+                                            <StreamItem 
+                                                {stream} 
+                                                {magnet} 
+                                                isSelected={selectedMagnets.has(magnet)}
+                                                onSelect={toggleMagnetSelection}
+                                                onScrape={handleSelectStream}
+                                            />
+                                        {/each}
+                                    </div>
+                                {/if}
+                            </div>
+                        </Tabs.Root>
                     {/if}
 				</div>
 			{:else if step === 3}
@@ -789,26 +900,15 @@
                                         <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
                                             <div class="flex items-center gap-2">
                                                 {category}
+                                                {#if categoryIcons[category]}
+                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
+                                                {/if}
+                                                {category === 'trash' ? 'Bin' : category}
                                                 {#if selectedOptions[category]?.length}
                                                     <Badge variant="secondary" class="text-[10px] h-5 px-1.5">
                                                         {selectedOptions[category].length}
                                                     </Badge>
                                                 {/if}
-                                            </div>
-                                        </Accordion.Trigger>
-                                        <Accordion.Content>
-                                            <div class="grid grid-cols-2 gap-2 pt-2">
-                                                {#each options as option}
-                                                    <div class="flex items-center space-x-2">
-                                                        <Checkbox 
-                                                            id={`${category}-${option}`} 
-                                                            checked={selectedOptions[category]?.includes(option)}
-                                                            onCheckedChange={(checked) => {
-                                                                if (checked) {
-                                                {#if categoryIcons[category]}
-                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
-                                                {/if}
-                                                {category === 'trash' ? 'Bin' : category}
                                             </div>
                                         </Accordion.Trigger>
                                         <Accordion.Content>
@@ -822,24 +922,19 @@
                                                             if (isSelected) {
                                                                 selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
                                                             } else {
->>>>>>> ab4ca29 (UI: Add require, exclude to interface)
                                                                 selectedOptions[category] = [...(selectedOptions[category] || []), option];
-                                                            } else {
-                                                                selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
                                                             }
                                                         }}
-                                                    />
-                                                    <Label for={`${category}-${option}`} class="text-sm font-normal cursor-pointer break-all">
+                                                    >
                                                         {option.replace(/^r/, '')}
-                                                    </Label>
-                                                </div>
-                                            {/each}
-                                        </div>
-                                    </Accordion.Content>
-                                </Accordion.Item>
-                            {/each}
-                        </Accordion.Root>
-                    </div>
+                                                    </Badge>
+                                                {/each}
+                                            </div>
+                                        </Accordion.Content>
+                                    </Accordion.Item>
+                                {/each}
+                            </Accordion.Root>
+                        </div>
 
                     <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
                         {#if loading}

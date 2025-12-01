@@ -880,7 +880,7 @@ export const scrapeItem = <ThrowOnError extends boolean = false>(options?: Optio
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape',
+        url: '/api/v1/scrape',
         ...options
     });
 };
@@ -906,7 +906,7 @@ export const startManualSession = <ThrowOnError extends boolean = false>(options
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/start_session',
+        url: '/api/v1/scrape/start_session',
         ...options
     });
 };
@@ -932,7 +932,7 @@ export const manualSelect = <ThrowOnError extends boolean = false>(options: Opti
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/select_files/{session_id}',
+        url: '/api/v1/scrape/select_files/{session_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -975,7 +975,7 @@ export const manualUpdateAttributes = <ThrowOnError extends boolean = false>(opt
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/update_attributes/{session_id}',
+        url: '/api/v1/scrape/update_attributes/{session_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -1005,7 +1005,7 @@ export const abortManualSession = <ThrowOnError extends boolean = false>(options
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/abort_session/{session_id}',
+        url: '/api/v1/scrape/abort_session/{session_id}',
         ...options
     });
 };
@@ -1031,7 +1031,7 @@ export const completeManualSession = <ThrowOnError extends boolean = false>(opti
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/complete_session/{session_id}',
+        url: '/api/v1/scrape/complete_session/{session_id}',
         ...options
     });
 };
