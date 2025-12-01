@@ -136,6 +136,7 @@
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
+    let disableFilesizeCheck = $state(false);
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -411,10 +412,12 @@
 				tvdb_id?: string;
 				media_type: "movie" | "tv";
 				magnet: string;
+                disable_filesize_check?: boolean;
 			} = {
 				media_type: mediaType,
 				// Construct proper magnet URI from infohash
-				magnet: `magnet:?xt=urn:btih:${infohash}`
+				magnet: `magnet:?xt=urn:btih:${infohash}`,
+                disable_filesize_check: disableFilesizeCheck
 			};
 
 			// Always prioritize item_id if available
@@ -761,6 +764,10 @@
                                     class="pl-9"
                                     bind:value={searchQuery}
                                 />
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <Checkbox id="disable-filesize-check" bind:checked={disableFilesizeCheck} />
+                                <Label for="disable-filesize-check">Disable Filesize Check</Label>
                             </div>
                         </div>
 					{/if}
