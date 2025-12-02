@@ -41,12 +41,13 @@
 
 
     let actionInProgress = $state(false);
+    let formElement: HTMLFormElement;
 </script>
 
 <div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
 
 
-    <form method="GET" class="flex flex-col">
+    <form method="GET" class="flex flex-col" bind:this={formElement}>
         <div class="flex flex-col">
             <Form.Field {form} name="search">
                 <Form.Control>
@@ -338,7 +339,7 @@
                 {#snippet children({ pages, currentPage })}
                     <Pagination.Content>
                         <Pagination.Item>
-                            <Pagination.PrevButton type="submit" />
+                            <Pagination.PrevButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                         {#each pages as page (page.key)}
                             {#if page.type === "ellipsis"}
@@ -348,16 +349,16 @@
                             {:else}
                                 <Pagination.Item>
                                     <Pagination.Link
-                                        type="submit"
                                         {page}
-                                        isActive={currentPage === page.value}>
+                                        isActive={currentPage === page.value}
+                                        onclick={() => setTimeout(() => formElement.requestSubmit(), 10)}>
                                         {page.value}
                                     </Pagination.Link>
                                 </Pagination.Item>
                             {/if}
                         {/each}
                         <Pagination.Item>
-                            <Pagination.NextButton type="submit" />
+                            <Pagination.NextButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                     </Pagination.Content>
                 {/snippet}
