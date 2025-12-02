@@ -965,7 +965,7 @@
 						</Button>
 					{/if}
 
-                    {#if isBatchMode && batchProgress}
+                    {#if isBatchMode && batchProgress && batchProgress.total > 1}
                         <div class="bg-muted/50 flex items-center gap-2 rounded-md p-3 text-sm">
                             <LoaderCircle class="h-4 w-4 animate-spin" />
                             <span class="font-medium">Batch Mode:</span>
