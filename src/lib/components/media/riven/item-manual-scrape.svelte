@@ -14,18 +14,14 @@
 		type DebridFile,
 		type Container
 	} from "$lib/api";
-    import { processBatchItem } from "$lib/utils/batch-scrape";
+
 	import type {
-        StartSessionResponse,
-        Stream,
-        RtnSettingsModel,
-        Container
+        RtnSettingsModel
     } from "$lib/api/types.gen";
 	import { toast } from "svelte-sonner";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import * as Alert from "$lib/components/ui/alert/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
-    import * as Accordion from "$lib/components/ui/accordion/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
     import { Switch } from "$lib/components/ui/switch/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
@@ -140,6 +136,8 @@
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
     let isManualMagnet = $state(false);
+    let batchQueue = $state<string[]>([]);
+    let isBatchMode = $state(false);
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -184,37 +182,30 @@
     async function handleBatchScrape() {
         if (selectedMagnets.size === 0) return;
 
-        loading = true;
-        error = null;
-        batchProgress = { current: 0, total: selectedMagnets.size, message: "Starting batch scrape..." };
+        batchQueue = Array.from(selectedMagnets);
+        isBatchMode = true;
+        batchProgress = { current: 0, total: batchQueue.length, message: "Starting batch scrape..." };
 
-        try {
-            let processed = 0;
-            for (const magnet of selectedMagnets) {
-                processed++;
-                batchProgress = { current: processed, total: selectedMagnets.size, message: `Processing torrent ${processed}/${selectedMagnets.size}...` };
+        await processNextBatchItem();
+    }
 
-                await processBatchItem({
-                    magnet,
-                    mediaType,
-                    itemId,
-                    externalId,
-                    streams
-                });
-            }
-
-            toast.success(`Batch scrape completed for ${processed} torrents!`);
+    async function processNextBatchItem() {
+        if (batchQueue.length === 0) {
+            toast.success("Batch scrape completed!");
             open = false;
             resetFlow();
-
-        } catch (e) {
-            const errorMsg = e instanceof Error ? e.message : "Batch scrape failed";
-            error = errorMsg;
-            toast.error(errorMsg);
-        } finally {
-            loading = false;
-            batchProgress = null;
+            return;
         }
+
+        const nextMagnet = batchQueue[0];
+        const currentIdx = selectedMagnets.size - batchQueue.length + 1;
+        batchProgress = {
+            current: currentIdx,
+            total: selectedMagnets.size,
+            message: `Processing torrent ${currentIdx}/${selectedMagnets.size}`
+        };
+
+        await startScrapeSession(`magnet:?xt=urn:btih:${nextMagnet}`);
     }
 
 	function resetFlow() {
@@ -243,6 +234,8 @@
         activeTab = "all";
         batchProgress = null;
         searchQuery = "";
+        batchQueue = [];
+        isBatchMode = false;
 	}
 
     async function fetchSettings() {
@@ -608,8 +601,14 @@
 
 			if (completeResponse.data) {
 				toast.success("Manual scrape completed successfully!");
-				open = false;
-				resetFlow();
+                
+                if (isBatchMode) {
+                    batchQueue.shift(); // Remove processed item
+                    await processNextBatchItem();
+                } else {
+                    open = false;
+                    resetFlow();
+                }
 			} else {
 				const errorMsg = (completeResponse.error as any)?.message || "Failed to complete session";
 				error = errorMsg;
@@ -932,6 +931,7 @@
                                     </Accordion.Item>
                                 {/each}
                             </Accordion.Root>
+                        {/if}
                         </div>
 
                     <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
@@ -944,152 +944,10 @@
                         {/if}
                     </Button>
                 </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-			{:else if step === 1}
-				<div class="flex flex-col gap-4">
-					<div class="flex flex-col gap-2">
-						<Label for="magnet">Magnet Link (Optional)</Label>
-						<Input
-							id="magnet"
-							type="text"
-							placeholder="magnet:?xt=urn:btih:..."
-							bind:value={magnetLink}
-							disabled={loading} />
-						<p class="text-muted-foreground text-xs">
-							Leave empty to fetch streams automatically
-						</p>
-					</div>
 
-					<Button onclick={handleFetchStreams} disabled={loading} class="w-full">
-						{#if loading}
-							<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-							Fetching Streams...
-						{:else}
-							Fetch Streams
-						{/if}
-					</Button>
-
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <span class="w-full border-t" />
-                        </div>
-                        <div class="relative flex justify-center text-xs uppercase">
-                            <span class="bg-background text-muted-foreground px-2">Or</span>
-                        </div>
-                    </div>
-
-                    <Button variant="secondary" onclick={() => (autoScrapeMode = true)} disabled={loading} class="w-full">
-                        <Zap class="mr-2 h-4 w-4" />
-                        Auto Scrape
-                    </Button>
-				</div>
-			{:else if step === 2}
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
-
-					{#each streams as { magnet, stream } (magnet)}
-						<Card.Root
-							class="cursor-pointer transition-all hover:border-primary hover:shadow-md"
-							onclick={() => handleSelectStream(magnet)}>
-							<Card.Content class="px-4">
-								<div class="flex flex-col gap-2">
-									<div class="flex items-start justify-between gap-2">
-										<p class="text-sm font-medium break-words flex-1 min-w-0">{stream.raw_title}</p>
-										<Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
-											Rank: {stream.rank}
-										</Badge>
-									</div>
-
-									<div class="flex flex-wrap gap-2">
-										{#if stream.parsed_data.resolution}
-											<Badge class={getResolutionColor(stream.parsed_data.resolution)}>
-												{stream.parsed_data.resolution}
-											</Badge>
-										{/if}
-										{#if stream.parsed_data.quality}
-											<Badge variant="outline">{stream.parsed_data.quality}</Badge>
-										{/if}
-										{#if stream.parsed_data.hdr}
-											{#each stream.parsed_data.hdr as hdr}
-												<Badge variant="outline">{hdr}</Badge>
-											{/each}
-										{/if}
-										{#if stream.parsed_data.codec}
-											<Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
-										{/if}
-										{#if stream.parsed_data.audio}
-											{#each stream.parsed_data.audio as audio}
-												<Badge variant="outline">{audio}</Badge>
-											{/each}
-										{/if}
-										{#if stream.parsed_data.languages}
-											{#each stream.parsed_data.languages as lang}
-												<Badge variant="outline">{lang.toUpperCase()}</Badge>
-											{/each}
-										{/if}
-										{#if stream.is_cached}
-											<Badge class="bg-green-600">Cached</Badge>
-										{/if}
-									</div>
-								</div>
-							</Card.Content>
-						</Card.Root>
-					{/each}
-				</div>
 			{:else if step === 3}
 				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
-
-					{#if sessionData?.containers?.files}
-						<div class="mb-4 flex flex-col gap-3">
-							{#each sessionData.containers.files as file (file.file_id)}
-								<Card.Root>
-									<Card.Content class="flex items-start gap-3 px-4">
-										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1 min-w-0">
-											<p class="text-sm font-medium break-words">{file.filename}</p>
-											{#if file.filesize}
-												<p class="text-muted-foreground text-xs">
-													{formatFileSize(file.filesize)}
-												</p>
-											{/if}
-										</div>
-									</Card.Content>
-								</Card.Root>
-							{/each}
-						</div>
-
-						<Button onclick={handleSelectAllFiles} disabled={loading} class="w-full">
-							{#if loading}
-								<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-								Processing Files...
-							{:else}
-								Select All Files
-							{/if}
-						</Button>
-					{:else}
-						<p class="text-muted-foreground text-center text-sm">No files available</p>
-					{/if}
-				</div>
-=======
->>>>>>> 58cdf7a (UI: Improve manual scrape flow)
-			{:else if step === 4}
-=======
-			{:else if step === 3}
->>>>>>> 6e20c50 (fix: Optional magnet)
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
+					{#if step > 1 && !isBatchMode}
 						<Button variant="ghost" size="sm" onclick={() => {
                             if (isManualMagnet) {
                                 step = 1;
@@ -1101,6 +959,14 @@
 							Back
 						</Button>
 					{/if}
+
+                    {#if isBatchMode && batchProgress}
+                        <div class="bg-muted/50 flex items-center gap-2 rounded-md p-3 text-sm">
+                            <LoaderCircle class="h-4 w-4 animate-spin" />
+                            <span class="font-medium">Batch Mode:</span>
+                            <span>{batchProgress.message}</span>
+                        </div>
+                    {/if}
 
 					<div class="mb-4 flex flex-col gap-3">
 						{#each selectedFilesMappings as mapping, idx (mapping.file_id)}
