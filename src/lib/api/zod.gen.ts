@@ -1808,15 +1808,15 @@ export const zTorrentInfo = z.object({
         z.null()
     ])),
     created_at: z.optional(z.union([
-        z.iso.datetime(),
+        z.string(),
         z.null()
     ])),
     expires_at: z.optional(z.union([
-        z.iso.datetime(),
+        z.string(),
         z.null()
     ])),
     completed_at: z.optional(z.union([
-        z.iso.datetime(),
+        z.string(),
         z.null()
     ])),
     alternative_filename: z.optional(z.union([
