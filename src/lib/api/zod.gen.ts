@@ -124,12 +124,6 @@ export const zFilesystemModel = z.object({
     cache_metrics: z.optional(z.boolean().register(z.globalRegistry, {
         description: 'Enable cache metrics logging'
     })).default(true),
-    chunk_size_mb: z.optional(z.int().gte(1).register(z.globalRegistry, {
-        description: 'Size of a single fetch chunk in MB'
-    })).default(8),
-    fetch_ahead_chunks: z.optional(z.int().gte(0).register(z.globalRegistry, {
-        description: 'Number of chunks to fetch ahead when streaming'
-    })).default(4),
     movie_dir_template: z.optional(z.string().register(z.globalRegistry, {
         description: "Template for movie directory names. Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, is_remux, is_proper, is_repack, is_extended, is_directors_cut, container. Example: '{title} ({year})' or '{title} ({year}) [{resolution}]'"
     })).default('{title} ({year}) {{tmdb-{tmdb_id}}}'),
@@ -250,7 +244,7 @@ export type DebridLinkModelZodType = z.infer<typeof zDebridLinkModel>;
  */
 export const zDownloadersModel = z.object({
     video_extensions: z.optional(z.array(z.string()).register(z.globalRegistry, {
-        description: 'List of video file extensions to consider for downloads'
+        description: 'list of video file extensions to consider for downloads'
     })),
     movie_filesize_mb_min: z.optional(z.int().gte(1).register(z.globalRegistry, {
         description: 'Minimum file size in MB for movies'
@@ -328,8 +322,8 @@ export const zMdblistModel = z.object({
         description: 'MDBList API key'
     })).default(''),
     lists: z.optional(z.array(z.union([
-        z.string(),
-        z.int()
+        z.int(),
+        z.string()
     ])).register(z.globalRegistry, {
         description: 'MDBList list IDs to monitor'
     }))
@@ -1060,6 +1054,26 @@ export const zLoggingModel = z.object({
 export type LoggingModelZodType = z.infer<typeof zLoggingModel>;
 
 /**
+ * StreamModel
+ */
+export const zStreamModel = z.object({
+    chunk_size_mb: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Chunk size in MB for streaming downloads (1 MB default). Note: Smaller chunks are generally more efficient, as the entire chunk must be downloaded before it can be read.'
+    })).default(1),
+    connect_timeout_seconds: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Timeout in seconds for establishing a connection to the streaming service (10 seconds default)'
+    })).default(10),
+    chunk_wait_timeout_seconds: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Timeout in seconds for reading a chunk during streaming (10 seconds default)'
+    })).default(10),
+    activity_timeout_seconds: z.optional(z.int().gte(1).register(z.globalRegistry, {
+        description: 'Timeout in seconds before a stream is considered inactive during resource cleanup (60 seconds default)'
+    })).default(60)
+});
+
+export type StreamModelZodType = z.infer<typeof zStreamModel>;
+
+/**
  * AppModel
  */
 export const zAppModel = z.object({
@@ -1079,6 +1093,12 @@ export const zAppModel = z.object({
     ]).register(z.globalRegistry, {
         description: 'Logging level'
     })),
+    enable_network_tracing: z.optional(z.boolean().register(z.globalRegistry, {
+        description: 'Enable detailed network request/response logging'
+    })).default(false),
+    enable_stream_tracing: z.optional(z.boolean().register(z.globalRegistry, {
+        description: 'Enable detailed stream request/response logging'
+    })).default(false),
     retry_interval: z.optional(z.int().gte(0).register(z.globalRegistry, {
         description: 'Interval in seconds to retry failed library items (24 hours default, 0 to disable)'
     })).default(86400),
@@ -1095,16 +1115,113 @@ export const zAppModel = z.object({
     database: z.optional(zDatabaseModel),
     notifications: z.optional(zNotificationsModel),
     post_processing: z.optional(zPostProcessing),
-    logging: z.optional(zLoggingModel)
+    logging: z.optional(zLoggingModel),
+    stream: z.optional(zStreamModel)
 });
 
 export type AppModelZodType = z.infer<typeof zAppModel>;
 
 /**
+ * AudioMetadata
+ * Audio track metadata
+ */
+export const zAudioMetadata = z.object({
+    codec: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    channels: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    sample_rate: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    language: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+}).register(z.globalRegistry, {
+    description: 'Audio track metadata'
+});
+
+export type AudioMetadataZodType = z.infer<typeof zAudioMetadata>;
+
+/**
+ * AutoScrapeRequest
+ */
+export const zAutoScrapeRequest = z.object({
+    item_id: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    tmdb_id: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    tvdb_id: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    imdb_id: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    media_type: z.optional(z.union([
+        z.enum([
+            'movie',
+            'tv'
+        ]),
+        z.null()
+    ])),
+    resolutions: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    quality: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    rips: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    hdr: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    audio: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    extras: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    trash: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    require: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ])),
+    exclude: z.optional(z.union([
+        z.array(z.string()),
+        z.null()
+    ]))
+});
+
+export type AutoScrapeRequestZodType = z.infer<typeof zAutoScrapeRequest>;
+
+/**
  * CalendarResponse
  */
 export const zCalendarResponse = z.object({
-    data: z.record(z.string(), z.unknown())
+    data: z.record(z.string(), z.record(z.string(), z.unknown())).register(z.globalRegistry, {
+        description: 'Dictionary with dates as keys and lists of media items as values'
+    })
 });
 
 export type CalendarResponseZodType = z.infer<typeof zCalendarResponse>;
@@ -1114,18 +1231,12 @@ export type CalendarResponseZodType = z.infer<typeof zCalendarResponse>;
  * Represents a file from a debrid service
  */
 export const zDebridFile = z.object({
-    file_id: z.optional(z.union([
+    file_id: z.union([
         z.int(),
         z.null()
-    ])),
-    filename: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    filesize: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
+    ]),
+    filename: z.string(),
+    filesize: z.int(),
     download_url: z.optional(z.union([
         z.string(),
         z.null()
@@ -1157,6 +1268,20 @@ export const zContainer = z.record(z.string(), zDebridFile).register(z.globalReg
 });
 
 export type ContainerZodType = z.infer<typeof zContainer>;
+
+/**
+ * DataSource
+ * Source of metadata
+ */
+export const zDataSource = z.enum([
+    'parsed',
+    'probed',
+    'hybrid'
+]).register(z.globalRegistry, {
+    description: 'Source of metadata'
+});
+
+export type DataSourceZodType = z.infer<typeof zDataSource>;
 
 /**
  * DownloaderUserInfo
@@ -1223,6 +1348,15 @@ export const zDownloaderUserInfoResponse = z.object({
 export type DownloaderUserInfoResponseZodType = z.infer<typeof zDownloaderUserInfoResponse>;
 
 /**
+ * EventResponse
+ */
+export const zEventResponse = z.object({
+    events: z.record(z.string(), z.array(z.int()))
+});
+
+export type EventResponseZodType = z.infer<typeof zEventResponse>;
+
+/**
  * ValidationError
  */
 export const zValidationError = z.object({
@@ -1278,6 +1412,153 @@ export const zLogsResponse = z.object({
 export type LogsResponseZodType = z.infer<typeof zLogsResponse>;
 
 /**
+ * VideoMetadata
+ * Video track metadata
+ */
+export const zVideoMetadata = z.object({
+    codec: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    resolution_width: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    resolution_height: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    frame_rate: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    bit_depth: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    hdr_type: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+}).register(z.globalRegistry, {
+    description: 'Video track metadata'
+});
+
+export type VideoMetadataZodType = z.infer<typeof zVideoMetadata>;
+
+/**
+ * SubtitleMetadata
+ * Subtitle track metadata
+ */
+export const zSubtitleMetadata = z.object({
+    codec: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    language: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+}).register(z.globalRegistry, {
+    description: 'Subtitle track metadata'
+});
+
+export type SubtitleMetadataZodType = z.infer<typeof zSubtitleMetadata>;
+
+/**
+ * MediaMetadata
+ * Unified media metadata model combining parsed and probed data.
+ *
+ * This model consolidates filename-parsed data (RTN) and file-probed data (ffprobe)
+ * into a single, coherent structure. When both sources provide the same attribute,
+ * probed data takes precedence as the source of truth.
+ *
+ * Attributes:
+ * filename: Original filename
+ * parsed_title: Clean title extracted from filename
+ * year: Release year
+ * video: Video track metadata (codec, resolution, HDR, etc.)
+ * audio_tracks: list of audio tracks with codec, channels, language
+ * subtitle_tracks: list of subtitle tracks with codec, language
+ * duration: Duration in seconds (probed only)
+ * file_size: File size in bytes (probed only)
+ * bitrate: Overall bitrate in bits/sec (probed only)
+ * container_format: Container format(s) (probed only)
+ * quality_source: Source quality (BluRay, WEB-DL, etc.) (parsed only)
+ * is_remux: Whether this is a remux release (parsed only)
+ * is_proper: Whether this is a proper release (parsed only)
+ * is_repack: Whether this is a repack release (parsed only)
+ * is_remastered: Whether this is remastered (parsed only)
+ * is_upscaled: Whether this is upscaled (parsed only)
+ * is_directors_cut: Whether this is director's cut (parsed only)
+ * is_extended: Whether this is extended edition (parsed only)
+ * seasons: Season numbers (for shows) (parsed only)
+ * episodes: Episode numbers (for shows) (parsed only)
+ * data_source: Source of the metadata (parsed, probed, or hybrid)
+ * parsed_at: ISO timestamp when filename was parsed
+ * probed_at: ISO timestamp when file was probed
+ */
+export const zMediaMetadata = z.object({
+    filename: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    parsed_title: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    year: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    video: z.optional(z.union([
+        zVideoMetadata,
+        z.null()
+    ])),
+    audio_tracks: z.optional(z.array(zAudioMetadata)),
+    subtitle_tracks: z.optional(z.array(zSubtitleMetadata)),
+    duration: z.optional(z.union([
+        z.number(),
+        z.null()
+    ])),
+    file_size: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    bitrate: z.optional(z.union([
+        z.int(),
+        z.null()
+    ])),
+    container_formats: z.optional(z.array(z.string())),
+    quality_source: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    is_remux: z.optional(z.boolean()).default(false),
+    is_proper: z.optional(z.boolean()).default(false),
+    is_repack: z.optional(z.boolean()).default(false),
+    is_remastered: z.optional(z.boolean()).default(false),
+    is_upscaled: z.optional(z.boolean()).default(false),
+    is_directors_cut: z.optional(z.boolean()).default(false),
+    is_extended: z.optional(z.boolean()).default(false),
+    seasons: z.optional(z.array(z.int())),
+    episodes: z.optional(z.array(z.int())),
+    data_source: z.optional(zDataSource),
+    parsed_at: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    probed_at: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+}).register(z.globalRegistry, {
+    description: "Unified media metadata model combining parsed and probed data.\n\nThis model consolidates filename-parsed data (RTN) and file-probed data (ffprobe)\ninto a single, coherent structure. When both sources provide the same attribute,\nprobed data takes precedence as the source of truth.\n\nAttributes:\n    filename: Original filename\n    parsed_title: Clean title extracted from filename\n    year: Release year\n    video: Video track metadata (codec, resolution, HDR, etc.)\n    audio_tracks: list of audio tracks with codec, channels, language\n    subtitle_tracks: list of subtitle tracks with codec, language\n    duration: Duration in seconds (probed only)\n    file_size: File size in bytes (probed only)\n    bitrate: Overall bitrate in bits/sec (probed only)\n    container_format: Container format(s) (probed only)\n    quality_source: Source quality (BluRay, WEB-DL, etc.) (parsed only)\n    is_remux: Whether this is a remux release (parsed only)\n    is_proper: Whether this is a proper release (parsed only)\n    is_repack: Whether this is a repack release (parsed only)\n    is_remastered: Whether this is remastered (parsed only)\n    is_upscaled: Whether this is upscaled (parsed only)\n    is_directors_cut: Whether this is director's cut (parsed only)\n    is_extended: Whether this is extended edition (parsed only)\n    seasons: Season numbers (for shows) (parsed only)\n    episodes: Episode numbers (for shows) (parsed only)\n    data_source: Source of the metadata (parsed, probed, or hybrid)\n    parsed_at: ISO timestamp when filename was parsed\n    probed_at: ISO timestamp when file was probed"
+});
+
+export type MediaMetadataZodType = z.infer<typeof zMediaMetadata>;
+
+/**
  * MediaTypeEnum
  */
 export const zMediaTypeEnum = z.enum([
@@ -1311,6 +1592,19 @@ export const zMountResponse = z.object({
 export type MountResponseZodType = z.infer<typeof zMountResponse>;
 
 /**
+ * OverseerrWebhookResponse
+ */
+export const zOverseerrWebhookResponse = z.object({
+    success: z.boolean(),
+    message: z.optional(z.union([
+        z.string(),
+        z.null()
+    ]))
+});
+
+export type OverseerrWebhookResponseZodType = z.infer<typeof zOverseerrWebhookResponse>;
+
+/**
  * ParseTorrentTitleResponse
  */
 export const zParseTorrentTitleResponse = z.object({
@@ -1319,113 +1613,6 @@ export const zParseTorrentTitleResponse = z.object({
 });
 
 export type ParseTorrentTitleResponseZodType = z.infer<typeof zParseTorrentTitleResponse>;
-
-/**
- * ParsedData
- * Parsed data model for a torrent title.
- */
-export const zParsedData = z.object({
-    raw_title: z.string(),
-    parsed_title: z.optional(z.string()).default(''),
-    normalized_title: z.optional(z.string()).default(''),
-    trash: z.optional(z.boolean()).default(false),
-    adult: z.optional(z.boolean()).default(false),
-    year: z.optional(z.union([
-        z.int(),
-        z.null()
-    ])),
-    resolution: z.optional(z.string()).default('unknown'),
-    seasons: z.optional(z.array(z.int())).default([]),
-    episodes: z.optional(z.array(z.int())).default([]),
-    complete: z.optional(z.boolean()).default(false),
-    volumes: z.optional(z.array(z.int())).default([]),
-    languages: z.optional(z.array(z.string())).default([]),
-    quality: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    hdr: z.optional(z.array(z.string())).default([]),
-    codec: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    audio: z.optional(z.array(z.string())).default([]),
-    channels: z.optional(z.array(z.string())).default([]),
-    dubbed: z.optional(z.boolean()).default(false),
-    subbed: z.optional(z.boolean()).default(false),
-    date: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    group: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    edition: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    bit_depth: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    bitrate: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    network: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    extended: z.optional(z.boolean()).default(false),
-    converted: z.optional(z.boolean()).default(false),
-    hardcoded: z.optional(z.boolean()).default(false),
-    region: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    ppv: z.optional(z.boolean()).default(false),
-    site: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    size: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    proper: z.optional(z.boolean()).default(false),
-    repack: z.optional(z.boolean()).default(false),
-    retail: z.optional(z.boolean()).default(false),
-    upscaled: z.optional(z.boolean()).default(false),
-    remastered: z.optional(z.boolean()).default(false),
-    unrated: z.optional(z.boolean()).default(false),
-    uncensored: z.optional(z.boolean()).default(false),
-    documentary: z.optional(z.boolean()).default(false),
-    commentary: z.optional(z.boolean()).default(false),
-    episode_code: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    country: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    container: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    extension: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    extras: z.optional(z.array(z.string())).default([]),
-    torrent: z.optional(z.boolean()).default(false),
-    scene: z.optional(z.boolean()).default(false)
-}).register(z.globalRegistry, {
-    description: 'Parsed data model for a torrent title.'
-});
-
-export type ParsedDataZodType = z.infer<typeof zParsedData>;
 
 /**
  * PauseResponse
@@ -1495,10 +1682,10 @@ export const zStream = z.object({
     infohash: z.string(),
     raw_title: z.string(),
     parsed_title: z.string(),
-    parsed_data: zParsedData,
+    parsed_data: z.unknown(),
     rank: z.int(),
     lev_ratio: z.number(),
-    is_cached: z.optional(z.boolean()).default(false)
+    resolution: z.string()
 });
 
 export type StreamZodType = z.infer<typeof zStream>;
@@ -1579,6 +1766,22 @@ export const zSortOrderEnum = z.enum([
 export type SortOrderEnumZodType = z.infer<typeof zSortOrderEnum>;
 
 /**
+ * TorrentFile
+ * Represents a file within a torrent
+ */
+export const zTorrentFile = z.object({
+    id: z.int(),
+    path: z.string(),
+    bytes: z.int(),
+    selected: z.unknown(),
+    download_url: z.string()
+}).register(z.globalRegistry, {
+    description: 'Represents a file within a torrent'
+});
+
+export type TorrentFileZodType = z.infer<typeof zTorrentFile>;
+
+/**
  * TorrentInfo
  * Torrent information from a debrid service
  */
@@ -1620,10 +1823,7 @@ export const zTorrentInfo = z.object({
         z.string(),
         z.null()
     ])),
-    files: z.optional(z.record(z.string(), z.record(z.string(), z.union([
-        z.int(),
-        z.string()
-    ])))),
+    files: z.optional(z.record(z.string(), zTorrentFile)),
     links: z.optional(z.array(z.string()))
 }).register(z.globalRegistry, {
     description: 'Torrent information from a debrid service'
@@ -1659,7 +1859,10 @@ export type TorrentContainerZodType = z.infer<typeof zTorrentContainer>;
 export const zStartSessionResponse = z.object({
     message: z.string(),
     session_id: z.string(),
-    torrent_id: z.string(),
+    torrent_id: z.union([
+        z.string(),
+        z.int()
+    ]),
     torrent_info: zTorrentInfo,
     containers: z.union([
         zTorrentContainer,
@@ -1753,16 +1956,6 @@ export const zUpdateAttributesResponse = z.object({
 export type UpdateAttributesResponseZodType = z.infer<typeof zUpdateAttributesResponse>;
 
 /**
- * UpdateOngoingResponse
- */
-export const zUpdateOngoingResponse = z.object({
-    message: z.string(),
-    updated_items: z.array(z.record(z.string(), z.unknown()))
-});
-
-export type UpdateOngoingResponseZodType = z.infer<typeof zUpdateOngoingResponse>;
-
-/**
  * UploadLogsResponse
  */
 export const zUploadLogsResponse = z.object({
@@ -1784,24 +1977,6 @@ export const zVfsStatsResponse = z.object({
 });
 
 export type VfsStatsResponseZodType = z.infer<typeof zVfsStatsResponse>;
-
-/**
- * EventResponse
- */
-export const zRoutersSecureDefaultEventResponse = z.object({
-    events: z.record(z.string(), z.array(z.int()))
-});
-
-export type RoutersSecureDefaultEventResponseZodType = z.infer<typeof zRoutersSecureDefaultEventResponse>;
-
-/**
- * EventResponse
- */
-export const zRoutersSecureStreamEventResponse = z.object({
-    data: z.record(z.string(), z.unknown())
-});
-
-export type RoutersSecureStreamEventResponseZodType = z.infer<typeof zRoutersSecureStreamEventResponse>;
 
 export const zRootData = z.object({
     body: z.optional(z.never()),
@@ -1954,7 +2129,7 @@ export type EventsDataZodType = z.infer<typeof zEventsData>;
 /**
  * Successful Response
  */
-export const zEventsResponse = zRoutersSecureDefaultEventResponse;
+export const zEventsResponse = zEventResponse;
 
 export type EventsResponseZodType = z.infer<typeof zEventsResponse>;
 
@@ -2064,6 +2239,9 @@ export const zGetItemsData = z.object({
         ])),
         extended: z.optional(z.boolean().register(z.globalRegistry, {
             description: 'Include extended item details'
+        })).default(false),
+        count_only: z.optional(z.boolean().register(z.globalRegistry, {
+            description: 'Only return the count of items'
         })).default(false)
     }))
 });
@@ -2111,18 +2289,21 @@ export type AddItemsResponseZodType = z.infer<typeof zAddItemsResponse>;
 export const zGetItemData = z.object({
     body: z.optional(z.never()),
     path: z.object({
-        id: z.string()
+        id: z.union([
+            z.string(),
+            z.null()
+        ])
     }),
     query: z.optional(z.object({
-        media_type: z.optional(z.enum([
-            'movie',
-            'tv',
-            'item'
-        ])),
-        extended: z.optional(z.union([
-            z.boolean(),
+        media_type: z.optional(z.union([
+            z.enum([
+                'movie',
+                'tv',
+                'item'
+            ]),
             z.null()
-        ]))
+        ])),
+        extended: z.optional(z.boolean()).default(false)
     }))
 });
 
@@ -2186,21 +2367,6 @@ export type RetryLibraryItemsDataZodType = z.infer<typeof zRetryLibraryItemsData
 export const zRetryLibraryItemsResponse = zRetryResponse;
 
 export type RetryLibraryItemsResponseZodType = z.infer<typeof zRetryLibraryItemsResponse>;
-
-export const zUpdateOngoingItemsData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export type UpdateOngoingItemsDataZodType = z.infer<typeof zUpdateOngoingItemsData>;
-
-/**
- * Successful Response
- */
-export const zUpdateOngoingItemsResponse = zUpdateOngoingResponse;
-
-export type UpdateOngoingItemsResponseZodType = z.infer<typeof zUpdateOngoingItemsResponse>;
 
 export const zRemoveItemData = z.object({
     body: z.optional(z.never()),
@@ -2355,12 +2521,9 @@ export const zGetItemMetadataData = z.object({
 export type GetItemMetadataDataZodType = z.infer<typeof zGetItemMetadataData>;
 
 /**
- * Response Get Item Metadata
  * Successful Response
  */
-export const zGetItemMetadataResponse = z.record(z.string(), z.unknown()).register(z.globalRegistry, {
-    description: 'Successful Response'
-});
+export const zGetItemMetadataResponse = zMediaMetadata;
 
 export type GetItemMetadataResponseZodType = z.infer<typeof zGetItemMetadataResponse>;
 
@@ -2406,7 +2569,8 @@ export type ScrapeItemResponseZodType2 = z.infer<typeof zScrapeItemResponse2>;
 export const zStartManualSessionData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.optional(z.object({
+    query: z.object({
+        magnet: z.string(),
         item_id: z.optional(z.union([
             z.string(),
             z.null()
@@ -2430,11 +2594,8 @@ export const zStartManualSessionData = z.object({
             ]),
             z.null()
         ])),
-        magnet: z.optional(z.union([
-            z.string(),
-            z.null()
-        ]))
-    }))
+        disable_filesize_check: z.optional(z.boolean()).default(false)
+    })
 });
 
 export type StartManualSessionDataZodType = z.infer<typeof zStartManualSessionData>;
@@ -2469,7 +2630,7 @@ export const zManualUpdateAttributesData = z.object({
         zShowFileData
     ]),
     path: z.object({
-        session_id: z.unknown()
+        session_id: z.string()
     }),
     query: z.optional(z.never())
 });
@@ -2552,6 +2713,21 @@ export type FetchOverseerrRequestsDataZodType = z.infer<typeof zFetchOverseerrRe
 export const zFetchOverseerrRequestsResponse = zMessageResponse;
 
 export type FetchOverseerrRequestsResponseZodType = z.infer<typeof zFetchOverseerrRequestsResponse>;
+
+export const zAutoScrapeItemData = z.object({
+    body: zAutoScrapeRequest,
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
+});
+
+export type AutoScrapeItemDataZodType = z.infer<typeof zAutoScrapeItemData>;
+
+/**
+ * Successful Response
+ */
+export const zAutoScrapeItemResponse = zMessageResponse;
+
+export type AutoScrapeItemResponseZodType = z.infer<typeof zAutoScrapeItemResponse>;
 
 export const zGetSettingsSchemaData = z.object({
     body: z.optional(z.never()),
@@ -2675,12 +2851,9 @@ export const zOverseerrApiV1WebhookOverseerrPostData = z.object({
 export type OverseerrApiV1WebhookOverseerrPostDataZodType = z.infer<typeof zOverseerrApiV1WebhookOverseerrPostData>;
 
 /**
- * Response Overseerr Api V1 Webhook Overseerr Post
  * Successful Response
  */
-export const zOverseerrApiV1WebhookOverseerrPostResponse = z.record(z.string(), z.unknown()).register(z.globalRegistry, {
-    description: 'Successful Response'
-});
+export const zOverseerrApiV1WebhookOverseerrPostResponse = zOverseerrWebhookResponse;
 
 export type OverseerrApiV1WebhookOverseerrPostResponseZodType = z.infer<typeof zOverseerrApiV1WebhookOverseerrPostResponse>;
 
@@ -2701,10 +2874,3 @@ export const zStreamEventsApiV1StreamEventTypeGetData = z.object({
 });
 
 export type StreamEventsApiV1StreamEventTypeGetDataZodType = z.infer<typeof zStreamEventsApiV1StreamEventTypeGetData>;
-
-/**
- * Successful Response
- */
-export const zStreamEventsApiV1StreamEventTypeGetResponse = zRoutersSecureStreamEventResponse;
-
-export type StreamEventsApiV1StreamEventTypeGetResponseZodType = z.infer<typeof zStreamEventsApiV1StreamEventTypeGetResponse>;
