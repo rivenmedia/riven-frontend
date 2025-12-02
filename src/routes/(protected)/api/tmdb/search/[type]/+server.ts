@@ -2,7 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
-import { transformTMDBList } from "$lib/providers/parser";
+import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 
 /**
  * Apply server-side filters to TMDB results
@@ -194,12 +194,14 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if (searchResult.error) {
+                if ((searchResult as any).error) {
                     console.error("TMDB API error:", searchResult.error);
                     error(500, "Failed to search movies");
                 }
 
-                const transformedResults = transformTMDBList(searchResult.data?.results || null);
+                const transformedResults = transformTMDBList(
+                    (searchResult.data?.results as unknown as TMDBListItem[]) || null
+                );
                 const filteredResults = applyServerFilters(transformedResults || [], clientFilters);
 
                 return json({
@@ -216,13 +218,13 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if (searchResult.error) {
+                if ((searchResult as any).error) {
                     console.error("TMDB API error:", searchResult.error);
                     error(500, "Failed to search TV shows");
                 }
 
                 const transformedResults = transformTMDBList(
-                    searchResult.data?.results || null,
+                    (searchResult.data?.results as unknown as TMDBListItem[]) || null,
                     "tv"
                 );
                 const filteredResults = applyServerFilters(transformedResults || [], clientFilters);
@@ -244,12 +246,14 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if (discover.error) {
+                if ((discover as any).error) {
                     console.error("TMDB API error:", discover.error);
                     error(500, "Failed to discover movies");
                 }
 
-                const transformedResults = transformTMDBList(discover.data?.results || null);
+                const transformedResults = transformTMDBList(
+                    (discover.data?.results as unknown as TMDBListItem[]) || null
+                );
                 const filteredResults = applyServerFilters(transformedResults || [], clientFilters);
 
                 return json({
@@ -266,12 +270,15 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if (discover.error) {
+                if ((discover as any).error) {
                     console.error("TMDB API error:", discover.error);
                     error(500, "Failed to discover TV shows");
                 }
 
-                const transformedResults = transformTMDBList(discover.data?.results || null, "tv");
+                const transformedResults = transformTMDBList(
+                    (discover.data?.results as unknown as TMDBListItem[]) || null,
+                    "tv"
+                );
                 const filteredResults = applyServerFilters(transformedResults || [], clientFilters);
 
                 return json({

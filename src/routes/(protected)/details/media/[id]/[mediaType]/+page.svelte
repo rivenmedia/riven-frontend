@@ -101,7 +101,7 @@
                 )}
                 style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
                 {#if !showTrailer}
-                    {#if data.mediaDetails.details.logo}
+                    {#if data.mediaDetails?.details.logo}
                         <div>
                             <img
                                 alt="Movie logo"
@@ -165,33 +165,10 @@
         {/if}
 
         <div class="md:px-8 lg:px-16">
-            {#if data.riven}
-                <div
-                    class="border-border mt-6 flex flex-row flex-wrap gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                    <ItemDelete
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]}
-                        variant="destructive" />
 
-                    <ItemReset
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]} />
 
-                    {#if data.riven.state !== "Completed"}
-                        <ItemPause
-                            class="bg-white/10"
-                            title={data.mediaDetails?.details.title}
-                            isPaused={data.riven.state === "Paused"}
-                            ids={[data.riven?.id?.toString()]} />
-                    {/if}
-                    <ItemRetry
-                        class="bg-white/10"
-                        title={data.mediaDetails?.details.title}
-                        ids={[data.riven?.id?.toString()]} />
-                </div>
-            {/if}
+
+
 
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
@@ -208,17 +185,49 @@
                         {data.mediaDetails?.details.title}
                     </h1>
 
-                    {#if !data.riven}
-                        <div class="flex">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        {#if !data.riven}
                             <ItemRequest
-                                class="mt-1 mb-2 bg-white/10"
+                                class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails.type
+                                ids={data.mediaDetails?.type
                                     ? [data.mediaDetails?.details.id?.toString()]
                                     : []}
-                                mediaType={data.mediaDetails.type} />
-                        </div>
-                    {/if}
+                                mediaType={data.mediaDetails?.type} />
+                        {:else}
+                            <ItemDelete
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]}
+                                variant="destructive" />
+
+                            <ItemReset
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]} />
+
+                            {#if data.riven.state !== "Completed"}
+                                <ItemPause
+                                    class="bg-white/10"
+                                    title={data.mediaDetails?.details.title}
+                                    isPaused={data.riven.state === "Paused"}
+                                    ids={[data.riven?.id?.toString()]} />
+                            {/if}
+                            <ItemRetry
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={[data.riven?.id?.toString()]} />
+                        {/if}
+
+                        {#if data.mediaDetails?.details.id}
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                itemId={data.riven?.id?.toString()}
+                                externalId={data.mediaDetails?.details.id?.toString()}
+                                mediaType={data.mediaDetails?.type} />
+                        {/if}
+                    </div>
 
                     {#if data.riven?.state}
                         <Badge
@@ -278,12 +287,12 @@
                         </div>
                     {/if}
 
-                    <div class="flex flex-col gap-8">
+                    <div class="flex flex-col gap-4">
                         <p class="max-w-max text-sm leading-relaxed">
                             {data.mediaDetails?.details.overview}
                         </p>
 
-                        <div class="flex flex-wrap">
+                        <div class="flex flex-wrap gap-4">
                             {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
                                 {#if index < 8}
                                     <div class="flex flex-col items-center">
@@ -314,7 +323,7 @@
                 </div>
             </div>
 
-            {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.collection}
+            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.collection}
                 <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
                 <div class="relative">
                     <img
@@ -335,7 +344,7 @@
                 </div>
             {/if}
 
-            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.seasons}
+            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.seasons}
                 <section>
                     <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seasons</h2>
 
@@ -388,7 +397,7 @@
                 </section>
             {/if}
 
-            {#if data.mediaDetails.type === "tv" && data.mediaDetails?.details.episodes}
+            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.episodes}
                 <section>
                     <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
 
@@ -457,7 +466,7 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div
                         class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                        {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.budget}
+                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Budget</p>
                                 <p class="text-sm font-medium">
@@ -472,7 +481,7 @@
                             </div>
                         {/if}
 
-                        {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.revenue}
+                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.revenue}
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Revenue</p>
                                 <p class="text-sm font-medium">
@@ -519,7 +528,7 @@
                             <div class="flex flex-col gap-1">
                                 <p class="text-primary text-xs">Production Companies</p>
                                 <div class="flex flex-row flex-wrap">
-                                    {#if data.mediaDetails.type === "movie"}
+                                    {#if data.mediaDetails?.type === "movie"}
                                         {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
                                             <Tooltip>
                                                 {#snippet trigger()}
@@ -541,7 +550,7 @@
                                                 {/snippet}
                                             </Tooltip>
                                         {/each}
-                                    {:else if data.mediaDetails.type === "tv"}
+                                    {:else if data.mediaDetails?.type === "tv"}
                                         <p class="text-sm font-medium">
                                             {data.mediaDetails?.details.production_companies
                                                 .map((company) => company.name)
@@ -650,7 +659,7 @@
                                         </Badge>
                                     {/if}
 
-                                    {#if data.riven.media_metadata?.video.frame_rate}
+                                    {#if data.riven.media_metadata?.video?.frame_rate}
                                         <Badge variant="outline">
                                             {data.riven.media_metadata.video.frame_rate} FPS
                                         </Badge>
@@ -747,30 +756,21 @@
             {#if data.mediaDetails?.details.recommendations && data.mediaDetails?.details.recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Recommendations</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.recommendations}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.recommendations} />
                 </div>
             {/if}
 
             {#if data.mediaDetails?.details.similar && data.mediaDetails?.details.similar.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.similar}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.similar} />
                 </div>
             {/if}
 
-            {#if data.mediaDetails.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
+            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
                 <div class="mt-8 flex flex-col">
                     <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Like This (Trakt)</h2>
-                    <ListCarousel
-                        data={data.mediaDetails?.details.trakt_recommendations}
-                        indexer="tmdb"
-                        type="movie" />
+                    <ListCarousel data={data.mediaDetails?.details.trakt_recommendations} />
                 </div>
             {/if}
         </div>
