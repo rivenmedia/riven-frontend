@@ -853,11 +853,7 @@ export const scrapeItem = <ThrowOnError extends boolean = false>(options?: Optio
                 type: 'http'
             }
         ],
-<<<<<<< HEAD
-        url: '/api/v1/scrape/scrape',
-=======
         url: '/api/v1/scrape/',
->>>>>>> a0078a4 (API: Update auto generated apis)
         ...options
     });
 };
@@ -883,7 +879,7 @@ export const startManualSession = <ThrowOnError extends boolean = false>(options
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/start_session',
+        url: '/api/v1/scrape/start_session',
         ...options
     });
 };
@@ -909,7 +905,7 @@ export const manualSelect = <ThrowOnError extends boolean = false>(options: Opti
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/select_files/{session_id}',
+        url: '/api/v1/scrape/select_files/{session_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -952,7 +948,7 @@ export const manualUpdateAttributes = <ThrowOnError extends boolean = false>(opt
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/update_attributes/{session_id}',
+        url: '/api/v1/scrape/update_attributes/{session_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -982,7 +978,7 @@ export const abortManualSession = <ThrowOnError extends boolean = false>(options
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/abort_session/{session_id}',
+        url: '/api/v1/scrape/abort_session/{session_id}',
         ...options
     });
 };
@@ -1008,7 +1004,7 @@ export const completeManualSession = <ThrowOnError extends boolean = false>(opti
                 type: 'http'
             }
         ],
-        url: '/api/v1/scrape/scrape/complete_session/{session_id}',
+        url: '/api/v1/scrape/complete_session/{session_id}',
         ...options
     });
 };
@@ -1071,8 +1067,6 @@ export const fetchOverseerrRequests = <ThrowOnError extends boolean = false>(opt
 };
 
 /**
-<<<<<<< HEAD
-=======
  * Auto scrape an item with resolution overrides
  * Auto scrape an item with specific resolution overrides.
  * This performs a one-time scrape using the provided resolutions
@@ -1106,7 +1100,6 @@ export const autoScrapeItem = <ThrowOnError extends boolean = false>(options: Op
 };
 
 /**
->>>>>>> a0078a4 (API: Update auto generated apis)
  * Get Settings Schema
  * Get the JSON schema for the settings.
  */
