@@ -612,7 +612,8 @@
 				toast.success("Manual scrape completed successfully!");
                 
                 if (isBatchMode) {
-                    batchQueue.shift(); // Remove processed item
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    batchQueue = batchQueue.slice(1); // Remove processed item
                     await processNextBatchItem();
                 } else {
                     open = false;
