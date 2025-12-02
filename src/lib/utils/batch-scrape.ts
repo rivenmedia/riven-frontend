@@ -105,7 +105,7 @@ export async function processBatchItem({
 
         // Find the stream object to get torrent-level metadata
         const streamObj = streams.find(s => s.magnet === magnet)?.stream;
-        const torrentSeason = streamObj?.parsed_data?.seasons?.[0];
+        const torrentSeason = (streamObj?.parsed_data as ParsedTitleData | undefined)?.seasons?.[0];
 
         let mappedCount = 0;
         fileMappings.forEach((mapping) => {

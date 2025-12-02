@@ -13,7 +13,20 @@
         showCheckbox?: boolean;
     }
 
+    interface ParsedTitleData {
+        seasons?: number[];
+        episodes?: number[];
+        resolution?: string;
+        quality?: string;
+        hdr?: string[];
+        codec?: string;
+        audio?: string[];
+        languages?: string[];
+    }
+
     let { stream, magnet, isSelected, onSelect, onScrape, showCheckbox = true }: Props = $props();
+
+    let parsedData = $derived(stream.parsed_data as ParsedTitleData);
 
     function getResolutionColor(resolution?: string): string {
         if (!resolution) return "bg-pink-600";
@@ -46,33 +59,33 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                    {#if stream.parsed_data.resolution}
-                        <Badge class={getResolutionColor(stream.parsed_data.resolution)}>
-                            {stream.parsed_data.resolution}
+                    {#if parsedData.resolution}
+                        <Badge class={getResolutionColor(parsedData.resolution)}>
+                            {parsedData.resolution}
                         </Badge>
                     {/if}
-                    {#if stream.parsed_data.quality}
-                        <Badge variant="outline">{stream.parsed_data.quality}</Badge>
+                    {#if parsedData.quality}
+                        <Badge variant="outline">{parsedData.quality}</Badge>
                     {/if}
-                    {#if stream.parsed_data.hdr}
-                        {#each stream.parsed_data.hdr as hdr (hdr)}
+                    {#if parsedData.hdr}
+                        {#each parsedData.hdr as hdr (hdr)}
                             <Badge variant="outline">{hdr}</Badge>
                         {/each}
                     {/if}
-                    {#if stream.parsed_data.codec}
-                        <Badge variant="outline">{stream.parsed_data.codec.toUpperCase()}</Badge>
+                    {#if parsedData.codec}
+                        <Badge variant="outline">{parsedData.codec.toUpperCase()}</Badge>
                     {/if}
-                    {#if stream.parsed_data.audio}
-                        {#each stream.parsed_data.audio as audio (audio)}
+                    {#if parsedData.audio}
+                        {#each parsedData.audio as audio (audio)}
                             <Badge variant="outline">{audio}</Badge>
                         {/each}
                     {/if}
-                    {#if stream.parsed_data.languages}
-                        {#each stream.parsed_data.languages as lang (lang)}
+                    {#if parsedData.languages}
+                        {#each parsedData.languages as lang (lang)}
                             <Badge variant="outline">{lang.toUpperCase()}</Badge>
                         {/each}
                     {/if}
-                    {#if stream.is_cached}
+                    {#if (stream as any).is_cached}
                         <Badge class="bg-green-600">Cached</Badge>
                     {/if}
                 </div>

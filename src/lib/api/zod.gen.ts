@@ -2874,21 +2874,3 @@ export const zStreamEventsApiV1StreamEventTypeGetData = z.object({
 });
 
 export type StreamEventsApiV1StreamEventTypeGetDataZodType = z.infer<typeof zStreamEventsApiV1StreamEventTypeGetData>;
-export const zUpdateOngoingResponse = z.object({
-    message: z.string(),
-    updated_items: z.array(z.record(z.string(), z.unknown()))
-});
-
-export type UpdateOngoingResponseZodType = z.infer<typeof zUpdateOngoingResponse>;
-
-export const zUpdateOngoingItemsData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.never())
-});
-
-export type UpdateOngoingItemsDataZodType = z.infer<typeof zUpdateOngoingItemsData>;
-
-export const zUpdateOngoingItemsResponse = zUpdateOngoingResponse;
-
-export type UpdateOngoingItemsResponseZodType = z.infer<typeof zUpdateOngoingItemsResponse>;

@@ -49,6 +49,15 @@
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
 
+    const categoryIcons = {
+        quality: Star,
+        rips: Disc,
+        hdr: Sun,
+        audio: Volume2,
+        extras: Plus,
+        trash: Trash2
+    };
+
 	interface Props {
 		title: string | null | undefined;
 		itemId?: string | null;
@@ -150,9 +159,11 @@
         if (activeTab === "all") return result;
         
         return result.filter(({ stream }) => {
-            const seasons = stream.parsed_data.seasons || [];
-            const episodes = stream.parsed_data.episodes || [];
-            const isComplete = stream.parsed_data.complete === true;
+            const data = stream.parsed_data as ParsedTitleData;
+            const seasons = data.seasons || [];
+            const episodes = data.episodes || [];
+            // @ts-ignore
+            const isComplete = data.complete === true;
 
             const isShowPack = seasons.length > 1;
             
@@ -245,7 +256,7 @@
                 path: { paths: "ranking" }
             });
             if (response.data) {
-                const ranking = response.data.ranking;
+                const ranking = response.data.ranking as RtnSettingsModel;
                 const newSelectedOptions = { ...selectedOptions };
                 
                 // Resolutions
@@ -260,17 +271,14 @@
                 // Custom Ranks
                 const categories = ["quality", "rips", "hdr", "audio", "extras", "trash"];
                 categories.forEach(cat => {
-                    if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
-                        const categoryObj = ranking.custom_ranks[cat];
-                        rankingOptions[cat] = Object.keys(categoryObj);
+                    const categoryObj = ranking.custom_ranks?.[cat as keyof typeof ranking.custom_ranks];
+                    if (categoryObj) {
+                        rankingOptions[cat] = Object.keys(categoryObj as object);
                         
                         // Populate selected options for this category
-                        newSelectedOptions[cat] = Object.entries(categoryObj)
+                        newSelectedOptions[cat] = Object.entries(categoryObj as object)
                             .filter(([_, val]) => {
-                                if (typeof val === 'object' && val !== null && 'fetch' in val) {
-                                    return (val as any).fetch === true;
-                                }
-                                return val === true;
+                                return (val as any)?.fetch === true;
                             })
                             .map(([key]) => key);
                     }
@@ -896,16 +904,12 @@
                                     <Accordion.Item value={category}>
                                         <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
                                             <div class="flex items-center gap-2">
-                                                {category}
-                                                {#if categoryIcons[category]}
-                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
+
+                                                {#if categoryIcons[category as keyof typeof categoryIcons]}
+                                                    <svelte:component this={categoryIcons[category as keyof typeof categoryIcons]} class="h-4 w-4" />
                                                 {/if}
                                                 {category === 'trash' ? 'Bin' : category}
-                                                {#if selectedOptions[category]?.length}
-                                                    <Badge variant="secondary" class="text-[10px] h-5 px-1.5">
-                                                        {selectedOptions[category].length}
-                                                    </Badge>
-                                                {/if}
+
                                             </div>
                                         </Accordion.Trigger>
                                         <Accordion.Content>
