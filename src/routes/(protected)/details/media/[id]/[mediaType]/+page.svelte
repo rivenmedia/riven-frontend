@@ -194,14 +194,6 @@
                 </div>
             {/if}
 
-            {#if data.mediaDetails?.details.id}
-                <ItemManualScrape
-                            class="bg-white/10"
-                            title={data.mediaDetails?.details.title}
-                            itemId={data.riven?.id?.toString()}
-                            externalId={data.mediaDetails?.details.id?.toString()}
-                            mediaType={data.mediaDetails?.type} />
-            {/if}
 
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
@@ -227,6 +219,15 @@
                                     ? [data.mediaDetails?.details.id?.toString()]
                                     : []}
                                 mediaType={data.mediaDetails.type} />
+
+                            {#if data.mediaDetails?.details.id}
+                                <ItemManualScrape
+                                    class="mt-1 mb-2 ml-2 bg-white/10"
+                                    title={data.mediaDetails.details.title}
+                                    itemId={null}
+                                    externalId={data.mediaDetails.details.id.toString()}
+                                    mediaType={data.mediaDetails.type} />
+                            {/if}
                         </div>
                     {/if}
 

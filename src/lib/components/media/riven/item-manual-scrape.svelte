@@ -139,6 +139,16 @@
     let batchQueue = $state<string[]>([]);
     let isBatchMode = $state(false);
 
+    const categoryIcons: Record<string, any> = {
+        resolutions: Monitor,
+        quality: Star,
+        rips: Disc,
+        hdr: Sun,
+        audio: Volume2,
+        extras: Plus,
+        trash: Trash2
+    };
+
     let filteredStreams = $derived.by(() => {
         let result = streams;
 
@@ -245,7 +255,7 @@
                 path: { paths: "ranking" }
             });
             if (response.data) {
-                const ranking = response.data.ranking;
+                const ranking = response.data.ranking as RtnSettingsModel;
                 const newSelectedOptions = { ...selectedOptions };
                 
                 // Resolutions
@@ -258,19 +268,18 @@
                 }
                 
                 // Custom Ranks
-                const categories = ["quality", "rips", "hdr", "audio", "extras", "trash"];
+                const categories: (keyof import('$lib/api/types.gen').CustomRanksConfig)[] = ["quality", "rips", "hdr", "audio", "extras", "trash"];
                 categories.forEach(cat => {
                     if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
                         const categoryObj = ranking.custom_ranks[cat];
+                        if (!categoryObj) return;
+
                         rankingOptions[cat] = Object.keys(categoryObj);
                         
                         // Populate selected options for this category
                         newSelectedOptions[cat] = Object.entries(categoryObj)
                             .filter(([_, val]) => {
-                                if (typeof val === 'object' && val !== null && 'fetch' in val) {
-                                    return (val as any).fetch === true;
-                                }
-                                return val === true;
+                                return (val as any)?.fetch === true;
                             })
                             .map(([key]) => key);
                     }
@@ -898,7 +907,8 @@
                                             <div class="flex items-center gap-2">
                                                 {category}
                                                 {#if categoryIcons[category]}
-                                                    <svelte:component this={categoryIcons[category]} class="h-4 w-4" />
+                                                    {@const Icon = categoryIcons[category]}
+                                                    <Icon class="h-4 w-4" />
                                                 {/if}
                                                 {category === 'trash' ? 'Bin' : category}
                                                 {#if selectedOptions[category]?.length}
