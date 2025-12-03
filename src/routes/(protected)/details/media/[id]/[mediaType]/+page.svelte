@@ -219,14 +219,7 @@
                                 ids={[data.riven?.id?.toString()]} />
                         {/if}
 
-                        {#if data.mediaDetails?.details.id}
-                            <ItemManualScrape
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                itemId={data.riven?.id?.toString()}
-                                externalId={data.mediaDetails?.details.id?.toString()}
-                                mediaType={data.mediaDetails?.type} />
-                        {/if}
+
                     </div>
 
                     {#if data.riven?.state}
