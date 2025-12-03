@@ -2256,9 +2256,7 @@ export const zGetItemsResponse = zItemsResponse;
 export type GetItemsResponseZodType = z.infer<typeof zGetItemsResponse>;
 
 export const zAddItemsData = z.object({
-    body: z.optional(z.never()),
-    path: z.optional(z.never()),
-    query: z.optional(z.object({
+    body: z.object({
         tmdb_ids: z.optional(z.union([
             z.string(),
             z.null()
@@ -2274,7 +2272,9 @@ export const zAddItemsData = z.object({
             ]),
             z.null()
         ]))
-    }))
+    }),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
 });
 
 export type AddItemsDataZodType = z.infer<typeof zAddItemsData>;
