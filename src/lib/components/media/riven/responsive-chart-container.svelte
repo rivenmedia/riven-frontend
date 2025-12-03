@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
-	import ChartStyle from "./chart-style.svelte";
-	import { setChartContext, type ChartConfig } from "./chart-utils.js";
+	import ChartStyle from "$lib/components/ui/chart/chart-style.svelte";
+	import { setChartContext, type ChartConfig } from "$lib/components/ui/chart/chart-utils.js";
+
+    import { onMount } from "svelte";
 
 	const uid = $props.id();
 
@@ -24,6 +26,21 @@
 			return config;
 		},
 	});
+
+    let width = $state(0);
+
+    onMount(() => {
+        if (!ref) return;
+        const ro = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                requestAnimationFrame(() => {
+                    width = entry.contentRect.width;
+                });
+            }
+        });
+        ro.observe(ref);
+        return () => ro.disconnect();
+    });
 </script>
 
 <div
@@ -76,5 +93,7 @@
 	{...restProps}
 >
 	<ChartStyle id={chartId} {config} />
-	{@render children?.()}
+    {#if width > 0}
+	    {@render children?.()}
+    {/if}
 </div>
