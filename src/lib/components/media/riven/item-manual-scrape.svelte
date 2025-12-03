@@ -1076,7 +1076,6 @@
                                     <Accordion.Item value={category}>
                                         <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
                                             <div class="flex items-center gap-2">
-                                                {category}
                                                 {#if categoryIcons[category]}
                                                     {@const Icon = categoryIcons[category]}
                                                     <Icon class="h-4 w-4" />
