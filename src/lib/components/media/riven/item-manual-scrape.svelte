@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
 	import {
 		scrapeItem,
 		startManualSession,
@@ -103,6 +104,16 @@
 
 	type UpdateBody = FileSelection | Record<string, Record<string, FileSelection>>;
 
+    interface BatchSession {
+        sessionId: string;
+        magnet: string;
+        stream: Stream;
+        sessionData: StartSessionResponse;
+        mappings: FileMapping[];
+        status: 'pending' | 'completed' | 'error';
+        error?: string;
+    }
+
 	let open = $state(false);
 	let step = $state(1);
 	let loading = $state(false);
@@ -136,8 +147,8 @@
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
     let isManualMagnet = $state(false);
-    let batchQueue = $state<string[]>([]);
-    let isBatchMode = $state(false);
+    let batchSessions = $state<BatchSession[]>([]);
+    let preparingBatch = $state(false);
 
     const categoryIcons: Record<string, any> = {
         resolutions: Monitor,
@@ -192,30 +203,90 @@
     async function handleBatchScrape() {
         if (selectedMagnets.size === 0) return;
 
-        batchQueue = Array.from(selectedMagnets);
-        isBatchMode = true;
-        batchProgress = { current: 0, total: batchQueue.length, message: "Starting batch scrape..." };
+        preparingBatch = true;
+        batchSessions = [];
+        batchProgress = { current: 0, total: selectedMagnets.size, message: "Preparing sessions..." };
 
-        await processNextBatchItem();
+        try {
+            const magnets = Array.from(selectedMagnets);
+            for (let i = 0; i < magnets.length; i++) {
+                const magnet = magnets[i];
+                batchProgress = { 
+                    current: i + 1, 
+                    total: magnets.length, 
+                    message: `Preparing ${i + 1}/${magnets.length}` 
+                };
+
+                // Find stream info
+                const streamInfo = streams.find(s => s.magnet === magnet);
+                if (!streamInfo) continue;
+
+                await prepareBatchSession(magnet, streamInfo.stream);
+            }
+            
+            step = 6; // Batch Confirmation Step
+        } catch (e) {
+            console.error("Batch preparation failed", e);
+            toast.error("Failed to prepare batch sessions");
+        } finally {
+            preparingBatch = false;
+            batchProgress = null;
+        }
     }
 
-    async function processNextBatchItem() {
-        if (batchQueue.length === 0) {
-            toast.success("Batch scrape completed!");
-            open = false;
-            resetFlow();
-            return;
+    async function prepareBatchSession(magnet: string, stream: Stream) {
+        try {
+            const queryParams: any = {
+                media_type: mediaType,
+                magnet: `magnet:?xt=urn:btih:${magnet}`,
+                disable_filesize_check: disableFilesizeCheck
+            };
+
+            if (itemId) queryParams.item_id = itemId;
+            else if (externalId) {
+                if (mediaType === "movie") queryParams.tmdb_id = externalId;
+                if (mediaType === "tv") queryParams.tvdb_id = externalId;
+            }
+
+            const response = await startManualSession({ query: queryParams });
+            
+            if (response.data) {
+                const sData = response.data;
+                let mappings: FileMapping[] = [];
+
+                if (sData.containers?.files) {
+                    const filenames = sData.containers.files
+                        .map((f) => f.filename)
+                        .filter((f): f is string => f != null);
+
+                    const parseResponse = await parseTorrentTitles({ body: filenames });
+                    
+                    if (parseResponse.data) {
+                        mappings = sData.containers.files.map((file, idx) => {
+                            const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
+                            return {
+                                file_id: file.file_id?.toString() || "",
+                                filename: file.filename || "",
+                                filesize: file.filesize || 0,
+                                season: parsedData?.seasons?.[0],
+                                episode: parsedData?.episodes?.[0]
+                            };
+                        });
+                    }
+                }
+
+                batchSessions.push({
+                    sessionId: sData.session_id,
+                    magnet,
+                    stream,
+                    sessionData: sData,
+                    mappings,
+                    status: 'pending'
+                });
+            }
+        } catch (e) {
+            console.error(`Failed to prepare session for ${magnet}`, e);
         }
-
-        const nextMagnet = batchQueue[0];
-        const currentIdx = selectedMagnets.size - batchQueue.length + 1;
-        batchProgress = {
-            current: currentIdx,
-            total: selectedMagnets.size,
-            message: `Processing torrent ${currentIdx}/${selectedMagnets.size}`
-        };
-
-        await startScrapeSession(`magnet:?xt=urn:btih:${nextMagnet}`);
     }
 
 	function resetFlow() {
@@ -244,8 +315,8 @@
         activeTab = "all";
         batchProgress = null;
         searchQuery = "";
-        batchQueue = [];
-        isBatchMode = false;
+        batchSessions = [];
+        preparingBatch = false;
 	}
 
     async function fetchSettings() {
@@ -610,15 +681,8 @@
 
 			if (completeResponse.data) {
 				toast.success("Manual scrape completed successfully!");
-                
-                if (isBatchMode) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    batchQueue = batchQueue.slice(1); // Remove processed item
-                    await processNextBatchItem();
-                } else {
-                    open = false;
-                    resetFlow();
-                }
+                open = false;
+                resetFlow();
 			} else {
 				const errorMsg = (completeResponse.error as any)?.message || "Failed to complete session";
 				error = errorMsg;
@@ -632,6 +696,100 @@
 			loading = false;
 		}
 	}
+
+    async function handleBatchComplete() {
+        if (batchSessions.length === 0) return;
+
+        loading = true;
+        error = null;
+        batchProgress = { current: 0, total: batchSessions.length, message: "Processing sessions..." };
+
+        try {
+            for (let i = 0; i < batchSessions.length; i++) {
+                const session = batchSessions[i];
+                batchProgress = {
+                    current: i + 1,
+                    total: batchSessions.length,
+                    message: `Processing ${i + 1}/${batchSessions.length}`
+                };
+
+                try {
+                    // Step 1: Select files
+                    const container: Container = {};
+                    session.mappings.forEach((mapping) => {
+                        container[mapping.file_id] = {
+                            file_id: parseInt(mapping.file_id),
+                            filename: mapping.filename,
+                            filesize: mapping.filesize
+                        };
+                    });
+
+                    await manualSelect({
+                        path: { session_id: session.sessionId },
+                        body: container
+                    });
+
+                    // Step 2: Update attributes
+                    let updateBody: UpdateBody;
+
+                    if (mediaType === "movie") {
+                        const largestFile = session.mappings.reduce((prev, current) =>
+                            current.filesize > prev.filesize ? current : prev
+                        );
+                        updateBody = {
+                            file_id: parseInt(largestFile.file_id),
+                            filename: largestFile.filename,
+                            filesize: largestFile.filesize
+                        };
+                    } else {
+                        updateBody = {};
+                        session.mappings.forEach((mapping) => {
+                            if (mapping.season !== undefined && mapping.episode !== undefined) {
+                                const seasonKey = mapping.season.toString();
+                                const episodeKey = mapping.episode.toString();
+
+                                if (!(updateBody as Record<string, any>)[seasonKey]) {
+                                    (updateBody as Record<string, any>)[seasonKey] = {};
+                                }
+
+                                (updateBody as Record<string, any>)[seasonKey][episodeKey] = {
+                                    file_id: parseInt(mapping.file_id),
+                                    filename: mapping.filename,
+                                    filesize: mapping.filesize
+                                };
+                            }
+                        });
+                    }
+
+                    await manualUpdateAttributes({
+                        path: { session_id: session.sessionId },
+                        body: updateBody
+                    });
+
+                    // Step 3: Complete session
+                    await completeManualSession({
+                        path: { session_id: session.sessionId }
+                    });
+
+                    session.status = 'completed';
+                } catch (e) {
+                    console.error(`Failed to process session ${session.sessionId}`, e);
+                    session.status = 'error';
+                    session.error = e instanceof Error ? e.message : "Unknown error";
+                }
+            }
+
+            toast.success("Batch scrape completed!");
+            open = false;
+            resetFlow();
+        } catch (e) {
+            console.error("Batch completion failed", e);
+            toast.error("Batch completion failed");
+        } finally {
+            loading = false;
+            batchProgress = null;
+        }
+    }
 
 	function getResolutionColor(resolution?: string): string {
 		if (!resolution) return "bg-pink-600";
@@ -663,13 +821,21 @@
 
 	$effect(() => {
 		if (!open) {
-			// Cleanup: abort session if not completed
-			if (sessionId) {
-				abortManualSession({ path: { session_id: sessionId } }).catch(() => {
-					// Silently ignore cleanup errors (session may already be expired/aborted)
-				});
-			}
-			resetFlow();
+            untrack(() => {
+                // Cleanup: abort session if not completed
+                if (sessionId) {
+                    abortManualSession({ path: { session_id: sessionId } }).catch(() => {
+                        // Silently ignore cleanup errors (session may already be expired/aborted)
+                    });
+                }
+                // Cleanup batch sessions
+                batchSessions.forEach(s => {
+                    if (s.status === 'pending') {
+                        abortManualSession({ path: { session_id: s.sessionId } }).catch(() => {});
+                    }
+                });
+                resetFlow();
+            });
 		}
 	});
 </script>
@@ -696,6 +862,8 @@
 					Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
                 {:else if step === 4}
                     Manual Scrape - Auto Scrape Config
+                {:else if step === 6}
+                    Batch Scrape - Confirm All ({batchSessions.length} items)
 				{/if}
 			</Dialog.Title>
 			<Dialog.Description>
@@ -711,6 +879,8 @@
 						: "Map files to seasons and episodes"}
                 {:else if step === 4}
                     Configure constraints for auto scraping
+                {:else if step === 6}
+                    Review and confirm file mappings for all selected torrents
 				{/if}
 			</Dialog.Description>
 		</Dialog.Header>
@@ -781,10 +951,10 @@
                                 </div>
                                 
                                 {#if selectedMagnets.size > 0}
-                                    <Button size="sm" onclick={handleBatchScrape} disabled={loading}>
-                                        {#if loading}
+                                    <Button size="sm" onclick={handleBatchScrape} disabled={loading || preparingBatch}>
+                                        {#if preparingBatch}
                                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                                            {batchProgress ? `Processing ${batchProgress.current}/${batchProgress.total}` : "Scraping..."}
+                                            {batchProgress ? batchProgress.message : "Preparing..."}
                                         {:else}
                                             <Download class="mr-2 h-4 w-4" />
                                             Scrape Selected ({selectedMagnets.size})
@@ -958,7 +1128,7 @@
 
 			{:else if step === 3}
 				<div class="flex flex-col gap-3">
-					{#if step > 1 && !isBatchMode}
+					{#if step > 1}
 						<Button variant="ghost" size="sm" onclick={() => {
                             if (isManualMagnet) {
                                 step = 1;
@@ -970,14 +1140,6 @@
 							Back
 						</Button>
 					{/if}
-
-                    {#if isBatchMode && batchProgress && batchProgress.total > 1}
-                        <div class="bg-muted/50 flex items-center gap-2 rounded-md p-3 text-sm">
-                            <LoaderCircle class="h-4 w-4 animate-spin" />
-                            <span class="font-medium">Batch Mode:</span>
-                            <span>{batchProgress.message}</span>
-                        </div>
-                    {/if}
 
 					<div class="mb-4 flex flex-col gap-3">
 						{#each selectedFilesMappings as mapping, idx (mapping.file_id)}
@@ -1034,6 +1196,87 @@
 						{/if}
 					</Button>
 				</div>
+            {:else if step === 6}
+                <div class="flex flex-col gap-3 h-full">
+                    <Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
+                        <ChevronLeft class="mr-1 h-4 w-4" />
+                        Back to Streams
+                    </Button>
+
+                    {#if batchProgress}
+                        <div class="bg-muted/50 flex items-center gap-2 rounded-md p-3 text-sm">
+                            <LoaderCircle class="h-4 w-4 animate-spin" />
+                            <span class="font-medium">Batch Mode:</span>
+                            <span>{batchProgress.message}</span>
+                        </div>
+                    {/if}
+
+                    <div class="flex-1 overflow-y-auto min-h-0 space-y-6">
+                        {#each batchSessions as session, sIdx (session.sessionId)}
+                            <div class="space-y-2">
+                                <h3 class="font-medium text-sm flex items-center gap-2 sticky top-0 bg-background z-10 py-2 border-b">
+                                    <span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">#{sIdx + 1}</span>
+                                    <span class="truncate">{session.stream.raw_title}</span>
+                                </h3>
+                                
+                                <div class="space-y-2 pl-2">
+                                    {#each session.mappings as mapping, mIdx (mapping.file_id)}
+                                        <Card.Root>
+                                            <Card.Content class="flex flex-col gap-3 px-4 py-3">
+                                                <div class="flex items-start gap-3">
+                                                    <FileIcon class="text-muted-foreground mt-1 h-4 w-4 shrink-0" />
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-xs font-medium break-words">{mapping.filename}</p>
+                                                        <p class="text-muted-foreground text-[10px]">
+                                                            {formatFileSize(mapping.filesize)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {#if mediaType === "tv"}
+                                                    <div class="flex gap-2">
+                                                        <div class="flex-1">
+                                                            <Label for={`s-${sIdx}-${mIdx}`} class="text-[10px]">Season</Label>
+                                                            <Input
+                                                                id={`s-${sIdx}-${mIdx}`}
+                                                                type="number"
+                                                                min="0"
+                                                                bind:value={mapping.season}
+                                                                placeholder="S"
+                                                                class="mt-1 h-7 text-xs" />
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <Label for={`e-${sIdx}-${mIdx}`} class="text-[10px]">Episode</Label>
+                                                            <Input
+                                                                id={`e-${sIdx}-${mIdx}`}
+                                                                type="number"
+                                                                min="0"
+                                                                bind:value={mapping.episode}
+                                                                placeholder="E"
+                                                                class="mt-1 h-7 text-xs" />
+                                                        </div>
+                                                    </div>
+                                                {/if}
+                                            </Card.Content>
+                                        </Card.Root>
+                                    {/each}
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+
+                    <Button
+                        onclick={handleBatchComplete}
+                        disabled={loading}
+                        class="w-full">
+                        {#if loading}
+                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                            {batchProgress ? batchProgress.message : "Processing..."}
+                        {:else}
+                            Confirm All ({batchSessions.length} items)
+                        {/if}
+                    </Button>
+                </div>
 			{/if}
 		</div>
 	</Dialog.Content>
