@@ -3,6 +3,7 @@
     import { cn } from "$lib/utils";
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Chart from "$lib/components/ui/chart/index.js";
+    import ResponsiveChartContainer from "$lib/components/media/riven/responsive-chart-container.svelte";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { BarChart, PieChart, LineChart } from "layerchart";
     import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
@@ -144,7 +145,7 @@
                 <Card.Title class="text-sm font-medium text-neutral-300">Library States</Card.Title>
             </Card.Header>
             <Card.Content class="flex flex-1 flex-col">
-                <Chart.Container config={{}} class="min-h-[300px] w-full flex-1">
+                <ResponsiveChartContainer config={{}} class="min-h-[300px] w-full flex-1">
                     <BarChart
                         data={transformedStates}
                         x="state"
@@ -161,7 +162,7 @@
                             <Chart.Tooltip />
                         {/snippet}
                     </BarChart>
-                </Chart.Container>
+                </ResponsiveChartContainer>
 
                 <div class="mt-auto pt-4">
                     {#each transformedStates as item (item.state)}
@@ -183,7 +184,7 @@
                     >Content Breakdown</Card.Title>
             </Card.Header>
             <Card.Content class="flex flex-1 flex-col">
-                <Chart.Container config={{}} class="min-h-[300px] w-full flex-1">
+                <ResponsiveChartContainer config={{}} class="min-h-[300px] w-full flex-1">
                     <PieChart
                         data={contentBreakdown}
                         key="key"
@@ -197,7 +198,7 @@
                             <Chart.Tooltip />
                         {/snippet}
                     </PieChart>
-                </Chart.Container>
+                </ResponsiveChartContainer>
 
                 <div class="mt-auto pt-4">
                     {#each contentBreakdown as item (item.key)}
@@ -222,7 +223,7 @@
                 <Card.Title class="text-sm font-medium text-neutral-300">Release Year</Card.Title>
             </Card.Header>
             <Card.Content>
-                <Chart.Container
+                <ResponsiveChartContainer
                     config={{}}
                     class="aspect-3/1 w-full md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1">
                     <LineChart
@@ -242,7 +243,7 @@
                             <Chart.Tooltip />
                         {/snippet}
                     </LineChart>
-                </Chart.Container>
+                </ResponsiveChartContainer>
             </Card.Content>
         </Card.Root>
     </section>
