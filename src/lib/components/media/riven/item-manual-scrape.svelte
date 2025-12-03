@@ -1,5 +1,6 @@
 <script lang="ts">
     import { untrack } from "svelte";
+    import { invalidateAll } from "$app/navigation";
 	import {
 		scrapeItem,
 		startManualSession,
@@ -399,6 +400,7 @@
                 toast.success(response.data.message);
                 open = false;
                 resetFlow();
+                await invalidateAll();
             } else {
                 const errorMsg = (response.error as any)?.message || "Failed to start auto scrape";
                 error = errorMsg;
@@ -682,6 +684,7 @@
 				toast.success("Manual scrape completed successfully!");
                 open = false;
                 resetFlow();
+                await invalidateAll();
 			} else {
 				const errorMsg = (completeResponse.error as any)?.message || "Failed to complete session";
 				error = errorMsg;
@@ -781,6 +784,7 @@
             toast.success("Batch scrape completed!");
             open = false;
             resetFlow();
+            await invalidateAll();
         } catch (e) {
             console.error("Batch completion failed", e);
             toast.error("Batch completion failed");

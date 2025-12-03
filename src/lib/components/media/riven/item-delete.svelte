@@ -26,6 +26,8 @@
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = await removeItem({
+            // @ts-ignore
+            // @ts-ignore
             query: {
                 ids: validIds.join(",")
             }

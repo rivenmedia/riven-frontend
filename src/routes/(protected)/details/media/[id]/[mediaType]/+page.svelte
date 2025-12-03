@@ -168,36 +168,27 @@
         <div class="md:px-8 lg:px-16">
 
 
-
-
-
-
-
-            <div
-                class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                <img
-                    alt={data.mediaDetails?.details.title}
-                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
-                    src={data.mediaDetails?.details.poster_path
-                        ? data.mediaDetails?.details.poster_path
-                        : "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg"}
-                    loading="lazy" />
-
-                <div class="flex flex-col">
-                    <h1 class="mb-2 text-xl font-bold drop-shadow-md">
-                        {data.mediaDetails?.details.title}
-                    </h1>
-
-                    <div class="flex flex-wrap gap-2 mb-2">
+                    <div class="border-border mt-4 flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                        <h1 class="text-2xl font-bold mb-2">{data.mediaDetails?.details.title}</h1>
                         {#if !data.riven}
-                            <ItemRequest
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails?.type
-                                    ? [data.mediaDetails?.details.id?.toString()]
-                                    : []}
-                                mediaType={data.mediaDetails?.type} />
-                        {:else}
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                <ItemRequest
+                                    class="bg-white/10"
+                                    title={data.mediaDetails?.details.title}
+                                    ids={data.mediaDetails.type
+                                        ? [data.mediaDetails?.details.id?.toString()]
+                                        : []}
+                                    mediaType={data.mediaDetails.type} />
+
+                                <ItemManualScrape
+                                    class="bg-white/10"
+                                    title={data.mediaDetails.details.title}
+                                    itemId={null}
+                                    externalId={data.mediaDetails.details.id.toString()}
+                                    mediaType={data.mediaDetails.type} />
+                            </div>
+                    {:else}
+                        <div class="flex flex-wrap gap-2 mb-2">
                             <ItemDelete
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
@@ -220,17 +211,15 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={[data.riven?.id?.toString()]} />
-                        {/if}
 
-                        {#if data.mediaDetails?.details.id}
                             <ItemManualScrape
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 itemId={data.riven?.id?.toString()}
-                                externalId={data.mediaDetails?.details.id?.toString()}
+                                externalId={data.mediaDetails?.details.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type} />
-                        {/if}
-                    </div>
+                        </div>
+                    {/if}
 
                     {#if data.riven?.state}
                         <Badge
@@ -324,7 +313,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+
 
             {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.collection}
                 <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
