@@ -1075,9 +1075,9 @@
                                     <Accordion.Item value={category}>
                                         <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
                                             <div class="flex items-center gap-2">
-
-                                                {#if categoryIcons[category as keyof typeof categoryIcons]}
-                                                    <svelte:component this={categoryIcons[category as keyof typeof categoryIcons]} class="h-4 w-4" />
+                                                {#if categoryIcons[category]}
+                                                    {@const Icon = categoryIcons[category]}
+                                                    <Icon class="h-4 w-4" />
                                                 {/if}
                                                 {category === 'trash' ? 'Bin' : category}
 
