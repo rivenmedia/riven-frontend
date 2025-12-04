@@ -36,7 +36,6 @@
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = await addItems({
-            // @ts-ignore
             body: {
                 media_type: mediaType as "movie" | "tv",
                 tmdb_ids:
