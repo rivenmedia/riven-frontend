@@ -195,6 +195,7 @@
                             <ItemManualScrape
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details?.title}
+                                title={data.mediaDetails?.details?.title}
                                 itemId={null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type} />

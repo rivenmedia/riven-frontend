@@ -136,6 +136,22 @@
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
+    let streamingProgress = $state<{
+        isStreaming: boolean;
+        currentService: string | null;
+        totalStreams: number;
+        servicesCompleted: number;
+        totalServices: number;
+        message: string | null;
+    }>({
+        isStreaming: false,
+        currentService: null,
+        totalStreams: 0,
+        servicesCompleted: 0,
+        totalServices: 0,
+        message: null
+    });
+    let eventSourceRef = $state<EventSource | null>(null);
 
     const categoryIcons: Record<string, any> = {
         resolutions: Monitor,
@@ -158,9 +174,10 @@
         if (activeTab === "all") return result;
 
         return result.filter(({ stream }) => {
-            const seasons = stream.parsed_data.seasons || [];
-            const episodes = stream.parsed_data.episodes || [];
-            const isComplete = stream.parsed_data.complete === true;
+            const data = stream.parsed_data as ParsedTitleData;
+            const seasons = data.seasons || [];
+            const episodes = data.episodes || [];
+            const isComplete = data.complete === true;
 
             const isShowPack = seasons.length > 1;
 
@@ -494,7 +511,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceDisableFilesizeCheck: boolean = false) {
+    async function startScrapeSession(magnet: string, forceDisableBitrateCheck: boolean = false) {
         loading = true;
         error = null;
 
