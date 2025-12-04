@@ -137,7 +137,7 @@ export class NotificationStore {
         );
 
         this.#reconnectTimeoutId = setTimeout(() => {
-            if (!this.#eventSource || this.#eventSource.readyState === EventSource.CLOSED) return;
+            if (this.#connectionStatus === 'disconnected') return;
             this.#startStream();
         }, delay) as unknown as number;
     }
