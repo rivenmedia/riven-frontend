@@ -4,7 +4,7 @@
 	import ChartStyle from "$lib/components/ui/chart/chart-style.svelte";
 	import { setChartContext, type ChartConfig } from "$lib/components/ui/chart/chart-utils.js";
 
-    import { onMount } from "svelte";
+	import { onMount } from "svelte";
 
 	const uid = $props.id();
 
@@ -19,7 +19,7 @@
 		config: ChartConfig;
 	} = $props();
 
-	const chartId = `chart-${id || uid.replace(/:/g, "")}`;
+	const chartId = `chart-${id.replace(/:/g, "")}`;
 
 	setChartContext({
 		get config() {

@@ -186,19 +186,17 @@
                     </h1>
 
                     <div class="flex flex-wrap gap-2 mb-2">
-                        {#if !data.riven}
+                        {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
                             <ItemRequest
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails?.type
-                                    ? [data.mediaDetails?.details.id?.toString()]
-                                    : []}
+                                ids={[data.mediaDetails?.details.id?.toString()]}
                                 mediaType={data.mediaDetails?.type} />
-                        {:else}
+                        {:else if data.riven?.id != null}
                             <ItemDelete
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]}
+                                ids={[data.riven.id.toString()]}
                                 variant="destructive" />
 
                             <ItemReset
