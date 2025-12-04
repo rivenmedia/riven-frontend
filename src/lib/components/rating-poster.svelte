@@ -16,6 +16,12 @@
     let error = $state(false);
 
     onMount(async () => {
+        // Guard: Don't fetch if id is invalid or mediaType is missing/unknown
+        if (!id || id === null || (indexer !== "anilist" && (!mediaType || mediaType === "unknown"))) {
+            loading = false;
+            return;
+        }
+
         const cacheKey: "movie" | "tv" | "anime" =
             indexer === "anilist" ? "anime" : (mediaType as "movie" | "tv") || "movie";
         const cached = posterCache.get(id, cacheKey);

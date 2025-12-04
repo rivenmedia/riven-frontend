@@ -186,17 +186,17 @@
                             <ItemRequest
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails.type
-                                    ? [data.mediaDetails?.details.id?.toString()]
+                                ids={data.mediaDetails?.type
+                                    ? [data.mediaDetails?.details?.id?.toString()]
                                     : []}
-                                mediaType={data.mediaDetails.type} />
+                                mediaType={data.mediaDetails?.type} />
 
                             <ItemManualScrape
                                 class="bg-white/10"
-                                title={data.mediaDetails.details.title}
+                                title={data.mediaDetails?.details?.title}
                                 itemId={null}
-                                externalId={data.mediaDetails.details.id?.toString() ?? ""}
-                                mediaType={data.mediaDetails.type} />
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                mediaType={data.mediaDetails?.type} />
                         </div>
                     {:else}
                         <div class="flex flex-wrap gap-2 mb-2">

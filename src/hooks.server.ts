@@ -58,7 +58,7 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
     if (!tvdbCookie) {
         const tvdbLogin = await providers.tvdb.POST("/login", {
             body: {
-                apikey: "6be85335-5c4f-4d8d-b945-d3ed0eb8cdce"
+                apikey: env.TVDB_API_KEY || "6be85335-5c4f-4d8d-b945-d3ed0eb8cdce"
             },
             fetch: event.fetch
         });
@@ -73,7 +73,6 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
                 secure: !dev,
                 maxAge: 60 * 60 * 24 * 30 // 30 days
             });
-            console.log("Set TVDB cookie");
         }
     }
 

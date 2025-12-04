@@ -32,11 +32,10 @@
     }: Props = $props();
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
-        console.log("IDs:", ids);
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = await addItems({
-            body: {
+            query: {
                 media_type: mediaType as "movie" | "tv",
                 tmdb_ids:
                     mediaType === "movie" && validIds.length > 0 ? validIds.join(",") : undefined,
@@ -53,8 +52,6 @@
 
     let open = $state(false);
     let loading = $state(false);
-
-    $inspect(open);
 </script>
 
 <AlertDialog.Root bind:open>

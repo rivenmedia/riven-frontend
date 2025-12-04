@@ -95,6 +95,7 @@
 		codec?: string;
 		audio?: string[];
 		languages?: string[];
+        complete?: boolean;
 	}
 
 	interface FileSelection {
@@ -172,9 +173,10 @@
         if (activeTab === "all") return result;
         
         return result.filter(({ stream }) => {
-            const seasons = stream.parsed_data.seasons || [];
-            const episodes = stream.parsed_data.episodes || [];
-            const isComplete = stream.parsed_data.complete === true;
+            const data = stream.parsed_data as ParsedTitleData;
+            const seasons = data.seasons || [];
+            const episodes = data.episodes || [];
+            const isComplete = data.complete === true;
 
             const isShowPack = seasons.length > 1;
             
@@ -210,19 +212,25 @@
 
         try {
             const magnets = Array.from(selectedMagnets);
-            for (let i = 0; i < magnets.length; i++) {
-                const magnet = magnets[i];
-                batchProgress = { 
-                    current: i + 1, 
-                    total: magnets.length, 
-                    message: `Preparing ${i + 1}/${magnets.length}` 
-                };
+            const CONCURRENCY = 3;
 
-                // Find stream info
-                const streamInfo = streams.find(s => s.magnet === magnet);
-                if (!streamInfo) continue;
+            for (let i = 0; i < magnets.length; i += CONCURRENCY) {
+                const chunk = magnets.slice(i, i + CONCURRENCY);
+                
+                await Promise.all(chunk.map(async (magnet, index) => {
+                    const globalIndex = i + index;
+                    batchProgress = { 
+                        current: globalIndex + 1, 
+                        total: magnets.length, 
+                        message: `Preparing ${globalIndex + 1}/${magnets.length}` 
+                    };
 
-                await prepareBatchSession(magnet, streamInfo.stream);
+                    // Find stream info
+                    const streamInfo = streams.find(s => s.magnet === magnet);
+                    if (streamInfo) {
+                        await prepareBatchSession(magnet, streamInfo.stream);
+                    }
+                }));
             }
             
             step = 6; // Batch Confirmation Step
