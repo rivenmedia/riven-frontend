@@ -166,8 +166,6 @@
         {/if}
 
         <div class="md:px-8 lg:px-16">
-
-
                     <div class="border-border mt-4 flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                         <h1 class="text-2xl font-bold mb-2">{data.mediaDetails?.details.title}</h1>
                         {#if !data.riven}
@@ -192,7 +190,7 @@
                             <ItemDelete
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]}
+                                ids={[data.riven.id.toString()]}
                                 variant="destructive" />
 
                             <ItemReset

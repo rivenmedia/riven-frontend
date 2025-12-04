@@ -12,7 +12,7 @@ export type Notification = {
 
 export class NotificationStore {
     #notifications = $state<Notification[]>([]);
-    #abortController = $state<AbortController | null>(null);
+    #eventSource = $state<EventSource | null>(null);
     #reconnectAttempts = $state<number>(0);
     #reconnectTimeoutId: number | null = null;
     #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
@@ -65,23 +65,23 @@ export class NotificationStore {
     }
 
     async #startStream() {
-        if (this.#abortController) {
-            this.#abortController.abort();
+        if (this.#eventSource) {
+            this.#eventSource.close();
         }
 
-        this.#abortController = new AbortController();
+
         this.#connectionStatus = "connecting";
 
         try {
-            const eventSource = new EventSource("/api/notifications");
+            this.#eventSource = new EventSource("/api/notifications");
 
-            eventSource.onopen = () => {
+            this.#eventSource.onopen = () => {
                 this.#connectionStatus = "connected";
                 this.#reconnectAttempts = 0;
                 console.log("Notification stream connected");
             };
 
-            eventSource.onmessage = (event) => {
+            this.#eventSource.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
                     this.#handleNotificationEvent(data);
@@ -90,17 +90,11 @@ export class NotificationStore {
                 }
             };
 
-            eventSource.onerror = (error) => {
+            this.#eventSource.onerror = (error) => {
                 console.error("Notification stream error:", error);
-                eventSource.close();
+                this.#eventSource?.close();
                 this.#connectionStatus = "error";
                 this.#scheduleReconnect();
-            };
-
-            // Store reference to close it later
-            // @ts-ignore
-            this.#abortController.abort = () => {
-                eventSource.close();
             };
         } catch (e) {
             console.error("Failed to create EventSource:", e);
@@ -143,7 +137,7 @@ export class NotificationStore {
         );
 
         this.#reconnectTimeoutId = setTimeout(() => {
-            if (this.#abortController?.signal.aborted) return;
+            if (!this.#eventSource || this.#eventSource.readyState === EventSource.CLOSED) return;
             this.#startStream();
         }, delay) as unknown as number;
     }
@@ -157,8 +151,9 @@ export class NotificationStore {
             clearTimeout(this.#reconnectTimeoutId);
             this.#reconnectTimeoutId = null;
         }
-        if (this.#abortController) {
-            this.#abortController.abort();
+        if (this.#eventSource) {
+            this.#eventSource.close();
+            this.#eventSource = null;
         }
         this.#connectionStatus = "disconnected";
     }

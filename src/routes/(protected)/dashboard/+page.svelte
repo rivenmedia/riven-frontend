@@ -167,7 +167,6 @@
                 <div class="mt-auto pt-4">
                     {#each transformedStates as item (item.state)}
                         <div class="mt-4 flex items-center gap-2 first:mt-0">
-                            <!-- <span class="bg-primary inline-block h-3 w-3 shrink-0 rounded-sm"></span> -->
                             <span class="text-sm text-neutral-300">{item.state}</span>
                             <span class="ml-auto font-mono text-sm text-neutral-50">
                                 {item.value.toLocaleString()}

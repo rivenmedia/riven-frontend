@@ -194,8 +194,8 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if ((searchResult as any).error) {
-                    console.error("TMDB API error:", searchResult.error);
+                if ((searchResult).error) {
+                    console.error("TMDB API error:", (searchResult as any).error);
                     error(500, "Failed to search movies");
                 }
 
@@ -219,7 +219,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((searchResult as any).error) {
-                    console.error("TMDB API error:", searchResult.error);
+                    console.error("TMDB API error:", (searchResult as any).error);
                     error(500, "Failed to search TV shows");
                 }
 
@@ -247,7 +247,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((discover as any).error) {
-                    console.error("TMDB API error:", discover.error);
+                    console.error("TMDB API error:", (discover as any).error);
                     error(500, "Failed to discover movies");
                 }
 
@@ -271,7 +271,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((discover as any).error) {
-                    console.error("TMDB API error:", discover.error);
+                    console.error("TMDB API error:", (discover as any).error);
                     error(500, "Failed to discover TV shows");
                 }
 
