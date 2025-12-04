@@ -35,11 +35,12 @@
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = await addItems({
-            query: {
+            // @ts-expect-error generated types are wrong, schema expects body
+            body: {
                 media_type: mediaType as "movie" | "tv",
                 tmdb_ids:
-                    mediaType === "movie" && validIds.length > 0 ? validIds.join(",") : undefined,
-                tvdb_ids: mediaType === "tv" && validIds.length > 0 ? validIds.join(",") : undefined
+                    mediaType === "movie" && validIds.length > 0 ? validIds.join(",") : null,
+                tvdb_ids: mediaType === "tv" && validIds.length > 0 ? validIds.join(",") : null
             }
         });
 

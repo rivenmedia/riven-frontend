@@ -263,24 +263,27 @@
                 const sData = response.data;
                 let mappings: FileMapping[] = [];
 
-                if (sData.containers?.files) {
+                if (sData.containers?.files && sData.containers.files.length > 0) {
                     const filenames = sData.containers.files
                         .map((f) => f.filename)
                         .filter((f): f is string => f != null);
 
-                    const parseResponse = await parseTorrentTitles({ body: filenames });
-                    
-                    if (parseResponse.data) {
-                        mappings = sData.containers.files.map((file, idx) => {
-                            const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
-                            return {
-                                file_id: file.file_id?.toString() || "",
-                                filename: file.filename || "",
-                                filesize: file.filesize || 0,
-                                season: parsedData?.seasons?.[0],
-                                episode: parsedData?.episodes?.[0]
-                            };
-                        });
+                    // Only call parseTorrentTitles if we have valid filenames
+                    if (filenames.length > 0) {
+                        const parseResponse = await parseTorrentTitles({ body: filenames });
+                        
+                        if (parseResponse.data) {
+                            mappings = sData.containers.files.map((file, idx) => {
+                                const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
+                                return {
+                                    file_id: file.file_id?.toString() || "",
+                                    filename: file.filename || "",
+                                    filesize: file.filesize || 0,
+                                    season: parsedData?.seasons?.[0],
+                                    episode: parsedData?.episodes?.[0]
+                                };
+                            });
+                        }
                     }
                 }
 
@@ -390,11 +393,21 @@
 
         try {
             const body: any = {
-                item_id: itemId || undefined,
-                tmdb_id: externalId && mediaType === "movie" ? externalId : undefined,
-                tvdb_id: externalId && mediaType === "tv" ? externalId : undefined,
                 media_type: mediaType
             };
+
+            // Only include IDs if they have valid values
+            if (itemId) {
+                body.item_id = itemId;
+            }
+            
+            if (externalId) {
+                if (mediaType === "movie") {
+                    body.tmdb_id = externalId;
+                } else if (mediaType === "tv") {
+                    body.tvdb_id = externalId;
+                }
+            }
 
             // Only include selected options if they have values
             Object.entries(selectedOptions).forEach(([key, value]) => {
@@ -568,7 +581,11 @@
 
 
 	async function handleSelectAllFiles() {
-		if (!sessionData?.containers?.files) return;
+		if (!sessionData?.containers?.files || sessionData.containers.files.length === 0) {
+			error = "No files available to select";
+			toast.error(error);
+			return;
+		}
 
 		loading = true;
 		error = null;
@@ -578,6 +595,14 @@
 			const filenames = sessionData.containers.files
 				.map((f) => f.filename)
 				.filter((f): f is string => f != null);
+
+			// Ensure we have valid filenames before calling the API
+			if (filenames.length === 0) {
+				error = "No valid filenames found";
+				toast.error(error);
+				loading = false;
+				return;
+			}
 
 			const parseResponse = await parseTorrentTitles({
 				body: filenames
