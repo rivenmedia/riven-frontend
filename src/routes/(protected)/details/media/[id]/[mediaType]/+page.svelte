@@ -70,6 +70,7 @@
     }
 
     let selectedSeason: string | undefined = $state("1");
+    let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
 </script>
 
 <svelte:head>
@@ -190,31 +191,31 @@
                             <ItemRequest
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.mediaDetails?.details.id?.toString()]}
+                                ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type} />
                         {:else if data.riven?.id != null}
                             <ItemDelete
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven.id.toString()]}
+                                ids={rivenId ? [rivenId.toString()] : []}
                                 variant="destructive" />
 
                             <ItemReset
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]} />
+                                ids={rivenId ? [rivenId.toString()] : []} />
 
                             {#if data.riven.state !== "Completed"}
                                 <ItemPause
                                     class="bg-white/10"
                                     title={data.mediaDetails?.details.title}
                                     isPaused={data.riven.state === "Paused"}
-                                    ids={[data.riven?.id?.toString()]} />
+                                    ids={rivenId ? [rivenId.toString()] : []} />
                             {/if}
                             <ItemRetry
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]} />
+                                ids={rivenId ? [rivenId.toString()] : []} />
                         {/if}
 
 
