@@ -5,14 +5,14 @@ import { env } from "$env/dynamic/private";
 export const GET: RequestHandler = async ({ fetch, locals }) => {
     if (!locals.user || !locals.session) {
         console.log("Notification proxy: Unauthorized access attempt");
-        throw error(401, "Unauthorized");
+        error(401, "Unauthorized");
     }
 
     try {
         const backendUrl = env.BACKEND_URL;
         if (!backendUrl) {
             console.error("Notification proxy: BACKEND_URL is not configured");
-            throw error(500, "Backend URL is not configured");
+            error(500, "Backend URL is not configured");
         }
         console.log(`Notification proxy: Connecting to ${backendUrl}/api/v1/stream/notifications`);
 
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
         if (!response.ok) {
             const text = await response.text();
             console.error(`Notification proxy: Backend error ${response.status}: ${text}`);
-            throw error(response.status, `Backend error: ${response.statusText}`);
+            error(response.status, `Backend error: ${response.statusText}`);
         }
 
         return new Response(response.body, {
@@ -43,6 +43,6 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
         });
     } catch (e) {
         console.error("Notification proxy: Stream error:", e);
-        throw error(500, "Failed to connect to log stream");
+        error(500, "Failed to connect to log stream");
     }
 };
