@@ -12,7 +12,7 @@ export type Notification = {
 
 export class NotificationStore {
     #notifications = $state<Notification[]>([]);
-    #abortController = $state<AbortController | null>(null);
+    #eventSource = $state<EventSource | null>(null);
     #reconnectAttempts = $state<number>(0);
     #reconnectTimeoutId: number | null = null;
     #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
@@ -65,83 +65,39 @@ export class NotificationStore {
     }
 
     async #startStream() {
-        if (this.#abortController) {
-            this.#abortController.abort();
+        if (this.#eventSource) {
+            this.#eventSource.close();
         }
 
-        this.#abortController = new AbortController();
+
         this.#connectionStatus = "connecting";
 
         try {
-            // TODO: Replace with actual backend URL
-            const response = await fetch("/api/notifications", {
-                method: "GET",
-                headers: {
-                    Accept: "text/event-stream",
-                    "Cache-Control": "no-cache"
-                },
-                signal: this.#abortController.signal
-            });
+            this.#eventSource = new EventSource("/api/notifications");
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            this.#eventSource.onopen = () => {
+                this.#connectionStatus = "connected";
+                this.#reconnectAttempts = 0;
+                console.log("Notification stream connected");
+            };
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error("No response body reader available");
-            }
-
-            this.#connectionStatus = "connected";
-            this.#reconnectAttempts = 0;
-
-            const decoder = new TextDecoder();
-            let buffer = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    console.log("Notification stream ended normally");
-                    break;
+            this.#eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.#handleNotificationEvent(data);
+                } catch (e) {
+                    console.warn("Failed to parse notification event:", e);
                 }
+            };
 
-                buffer += decoder.decode(value, { stream: true });
-
-                let lines = buffer.split("\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    if (line.trim()) {
-                        try {
-                            const jsonData = JSON.parse(line.trim());
-                            this.#handleNotificationEvent(jsonData);
-                        } catch (e) {
-                            if (line.startsWith("data: ")) {
-                                try {
-                                    const jsonStr = line.substring(6);
-                                    const parsedData = JSON.parse(jsonStr);
-                                    this.#handleNotificationEvent(parsedData);
-                                } catch (parseError) {
-                                    console.warn(
-                                        "Failed to parse SSE notification data:",
-                                        parseError
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            this.#scheduleReconnect();
-        } catch (e: any) {
-            if (e.name === "AbortError") {
-                console.log("Notification stream aborted");
-                this.#connectionStatus = "disconnected";
-                return;
-            }
-
-            console.error("Notification stream error:", e);
+            this.#eventSource.onerror = (error) => {
+                console.error("Notification stream error:", error);
+                this.#eventSource?.close();
+                this.#connectionStatus = "error";
+                this.#scheduleReconnect();
+            };
+        } catch (e) {
+            console.error("Failed to create EventSource:", e);
             this.#connectionStatus = "error";
             this.#scheduleReconnect();
         }
@@ -181,7 +137,7 @@ export class NotificationStore {
         );
 
         this.#reconnectTimeoutId = setTimeout(() => {
-            if (this.#abortController?.signal.aborted) return;
+            if (this.#connectionStatus === 'disconnected') return;
             this.#startStream();
         }, delay) as unknown as number;
     }
@@ -195,8 +151,9 @@ export class NotificationStore {
             clearTimeout(this.#reconnectTimeoutId);
             this.#reconnectTimeoutId = null;
         }
-        if (this.#abortController) {
-            this.#abortController.abort();
+        if (this.#eventSource) {
+            this.#eventSource.close();
+            this.#eventSource = null;
         }
         this.#connectionStatus = "disconnected";
     }

@@ -11,6 +11,12 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "$lib/server/db";
 
 export const init: ServerInit = async () => {
+    if (!env.BACKEND_URL) {
+        throw new Error("BACKEND_URL environment variable is required");
+    }
+    if (!env.BACKEND_API_KEY) {
+        throw new Error("BACKEND_API_KEY environment variable is required");
+    }
     migrate(db, { migrationsFolder: "drizzle" });
 };
 
@@ -33,8 +39,6 @@ export const betterAuthHandler: Handle = async ({ event, resolve }) => {
 };
 
 const configureClientMiddleware: Handle = async ({ event, resolve }) => {
-    event.locals.backendUrl = env.BACKEND_URL;
-    event.locals.apiKey = env.BACKEND_API_KEY;
     client.setConfig({
         baseUrl: env.BACKEND_URL,
         headers: {

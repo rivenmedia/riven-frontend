@@ -41,12 +41,12 @@
     });
 
     $effect(() => {
-        const currentQuery = data.form.data.query;
+        const currentQuery = data.form?.data?.query;
 
         if (currentQuery && currentQuery !== lastQuery) {
             lastQuery = currentQuery;
             searchStore.setSearch(currentQuery, data.parsed);
-            searchStore.setMediaType(data.form.data.type || "both");
+            searchStore.setMediaType(data.form?.data?.type || "both");
             searchStore.search();
         }
     });

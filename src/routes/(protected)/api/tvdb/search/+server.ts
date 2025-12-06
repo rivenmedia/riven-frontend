@@ -135,10 +135,10 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         // Make search request to TVDB using the provider client
         const searchResult = await providers.tvdb.GET("/search", {
             params: {
-                query: searchParams as any,
-                header: {
-                    Authorization: `Bearer ${tvdbToken}`
-                }
+                query: searchParams as any
+            },
+            headers: {
+                Authorization: `Bearer ${tvdbToken}`
             },
             fetch
         });

@@ -4,11 +4,19 @@ import { env } from "$env/dynamic/private";
 
 export const GET: RequestHandler = async ({ fetch, locals }) => {
     if (!locals.user || !locals.session) {
+        console.log("Notification proxy: Unauthorized access attempt");
         error(401, "Unauthorized");
     }
 
     try {
-        const response = await fetch(`${env.BACKEND_URL}/api/v1/stream/notifications`, {
+        const backendUrl = env.BACKEND_URL;
+        if (!backendUrl) {
+            console.error("Notification proxy: BACKEND_URL is not configured");
+            error(500, "Backend URL is not configured");
+        }
+        console.log(`Notification proxy: Connecting to ${backendUrl}/api/v1/stream/notifications`);
+
+        const response = await fetch(`${backendUrl}/api/v1/stream/notifications`, {
             method: "GET",
             headers: {
                 "x-api-key": env.BACKEND_API_KEY,
@@ -17,20 +25,24 @@ export const GET: RequestHandler = async ({ fetch, locals }) => {
             }
         });
 
+        console.log(`Notification proxy: Backend response status ${response.status}`);
+
         if (!response.ok) {
-            throw error(response.status, `Backend error: ${response.statusText}`);
+            const text = await response.text();
+            console.error(`Notification proxy: Backend error ${response.status}: ${text}`);
+            error(response.status, `Backend error: ${response.statusText}`);
         }
 
         return new Response(response.body, {
             headers: {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
-                Connection: "keep-alive",
+                "Connection": "keep-alive",
                 "Access-Control-Allow-Origin": "*"
             }
         });
     } catch (e) {
-        console.error("Stream error:", e);
-        throw error(500, "Failed to connect to log stream");
+        console.error("Notification proxy: Stream error:", e);
+        error(500, "Failed to connect to log stream");
     }
 };

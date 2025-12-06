@@ -5,7 +5,6 @@
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
-    import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import { dev } from "$app/environment";

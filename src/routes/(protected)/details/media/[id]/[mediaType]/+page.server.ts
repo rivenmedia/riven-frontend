@@ -5,6 +5,7 @@ import type {
     ParsedMovieDetails,
     ParsedShowDetails
 } from "$lib/providers/parser";
+import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
 import { getItem } from "$lib/api";
 
@@ -50,7 +51,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
                     },
                     query: {
                         extended: "images"
-                    }
+                    } as any
                 },
                 fetch: fetch
             }
@@ -121,7 +122,7 @@ export const load = (async ({ fetch, params, cookies }) => {
         );
 
         return {
-            riven: rivenData?.data,
+            riven: rivenData?.data as RivenMediaItem | undefined,
             mediaDetails: {
                 type: "movie" as const,
                 details: parsedDetails as ParsedMovieDetails
@@ -190,10 +191,15 @@ export const load = (async ({ fetch, params, cookies }) => {
 
         const { traktRecs } = await getTraktData(fetch, id, false);
 
+        if (!details) {
+            error(500, "Failed to fetch TV show details");
+        }
+
+        // @ts-expect-error type mismatch in generated types
         const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
 
         return {
-            riven: rivenData?.data,
+            riven: rivenData?.data as RivenMediaItem | undefined,
             mediaDetails: {
                 type: "tv" as const,
                 details: parsedDetails as ParsedShowDetails
