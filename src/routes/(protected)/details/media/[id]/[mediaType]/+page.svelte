@@ -71,6 +71,7 @@
     }
 
     let selectedSeason: string | undefined = $state("1");
+    let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
 </script>
 
 <svelte:head>
@@ -186,9 +187,7 @@
                             <ItemRequest
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={data.mediaDetails?.type
-                                    ? [data.mediaDetails?.details?.id?.toString()]
-                                    : []}
+                                ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type} />
 
                             <ItemManualScrape
@@ -203,30 +202,30 @@
                             <ItemDelete
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven.id.toString()]}
+                                ids={rivenId ? [rivenId.toString()] : []}
                                 variant="destructive" />
 
                             <ItemReset
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]} />
+                                ids={rivenId ? [rivenId.toString()] : []} />
 
                             {#if data.riven.state !== "Completed"}
                                 <ItemPause
                                     class="bg-white/10"
                                     title={data.mediaDetails?.details.title}
                                     isPaused={data.riven.state === "Paused"}
-                                    ids={[data.riven?.id?.toString()]} />
+                                    ids={rivenId ? [rivenId.toString()] : []} />
                             {/if}
                             <ItemRetry
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                ids={[data.riven?.id?.toString()]} />
+                                ids={rivenId ? [rivenId.toString()] : []} />
 
                             <ItemManualScrape
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                itemId={data.riven?.id?.toString()}
+                                itemId={rivenId ? rivenId.toString() : null}
                                 externalId={data.mediaDetails?.details.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type} />
                         </div>
