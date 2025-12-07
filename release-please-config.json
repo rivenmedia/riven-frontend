@@ -1,10 +1,9 @@
 {
-  "versioning": "prerelease",
-  "prerelease-type": "beta",
-  "prerelease": true,
-  "packages": {
-    ".": {
-      "release-type": "simple"
+    "prerelease-type": "beta",
+    "prerelease": true,
+    "packages": {
+        ".": {
+            "release-type": "node"
+        }
     }
-  }
 }
