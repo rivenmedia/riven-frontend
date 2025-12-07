@@ -1,6 +1,7 @@
 {
     "prerelease-type": "beta",
     "prerelease": true,
+    "include-component-in-tag": false,
     "packages": {
         ".": {
             "release-type": "node"
