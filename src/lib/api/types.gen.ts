@@ -36,6 +36,16 @@ export type AppModel = {
      */
     log_level?: 'TRACE' | 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
     /**
+     * Enable Network Tracing
+     * Enable detailed network request/response logging
+     */
+    enable_network_tracing?: boolean;
+    /**
+     * Enable Stream Tracing
+     * Enable detailed stream request/response logging
+     */
+    enable_stream_tracing?: boolean;
+    /**
      * Retry Interval
      * Interval in seconds to retry failed library items (24 hours default, 0 to disable)
      */
@@ -89,6 +99,33 @@ export type AppModel = {
      * Logging configuration
      */
     logging?: LoggingModel;
+    /**
+     * Stream configuration
+     */
+    stream?: StreamModel;
+};
+
+/**
+ * AudioMetadata
+ * Audio track metadata
+ */
+export type AudioMetadata = {
+    /**
+     * Codec
+     */
+    codec?: string | null;
+    /**
+     * Channels
+     */
+    channels?: number | null;
+    /**
+     * Sample Rate
+     */
+    sample_rate?: number | null;
+    /**
+     * Language
+     */
+    language?: string | null;
 };
 
 /**
@@ -111,14 +148,95 @@ export type AudioRankModel = {
 };
 
 /**
+ * Body_add_items
+ */
+export type BodyAddItems = {
+    /**
+     * Tmdb Ids
+     * Comma-separated list of TMDB IDs
+     */
+    tmdb_ids?: string | null;
+    /**
+     * Tvdb Ids
+     * Comma-separated list of TVDB IDs
+     */
+    tvdb_ids?: string | null;
+    /**
+     * Media Type
+     * Media type
+     */
+    media_type?: ('movie' | 'tv') | null;
+};
+
+/**
+ * Body_composite_reindexer
+ */
+export type BodyCompositeReindexer = {
+    /**
+     * Item Id
+     * The ID of the media item
+     */
+    item_id?: number | null;
+    /**
+     * Tvdb Id
+     * The TVDB ID of the media item
+     */
+    tvdb_id?: string | null;
+    /**
+     * Tmdb Id
+     * The TMDB ID of the media item
+     */
+    tmdb_id?: string | null;
+    /**
+     * Imdb Id
+     * The IMDB ID of the media item
+     */
+    imdb_id?: string | null;
+};
+
+/**
+ * Body_start_manual_session
+ */
+export type BodyStartManualSession = {
+    /**
+     * Item Id
+     * The ID of the media item
+     */
+    item_id?: string | null;
+    /**
+     * Tmdb Id
+     * The TMDB ID of the media item
+     */
+    tmdb_id?: string | null;
+    /**
+     * Tvdb Id
+     * The TVDB ID of the media item
+     */
+    tvdb_id?: string | null;
+    /**
+     * Imdb Id
+     * The IMDB ID of the media item
+     */
+    imdb_id?: string | null;
+    /**
+     * Media Type
+     * The media type
+     */
+    media_type?: ('movie' | 'tv') | null;
+};
+
+/**
  * CalendarResponse
  */
 export type CalendarResponse = {
     /**
      * Data
+     * Dictionary with dates as keys and lists of media items as values
      */
     data: {
-        [key: string]: unknown;
+        [key: string]: {
+            [key: string]: unknown;
+        };
     };
 };
 
@@ -232,6 +350,12 @@ export type CustomRanksConfig = {
 };
 
 /**
+ * DataSource
+ * Source of metadata
+ */
+export type DataSource = 'parsed' | 'probed' | 'hybrid';
+
+/**
  * DatabaseModel
  */
 export type DatabaseModel = {
@@ -250,15 +374,15 @@ export type DebridFile = {
     /**
      * File Id
      */
-    file_id?: number | null;
+    file_id: number | null;
     /**
      * Filename
      */
-    filename?: string | null;
+    filename: string;
     /**
      * Filesize
      */
-    filesize?: number | null;
+    filesize: number;
     /**
      * Download Url
      */
@@ -345,7 +469,7 @@ export type DownloaderUserInfoResponse = {
 export type DownloadersModel = {
     /**
      * Video Extensions
-     * List of video file extensions to consider for downloads
+     * list of video file extensions to consider for downloads
      */
     video_extensions?: Array<string>;
     /**
@@ -406,6 +530,28 @@ export type EmbyLibraryModel = {
      * Emby server URL
      */
     url?: string;
+};
+
+/**
+ * EventResponse
+ */
+export type EventResponse = {
+    /**
+     * Events
+     */
+    events: {
+        [key: string]: Array<number>;
+    };
+};
+
+/**
+ * EventTypesResponse
+ */
+export type EventTypesResponse = {
+    /**
+     * Event Types
+     */
+    event_types: Array<string>;
 };
 
 /**
@@ -471,16 +617,6 @@ export type FilesystemModel = {
      * Enable cache metrics logging
      */
     cache_metrics?: boolean;
-    /**
-     * Chunk Size Mb
-     * Size of a single fetch chunk in MB
-     */
-    chunk_size_mb?: number;
-    /**
-     * Fetch Ahead Chunks
-     * Number of chunks to fetch ahead when streaming
-     */
-    fetch_ahead_chunks?: number;
     /**
      * Movie Dir Template
      * Template for movie directory names. Available variables: title, year, tmdb_id, imdb_id, resolution, codec, hdr, audio, quality, is_remux, is_proper, is_repack, is_extended, is_directors_cut, container. Example: '{title} ({year})' or '{title} ({year}) [{resolution}]'
@@ -550,7 +686,7 @@ export type ItemAliasesResponse = {
      */
     aliases: {
         [key: string]: Array<string>;
-    };
+    } | null;
 };
 
 /**
@@ -854,7 +990,129 @@ export type MdblistModel = {
      * Lists
      * MDBList list IDs to monitor
      */
-    lists?: Array<string | number>;
+    lists?: Array<number | string>;
+};
+
+/**
+ * MediaMetadata
+ * Unified media metadata model combining parsed and probed data.
+ *
+ * This model consolidates filename-parsed data (RTN) and file-probed data (ffprobe)
+ * into a single, coherent structure. When both sources provide the same attribute,
+ * probed data takes precedence as the source of truth.
+ *
+ * Attributes:
+ * filename: Original filename
+ * parsed_title: Clean title extracted from filename
+ * year: Release year
+ * video: Video track metadata (codec, resolution, HDR, etc.)
+ * audio_tracks: list of audio tracks with codec, channels, language
+ * subtitle_tracks: list of subtitle tracks with codec, language
+ * duration: Duration in seconds (probed only)
+ * file_size: File size in bytes (probed only)
+ * bitrate: Overall bitrate in bits/sec (probed only)
+ * container_format: Container format(s) (probed only)
+ * quality_source: Source quality (BluRay, WEB-DL, etc.) (parsed only)
+ * is_remux: Whether this is a remux release (parsed only)
+ * is_proper: Whether this is a proper release (parsed only)
+ * is_repack: Whether this is a repack release (parsed only)
+ * is_remastered: Whether this is remastered (parsed only)
+ * is_upscaled: Whether this is upscaled (parsed only)
+ * is_directors_cut: Whether this is director's cut (parsed only)
+ * is_extended: Whether this is extended edition (parsed only)
+ * seasons: Season numbers (for shows) (parsed only)
+ * episodes: Episode numbers (for shows) (parsed only)
+ * data_source: Source of the metadata (parsed, probed, or hybrid)
+ * parsed_at: ISO timestamp when filename was parsed
+ * probed_at: ISO timestamp when file was probed
+ */
+export type MediaMetadata = {
+    /**
+     * Filename
+     */
+    filename?: string | null;
+    /**
+     * Parsed Title
+     */
+    parsed_title?: string | null;
+    /**
+     * Year
+     */
+    year?: number | null;
+    video?: VideoMetadata | null;
+    /**
+     * Audio Tracks
+     */
+    audio_tracks?: Array<AudioMetadata>;
+    /**
+     * Subtitle Tracks
+     */
+    subtitle_tracks?: Array<SubtitleMetadata>;
+    /**
+     * Duration
+     */
+    duration?: number | null;
+    /**
+     * File Size
+     */
+    file_size?: number | null;
+    /**
+     * Bitrate
+     */
+    bitrate?: number | null;
+    /**
+     * Container Formats
+     */
+    container_formats?: Array<string>;
+    /**
+     * Quality Source
+     */
+    quality_source?: string | null;
+    /**
+     * Is Remux
+     */
+    is_remux?: boolean;
+    /**
+     * Is Proper
+     */
+    is_proper?: boolean;
+    /**
+     * Is Repack
+     */
+    is_repack?: boolean;
+    /**
+     * Is Remastered
+     */
+    is_remastered?: boolean;
+    /**
+     * Is Upscaled
+     */
+    is_upscaled?: boolean;
+    /**
+     * Is Directors Cut
+     */
+    is_directors_cut?: boolean;
+    /**
+     * Is Extended
+     */
+    is_extended?: boolean;
+    /**
+     * Seasons
+     */
+    seasons?: Array<number>;
+    /**
+     * Episodes
+     */
+    episodes?: Array<number>;
+    data_source?: DataSource;
+    /**
+     * Parsed At
+     */
+    parsed_at?: string | null;
+    /**
+     * Probed At
+     */
+    probed_at?: string | null;
 };
 
 /**
@@ -1072,6 +1330,20 @@ export type OverseerrModel = {
 };
 
 /**
+ * OverseerrWebhookResponse
+ */
+export type OverseerrWebhookResponse = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Message
+     */
+    message?: string | null;
+};
+
+/**
  * ParseTorrentTitleResponse
  */
 export type ParseTorrentTitleResponse = {
@@ -1085,205 +1357,6 @@ export type ParseTorrentTitleResponse = {
     data: Array<{
         [key: string]: unknown;
     }>;
-};
-
-/**
- * ParsedData
- * Parsed data model for a torrent title.
- */
-export type ParsedData = {
-    /**
-     * Raw Title
-     */
-    raw_title: string;
-    /**
-     * Parsed Title
-     */
-    parsed_title?: string;
-    /**
-     * Normalized Title
-     */
-    normalized_title?: string;
-    /**
-     * Trash
-     */
-    trash?: boolean;
-    /**
-     * Adult
-     */
-    adult?: boolean;
-    /**
-     * Year
-     */
-    year?: number | null;
-    /**
-     * Resolution
-     */
-    resolution?: string;
-    /**
-     * Seasons
-     */
-    seasons?: Array<number>;
-    /**
-     * Episodes
-     */
-    episodes?: Array<number>;
-    /**
-     * Complete
-     */
-    complete?: boolean;
-    /**
-     * Volumes
-     */
-    volumes?: Array<number>;
-    /**
-     * Languages
-     */
-    languages?: Array<string>;
-    /**
-     * Quality
-     */
-    quality?: string | null;
-    /**
-     * Hdr
-     */
-    hdr?: Array<string>;
-    /**
-     * Codec
-     */
-    codec?: string | null;
-    /**
-     * Audio
-     */
-    audio?: Array<string>;
-    /**
-     * Channels
-     */
-    channels?: Array<string>;
-    /**
-     * Dubbed
-     */
-    dubbed?: boolean;
-    /**
-     * Subbed
-     */
-    subbed?: boolean;
-    /**
-     * Date
-     */
-    date?: string | null;
-    /**
-     * Group
-     */
-    group?: string | null;
-    /**
-     * Edition
-     */
-    edition?: string | null;
-    /**
-     * Bit Depth
-     */
-    bit_depth?: string | null;
-    /**
-     * Bitrate
-     */
-    bitrate?: string | null;
-    /**
-     * Network
-     */
-    network?: string | null;
-    /**
-     * Extended
-     */
-    extended?: boolean;
-    /**
-     * Converted
-     */
-    converted?: boolean;
-    /**
-     * Hardcoded
-     */
-    hardcoded?: boolean;
-    /**
-     * Region
-     */
-    region?: string | null;
-    /**
-     * Ppv
-     */
-    ppv?: boolean;
-    /**
-     * Site
-     */
-    site?: string | null;
-    /**
-     * Size
-     */
-    size?: string | null;
-    /**
-     * Proper
-     */
-    proper?: boolean;
-    /**
-     * Repack
-     */
-    repack?: boolean;
-    /**
-     * Retail
-     */
-    retail?: boolean;
-    /**
-     * Upscaled
-     */
-    upscaled?: boolean;
-    /**
-     * Remastered
-     */
-    remastered?: boolean;
-    /**
-     * Unrated
-     */
-    unrated?: boolean;
-    /**
-     * Uncensored
-     */
-    uncensored?: boolean;
-    /**
-     * Documentary
-     */
-    documentary?: boolean;
-    /**
-     * Commentary
-     */
-    commentary?: boolean;
-    /**
-     * Episode Code
-     */
-    episode_code?: string | null;
-    /**
-     * Country
-     */
-    country?: string | null;
-    /**
-     * Container
-     */
-    container?: string | null;
-    /**
-     * Extension
-     */
-    extension?: string | null;
-    /**
-     * Extras
-     */
-    extras?: Array<string>;
-    /**
-     * Torrent
-     */
-    torrent?: boolean;
-    /**
-     * Scene
-     */
-    scene?: boolean;
 };
 
 /**
@@ -1803,7 +1876,7 @@ export type StartSessionResponse = {
     /**
      * Torrent Id
      */
-    torrent_id: string;
+    torrent_id: string | number;
     torrent_info: TorrentInfo;
     containers: TorrentContainer | null;
     /**
@@ -1895,30 +1968,59 @@ export type StatsResponse = {
  */
 export type Stream = {
     /**
-     * Infohash
+     * Metadata
      */
-    infohash: string;
+    metadata_: {
+        [key: string]: string;
+    };
+};
+
+/**
+ * StreamModel
+ */
+export type StreamModel = {
     /**
-     * Raw Title
+     * Chunk Size Mb
+     * Chunk size in MB for streaming downloads (1 MB default). Note: Smaller chunks are generally more efficient, as the entire chunk must be downloaded before it can be read.
      */
-    raw_title: string;
+    chunk_size_mb?: number;
     /**
-     * Parsed Title
+     * Connect Timeout Seconds
+     * Timeout in seconds for establishing a connection to the streaming service (10 seconds default)
      */
-    parsed_title: string;
-    parsed_data: ParsedData;
+    connect_timeout_seconds?: number;
     /**
-     * Rank
+     * Chunk Wait Timeout Seconds
+     * Timeout in seconds for reading a chunk during streaming (10 seconds default)
      */
-    rank: number;
+    chunk_wait_timeout_seconds?: number;
     /**
-     * Lev Ratio
+     * Activity Timeout Seconds
+     * Timeout in seconds before a stream is considered inactive during resource cleanup (60 seconds default)
      */
-    lev_ratio: number;
+    activity_timeout_seconds?: number;
+};
+
+/**
+ * StreamsResponse
+ */
+export type StreamsResponse = {
     /**
-     * Is Cached
+     * Message
      */
-    is_cached?: boolean;
+    message: string;
+    /**
+     * Streams
+     */
+    streams: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Blacklisted Streams
+     */
+    blacklisted_streams: Array<{
+        [key: string]: unknown;
+    }>;
 };
 
 /**
@@ -1939,6 +2041,21 @@ export type SubtitleConfig = {
      * Subtitle provider configurations
      */
     providers?: SubtitleProvidersDict;
+};
+
+/**
+ * SubtitleMetadata
+ * Subtitle track metadata
+ */
+export type SubtitleMetadata = {
+    /**
+     * Codec
+     */
+    codec?: string | null;
+    /**
+     * Language
+     */
+    language?: string | null;
 };
 
 /**
@@ -1980,6 +2097,33 @@ export type TorrentContainer = {
      */
     torrent_id?: number | string | null;
     torrent_info?: TorrentInfo | null;
+};
+
+/**
+ * TorrentFile
+ * Represents a file within a torrent
+ */
+export type TorrentFile = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Path
+     */
+    path: string;
+    /**
+     * Bytes
+     */
+    bytes: number;
+    /**
+     * Selected
+     */
+    selected: 0 | 1;
+    /**
+     * Download Url
+     */
+    download_url: string;
 };
 
 /**
@@ -2031,9 +2175,7 @@ export type TorrentInfo = {
      * Files
      */
     files?: {
-        [key: string]: {
-            [key: string]: number | string;
-        };
+        [key: string]: TorrentFile;
     };
     /**
      * Links
@@ -2229,22 +2371,6 @@ export type UpdateAttributesResponse = {
 };
 
 /**
- * UpdateOngoingResponse
- */
-export type UpdateOngoingResponse = {
-    /**
-     * Message
-     */
-    message: string;
-    /**
-     * Updated Items
-     */
-    updated_items: Array<{
-        [key: string]: unknown;
-    }>;
-};
-
-/**
  * UpdatersModel
  */
 export type UpdatersModel = {
@@ -2321,6 +2447,37 @@ export type ValidationError = {
 };
 
 /**
+ * VideoMetadata
+ * Video track metadata
+ */
+export type VideoMetadata = {
+    /**
+     * Codec
+     */
+    codec?: string | null;
+    /**
+     * Resolution Width
+     */
+    resolution_width?: number | null;
+    /**
+     * Resolution Height
+     */
+    resolution_height?: number | null;
+    /**
+     * Frame Rate
+     */
+    frame_rate?: number | null;
+    /**
+     * Bit Depth
+     */
+    bit_depth?: number | null;
+    /**
+     * Hdr Type
+     */
+    hdr_type?: string | null;
+};
+
+/**
  * ZileanConfig
  */
 export type ZileanConfig = {
@@ -2349,30 +2506,6 @@ export type ZileanConfig = {
      * Enable rate limiting
      */
     ratelimit?: boolean;
-};
-
-/**
- * EventResponse
- */
-export type RoutersSecureDefaultEventResponse = {
-    /**
-     * Events
-     */
-    events: {
-        [key: string]: Array<number>;
-    };
-};
-
-/**
- * EventResponse
- */
-export type RoutersSecureStreamEventResponse = {
-    /**
-     * Data
-     */
-    data: {
-        [key: string]: unknown;
-    };
 };
 
 export type RootData = {
@@ -2437,28 +2570,28 @@ export type DownloadUserInfoResponses = {
 
 export type DownloadUserInfoResponse = DownloadUserInfoResponses[keyof DownloadUserInfoResponses];
 
-export type GenerateapikeyData = {
+export type GenerateApikeyData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/v1/generateapikey';
 };
 
-export type GenerateapikeyErrors = {
+export type GenerateApikeyErrors = {
     /**
      * Not found
      */
     404: unknown;
 };
 
-export type GenerateapikeyResponses = {
+export type GenerateApikeyResponses = {
     /**
      * Successful Response
      */
     200: MessageResponse;
 };
 
-export type GenerateapikeyResponse = GenerateapikeyResponses[keyof GenerateapikeyResponses];
+export type GenerateApikeyResponse = GenerateApikeyResponses[keyof GenerateApikeyResponses];
 
 export type ServicesData = {
     body?: never;
@@ -2515,6 +2648,7 @@ export type TraktOauthCallbackData = {
     query: {
         /**
          * Code
+         * The OAuth code returned by Trakt
          */
         code: string;
     };
@@ -2607,7 +2741,7 @@ export type EventsResponses = {
     /**
      * Successful Response
      */
-    200: RoutersSecureDefaultEventResponse;
+    200: EventResponse;
 };
 
 export type EventsResponse = EventsResponses[keyof EventsResponses];
@@ -2793,22 +2927,9 @@ export type GetItemsResponses = {
 export type GetItemsResponse = GetItemsResponses[keyof GetItemsResponses];
 
 export type AddItemsData = {
-    body?: never;
+    body?: BodyAddItems;
     path?: never;
-    query?: {
-        /**
-         * Tmdb Ids
-         */
-        tmdb_ids?: string | null;
-        /**
-         * Tvdb Ids
-         */
-        tvdb_ids?: string | null;
-        /**
-         * Media Type
-         */
-        media_type?: ('movie' | 'tv') | null;
-    };
+    query?: never;
     url: '/api/v1/items/add';
 };
 
@@ -2839,18 +2960,24 @@ export type GetItemData = {
     path: {
         /**
          * Id
+         *
+         * The ID of the media item. For 'item' type, use the numeric item ID;
+         * for 'movie' or 'tv' types, use the TMDB or TVDB ID respectively.
+         *
          */
         id: string;
     };
     query?: {
         /**
          * Media Type
+         * The type of media item
          */
-        media_type?: 'movie' | 'tv' | 'item';
+        media_type?: ('movie' | 'tv' | 'item') | null;
         /**
          * Extended
+         * Whether to include extended information
          */
-        extended?: boolean | null;
+        extended?: boolean;
     };
     url: '/api/v1/items/{id}';
 };
@@ -2881,14 +3008,13 @@ export type GetItemResponses = {
 export type GetItemResponse = GetItemResponses[keyof GetItemResponses];
 
 export type ResetItemsData = {
-    body?: never;
+    /**
+     * Ids
+     * Comma-separated list of item IDs to reset
+     */
+    body: string;
     path?: never;
-    query: {
-        /**
-         * Ids
-         */
-        ids: string;
-    };
+    query?: never;
     url: '/api/v1/items/reset';
 };
 
@@ -2915,14 +3041,13 @@ export type ResetItemsResponses = {
 export type ResetItemsResponse = ResetItemsResponses[keyof ResetItemsResponses];
 
 export type RetryItemsData = {
-    body?: never;
+    /**
+     * Ids
+     * Comma-separated list of item IDs to retry
+     */
+    body: string;
     path?: never;
-    query: {
-        /**
-         * Ids
-         */
-        ids: string;
-    };
+    query?: never;
     url: '/api/v1/items/retry';
 };
 
@@ -2971,38 +3096,14 @@ export type RetryLibraryItemsResponses = {
 
 export type RetryLibraryItemsResponse = RetryLibraryItemsResponses[keyof RetryLibraryItemsResponses];
 
-export type UpdateOngoingItemsData = {
-    body?: never;
+export type RemoveItemData = {
+    /**
+     * Ids
+     * Comma-separated list of item IDs to remove
+     */
+    body: string;
     path?: never;
     query?: never;
-    url: '/api/v1/items/update_ongoing';
-};
-
-export type UpdateOngoingItemsErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-};
-
-export type UpdateOngoingItemsResponses = {
-    /**
-     * Successful Response
-     */
-    200: UpdateOngoingResponse;
-};
-
-export type UpdateOngoingItemsResponse = UpdateOngoingItemsResponses[keyof UpdateOngoingItemsResponses];
-
-export type RemoveItemData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Ids
-         */
-        ids: string;
-    };
     url: '/api/v1/items/remove';
 };
 
@@ -3028,11 +3129,12 @@ export type RemoveItemResponses = {
 
 export type RemoveItemResponse = RemoveItemResponses[keyof RemoveItemResponses];
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
+export type GetItemStreamsData = {
     body?: never;
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
     };
@@ -3040,7 +3142,7 @@ export type GetItemStreamsApiV1ItemsItemIdStreamsGetData = {
     url: '/api/v1/items/{item_id}/streams';
 };
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetErrors = {
+export type GetItemStreamsErrors = {
     /**
      * Not found
      */
@@ -3051,24 +3153,28 @@ export type GetItemStreamsApiV1ItemsItemIdStreamsGetErrors = {
     422: HttpValidationError;
 };
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetError = GetItemStreamsApiV1ItemsItemIdStreamsGetErrors[keyof GetItemStreamsApiV1ItemsItemIdStreamsGetErrors];
+export type GetItemStreamsError = GetItemStreamsErrors[keyof GetItemStreamsErrors];
 
-export type GetItemStreamsApiV1ItemsItemIdStreamsGetResponses = {
+export type GetItemStreamsResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: StreamsResponse;
 };
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
+export type GetItemStreamsResponse = GetItemStreamsResponses[keyof GetItemStreamsResponses];
+
+export type BlacklistItemStreamData = {
     body?: never;
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
         /**
          * Stream Id
+         * The ID of the stream
          */
         stream_id: number;
     };
@@ -3076,7 +3182,7 @@ export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostData = {
     url: '/api/v1/items/{item_id}/streams/{stream_id}/blacklist';
 };
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors = {
+export type BlacklistItemStreamErrors = {
     /**
      * Not found
      */
@@ -3087,24 +3193,28 @@ export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors = 
     422: HttpValidationError;
 };
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostError = BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors[keyof BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostErrors];
+export type BlacklistItemStreamError = BlacklistItemStreamErrors[keyof BlacklistItemStreamErrors];
 
-export type BlacklistStreamApiV1ItemsItemIdStreamsStreamIdBlacklistPostResponses = {
+export type BlacklistItemStreamResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: MessageResponse;
 };
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData = {
+export type BlacklistItemStreamResponse = BlacklistItemStreamResponses[keyof BlacklistItemStreamResponses];
+
+export type UnblacklistItemStreamData = {
     body?: never;
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
         /**
          * Stream Id
+         * The ID of the stream
          */
         stream_id: number;
     };
@@ -3112,7 +3222,7 @@ export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostData 
     url: '/api/v1/items/{item_id}/streams/{stream_id}/unblacklist';
 };
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors = {
+export type UnblacklistItemStreamErrors = {
     /**
      * Not found
      */
@@ -3123,20 +3233,23 @@ export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError
     422: HttpValidationError;
 };
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostError = UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors[keyof UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostErrors];
+export type UnblacklistItemStreamError = UnblacklistItemStreamErrors[keyof UnblacklistItemStreamErrors];
 
-export type UnblacklistStreamApiV1ItemsItemIdStreamsStreamIdUnblacklistPostResponses = {
+export type UnblacklistItemStreamResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: MessageResponse;
 };
+
+export type UnblacklistItemStreamResponse = UnblacklistItemStreamResponses[keyof UnblacklistItemStreamResponses];
 
 export type ResetItemStreamsData = {
     body?: never;
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
     };
@@ -3161,18 +3274,19 @@ export type ResetItemStreamsResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: MessageResponse;
 };
 
+export type ResetItemStreamsResponse = ResetItemStreamsResponses[keyof ResetItemStreamsResponses];
+
 export type PauseItemsData = {
-    body?: never;
+    /**
+     * Ids
+     * Comma-separated list of item IDs to pause
+     */
+    body: string;
     path?: never;
-    query: {
-        /**
-         * Ids
-         */
-        ids: string;
-    };
+    query?: never;
     url: '/api/v1/items/pause';
 };
 
@@ -3199,14 +3313,13 @@ export type PauseItemsResponses = {
 export type PauseItemsResponse = PauseItemsResponses[keyof PauseItemsResponses];
 
 export type UnpauseItemsData = {
-    body?: never;
+    /**
+     * Ids
+     * Comma-separated list of item IDs to unpause
+     */
+    body: string;
     path?: never;
-    query: {
-        /**
-         * Ids
-         */
-        ids: string;
-    };
+    query?: never;
     url: '/api/v1/items/unpause';
 };
 
@@ -3233,26 +3346,9 @@ export type UnpauseItemsResponses = {
 export type UnpauseItemsResponse = UnpauseItemsResponses[keyof UnpauseItemsResponses];
 
 export type CompositeReindexerData = {
-    body?: never;
+    body?: BodyCompositeReindexer;
     path?: never;
-    query?: {
-        /**
-         * Item Id
-         */
-        item_id?: number | null;
-        /**
-         * Tvdb Id
-         */
-        tvdb_id?: string | null;
-        /**
-         * Tmdb Id
-         */
-        tmdb_id?: string | null;
-        /**
-         * Imdb Id
-         */
-        imdb_id?: string | null;
-    };
+    query?: never;
     url: '/api/v1/items/reindex';
 };
 
@@ -3283,6 +3379,7 @@ export type GetItemAliasesData = {
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
     };
@@ -3317,6 +3414,7 @@ export type GetItemMetadataData = {
     path: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id: number;
     };
@@ -3339,12 +3437,9 @@ export type GetItemMetadataError = GetItemMetadataErrors[keyof GetItemMetadataEr
 
 export type GetItemMetadataResponses = {
     /**
-     * Response Get Item Metadata
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: MediaMetadata;
 };
 
 export type GetItemMetadataResponse = GetItemMetadataResponses[keyof GetItemMetadataResponses];
@@ -3355,22 +3450,27 @@ export type ScrapeItemData = {
     query?: {
         /**
          * Item Id
+         * The ID of the media item
          */
         item_id?: string | null;
         /**
          * Tmdb Id
+         * The TMDB ID of the media item
          */
         tmdb_id?: string | null;
         /**
          * Tvdb Id
+         * The TVDB ID of the media item
          */
         tvdb_id?: string | null;
         /**
          * Imdb Id
+         * The IMDB ID of the media item
          */
         imdb_id?: string | null;
         /**
          * Media Type
+         * The media type
          */
         media_type?: ('movie' | 'tv') | null;
     };
@@ -3396,33 +3496,13 @@ export type ScrapeItemResponses = {
 export type ScrapeItemResponse2 = ScrapeItemResponses[keyof ScrapeItemResponses];
 
 export type StartManualSessionData = {
-    body?: never;
+    body?: BodyStartManualSession;
     path?: never;
-    query?: {
-        /**
-         * Item Id
-         */
-        item_id?: string | null;
-        /**
-         * Tmdb Id
-         */
-        tmdb_id?: string | null;
-        /**
-         * Tvdb Id
-         */
-        tvdb_id?: string | null;
-        /**
-         * Imdb Id
-         */
-        imdb_id?: string | null;
-        /**
-         * Media Type
-         */
-        media_type?: ('movie' | 'tv') | null;
+    query: {
         /**
          * Magnet
          */
-        magnet?: string | null;
+        magnet: string;
     };
     url: '/api/v1/scrape/scrape/start_session';
 };
@@ -3446,10 +3526,14 @@ export type StartManualSessionResponses = {
 export type StartManualSessionResponse = StartManualSessionResponses[keyof StartManualSessionResponses];
 
 export type ManualSelectData = {
+    /**
+     * The files to select
+     */
     body: Container;
     path: {
         /**
          * Session Id
+         * Identifier of the scraping session containing item and torrent context.
          */
         session_id: string;
     };
@@ -3478,13 +3562,15 @@ export type ManualSelectResponse = ManualSelectResponses[keyof ManualSelectRespo
 export type ManualUpdateAttributesData = {
     /**
      * Data
+     * File metadata for a single movie (`DebridFile`) or a mapping of seasons/episodes to file metadata (`ShowFileData`) for TV content.
      */
     body: DebridFile | ShowFileData;
     path: {
         /**
          * Session Id
+         * Identifier of the scraping session containing item and torrent context.
          */
-        session_id: unknown;
+        session_id: string;
     };
     query?: never;
     url: '/api/v1/scrape/scrape/update_attributes/{session_id}';
@@ -3513,6 +3599,7 @@ export type AbortManualSessionData = {
     path: {
         /**
          * Session Id
+         * Identifier of the scraping session containing item and torrent context.
          */
         session_id: string;
     };
@@ -3543,6 +3630,7 @@ export type CompleteManualSessionData = {
     path: {
         /**
          * Session Id
+         * Identifier of the scraping session containing item and torrent context.
          */
         session_id: string;
     };
@@ -3571,6 +3659,7 @@ export type CompleteManualSessionResponse = CompleteManualSessionResponses[keyof
 export type ParseTorrentTitlesData = {
     /**
      * Titles
+     * List of torrent titles to parse
      */
     body: Array<string>;
     path?: never;
@@ -3602,10 +3691,12 @@ export type FetchOverseerrRequestsData = {
     query?: {
         /**
          * Filter
+         * Filter for Overseerr requests
          */
-        filter?: string | null;
+        filter?: ('all' | 'approved' | 'available' | 'pending' | 'processing' | 'unavailable' | 'failed' | 'deleted' | 'completed') | null;
         /**
          * Take
+         * Number of requests to fetch
          */
         take?: number;
     };
@@ -3730,6 +3821,7 @@ export type GetSettingsData = {
     path: {
         /**
          * Paths
+         * Comma-separated list of settings paths
          */
         paths: string;
     };
@@ -3765,6 +3857,7 @@ export type GetSettingsResponse = GetSettingsResponses[keyof GetSettingsResponse
 export type SetAllSettingsData = {
     /**
      * New Settings
+     * New settings to apply
      */
     body: {
         [key: string]: unknown;
@@ -3799,6 +3892,7 @@ export type SetAllSettingsResponse = SetAllSettingsResponses[keyof SetAllSetting
 export type SetSettingsData = {
     /**
      * Settings
+     * List of settings to update
      */
     body: Array<SetSettings>;
     path?: never;
@@ -3844,12 +3938,9 @@ export type OverseerrApiV1WebhookOverseerrPostErrors = {
 
 export type OverseerrApiV1WebhookOverseerrPostResponses = {
     /**
-     * Response Overseerr Api V1 Webhook Overseerr Post
      * Successful Response
      */
-    200: {
-        [key: string]: unknown;
-    };
+    200: OverseerrWebhookResponse;
 };
 
 export type OverseerrApiV1WebhookOverseerrPostResponse = OverseerrApiV1WebhookOverseerrPostResponses[keyof OverseerrApiV1WebhookOverseerrPostResponses];
@@ -3872,14 +3963,17 @@ export type GetEventTypesApiV1StreamEventTypesGetResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: EventTypesResponse;
 };
+
+export type GetEventTypesApiV1StreamEventTypesGetResponse = GetEventTypesApiV1StreamEventTypesGetResponses[keyof GetEventTypesApiV1StreamEventTypesGetResponses];
 
 export type StreamEventsApiV1StreamEventTypeGetData = {
     body?: never;
     path: {
         /**
          * Event Type
+         * The type of event to stream
          */
         event_type: string;
     };
@@ -3904,10 +3998,8 @@ export type StreamEventsApiV1StreamEventTypeGetResponses = {
     /**
      * Successful Response
      */
-    200: RoutersSecureStreamEventResponse;
+    200: unknown;
 };
-
-export type StreamEventsApiV1StreamEventTypeGetResponse = StreamEventsApiV1StreamEventTypeGetResponses[keyof StreamEventsApiV1StreamEventTypeGetResponses];
 
 export type ClientOptions = {
     baseUrl: 'http://localhost:8080' | (string & {});

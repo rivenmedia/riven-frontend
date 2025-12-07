@@ -194,7 +194,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     fetch
                 });
 
-                if ((searchResult).error) {
+                if (searchResult.error) {
                     console.error("TMDB API error:", (searchResult as any).error);
                     error(500, "Failed to search movies");
                 }

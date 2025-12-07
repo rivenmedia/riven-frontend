@@ -38,15 +38,11 @@
 
     const itemsStore = new ItemStore();
 
-
-
     let actionInProgress = $state(false);
     let formElement: HTMLFormElement;
 </script>
 
 <div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
-
-
     <form method="GET" class="flex flex-col" bind:this={formElement}>
         <div class="flex flex-col">
             <Form.Field {form} name="search">
@@ -296,32 +292,16 @@
         {/if}
 
         {#if data.totalItems > 0}
-            {#await data.items}
-                <div class="mt-8 flex flex-wrap gap-2">
-                    {#each { length: Math.min(data.limit, data.totalItems) } as _}
-                        <div class="flex w-36 flex-col gap-2 md:w-40 lg:w-44">
-                            <Skeleton class="aspect-[2/3] w-full rounded-xl" />
-                            <Skeleton class="h-4 w-full" />
-                            <div class="flex justify-between">
-                                <Skeleton class="h-3 w-10" />
-                                <Skeleton class="h-3 w-10" />
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            {:then items}
-                <div class="mt-8 flex flex-wrap gap-2">
-                    {#each items as item (item.riven_id)}
-                        <ListItem
-                            data={item}
-                            indexer={item.indexer}
-                            type={item.type}
-                            isSelectable
-                            selectStore={itemsStore} />
-                    {/each}
-                </div>
-            {/await}
-
+            <div class="mt-8 flex flex-wrap gap-2">
+                {#each data.items as item (item.riven_id)}
+                    <ListItem
+                        data={item}
+                        indexer={item.indexer}
+                        type={item.type}
+                        isSelectable
+                        selectStore={itemsStore} />
+                {/each}
+            </div>
             <div class="mt-4">
                 <p class="text-muted-foreground text-sm">
                     Showing page <span class="font-semibold text-purple-400">{$formData.page}</span>
@@ -339,7 +319,8 @@
                 {#snippet children({ pages, currentPage })}
                     <Pagination.Content>
                         <Pagination.Item>
-                            <Pagination.PrevButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
+                            <Pagination.PrevButton
+                                onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                         {#each pages as page (page.key)}
                             {#if page.type === "ellipsis"}
@@ -351,14 +332,16 @@
                                     <Pagination.Link
                                         {page}
                                         isActive={currentPage === page.value}
-                                        onclick={() => setTimeout(() => formElement.requestSubmit(), 10)}>
+                                        onclick={() =>
+                                            setTimeout(() => formElement.requestSubmit(), 10)}>
                                         {page.value}
                                     </Pagination.Link>
                                 </Pagination.Item>
                             {/if}
                         {/each}
                         <Pagination.Item>
-                            <Pagination.NextButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
+                            <Pagination.NextButton
+                                onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                     </Pagination.Content>
                 {/snippet}

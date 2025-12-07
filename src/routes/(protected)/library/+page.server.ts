@@ -17,12 +17,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? item.tmdb_id
                 : item.type === "show"
-                    ? item.tvdb_id
-                    : item.type === "season"
-                        ? item.parent_ids.tvdb_id
-                        : item.type === "episode"
-                            ? item.parent_ids.tvdb_id
-                            : null,
+                  ? item.tvdb_id
+                  : item.type === "season"
+                    ? item.parent_ids.tvdb_id
+                    : item.type === "episode"
+                      ? item.parent_ids.tvdb_id
+                      : null,
         title: item.title,
         poster_path: item.poster_path,
         media_type: item.type,
@@ -32,12 +32,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? "movie"
                 : item.type === "show"
-                    ? "show"
-                    : item.type === "season"
-                        ? "season"
-                        : item.type === "episode"
-                            ? "episode"
-                            : "unknown",
+                  ? "show"
+                  : item.type === "season"
+                    ? "season"
+                    : item.type === "episode"
+                      ? "episode"
+                      : "unknown",
         riven_id: item.id
     }));
 }
@@ -61,18 +61,17 @@ export const load: PageServerLoad = async (event) => {
         error(500, "Failed to fetch items count");
     }
 
-    const itemsPromise = getItems({
+    const itemsResponse = await getItems({
         fetch: event.fetch,
         query: itemsSearchForm.data
-    }).then((response) => {
-        if (response.error) {
-            throw new Error("Failed to fetch items");
-        }
-        return response.data ? transformItems(response.data.items) : [];
     });
 
+    if (itemsResponse.error) {
+        error(500, "Failed to fetch items");
+    }
+
     return {
-        items: itemsPromise,
+        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
         page: countResponse.data ? countResponse.data.page : 1,
         totalPages: countResponse.data ? countResponse.data.total_pages : 1,
         limit: countResponse.data ? countResponse.data.limit : 20,

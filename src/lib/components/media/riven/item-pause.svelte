@@ -69,8 +69,8 @@
                 {isPaused ? "Resume" : "Pause"} "{title ?? "Media Item"}"
             </AlertDialog.Title>
             <AlertDialog.Description>
-                This will send a request to Riven to {isPaused ? "resume" : "pause"} this media. You
-                will be notified when it's done.
+                This will send a request to Riven to {isPaused ? "resume" : "pause"} this media. You will
+                be notified when it's done.
             </AlertDialog.Description>
         </AlertDialog.Header>
         <AlertDialog.Footer>

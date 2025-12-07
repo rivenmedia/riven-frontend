@@ -1,3 +1,5 @@
+import { logs as getOldLogs } from "$lib/api";
+
 export type LogEntry = {
     message?: string;
 };
@@ -60,11 +62,9 @@ export class LogStore {
             this.#isLoadingHistorical = true;
             this.#historicalError = null;
 
-            const { logs: getOldLogs } = await import("$lib/api");
             const response = await getOldLogs();
-
             console.log("Fetched historical logs:", response);
-            // @ts-ignore
+            // @ts-expect-error ignore
             this.#historicalLogs = response.data?.logs || [];
         } catch (e: any) {
             console.error("Failed to fetch historical logs:", e);

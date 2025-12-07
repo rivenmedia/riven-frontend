@@ -152,40 +152,42 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
+        const languagesToCheck = ["jpn", "kor", "chi", "zho"];
+        
         if (
             details?.data &&
             details?.data.originalLanguage &&
-            details.data.originalLanguage === "jpn"
+            languagesToCheck.includes(details.data.originalLanguage)
         ) {
             const { data: engEpisodesData, error: engEpisodesError } = await providers.tvdb.GET(
-                "/series/{id}/episodes/{season-type}/{lang}",
-                {
-                    params: {
-                        path: {
-                            id: Number(id),
-                            "season-type": "official",
-                            lang: "eng"
-                        },
-                        query: {
-                            page: 0
-                        }
-                    },
-                    headers: {
-                        Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
-                    },
-                    fetch: fetch
+            "/series/{id}/episodes/{season-type}/{lang}",
+            {
+                params: {
+                path: {
+                    id: Number(id),
+                    "season-type": "official",
+                    lang: "eng"
+                },
+                query: {
+                    page: 0
                 }
+                },
+                headers: {
+                Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
+                },
+                fetch: fetch
+            }
             );
 
             if (
-                !engEpisodesError &&
-                engEpisodesData &&
-                engEpisodesData.data &&
-                // @ts-expect-error it says data.series.episodes but it's actually data.episodes
-                engEpisodesData.data.episodes
+            !engEpisodesError &&
+            engEpisodesData &&
+            engEpisodesData.data &&
+            // @ts-expect-error it says data.series.episodes but it's actually data.episodes
+            engEpisodesData.data.episodes
             ) {
-                // @ts-expect-error it says data.series.episodes but it's actually data.episodes
-                details.data.episodes = engEpisodesData.data.episodes;
+            // @ts-expect-error it says data.series.episodes but it's actually data.episodes
+            details.data.episodes = engEpisodesData.data.episodes;
             }
         }
 

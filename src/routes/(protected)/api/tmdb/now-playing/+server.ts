@@ -2,7 +2,6 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 
-
 export const GET: RequestHandler = async ({ fetch, locals }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
