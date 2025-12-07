@@ -50,7 +50,7 @@
                     >View All</Button>
             </div>
         </div>
-        <ListCarousel data={trendingMoviesStore.items} indexer="tmdb" type="movie" />
+        <ListCarousel data={trendingMoviesStore.items} />
     </div>
 
     <div class="flex flex-col">
@@ -74,7 +74,7 @@
                 <Button class="text-xs" variant="link" href="/lists/trending/tv">View All</Button>
             </div>
         </div>
-        <ListCarousel data={trendingShowsStore.items} indexer="tmdb" type="tv" />
+        <ListCarousel data={trendingShowsStore.items} />
     </div>
 
     <div class="flex flex-col">

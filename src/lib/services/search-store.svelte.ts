@@ -117,6 +117,19 @@ export class SearchStore {
             this.#loading = false;
         }
     }
+    private deduplicateItems(newItems: any[], existingItems: any[] = []): any[] {
+        const seenIds = new Set(existingItems.map((i: any) => i.id));
+        const uniqueItems: any[] = [];
+
+        for (const item of newItems) {
+            if (item && item.id !== undefined && item.id !== null && !seenIds.has(item.id)) {
+                uniqueItems.push(item);
+                seenIds.add(item.id);
+            }
+        }
+        return uniqueItems;
+    }
+
     private async fetchMovies(page: number): Promise<void> {
         if (!this.#parsedSearch) return;
 
@@ -130,20 +143,16 @@ export class SearchStore {
         const result = await response.json();
 
         if (page === 1) {
-            this.#movieResults = result.results || [];
+            this.#movieResults = this.deduplicateItems(result.results || []);
             // For page 1, set or add based on media type
             if (this.#mediaType === "movie") {
                 this.#totalResults = result.total_results || 0;
             } else {
                 this.#totalResults += result.total_results || 0;
             }
-            console.log(
-                "type is {} and total results are now {}",
-                this.#mediaType,
-                this.#totalResults
-            );
         } else {
-            this.#movieResults = [...this.#movieResults, ...(result.results || [])];
+            const uniqueNewItems = this.deduplicateItems(result.results || [], this.#movieResults);
+            this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
         }
 
         this.#movieHasMore = result.page < result.total_pages;
@@ -163,20 +172,16 @@ export class SearchStore {
         const result = await response.json();
 
         if (page === 1) {
-            this.#tvResults = result.results || [];
+            this.#tvResults = this.deduplicateItems(result.results || []);
             // For page 1, set or add based on media type
             if (this.#mediaType === "tv") {
                 this.#totalResults = result.total_results || 0;
             } else {
                 this.#totalResults += result.total_results || 0;
             }
-            console.log(
-                "type is {} and total results are now {}",
-                this.#mediaType,
-                this.#totalResults
-            );
         } else {
-            this.#tvResults = [...this.#tvResults, ...(result.results || [])];
+            const uniqueNewItems = this.deduplicateItems(result.results || [], this.#tvResults);
+            this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
         }
 
         this.#tvHasMore = result.page < result.total_pages;
@@ -203,7 +208,8 @@ export class SearchStore {
                 const newItems = result.results || [];
 
                 if (newItems.length > 0) {
-                    this.#movieResults = [...this.#movieResults, ...newItems];
+                    const uniqueNewItems = this.deduplicateItems(newItems, this.#movieResults);
+                    this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
                 }
 
                 this.#movieHasMore = result.page < result.total_pages;
@@ -223,7 +229,8 @@ export class SearchStore {
                 const newItems = result.results || [];
 
                 if (newItems.length > 0) {
-                    this.#tvResults = [...this.#tvResults, ...newItems];
+                    const uniqueNewItems = this.deduplicateItems(newItems, this.#tvResults);
+                    this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
                 }
 
                 this.#tvHasMore = result.page < result.total_pages;

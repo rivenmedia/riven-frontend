@@ -14,30 +14,30 @@ function extractYear(airedAt: string | null): number | null {
 function transformItems(items: any[]) {
     return items.map((item) => ({
         id:
-            item.type === "Movie"
+            item.type === "movie"
                 ? item.tmdb_id
-                : item.type === "Show"
-                  ? item.tvdb_id
-                  : item.type === "Season"
-                    ? item.parent_ids.tvdb_id
-                    : item.type === "Episode"
-                      ? item.parent_ids.tvdb_id
-                      : null,
+                : item.type === "show"
+                    ? item.tvdb_id
+                    : item.type === "season"
+                        ? item.parent_ids.tvdb_id
+                        : item.type === "episode"
+                            ? item.parent_ids.tvdb_id
+                            : null,
         title: item.title,
         poster_path: item.poster_path,
         media_type: item.type,
         year: extractYear(item.aired_at),
-        indexer: item.type === "Movie" ? "tmdb" : "tvdb",
+        indexer: item.type === "movie" ? "tmdb" : "tvdb",
         type:
-            item.type === "Movie"
+            item.type === "movie"
                 ? "movie"
-                : item.type === "Show"
-                  ? "show"
-                  : item.type === "Season"
-                    ? "season"
-                    : item.type === "Episode"
-                      ? "episode"
-                      : "unknown",
+                : item.type === "show"
+                    ? "show"
+                    : item.type === "season"
+                        ? "season"
+                        : item.type === "episode"
+                            ? "episode"
+                            : "unknown",
         riven_id: item.id
     }));
 }
@@ -49,21 +49,34 @@ export const load: PageServerLoad = async (event) => {
 
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
 
-    const itemsResponse = await getItems({
+    const countResponse = await getItems({
         fetch: event.fetch,
-        query: itemsSearchForm.data
+        query: {
+            ...itemsSearchForm.data,
+            count_only: true
+        } as any
     });
 
-    if (itemsResponse.error) {
-        error(500, "Failed to fetch items");
+    if (countResponse.error) {
+        error(500, "Failed to fetch items count");
     }
 
+    const itemsPromise = getItems({
+        fetch: event.fetch,
+        query: itemsSearchForm.data
+    }).then((response) => {
+        if (response.error) {
+            throw new Error("Failed to fetch items");
+        }
+        return response.data ? transformItems(response.data.items) : [];
+    });
+
     return {
-        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
-        page: itemsResponse.data ? itemsResponse.data.page : 1,
-        totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
-        limit: itemsResponse.data ? itemsResponse.data.limit : 20,
-        totalItems: itemsResponse.data ? itemsResponse.data.total_items : 0,
+        items: itemsPromise,
+        page: countResponse.data ? countResponse.data.page : 1,
+        totalPages: countResponse.data ? countResponse.data.total_pages : 1,
+        limit: countResponse.data ? countResponse.data.limit : 20,
+        totalItems: countResponse.data ? countResponse.data.total_items : 0,
         itemsSearchForm
     };
 };

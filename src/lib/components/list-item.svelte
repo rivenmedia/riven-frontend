@@ -16,11 +16,21 @@
         type = data.media_type;
     }
 
-    if (indexer === "tvdb" && type === "show") {
+    if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") {
         type = "tv";
     }
 
-    const mediaURL = `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
+    let mediaURL = $derived.by(() => {
+        if (!data.id) return "javascript:void(0)";
+
+        if (indexer === "tmdb" && type === "movie") {
+            return `/details/media/${data.id}/movie`;
+        } else if (indexer === "tvdb" && type === "tv") {
+            return `/details/media/${data.id}/tv`;
+        } else {
+            return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
+        }
+    });
 </script>
 
 <div class="flex w-36 flex-col md:w-40 lg:w-44">
@@ -36,7 +46,7 @@
         riven_id={data.riven_id ?? undefined}
         {mediaURL}
         {useDynamicPoster} />
-    <a href={mediaURL} class="mt-1 block h-10 text-sm font-semibold hover:underline">
+    <a href={mediaURL} class="mt-2 block h-10 text-sm font-semibold hover:underline">
         <p class="line-clamp-2">
             {data.title}
         </p>
