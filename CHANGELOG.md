@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v0.21.2...v1.0.0-beta.0) (2025-12-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* Too many changes, will be docummented separately on riven.tv after release
+
 ## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
 
 ### Features
