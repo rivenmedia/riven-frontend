@@ -29,9 +29,8 @@
 
     let { data }: PageProps = $props();
 
-    
     // svelte-ignore state_referenced_locally
-        const form = superForm(data.itemsSearchForm, {
+    const form = superForm(data.itemsSearchForm, {
         validators: zod4Client(itemsSearchSchema),
         resetForm: false
     });

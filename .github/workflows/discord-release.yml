@@ -1,6 +1,6 @@
 on:
     release:
-        types: [published]
+        types: [published, prereleased]
 
 permissions:
     contents: read
@@ -12,7 +12,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
             - name: Github Releases To Discord
-              uses: SethCohen/github-releases-to-discord@v1.13.1 # latest version breaks syntax in discord. stick to 1.13.1
+              uses: SethCohen/github-releases-to-discord@v1.19.0
               with:
                   webhook_url: ${{ secrets.WEBHOOK_URL }}
                   color: "2105893"
