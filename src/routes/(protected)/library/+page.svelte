@@ -29,7 +29,9 @@
 
     let { data }: PageProps = $props();
 
-    const form = superForm(data.itemsSearchForm, {
+    
+    // svelte-ignore state_referenced_locally
+        const form = superForm(data.itemsSearchForm, {
         validators: zod4Client(itemsSearchSchema),
         resetForm: false
     });
@@ -202,8 +204,8 @@
                 {@render actionButton("Remove Selected", "destructive", async () => {
                     actionInProgress = true;
                     const data = await removeItem({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -220,8 +222,8 @@
                 {@render actionButton("Reset Selected", "outline", async () => {
                     actionInProgress = true;
                     const data = await resetItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -238,8 +240,8 @@
                 {@render actionButton("Retry Selected", "outline", async () => {
                     actionInProgress = true;
                     const data = await retryItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -256,8 +258,8 @@
                 {@render actionButton("Pause Selected", "outline", async () => {
                     actionInProgress = true;
                     const data = await pauseItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -274,8 +276,8 @@
                 {@render actionButton("Unpause Selected", "outline", async () => {
                     actionInProgress = true;
                     const data = await unpauseItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {

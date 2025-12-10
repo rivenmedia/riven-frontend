@@ -4,9 +4,9 @@
     import Tv from "@lucide/svelte/icons/tv";
 
     let {
-        data,
-        indexer,
-        type,
+        data = $bindable(),
+        indexer = $bindable<string | undefined>(),
+        type = $bindable<string | undefined>(),
         isSelectable = false,
         selectStore = undefined,
         useDynamicPoster = true

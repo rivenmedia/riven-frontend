@@ -4,7 +4,6 @@
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
-    import { cn } from "$lib/utils";
 
     interface Props {
         title: string | null | undefined;
@@ -34,12 +33,13 @@
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         console.log("IDs:", ids);
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
+        console.log("Valid IDs:", validIds);
 
         const response = await addItems({
-            query: {
+            body: {
                 media_type: mediaType as "movie" | "tv",
-                tmdb_ids: mediaType === "movie" ? validIds.join(",") : "",
-                tvdb_ids: mediaType === "tv" ? validIds.join(",") : ""
+                tmdb_ids: mediaType === "movie" ? validIds : [],
+                tvdb_ids: mediaType === "tv" ? validIds : []
             }
         });
 

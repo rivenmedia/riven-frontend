@@ -445,8 +445,8 @@ export const getItems = <ThrowOnError extends boolean = false>(options?: Options
  * Add media items with bases on TMDB ID or TVDB ID,
  * you can add multiple IDs by comma separating them.
  */
-export const addItems = <ThrowOnError extends boolean = false>(options?: Options<AddItemsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AddItemsResponses, AddItemsErrors, ThrowOnError>({
+export const addItems = <ThrowOnError extends boolean = false>(options: Options<AddItemsData, ThrowOnError>) => {
+    return (options.client ?? _heyApiClient).post<AddItemsResponses, AddItemsErrors, ThrowOnError>({
         requestValidator: async (data) => {
             return await zAddItemsData.parseAsync(data);
         },
@@ -467,7 +467,7 @@ export const addItems = <ThrowOnError extends boolean = false>(options?: Options
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            ...options?.headers
+            ...options.headers
         }
     });
 };
@@ -794,8 +794,8 @@ export const unpauseItems = <ThrowOnError extends boolean = false>(options: Opti
  * Submits an item to be re-indexed through the indexer to manually fix shows that don't have release dates.
  * Only works for movies and shows. Requires item id as a parameter.
  */
-export const compositeReindexer = <ThrowOnError extends boolean = false>(options?: Options<CompositeReindexerData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CompositeReindexerResponses, CompositeReindexerErrors, ThrowOnError>({
+export const compositeReindexer = <ThrowOnError extends boolean = false>(options: Options<CompositeReindexerData, ThrowOnError>) => {
+    return (options.client ?? _heyApiClient).post<CompositeReindexerResponses, CompositeReindexerErrors, ThrowOnError>({
         requestValidator: async (data) => {
             return await zCompositeReindexerData.parseAsync(data);
         },
@@ -816,7 +816,7 @@ export const compositeReindexer = <ThrowOnError extends boolean = false>(options
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            ...options?.headers
+            ...options.headers
         }
     });
 };
@@ -924,11 +924,7 @@ export const startManualSession = <ThrowOnError extends boolean = false>(options
             }
         ],
         url: '/api/v1/scrape/scrape/start_session',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
+        ...options
     });
 };
 

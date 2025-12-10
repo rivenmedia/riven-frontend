@@ -34,13 +34,13 @@
 
         const response = isPaused
             ? await unpauseItems({
-                  query: {
-                      ids: validIds.join(",")
+                  body: {
+                      ids: validIds
                   }
               })
             : await pauseItems({
-                  query: {
-                      ids: validIds.join(",")
+                  body: {
+                      ids: validIds
                   }
               });
 

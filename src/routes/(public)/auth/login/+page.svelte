@@ -28,11 +28,13 @@
         };
     } = $props();
 
+    // svelte-ignore state_referenced_locally
     const loginForm = superForm(data.loginForm, {
         validators: zod4Client(loginSchema),
         resetForm: true
     });
 
+    // svelte-ignore state_referenced_locally
     const registerForm = superForm(data.registerForm, {
         validators: zod4Client(registerSchema),
         resetForm: true
