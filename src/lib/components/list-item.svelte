@@ -16,7 +16,10 @@
         type = data.media_type;
     }
 
-    if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") {
+    if (
+        (indexer === "tvdb" || indexer === "tmdb") &&
+        (type === "show" || type === "season" || type === "episode" || type === "anime")
+    ) {
         type = "tv";
     }
 

@@ -1,43 +1,28 @@
 <script lang="ts">
     import { untrack } from "svelte";
     import { invalidateAll } from "$app/navigation";
-	import {
-		scrapeItem,
-		startManualSession,
-		manualSelect,
-		manualUpdateAttributes,
-		completeManualSession,
-		abortManualSession,
-		parseTorrentTitles,
-        autoScrapeItem,
-        getSettings,
-		type Stream,
-		type StartSessionResponse,
-		type DebridFile,
-		type Container
-	} from "$lib/api";
+    import providers from "$lib/providers";
+    import type { components } from "$lib/providers/riven";
 
-	import type {
-        RtnSettingsModel
-    } from "$lib/api/types.gen";
-	import { toast } from "svelte-sonner";
-	import * as Dialog from "$lib/components/ui/dialog/index.js";
-	import * as Alert from "$lib/components/ui/alert/index.js";
-	import * as Card from "$lib/components/ui/card/index.js";
+    import type { RtnSettingsModel } from "$lib/api/types.gen";
+    import { toast } from "svelte-sonner";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import * as Alert from "$lib/components/ui/alert/index.js";
+    import * as Card from "$lib/components/ui/card/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
     import { Switch } from "$lib/components/ui/switch/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import { Badge } from "$lib/components/ui/badge/index.js";
-	import { Input } from "$lib/components/ui/input/index.js";
-	import { Label } from "$lib/components/ui/label/index.js";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import { Badge } from "$lib/components/ui/badge/index.js";
+    import { Input } from "$lib/components/ui/input/index.js";
+    import { Label } from "$lib/components/ui/label/index.js";
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-	import { cn } from "$lib/utils";
-	import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-	import AlertCircle from "@lucide/svelte/icons/alert-circle";
-	import FileIcon from "@lucide/svelte/icons/file";
-	import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-	import Search from "@lucide/svelte/icons/search";
+    import { cn } from "$lib/utils";
+    import LoaderCircle from "@lucide/svelte/icons/loader-circle";
+    import AlertCircle from "@lucide/svelte/icons/alert-circle";
+    import FileIcon from "@lucide/svelte/icons/file";
+    import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+    import Search from "@lucide/svelte/icons/search";
     import Zap from "@lucide/svelte/icons/zap";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import Monitor from "@lucide/svelte/icons/monitor";
@@ -51,60 +36,67 @@
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
 
-	interface Props {
-		title: string | null | undefined;
-		itemId?: string | null;
-		externalId: string;
-		mediaType: "movie" | "tv";
-		variant?:
-			| "ghost"
-			| "default"
-			| "link"
-			| "destructive"
-			| "outline"
-			| "secondary"
-			| undefined;
-		size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
-		class?: string;
-	}
+    type Stream = components["schemas"]["Stream"];
+    type StartSessionResponse = components["schemas"]["StartSessionResponse"];
+    type DebridFile = components["schemas"]["DebridFile"];
+    type Container = components["schemas"]["Container"];
+    type ShowFileData = components["schemas"]["ShowFileData"];
+    type ParsedData = components["schemas"]["ParsedData"];
 
-	let {
-		title,
-		itemId,
-		externalId,
-		mediaType,
-		variant = "ghost",
-		size = "sm",
-		...restProps
-	}: Props = $props();
+    interface Props {
+        title: string | null | undefined;
+        itemId?: string | null;
+        externalId: string;
+        mediaType: "movie" | "tv";
+        variant?:
+            | "ghost"
+            | "default"
+            | "link"
+            | "destructive"
+            | "outline"
+            | "secondary"
+            | undefined;
+        size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
+        class?: string;
+    }
 
-	interface FileMapping {
-		file_id: string;
-		filename: string;
-		filesize: number;
-		season?: number;
-		episode?: number;
-	}
+    let {
+        title,
+        itemId,
+        externalId,
+        mediaType,
+        variant = "ghost",
+        size = "sm",
+        ...restProps
+    }: Props = $props();
 
-	interface ParsedTitleData {
-		seasons?: number[];
-		episodes?: number[];
-		resolution?: string;
-		quality?: string;
-		hdr?: string[];
-		codec?: string;
-		audio?: string[];
-		languages?: string[];
+    interface FileMapping {
+        file_id: string;
+        filename: string;
+        filesize: number;
+        season?: number;
+        episode?: number;
+    }
+
+    interface ParsedTitleData {
+        seasons?: number[];
+        episodes?: number[];
+        resolution?: string;
+        quality?: string;
+        hdr?: string[];
+        codec?: string;
+        audio?: string[];
+        languages?: string[];
         complete?: boolean;
-	}
+    }
 
-	interface FileSelection {
-		file_id: number;
-		filename: string;
-		filesize: number;
-	}
+    interface FileSelection {
+        file_id: number;
+        filename: string;
+        filesize: number;
+    }
 
-	type UpdateBody = FileSelection | Record<string, Record<string, FileSelection>>;
+    type UpdateBody = DebridFile | ShowFileData;
 
     interface BatchSession {
         sessionId: string;
@@ -112,20 +104,20 @@
         stream: Stream;
         sessionData: StartSessionResponse;
         mappings: FileMapping[];
-        status: 'pending' | 'completed' | 'error';
+        status: "pending" | "completed" | "error";
         error?: string;
     }
 
-	let open = $state(false);
-	let step = $state(1);
-	let loading = $state(false);
+    let open = $state(false);
+    let step = $state(1);
+    let loading = $state(false);
     let settingsLoading = $state(false);
-	let error = $state<string | null>(null);
-	let magnetLink = $state("");
-	let streams = $state<{ magnet: string; stream: Stream }[]>([]);
-	let sessionId = $state<string | null>(null);
-	let sessionData = $state<StartSessionResponse | null>(null);
-	let selectedFilesMappings = $state<FileMapping[]>([]);
+    let error = $state<string | null>(null);
+    let magnetLink = $state("");
+    let streams = $state<{ magnet: string; stream: Stream }[]>([]);
+    let sessionId = $state<string | null>(null);
+    let sessionData = $state<StartSessionResponse | null>(null);
+    let selectedFilesMappings = $state<FileMapping[]>([]);
     let rankingOptions = $state<Record<string, string[]>>({});
     let selectedOptions = $state<Record<string, string[]>>({
         resolutions: [],
@@ -139,9 +131,7 @@
         require: [],
         exclude: []
     });
-    let canStartAutoScrape = $derived(
-        Object.values(selectedOptions).some(arr => arr.length > 0)
-    );
+    let canStartAutoScrape = $derived(Object.values(selectedOptions).some((arr) => arr.length > 0));
 
     let selectedMagnets = $state<Set<string>>(new Set());
     let activeTab = $state("all");
@@ -171,7 +161,7 @@
         }
 
         if (activeTab === "all") return result;
-        
+
         return result.filter(({ stream }) => {
             const data = stream.parsed_data as ParsedTitleData;
             const seasons = data.seasons || [];
@@ -179,10 +169,12 @@
             const isComplete = data.complete === true;
 
             const isShowPack = seasons.length > 1;
-            
+
             // Season Pack: Single season AND (marked complete OR no episodes listed OR many episodes listed)
-            const isSeasonPack = seasons.length === 1 && (isComplete || episodes.length === 0 || episodes.length > 2);
-            
+            const isSeasonPack =
+                seasons.length === 1 &&
+                (isComplete || episodes.length === 0 || episodes.length > 2);
+
             // Episode: Has episodes AND is not a season pack (so 1 or 2 episodes)
             const isEpisode = episodes.length > 0 && !isSeasonPack && !isShowPack;
 
@@ -208,7 +200,11 @@
 
         preparingBatch = true;
         batchSessions = [];
-        batchProgress = { current: 0, total: selectedMagnets.size, message: "Preparing sessions..." };
+        batchProgress = {
+            current: 0,
+            total: selectedMagnets.size,
+            message: "Preparing sessions..."
+        };
 
         try {
             const magnets = Array.from(selectedMagnets);
@@ -216,23 +212,25 @@
 
             for (let i = 0; i < magnets.length; i += CONCURRENCY) {
                 const chunk = magnets.slice(i, i + CONCURRENCY);
-                
-                await Promise.all(chunk.map(async (magnet, index) => {
-                    const globalIndex = i + index;
-                    batchProgress = { 
-                        current: globalIndex + 1, 
-                        total: magnets.length, 
-                        message: `Preparing ${globalIndex + 1}/${magnets.length}` 
-                    };
 
-                    // Find stream info
-                    const streamInfo = streams.find(s => s.magnet === magnet);
-                    if (streamInfo) {
-                        await prepareBatchSession(magnet, streamInfo.stream);
-                    }
-                }));
+                await Promise.all(
+                    chunk.map(async (magnet, index) => {
+                        const globalIndex = i + index;
+                        batchProgress = {
+                            current: globalIndex + 1,
+                            total: magnets.length,
+                            message: `Preparing ${globalIndex + 1}/${magnets.length}`
+                        };
+
+                        // Find stream info
+                        const streamInfo = streams.find((s) => s.magnet === magnet);
+                        if (streamInfo) {
+                            await prepareBatchSession(magnet, streamInfo.stream);
+                        }
+                    })
+                );
             }
-            
+
             step = 6; // Batch Confirmation Step
         } catch (e) {
             console.error("Batch preparation failed", e);
@@ -247,34 +245,52 @@
         try {
             const queryParams: any = {
                 media_type: mediaType,
-                magnet: `magnet:?xt=urn:btih:${magnet}`,
-                disable_filesize_check: disableFilesizeCheck
+                magnet: `magnet:?xt=urn:btih:${magnet}`
             };
 
-            if (itemId) queryParams.item_id = itemId;
+            if (itemId)
+                queryParams.item_id = parseInt(itemId as string); // Ensure int
             else if (externalId) {
                 if (mediaType === "movie") queryParams.tmdb_id = externalId;
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
             }
 
-            const response = await startManualSession({ query: queryParams });
-            
-            if (response.data) {
-                const sData = response.data;
-                let mappings: FileMapping[] = [];
+            if (disableFilesizeCheck) {
+                // @ts-ignore
+                queryParams.disable_filesize_check = true;
+            }
 
-                if (sData.containers?.files && sData.containers.files.length > 0) {
-                    const filenames = sData.containers.files
+            const { data, error: err } = await providers.riven.POST(
+                "/api/v1/scrape/start_session",
+                {
+                    params: {
+                        query: queryParams
+                    }
+                }
+            );
+
+            if (data) {
+                const sData = data;
+                let mappings: FileMapping[];
+
+                if (sData.containers && sData.containers.files && sData.containers.files.length > 0) {
+                    const files = sData.containers.files;
+                    const filenames = files
                         .map((f) => f.filename)
                         .filter((f): f is string => f != null);
 
                     // Only call parseTorrentTitles if we have valid filenames
                     if (filenames.length > 0) {
-                        const parseResponse = await parseTorrentTitles({ body: filenames });
-                        
-                        if (parseResponse.data) {
-                            mappings = sData.containers.files.map((file, idx) => {
-                                const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
+                        const { data: parseData } = await providers.riven.POST(
+                            "/api/v1/scrape/parse",
+                            {
+                                body: filenames
+                            }
+                        );
+
+                        if (parseData) {
+                            mappings = files.map((file, idx) => {
+                                const parsedData = parseData.data[idx] as ParsedTitleData;
                                 return {
                                     file_id: file.file_id?.toString() || "",
                                     filename: file.filename || "",
@@ -283,33 +299,32 @@
                                     episode: parsedData?.episodes?.[0]
                                 };
                             });
+                            batchSessions.push({
+                                sessionId: sData.session_id,
+                                magnet,
+                                stream,
+                                sessionData: sData,
+                                mappings,
+                                status: "pending"
+                            });
                         }
                     }
                 }
-
-                batchSessions.push({
-                    sessionId: sData.session_id,
-                    magnet,
-                    stream,
-                    sessionData: sData,
-                    mappings,
-                    status: 'pending'
-                });
             }
         } catch (e) {
             console.error(`Failed to prepare session for ${magnet}`, e);
         }
     }
 
-	function resetFlow() {
-		step = 1;
-		loading = false;
-		error = null;
-		magnetLink = "";
-		streams = [];
-		sessionId = null;
-		sessionData = null;
-		selectedFilesMappings = [];
+    function resetFlow() {
+        step = 1;
+        loading = false;
+        error = null;
+        magnetLink = "";
+        streams = [];
+        sessionId = null;
+        sessionData = null;
+        selectedFilesMappings = [];
 
         selectedOptions = {
             resolutions: [],
@@ -329,37 +344,41 @@
         searchQuery = "";
         batchSessions = [];
         preparingBatch = false;
-	}
+    }
 
     async function fetchSettings() {
         settingsLoading = true;
         try {
-            const response = await getSettings({
-                path: { paths: "ranking" }
-            });
-            if (response.data) {
-                const ranking = response.data.ranking as RtnSettingsModel;
+            const { data } = await providers.riven.GET("/api/v1/settings/get/all");
+
+            if (data) {
+                const ranking = data.ranking;
                 const newSelectedOptions = { ...selectedOptions };
                 const newRankingOptions: Record<string, string[]> = {};
-                
+
                 // Resolutions
                 if (ranking.resolutions) {
-                    newRankingOptions.resolutions = Object.keys(ranking.resolutions).filter(k => k !== "unknown");
+                    newRankingOptions.resolutions = Object.keys(ranking.resolutions).filter(
+                        (k) => k !== "unknown"
+                    );
                     // Populate selected resolutions
                     newSelectedOptions.resolutions = Object.entries(ranking.resolutions)
                         .filter(([k, v]) => v === true && k !== "unknown")
                         .map(([k]) => k);
                 }
-                
+
                 // Custom Ranks
-                const categories: (keyof import('$lib/api/types.gen').CustomRanksConfig)[] = ["quality", "rips", "hdr", "audio", "extras", "trash"];
-                categories.forEach(cat => {
-                    if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
-                        const categoryObj = ranking.custom_ranks[cat];
+                const categories: (keyof import("$lib/providers/riven").components["schemas"]["CustomRanksConfig"])[] =
+                    ["quality", "rips", "hdr", "audio", "extras", "trash"];
+                // Note: 'trash' might not be in CustomRanksConfig in the same way, need verification or ANY cast if strict.
+
+                categories.forEach((cat) => {
+                    if (ranking.custom_ranks && (ranking.custom_ranks as any)[cat]) {
+                        const categoryObj = (ranking.custom_ranks as any)[cat];
                         if (!categoryObj) return;
 
                         newRankingOptions[cat] = Object.keys(categoryObj);
-                        
+
                         // Populate selected options for this category
                         newSelectedOptions[cat] = Object.entries(categoryObj)
                             .filter(([_, val]) => {
@@ -368,7 +387,7 @@
                             .map(([key]) => key);
                     }
                 });
-                
+
                 rankingOptions = newRankingOptions;
                 selectedOptions = newSelectedOptions;
             }
@@ -379,28 +398,25 @@
         }
     }
 
-    $effect(() => {
-        if (open) {
-            fetchSettings();
-        }
-    });
+    type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
 
     async function handleAutoScrape() {
         // itemId is optional now, as we can fallback to externalId
-        
+
         loading = true;
         error = null;
 
         try {
-            const body: any = {
+            const body: AutoScrapeRequest = {
                 media_type: mediaType
             };
 
             // Only include IDs if they have valid values
             if (itemId) {
-                body.item_id = itemId;
+                // @ts-ignore
+                body.item_id = parseInt(itemId as string).toString();
             }
-            
+
             if (externalId) {
                 if (mediaType === "movie") {
                     body.tmdb_id = externalId;
@@ -412,23 +428,22 @@
             // Only include selected options if they have values
             Object.entries(selectedOptions).forEach(([key, value]) => {
                 if (value.length > 0) {
+                    // @ts-ignore
                     body[key] = value;
                 }
             });
 
-            const response = await autoScrapeItem({
-                body
+            const { data, error: err } = await providers.riven.POST("/api/v1/scrape/auto", {
+                body: body
             });
 
-            if (response.data) {
-                toast.success(response.data.message);
-                open = false;
-                resetFlow();
-                await invalidateAll();
-            } else {
-                const errorMsg = (response.error as any)?.message || "Failed to start auto scrape";
-                error = errorMsg;
-                toast.error(errorMsg);
+            if (err) {
+                throw new Error(err.message || "Failed to start auto scrape");
+            }
+
+            if (data) {
+                toast.success(data.message || "Auto scrape started successfully");
+                open = false; // Close dialog on success
             }
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : "An error occurred";
@@ -445,27 +460,24 @@
         error = null;
 
         try {
-            const queryParams: {
-                item_id?: string;
-                tmdb_id?: string;
-                tvdb_id?: string;
-                media_type: "movie" | "tv";
-                magnet: string;
-                disable_filesize_check?: boolean;
-            } = {
+            const queryParams: any = {
                 media_type: mediaType,
-                magnet: magnet,
-                disable_filesize_check: forceDisableFilesizeCheck || disableFilesizeCheck
+                magnet: magnet
             };
 
+            if (forceDisableFilesizeCheck || disableFilesizeCheck) {
+                // @ts-ignore
+                queryParams.disable_filesize_check = true;
+            }
+
             if (itemId) {
-                queryParams.item_id = itemId;
+                queryParams.item_id = parseInt(itemId as string);
             } else {
                 if (!externalId) {
                     throw new Error("No item ID or external ID available");
                 }
             }
-            
+
             if (mediaType === "movie" && externalId) {
                 queryParams.tmdb_id = externalId;
             }
@@ -473,13 +485,16 @@
                 queryParams.tvdb_id = externalId;
             }
 
-            const response = await startManualSession({
-                query: queryParams
-            });
+            const { data, error: err } = await providers.riven.POST(
+                "/api/v1/scrape/start_session",
+                {
+                    params: { query: queryParams }
+                }
+            );
 
-            if (response.data) {
-                sessionId = response.data.session_id;
-                sessionData = response.data;
+            if (data) {
+                sessionId = data.session_id;
+                sessionData = data;
                 toast.success("Session started successfully!");
                 await handleSelectAllFiles();
                 if (step !== 3) {
@@ -487,7 +502,8 @@
                     // step = 3; // Removed fallback to step 3
                 }
             } else {
-                const errorMsg = (response.error as any)?.message || "Failed to start session";
+                const errorMsg =
+                    (err as any)?.detail || (err as any)?.message || "Failed to start session";
                 error = errorMsg;
                 toast.error(errorMsg);
             }
@@ -500,9 +516,9 @@
         }
     }
 
-	async function handleFetchStreams() {
-		loading = true;
-		error = null;
+    async function handleFetchStreams() {
+        loading = true;
+        error = null;
 
         // If magnet link is provided, use it directly
         if (magnetLink) {
@@ -513,234 +529,243 @@
             return;
         }
 
-		try {
-			// Construct query parameters, only including non-null values
-			const queryParams: {
-				item_id?: string;
-				tmdb_id?: string;
-				tvdb_id?: string;
-				media_type: "movie" | "tv";
-			} = {
-				media_type: mediaType
-			};
+        try {
+            // Construct query parameters, only including non-null values
+            const queryParams: any = {
+                media_type: mediaType
+            };
 
-			// Always prioritize item_id if available
-			if (itemId) {
-				queryParams.item_id = itemId;
-			} else {
-				// If no itemId, we must have external IDs to proceed
-				if (!externalId) {
-					error = "No item ID or external ID available";
-					toast.error(error);
-					loading = false;
-					return;
-				}
-			}
-			
-			if (mediaType === "movie" && externalId) {
-				queryParams.tmdb_id = externalId;
-			}
-			if (mediaType === "tv" && externalId) {
-				queryParams.tvdb_id = externalId;
-			}
+            // Always prioritize item_id if available
+            if (itemId) {
+                queryParams.item_id = parseInt(itemId as string);
+            } else {
+                // If no itemId, we must have external IDs to proceed
+                if (!externalId) {
+                    error = "No item ID or external ID available";
+                    toast.error(error);
+                    loading = false;
+                    return;
+                }
+            }
 
-			const response = await scrapeItem({
-				query: queryParams
-			});
+            if (mediaType === "movie" && externalId) {
+                queryParams.tmdb_id = externalId;
+            }
+            if (mediaType === "tv" && externalId) {
+                queryParams.tvdb_id = externalId;
+            }
 
-			if (response.data) {
-				const streamArray = Object.entries(response.data.streams).map(([magnet, stream]) => ({
-					magnet,
-					stream
-				}));
+            const { data, error: err } = await providers.riven.GET("/api/v1/scrape/scrape", {
+                params: { query: queryParams }
+            });
 
-				streams = streamArray.sort((a, b) => b.stream.rank - a.stream.rank);
-				step = 2;
-				toast.success("Streams fetched successfully!");
-			} else {
-				const errorMsg = (response.error as any)?.message || "Failed to fetch streams";
-				error = errorMsg;
-				toast.error(errorMsg);
-			}
-		} catch (e) {
-			const errorMsg = e instanceof Error ? e.message : "An error occurred";
-			error = errorMsg;
-			toast.error(errorMsg);
-		} finally {
-			loading = false;
-		}
-	}
+            if (data) {
+                // @ts-ignore
+                const streamArray = Object.entries(data.streams).map(([magnet, stream]) => ({
+                    magnet,
+                    stream
+                }));
 
+                streams = streamArray.sort(
+                    (a, b) => (b.stream as Stream).rank - (a.stream as Stream).rank
+                ) as any;
+                step = 2;
+                toast.success("Streams fetched successfully!");
+            } else {
+                const errorMsg =
+                    (err as any)?.detail || (err as any)?.message || "Failed to fetch streams";
+                error = errorMsg;
+                toast.error(errorMsg);
+            }
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
 
-
-	async function handleSelectStream(infohash: string) {
+    async function handleSelectStream(infohash: string) {
         isManualMagnet = false;
         await startScrapeSession(`magnet:?xt=urn:btih:${infohash}`);
-	}
+    }
 
+    async function handleSelectAllFiles() {
+        if (!sessionData?.containers || !sessionData.containers.files || sessionData.containers.files.length === 0) {
+            error = "No files available to select";
+            toast.error(error);
+            return;
+        }
 
+        loading = true;
+        error = null;
 
-	async function handleSelectAllFiles() {
-		if (!sessionData?.containers?.files || sessionData.containers.files.length === 0) {
-			error = "No files available to select";
-			toast.error(error);
-			return;
-		}
+        try {
+            const files = sessionData.containers.files || [];
+            // Parse filenames to extract season/episode info
+            const filenames = files.map((f) => f.filename).filter((f): f is string => f != null);
 
-		loading = true;
-		error = null;
+            // Ensure we have valid filenames before calling the API
+            if (filenames.length === 0) {
+                error = "No valid filenames found";
+                toast.error(error);
+                loading = false;
+                return;
+            }
 
-		try {
-			// Parse filenames to extract season/episode info
-			const filenames = sessionData.containers.files
-				.map((f) => f.filename)
-				.filter((f): f is string => f != null);
+            const { data, error: err } = await providers.riven.POST("/api/v1/scrape/parse", {
+                body: filenames
+            });
 
-			// Ensure we have valid filenames before calling the API
-			if (filenames.length === 0) {
-				error = "No valid filenames found";
-				toast.error(error);
-				loading = false;
-				return;
-			}
+            if (data) {
+                selectedFilesMappings = files.map((file, idx) => {
+                    const parsedData = data.data[idx] as ParsedTitleData;
+                    return {
+                        file_id: file.file_id?.toString() || "",
+                        filename: file.filename || "",
+                        filesize: file.filesize || 0,
+                        season: parsedData?.seasons?.[0],
+                        episode: parsedData?.episodes?.[0]
+                    };
+                });
+                step = 3;
+                toast.success("Files selected!");
+            } else {
+                const errorMsg =
+                    (err as any)?.detail || (err as any)?.message || "Failed to parse filenames";
+                error = errorMsg;
+                toast.error(errorMsg);
+            }
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
 
-			const parseResponse = await parseTorrentTitles({
-				body: filenames
-			});
+    async function handleComplete() {
+        if (!sessionId) return;
 
-			if (parseResponse.data) {
-				selectedFilesMappings = sessionData.containers.files.map((file, idx) => {
-					const parsedData = parseResponse.data.data[idx] as ParsedTitleData;
-					return {
-						file_id: file.file_id?.toString() || "",
-						filename: file.filename || "",
-						filesize: file.filesize || 0,
-						season: parsedData?.seasons?.[0],
-						episode: parsedData?.episodes?.[0]
-					};
-				});
-				step = 3;
-				toast.success("Files selected!");
-			} else {
-				const errorMsg = (parseResponse.error as any)?.message || "Failed to parse filenames";
-				error = errorMsg;
-				toast.error(errorMsg);
-			}
-		} catch (e) {
-			const errorMsg = e instanceof Error ? e.message : "An error occurred";
-			error = errorMsg;
-			toast.error(errorMsg);
-		} finally {
-			loading = false;
-		}
-	}
+        loading = true;
+        error = null;
 
-	async function handleComplete() {
-		if (!sessionId) return;
+        try {
+            // Step 1: Select files
+            const container: Container = {};
+            selectedFilesMappings.forEach((mapping) => {
+                // @ts-ignore
+                container[mapping.file_id] = {
+                    file_id: parseInt(mapping.file_id),
+                    filename: mapping.filename,
+                    filesize: mapping.filesize
+                };
+            });
 
-		loading = true;
-		error = null;
+            const { data: selectData, error: selectErr } = await providers.riven.POST(
+                "/api/v1/scrape/select_files/{session_id}",
+                {
+                    params: { path: { session_id: sessionId } },
+                    body: container
+                }
+            );
 
-		try {
-			// Step 1: Select files
-			const container: Container = {};
-			selectedFilesMappings.forEach((mapping) => {
-				container[mapping.file_id] = {
-					file_id: parseInt(mapping.file_id),
-					filename: mapping.filename,
-					filesize: mapping.filesize
-				};
-			});
+            if (!selectData) {
+                const errorMsg = (selectErr as any)?.message || "Failed to select files";
+                error = errorMsg;
+                toast.error(errorMsg);
+                return;
+            }
 
-			const selectResponse = await manualSelect({
-				path: { session_id: sessionId },
-				body: container
-			});
+            // Step 2: Update attributes
+            let updateBody: UpdateBody;
 
-			if (!selectResponse.data) {
-				const errorMsg = (selectResponse.error as any)?.message || "Failed to select files";
-				error = errorMsg;
-				toast.error(errorMsg);
-				return;
-			}
+            if (mediaType === "movie") {
+                // For movies, select the largest file
+                const largestFile = selectedFilesMappings.reduce((prev, current) =>
+                    current.filesize > prev.filesize ? current : prev
+                );
+                updateBody = {
+                    file_id: parseInt(largestFile.file_id),
+                    filename: largestFile.filename,
+                    filesize: largestFile.filesize
+                };
+            } else {
+                // For TV shows, map files to episodes
+                updateBody = {};
+                selectedFilesMappings.forEach((mapping) => {
+                    if (mapping.season !== undefined && mapping.episode !== undefined) {
+                        const seasonKey = mapping.season.toString();
+                        const episodeKey = mapping.episode.toString();
 
-			// Step 2: Update attributes
-			let updateBody: UpdateBody;
+                        if (!(updateBody as Record<string, any>)[seasonKey]) {
+                            (updateBody as Record<string, any>)[seasonKey] = {};
+                        }
 
-			if (mediaType === "movie") {
-				// For movies, select the largest file
-				const largestFile = selectedFilesMappings.reduce((prev, current) =>
-					current.filesize > prev.filesize ? current : prev
-				);
-				updateBody = {
-					file_id: parseInt(largestFile.file_id),
-					filename: largestFile.filename,
-					filesize: largestFile.filesize
-				};
-			} else {
-				// For TV shows, map files to episodes
-				updateBody = {};
-				selectedFilesMappings.forEach((mapping) => {
-					if (mapping.season !== undefined && mapping.episode !== undefined) {
-						const seasonKey = mapping.season.toString();
-						const episodeKey = mapping.episode.toString();
+                        (updateBody as Record<string, any>)[seasonKey][episodeKey] = {
+                            file_id: parseInt(mapping.file_id),
+                            filename: mapping.filename,
+                            filesize: mapping.filesize
+                        };
+                    }
+                });
+            }
 
-						if (!(updateBody as Record<string, any>)[seasonKey]) {
-							(updateBody as Record<string, any>)[seasonKey] = {};
-						}
+            const { data: updateData, error: updateErr } = await providers.riven.POST(
+                "/api/v1/scrape/update_attributes/{session_id}",
+                {
+                    params: { path: { session_id: sessionId } },
+                    body: updateBody
+                }
+            );
 
-						(updateBody as Record<string, any>)[seasonKey][episodeKey] = {
-							file_id: parseInt(mapping.file_id),
-							filename: mapping.filename,
-							filesize: mapping.filesize
-						};
-					}
-				});
-			}
+            if (!updateData) {
+                console.error(updateErr);
+                const errorMsg = (updateErr as any)?.message || "Failed to update attributes";
+                error = errorMsg;
+                toast.error(errorMsg);
+                return;
+            }
 
-			const updateResponse = await manualUpdateAttributes({
-				path: { session_id: sessionId },
-				body: updateBody
-			});
+            // Step 3: Complete session
+            const { data: completeData, error: completeErr } = await providers.riven.POST(
+                "/api/v1/scrape/complete_session/{session_id}",
+                {
+                    params: { path: { session_id: sessionId } }
+                }
+            );
 
-			if (!updateResponse.data) {
-				console.error(updateResponse.error);
-				const errorMsg = (updateResponse.error as any)?.message || "Failed to update attributes";
-				error = errorMsg;
-				toast.error(errorMsg);
-				return;
-			}
-
-			// Step 3: Complete session
-			const completeResponse = await completeManualSession({
-				path: { session_id: sessionId }
-			});
-
-			if (completeResponse.data) {
-				toast.success("Manual scrape completed successfully!");
+            if (completeData) {
+                toast.success("Manual scrape completed successfully!");
                 open = false;
                 resetFlow();
                 await invalidateAll();
-			} else {
-				const errorMsg = (completeResponse.error as any)?.message || "Failed to complete session";
-				error = errorMsg;
-				toast.error(errorMsg);
-			}
-		} catch (e) {
-			const errorMsg = e instanceof Error ? e.message : "An error occurred";
-			error = errorMsg;
-			toast.error(errorMsg);
-		} finally {
-			loading = false;
-		}
-	}
+            } else {
+                const errorMsg = (completeErr as any)?.message || "Failed to complete session";
+                error = errorMsg;
+                toast.error(errorMsg);
+            }
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
 
     async function handleBatchComplete() {
         if (batchSessions.length === 0) return;
 
         loading = true;
         error = null;
-        batchProgress = { current: 0, total: batchSessions.length, message: "Processing sessions..." };
+        batchProgress = {
+            current: 0,
+            total: batchSessions.length,
+            message: "Processing sessions..."
+        };
 
         try {
             for (let i = 0; i < batchSessions.length; i++) {
@@ -755,6 +780,7 @@
                     // Step 1: Select files
                     const container: Container = {};
                     session.mappings.forEach((mapping) => {
+                        // @ts-ignore
                         container[mapping.file_id] = {
                             file_id: parseInt(mapping.file_id),
                             filename: mapping.filename,
@@ -762,8 +788,9 @@
                         };
                     });
 
-                    await manualSelect({
-                        path: { session_id: session.sessionId },
+                    await providers.riven.POST("/api/v1/scrape/select_files/{session_id}", {
+                        params: { path: { session_id: session.sessionId } },
+                        // @ts-ignore
                         body: container
                     });
 
@@ -799,25 +826,32 @@
                         });
                     }
 
-                    await manualUpdateAttributes({
-                        path: { session_id: session.sessionId },
-                        body: updateBody
-                    });
+                    await providers.riven.POST(
+                        "/api/v1/scrape/update_attributes/{session_id}",
+                        {
+                            params: { path: { session_id: session.sessionId } },
+                            body: updateBody
+                        }
+                    );
 
-                    // Step 3: Complete session
-                    await completeManualSession({
-                        path: { session_id: session.sessionId }
-                    });
+                    // Step 3: Complete
+                    await providers.riven.POST(
+                        "/api/v1/scrape/complete_session/{session_id}",
+                        {
+                            params: { path: { session_id: session.sessionId } }
+                        }
+                    );
 
-                    session.status = 'completed';
+                    // Update session status
+                    session.status = "completed";
                 } catch (e) {
                     console.error(`Failed to process session ${session.sessionId}`, e);
-                    session.status = 'error';
+                    session.status = "error";
                     session.error = e instanceof Error ? e.message : "Unknown error";
                 }
             }
 
-            toast.success("Batch scrape completed!");
+            toast.success("Batch processing finished!");
             open = false;
             resetFlow();
             await invalidateAll();
@@ -830,53 +864,66 @@
         }
     }
 
-	function getResolutionColor(resolution?: string): string {
-		if (!resolution) return "bg-pink-600";
-		if (resolution.includes("2160")) return "bg-purple-600";
-		if (resolution.includes("1440")) return "bg-indigo-600";
-		if (resolution.includes("1080")) return "bg-blue-600";
-		if (resolution.includes("720")) return "bg-yellow-600";
-		return "bg-pink-600";
-	}
+    function getResolutionColor(resolution?: string): string {
+        if (!resolution) return "bg-pink-600";
+        if (resolution.includes("2160")) return "bg-purple-600";
+        if (resolution.includes("1440")) return "bg-indigo-600";
+        if (resolution.includes("1080")) return "bg-blue-600";
+        if (resolution.includes("720")) return "bg-yellow-600";
+        return "bg-pink-600";
+    }
 
-	function formatFileSize(bytes: number): string {
-		if (bytes >= 1073741824) {
-			return (bytes / 1073741824).toFixed(2) + " GB";
-		} else if (bytes >= 1048576) {
-			return (bytes / 1048576).toFixed(2) + " MB";
-		}
-		return bytes + " B";
-	}
+    function formatFileSize(bytes: number): string {
+        if (bytes >= 1073741824) {
+            return (bytes / 1073741824).toFixed(2) + " GB";
+        } else if (bytes >= 1048576) {
+            return (bytes / 1048576).toFixed(2) + " MB";
+        }
+        return bytes + " B";
+    }
 
-	function canProceedToComplete(): boolean {
-		if (mediaType === "movie") {
-			return selectedFilesMappings.length > 0;
-		}
-		// For TV shows, ensure all files have season and episode numbers
-		return selectedFilesMappings.every(
-			(mapping) => mapping.season !== undefined && mapping.episode !== undefined
-		);
-	}
+    function canProceedToComplete(): boolean {
+        if (mediaType === "movie") {
+            return selectedFilesMappings.length > 0;
+        }
+        // For TV shows, ensure all files have season and episode numbers
+        return selectedFilesMappings.every(
+            (mapping) => mapping.season !== undefined && mapping.episode !== undefined
+        );
+    }
 
-	$effect(() => {
-		if (!open) {
+    $effect(() => {
+        // If dialog is open, fetch settings.
+        if (open) {
+            fetchSettings();
+        }
+
+        if (!open) {
             untrack(() => {
                 // Cleanup: abort session if not completed
                 if (sessionId) {
-                    abortManualSession({ path: { session_id: sessionId } }).catch(() => {
-                        // Silently ignore cleanup errors (session may already be expired/aborted)
-                    });
+                    providers.riven
+                        .POST("/api/v1/scrape/abort_session/{session_id}", {
+                            params: { path: { session_id: sessionId } }
+                        })
+                        .catch(() => {
+                            // Silently ignore cleanup errors
+                        });
                 }
                 // Cleanup batch sessions
-                batchSessions.forEach(s => {
-                    if (s.status === 'pending') {
-                        abortManualSession({ path: { session_id: s.sessionId } }).catch(() => {});
+                batchSessions.forEach((s) => {
+                    if (s.status === "pending") {
+                        providers.riven
+                            .POST("/api/v1/scrape/abort_session/{session_id}", {
+                                params: { path: { session_id: s.sessionId } }
+                            })
+                            .catch(() => {});
                     }
                 });
                 resetFlow();
             });
-		}
-	});
+        }
+    });
 </script>
 
 <Dialog.Root bind:open>

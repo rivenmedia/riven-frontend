@@ -167,63 +167,6 @@
         {/if}
 
         <div class="md:px-8 lg:px-16">
-            <div class="border-border mt-4 flex flex-col gap-6 rounded-lg border bg-white/10 p-6 shadow-lg md:flex-row">
-                <!-- Poster Image -->
-                <div class="shrink-0">
-                    <img
-                        alt={data.mediaDetails?.details.title}
-                        class="h-auto w-48 rounded-lg object-cover shadow-lg md:w-64"
-                        src={data.mediaDetails?.details.poster_path}
-                        loading="lazy" />
-                </div>
-
-                <!-- Details Content -->
-                <div class="flex flex-col gap-2 w-full">
-                    <h1 class="text-3xl font-bold mb-1">{data.mediaDetails?.details.title}</h1>
-                    
-                    <!-- Buttons -->
-                    {#if !data.riven}
-                        <div class="flex flex-wrap gap-2 mb-2">
-                            <ItemRequest
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []}
-                                mediaType={data.mediaDetails?.type} />
-
-                            <ItemManualScrape
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details?.title}
-                                itemId={null}
-                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                mediaType={data.mediaDetails?.type} />
-                        </div>
-                    {:else}
-                        <div class="flex flex-wrap gap-2 mb-2">
-                            <ItemDelete
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []}
-                                variant="destructive" />
-
-                            <ItemReset
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []} />
-
-                            {#if data.riven.state !== "Completed"}
-                                <ItemPause
-                                    class="bg-white/10"
-                                    title={data.mediaDetails?.details.title}
-                                    isPaused={data.riven.state === "Paused"}
-                                    ids={rivenId ? [rivenId.toString()] : []} />
-                            {/if}
-                            <ItemRetry
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []} />
-
-                            <ItemManualScrape
-                                class="bg-white/10"
             <div
                 class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
                 <img
@@ -245,6 +188,13 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
+                                mediaType={data.mediaDetails?.type} />
+
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details?.title}
+                                itemId={null}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type} />
                         {:else if data.riven?.id != null}
                             <ItemDelete
@@ -269,32 +219,44 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []} />
+                            
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details?.title}
+                                itemId={null}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                mediaType={data.mediaDetails?.type} />
                         {/if}
                     </div>
 
                     {#if data.riven?.state}
-                        <div class="mb-2">
-                            <Badge
-                                class={cn(
-                                    data.riven.state === "Completed"
-                                        ? "bg-green-600"
-                                        : data.riven.state === "Unknown"
-                                          ? "bg-red-600"
-                                          : "bg-yellow-600"
-                                )}>
-                                {data.riven.state}
-                            </Badge>
-                        </div>
+                        <Badge
+                            class={cn(
+                                "mb-2",
+                                data.riven.state === "Completed"
+                                    ? "bg-green-600"
+                                    : data.riven.state === "Unknown"
+                                      ? "bg-red-600"
+                                      : "bg-yellow-600"
+                            )}>
+                            {data.riven.state}
+                        </Badge>
+                    {/if}
+
+                    {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
+                        <p class="text-muted-foreground mb-2 text-sm">
+                            Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data
+                                .mediaDetails?.details.airing.time}
+                        </p>
                     {/if}
 
                     {#if data.mediaDetails?.details.tagline}
-                        <p class="text-muted-foreground text-sm italic">
+                        <p class="text-muted-foreground mb-2 text-sm font-semibold italic">
                             {data.mediaDetails?.details.tagline}
                         </p>
                     {/if}
 
-                    <!-- Metadata Line -->
-                    <div class="flex flex-wrap gap-1.5 text-sm font-medium text-muted-foreground items-center">
+                    <div class="mb-3 flex flex-wrap gap-1.5 text-sm font-semibold">
                         {#key [data.mediaDetails?.details.year, data.mediaDetails?.details.formatted_runtime, data.mediaDetails?.details.original_language, data.mediaDetails?.details.status, data.mediaDetails?.details.certification]}
                             {@const details = [
                                 data.mediaDetails?.details.year,
@@ -315,11 +277,10 @@
                         {/key}
                     </div>
 
-                    <!-- Genres -->
                     {#if data.mediaDetails?.details.genres && data.mediaDetails?.details.genres.length > 0}
-                        <div class="mt-2 flex flex-wrap gap-2">
+                        <div class="mb-3 flex flex-wrap gap-2">
                             {#each data.mediaDetails?.details.genres as genre (genre.id)}
-                                <Badge variant="outline" class="border-primary/50 text-xs">
+                                <Badge variant="outline" class="border-primary">
                                     {genre.name}
                                 </Badge>
                             {/each}
@@ -330,7 +291,6 @@
                         <p class="max-w-max text-sm leading-relaxed">
                             {data.mediaDetails?.details.overview}
                         </p>
-                    </div>
 
                         <div class="flex flex-wrap gap-4">
                             {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
@@ -349,14 +309,16 @@
                                                 </a>
                                             {/snippet}
 
-                                    {#snippet content()}
-                                        <p class="text-center text-sm font-medium">
-                                            {cast.name} as {cast.character}
-                                        </p>
-                                    {/snippet}
-                                </Tooltip>
-                            {/if}
-                        {/each}
+                                            {#snippet content()}
+                                                <p class="text-center text-sm font-medium">
+                                                    {cast.name} as {cast.character}
+                                                </p>
+                                            {/snippet}
+                                        </Tooltip>
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
                     </div>
                 </div>
             </div>
