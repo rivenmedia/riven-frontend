@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.0...v1.0.1-beta.0) (2025-12-11)
+
+
+### Bug Fixes
+
+* api issues and remove [@hey-api](https://github.com/hey-api) packages for api, only use openapi-ts & openapi-fetch ([20f87b0](https://github.com/rivenmedia/riven-frontend/commit/20f87b0031b0c47c85961f6c0b3e4ed41517f17e))
+* update schemas and fix backend api errors ([8a0bb46](https://github.com/rivenmedia/riven-frontend/commit/8a0bb46c30be02767d2a9b2bc8befcf1dda8e120))
+
 ## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v0.21.2...v1.0.0-beta.0) (2025-12-07)
 
 ### ⚠ BREAKING CHANGES
