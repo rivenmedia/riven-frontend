@@ -1,9 +1,8 @@
 import type { RequestHandler } from "./$types";
 import { error, redirect, json } from "@sveltejs/kit";
 import providers from "$lib/providers";
-import { getItem } from "$lib/api";
 
-export const GET: RequestHandler = async ({ params, fetch }) => {
+export const GET: RequestHandler = async ({ params, fetch, locals }) => {
     const { indexer, type, id } = params;
 
     switch (indexer) {
@@ -107,13 +106,20 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
         case "riven":
             switch (type) {
                 case "tv": {
-                    const tvItem = await getItem({
-                        path: {
-                            id: id
+                    const tvItem = await providers.riven.GET("/api/v1/items/{id}", {
+                        params: {
+                            path: {
+                                id: id
+                            },
+                            query: {
+                                media_type: "tv"
+                            }
                         },
-                        query: {
-                            media_type: "tv"
-                        }
+                        baseUrl: locals.backendUrl,
+                        headers: {
+                            "x-api-key": locals.apiKey
+                        },
+                        fetch: fetch
                     });
 
                     if (tvItem.error) {
@@ -124,13 +130,20 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
                 }
 
                 case "movie": {
-                    const movieItem = await getItem({
-                        path: {
-                            id: id
+                    const movieItem = await providers.riven.GET("/api/v1/items/{id}", {
+                        params: {
+                            path: {
+                                id: id
+                            },
+                            query: {
+                                media_type: "movie"
+                            }
                         },
-                        query: {
-                            media_type: "movie"
-                        }
+                        baseUrl: locals.backendUrl,
+                        headers: {
+                            "x-api-key": locals.apiKey
+                        },
+                        fetch: fetch
                     });
 
                     if (movieItem.error) {

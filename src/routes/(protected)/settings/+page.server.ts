@@ -1,20 +1,31 @@
 import type { Actions, PageServerLoad } from "./$types";
 import { error, fail } from "@sveltejs/kit";
-import { getSettingsSchema, getAllSettings, setAllSettings } from "$lib/api";
+import providers from "$lib/providers";
 import type { InitialFormData } from "@sjsf/sveltekit";
 import { createFormHandler } from "@sjsf/sveltekit/server";
 import * as defaults from "$lib/components/settings/form-defaults";
 
-const getSchema = async () => {
-    const settingsSchema = await getSettingsSchema();
+const getSchema = async (baseUrl: string, apiKey: string, fetch: typeof globalThis.fetch) => {
+    const settingsSchema = await providers.riven.GET("/api/v1/settings/schema", {
+        baseUrl,
+        headers: {
+            "x-api-key": apiKey
+        },
+        fetch
+    });
     if (settingsSchema.error) {
         throw new Error("Failed to load settings schema");
     }
 
     return settingsSchema.data;
 };
-export const load: PageServerLoad = async ({ fetch }) => {
-    const allSettings = await getAllSettings({
+
+export const load: PageServerLoad = async ({ fetch, locals }) => {
+    const allSettings = await providers.riven.GET("/api/v1/settings/get/all", {
+        baseUrl: locals.backendUrl,
+        headers: {
+            "x-api-key": locals.apiKey
+        },
         fetch: fetch
     });
 
@@ -24,18 +35,18 @@ export const load: PageServerLoad = async ({ fetch }) => {
 
     return {
         form: {
-            schema: await getSchema(),
+            schema: await getSchema(locals.backendUrl, locals.apiKey, fetch),
             initialValue: allSettings.data
         } satisfies InitialFormData
     };
 };
 
 export const actions = {
-    default: async ({ request, fetch }) => {
+    default: async ({ request, fetch, locals }) => {
         const handleForm = createFormHandler<any, true>({
             ...defaults,
             // @ts-expect-error - it's valid
-            schema: await getSchema(),
+            schema: await getSchema(locals.backendUrl, locals.apiKey, fetch),
             sendData: true
         });
 
@@ -44,9 +55,17 @@ export const actions = {
             return fail(400, { form });
         }
 
-        const res = await setAllSettings({
-            fetch: fetch,
-            body: form.data
+        // const res = await setAllSettings({
+        //     fetch: fetch,
+        //     body: form.data
+        // });
+        const res = await providers.riven.POST("/api/v1/settings/set/all", {
+            body: form.data,
+            baseUrl: locals.backendUrl,
+            headers: {
+                "x-api-key": locals.apiKey
+            },
+            fetch: fetch
         });
 
         if (res.error) {

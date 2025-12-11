@@ -1,3 +1,5 @@
+import providers from "$lib/providers";
+
 export type LogEntry = {
     message?: string;
 };
@@ -60,11 +62,11 @@ export class LogStore {
             this.#isLoadingHistorical = true;
             this.#historicalError = null;
 
-            const { logs: getOldLogs } = await import("$lib/api");
-            const response = await getOldLogs();
-
-            console.log("Fetched historical logs:", response);
-            // @ts-ignore
+            const response = await providers.riven.GET("/api/v1/logs")
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            // @ts-expect-error ignore
             this.#historicalLogs = response.data?.logs || [];
         } catch (e: any) {
             console.error("Failed to fetch historical logs:", e);
@@ -117,7 +119,7 @@ export class LogStore {
 
                 buffer += decoder.decode(value, { stream: true });
 
-                let lines = buffer.split("\n");
+                const lines = buffer.split("\n");
                 buffer = lines.pop() || "";
 
                 for (const line of lines) {

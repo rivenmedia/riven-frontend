@@ -1,85 +1,32 @@
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "@sveltejs/kit";
 
-export const GET: RequestHandler = async ({ locals, url, fetch }) => {
-    const { pathname } = url;
-    const backendUrl = new URL(pathname, locals.backendUrl);
-    const apiKey = locals.apiKey;
-
+const proxyRequest = async (
+    method: string,
+    locals: App.Locals,
+    url: URL,
+    request?: Request
+) => {
+    const backendUrl = new URL(url.pathname, locals.backendUrl);
+    
     try {
-        const response = await fetch(`${backendUrl.toString()}${url.search}`, {
-            headers: {
-                "x-api-key": apiKey
-            }
-        });
-        return json(await response.json(), {
-            status: response.status
-        });
-    } catch {
-        throw error(500, "Failed to fetch data from backend");
-    }
-};
-
-export const PUT: RequestHandler = async ({ locals, url, request, fetch }) => {
-    const { pathname } = url;
-    const backendUrl = new URL(pathname, locals.backendUrl);
-    const apiKey = locals.apiKey;
-
-    try {
-        const response = await fetch(`${backendUrl.toString()}${url.search}`, {
-            method: "PUT",
+        const response = await fetch(`${backendUrl}${url.search}`, {
+            method,
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": apiKey
+                "x-api-key": locals.apiKey
             },
-            body: await request.text()
+            body: request && ["POST", "PUT", "PATCH", "DELETE"].includes(method) 
+                ? await request.text() 
+                : undefined
         });
-        return json(await response.json(), {
-            status: response.status
-        });
+        return json(await response.json(), { status: response.status });
     } catch {
         throw error(500, "Failed to fetch data from backend");
     }
 };
 
-export const POST: RequestHandler = async ({ locals, url, request, fetch }) => {
-    const { pathname } = url;
-    const backendUrl = new URL(pathname, locals.backendUrl);
-    const apiKey = locals.apiKey;
-
-    try {
-        const response = await fetch(`${backendUrl.toString()}${url.search}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-api-key": apiKey
-            },
-            body: await request.text()
-        });
-        return json(await response.json(), {
-            status: response.status
-        });
-    } catch {
-        throw error(500, "Failed to fetch data from backend");
-    }
-};
-
-export const DELETE: RequestHandler = async ({ locals, url, fetch }) => {
-    const { pathname } = url;
-    const backendUrl = new URL(pathname, locals.backendUrl);
-    const apiKey = locals.apiKey;
-
-    try {
-        const response = await fetch(`${backendUrl.toString()}${url.search}`, {
-            method: "DELETE",
-            headers: {
-                "x-api-key": apiKey
-            }
-        });
-        return json(await response.json(), {
-            status: response.status
-        });
-    } catch {
-        throw error(500, "Failed to fetch data from backend");
-    }
-};
+export const GET: RequestHandler = ({ locals, url }) => proxyRequest("GET", locals, url);
+export const POST: RequestHandler = ({ locals, url, request }) => proxyRequest("POST", locals, url, request);
+export const PUT: RequestHandler = ({ locals, url, request }) => proxyRequest("PUT", locals, url, request);
+export const DELETE: RequestHandler = ({ locals, url, request }) => proxyRequest("DELETE", locals, url, request);

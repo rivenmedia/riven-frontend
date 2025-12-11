@@ -11,8 +11,8 @@ import "@sjsf/shadcn4-theme/extra-widgets/checkboxes-include";
 import "@sjsf/shadcn4-theme/extra-widgets/radio-include";
 import "@sjsf/shadcn4-theme/extra-widgets/file-include";
 import "@sjsf/shadcn4-theme/extra-widgets/date-picker-include";
-import "@sjsf-lab/shadcn-extras-theme/extra-widgets/password-include"
-import "@sjsf-lab/shadcn-extras-theme/extra-widgets/tags-input-include"
+import "@sjsf-lab/shadcn-extras-theme/extra-widgets/password-include";
+import "@sjsf-lab/shadcn-extras-theme/extra-widgets/tags-input-include";
 
 export { createFormIdBuilder as idBuilder } from "@sjsf/sveltekit";
 
@@ -30,10 +30,10 @@ export const validator = <T>(options: ValidatorFactoryOptions) =>
         ...options,
         ajvPlugins: (ajv) => {
             addFormComponents(addFormats(ajv));
-            
+
             ajv.addFormat("path", PATH_FORMAT_REGEX);
             ajv.addFormat("multi-host-uri", MULTI_HOST_URI_REGEX);
-            
+
             return ajv;
         }
     });

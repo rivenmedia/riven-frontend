@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { removeItem } from "$lib/api";
+    import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -24,12 +24,11 @@
 
     async function removeMediaItem(ids: (string | null | undefined)[]) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
+        console.log("Removing media items with IDs:", validIds);
 
-        const response = await removeItem({
-            // @ts-ignore
-            // @ts-ignore
-            query: {
-                ids: validIds.join(",")
+        const response = await providers.riven.DELETE("/api/v1/items/remove", {
+            body: {
+                ids: validIds
             }
         });
 
@@ -39,6 +38,7 @@
             invalidateAll();
             toast.success("Media item deletion successfully!");
         } else {
+            console.error("Error response:", response.error);
             toast.error("Failed to delete media item.");
         }
     }

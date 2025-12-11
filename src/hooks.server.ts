@@ -4,7 +4,6 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
 import { sequence } from "@sveltejs/kit/hooks";
 import { env } from "$env/dynamic/private";
-import { client } from "$lib/api/client.gen";
 import providers from "$lib/providers";
 import { dev } from "$app/environment";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
@@ -38,16 +37,9 @@ export const betterAuthHandler: Handle = async ({ event, resolve }) => {
     }
 };
 
-const configureClientMiddleware: Handle = async ({ event, resolve }) => {
-    client.setConfig({
-        baseUrl: env.BACKEND_URL,
-        headers: {
-            "x-api-key": env.BACKEND_API_KEY
-        }
-    });
-
-    event.locals.backendUrl = env.BACKEND_URL || "";
-    event.locals.apiKey = env.BACKEND_API_KEY || "";
+const configureLocals: Handle = async ({ event, resolve }) => {
+    event.locals.backendUrl = env.BACKEND_URL;
+    event.locals.apiKey = env.BACKEND_API_KEY;
 
     return resolve(event);
 };
@@ -79,30 +71,8 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
     return resolve(event);
 };
 
-const errorInterceptor: Handle = async ({ event, resolve }) => {
-    const response = await resolve(event);
-
-    client.interceptors.error.use((error: unknown) => {
-        if (
-            error &&
-            typeof error === "object" &&
-            "detail" in error &&
-            typeof error.detail === "string"
-        ) {
-            if (error.detail === "Missing or invalid API key") {
-                redirect(307, "/403");
-            }
-            return error.detail;
-        }
-        return undefined;
-    });
-
-    return response;
-};
-
 export const handle: Handle = sequence(
-    configureClientMiddleware,
-    errorInterceptor,
+    configureLocals,
     betterAuthHandler,
     handleTVDBCookie
 );

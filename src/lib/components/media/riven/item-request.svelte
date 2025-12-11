@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { addItems } from "$lib/api";
+    import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
-    import { cn } from "$lib/utils";
 
     interface Props {
         title: string | null | undefined;
@@ -33,20 +32,20 @@
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
+        console.log("Valid IDs:", validIds);
 
-        const response = await addItems({
-            // @ts-expect-error generated types are wrong, schema expects body
+        const response = await providers.riven.POST("/api/v1/items/add", {
             body: {
                 media_type: mediaType as "movie" | "tv",
-                tmdb_ids:
-                    mediaType === "movie" && validIds.length > 0 ? validIds.join(",") : null,
-                tvdb_ids: mediaType === "tv" && validIds.length > 0 ? validIds.join(",") : null
+                tmdb_ids: mediaType === "movie" ? validIds : [],
+                tvdb_ids: mediaType === "tv" ? validIds : []
             }
         });
 
         if (response.data) {
             toast.success("Media item requested successfully!");
         } else {
+            console.error("Error response:", response.error);
             toast.error("Failed to request media item.");
         }
     }

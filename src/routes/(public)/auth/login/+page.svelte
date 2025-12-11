@@ -28,11 +28,13 @@
         };
     } = $props();
 
+    // svelte-ignore state_referenced_locally
     const loginForm = superForm(data.loginForm, {
         validators: zod4Client(loginSchema),
         resetForm: true
     });
 
+    // svelte-ignore state_referenced_locally
     const registerForm = superForm(data.registerForm, {
         validators: zod4Client(registerSchema),
         resetForm: true
@@ -119,8 +121,6 @@
 
     let activeTab = $state("login");
     const lastLoginMethod = authClient.getLastUsedLoginMethod();
-
-
 </script>
 
 {#snippet star()}
@@ -145,7 +145,6 @@
                     <Tabs.Trigger value="register">Register</Tabs.Trigger>
                 </Tabs.List>
                 <Tabs.Content value="login">
-
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Login</Card.Title>
@@ -240,7 +239,6 @@
                     </Card.Root>
                 </Tabs.Content>
                 <Tabs.Content value="register">
-
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
                             <Card.Title class="text-2xl">Register</Card.Title>

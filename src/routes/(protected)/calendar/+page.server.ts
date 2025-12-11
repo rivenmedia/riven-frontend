@@ -1,9 +1,13 @@
 import type { PageServerLoad } from "./$types";
-import { fetchCalendar } from "$lib/api";
+import providers from "$lib/providers";
 import { error } from "@sveltejs/kit";
 
-export const load = (async ({ fetch }) => {
-    const calendar = await fetchCalendar({
+export const load = (async ({ fetch, locals }) => {
+    const calendar = await providers.riven.GET("/api/v1/calendar", {
+        baseUrl: locals.backendUrl,
+        headers: {
+            "x-api-key": locals.apiKey
+        },
         fetch: fetch
     });
 

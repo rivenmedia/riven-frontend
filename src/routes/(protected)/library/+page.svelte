@@ -20,15 +20,17 @@
     import * as Select from "$lib/components/ui/select/index.js";
     import ArrowUpDown from "@lucide/svelte/icons/arrow-up-down";
     import { ItemStore } from "$lib/stores/library-items.svelte";
-    import { removeItem, resetItems, retryItems, pauseItems, unpauseItems } from "$lib/api";
+    import providers from "$lib/providers";
     import * as Pagination from "$lib/components/ui/pagination/index.js";
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
     import { goto } from "$app/navigation";
     import { Skeleton } from "$lib/components/ui/skeleton";
+    import { DELETE } from "../api/[...backendProxy]/+server";
 
     let { data }: PageProps = $props();
 
+    // svelte-ignore state_referenced_locally
     const form = superForm(data.itemsSearchForm, {
         validators: zod4Client(itemsSearchSchema),
         resetForm: false
@@ -38,15 +40,11 @@
 
     const itemsStore = new ItemStore();
 
-
-
     let actionInProgress = $state(false);
     let formElement: HTMLFormElement;
 </script>
 
 <div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
-
-
     <form method="GET" class="flex flex-col" bind:this={formElement}>
         <div class="flex flex-col">
             <Form.Field {form} name="search">
@@ -205,9 +203,14 @@
 
                 {@render actionButton("Remove Selected", "destructive", async () => {
                     actionInProgress = true;
-                    const data = await removeItem({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                    // const data = await removeItem({
+                    //     body: {
+                    //         ids: itemsStore.items.map((id) => id.toString())
+                    //     }
+                    // });
+                    const data = await providers.riven.DELETE("/api/v1/items/remove", {
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -223,9 +226,9 @@
 
                 {@render actionButton("Reset Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await resetItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                    const data = await providers.riven.POST("/api/v1/items/reset", {
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -241,9 +244,9 @@
 
                 {@render actionButton("Retry Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await retryItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                    const data = await providers.riven.POST("/api/v1/items/retry", {
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -259,9 +262,9 @@
 
                 {@render actionButton("Pause Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await pauseItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                    const data = await providers.riven.POST("/api/v1/items/pause", {
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -277,9 +280,9 @@
 
                 {@render actionButton("Unpause Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await unpauseItems({
-                        query: {
-                            ids: itemsStore.items.join(",")
+                    const data = await providers.riven.POST("/api/v1/items/unpause", {
+                        body: {
+                            ids: itemsStore.items.map((id) => id.toString())
                         }
                     });
                     if (data.error) {
@@ -296,32 +299,16 @@
         {/if}
 
         {#if data.totalItems > 0}
-            {#await data.items}
-                <div class="mt-8 flex flex-wrap gap-2">
-                    {#each { length: Math.min(data.limit, data.totalItems) } as _}
-                        <div class="flex w-36 flex-col gap-2 md:w-40 lg:w-44">
-                            <Skeleton class="aspect-[2/3] w-full rounded-xl" />
-                            <Skeleton class="h-4 w-full" />
-                            <div class="flex justify-between">
-                                <Skeleton class="h-3 w-10" />
-                                <Skeleton class="h-3 w-10" />
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            {:then items}
-                <div class="mt-8 flex flex-wrap gap-2">
-                    {#each items as item (item.riven_id)}
-                        <ListItem
-                            data={item}
-                            indexer={item.indexer}
-                            type={item.type}
-                            isSelectable
-                            selectStore={itemsStore} />
-                    {/each}
-                </div>
-            {/await}
-
+            <div class="mt-8 flex flex-wrap gap-2">
+                {#each data.items as item (item.riven_id)}
+                    <ListItem
+                        data={item}
+                        indexer={item.indexer}
+                        type={item.type}
+                        isSelectable
+                        selectStore={itemsStore} />
+                {/each}
+            </div>
             <div class="mt-4">
                 <p class="text-muted-foreground text-sm">
                     Showing page <span class="font-semibold text-purple-400">{$formData.page}</span>
@@ -339,7 +326,8 @@
                 {#snippet children({ pages, currentPage })}
                     <Pagination.Content>
                         <Pagination.Item>
-                            <Pagination.PrevButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
+                            <Pagination.PrevButton
+                                onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                         {#each pages as page (page.key)}
                             {#if page.type === "ellipsis"}
@@ -351,14 +339,16 @@
                                     <Pagination.Link
                                         {page}
                                         isActive={currentPage === page.value}
-                                        onclick={() => setTimeout(() => formElement.requestSubmit(), 10)}>
+                                        onclick={() =>
+                                            setTimeout(() => formElement.requestSubmit(), 10)}>
                                         {page.value}
                                     </Pagination.Link>
                                 </Pagination.Item>
                             {/if}
                         {/each}
                         <Pagination.Item>
-                            <Pagination.NextButton onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
+                            <Pagination.NextButton
+                                onclick={() => setTimeout(() => formElement.requestSubmit(), 10)} />
                         </Pagination.Item>
                     </Pagination.Content>
                 {/snippet}

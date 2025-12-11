@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { uploadLogs } from "$lib/api";
+    import providers from "$lib/providers";
     import { Button } from "$lib/components/ui/button/index.js";
     import { toast } from "svelte-sonner";
     import { logStore, type LogEntry } from "$lib/stores/logs.svelte";
@@ -69,7 +69,7 @@
 
     async function handleUploadLogs() {
         try {
-            const response = await uploadLogs();
+            const response = await providers.riven.POST("/api/v1/upload_logs")
             if (response.error) {
                 toast.error(`Failed to upload logs: ${response.error}`);
             }
@@ -94,7 +94,7 @@
 
 {#snippet logEntry(log: LogEntry)}
     <div class="border-border/50 hover:bg-muted/20 border-b transition-colors last:border-b-0">
-        <div class="text-foreground/90 p-4 font-mono text-xs break-words whitespace-pre-wrap">
+        <div class="text-foreground/90 p-4 font-mono text-xs wrap-break-word whitespace-pre-wrap">
             {log.message || log}
         </div>
     </div>

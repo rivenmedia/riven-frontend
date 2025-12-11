@@ -224,12 +224,53 @@
 
                             <ItemManualScrape
                                 class="bg-white/10"
+            <div
+                class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                <img
+                    alt={data.mediaDetails?.details.title}
+                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
+                    src={data.mediaDetails?.details.poster_path
+                        ? data.mediaDetails?.details.poster_path
+                        : "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg"}
+                    loading="lazy" />
+
+                <div class="flex flex-col">
+                    <h1 class="mb-2 text-xl font-bold drop-shadow-md">
+                        {data.mediaDetails?.details.title}
+                    </h1>
+
+                    <div class="mb-2 flex flex-wrap gap-2">
+                        {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
+                            <ItemRequest
+                                class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
-                                itemId={rivenId ? rivenId.toString() : null}
-                                externalId={data.mediaDetails?.details.id?.toString() ?? ""}
+                                ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type} />
-                        </div>
-                    {/if}
+                        {:else if data.riven?.id != null}
+                            <ItemDelete
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={rivenId ? [rivenId.toString()] : []}
+                                variant="destructive" />
+
+                            <ItemReset
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={rivenId ? [rivenId.toString()] : []} />
+
+                            {#if data.riven.state !== "Completed"}
+                                <ItemPause
+                                    class="bg-white/10"
+                                    title={data.mediaDetails?.details.title}
+                                    isPaused={data.riven.state === "Paused"}
+                                    ids={rivenId ? [rivenId.toString()] : []} />
+                            {/if}
+                            <ItemRetry
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details.title}
+                                ids={rivenId ? [rivenId.toString()] : []} />
+                        {/if}
+                    </div>
 
                     {#if data.riven?.state}
                         <div class="mb-2">
@@ -285,29 +326,28 @@
                         </div>
                     {/if}
 
-                    <!-- Overview -->
-                    <div class="mt-4">
-                        <p class="text-sm leading-relaxed text-muted-foreground">
+                    <div class="flex flex-col gap-4">
+                        <p class="max-w-max text-sm leading-relaxed">
                             {data.mediaDetails?.details.overview}
                         </p>
                     </div>
 
-                    <!-- Cast -->
-                    <div class="mt-6 flex flex-wrap gap-3">
-                        {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
-                            {#if index < 8}
-                                <Tooltip>
-                                    {#snippet trigger()}
-                                        <a href="/details/person/{cast.id}">
-                                            <img
-                                                alt={cast.name}
-                                                class="size-12 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
-                                                src={cast.profile_path
-                                                    ? cast.profile_path
-                                                    : "https://avatar.iran.liara.run/public"}
-                                                loading="lazy" />
-                                        </a>
-                                    {/snippet}
+                        <div class="flex flex-wrap gap-4">
+                            {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
+                                {#if index < 8}
+                                    <div class="flex flex-col items-center">
+                                        <Tooltip>
+                                            {#snippet trigger()}
+                                                <a href="/details/person/{cast.id}">
+                                                    <img
+                                                        alt={cast.name}
+                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
+                                                        src={cast.profile_path
+                                                            ? cast.profile_path
+                                                            : "https://avatar.iran.liara.run/public"}
+                                                        loading="lazy" />
+                                                </a>
+                                            {/snippet}
 
                                     {#snippet content()}
                                         <p class="text-center text-sm font-medium">
@@ -320,7 +360,6 @@
                     </div>
                 </div>
             </div>
-
 
             {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.collection}
                 <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
@@ -617,7 +656,8 @@
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">Original Filename</p>
                                     <p class="text-sm font-medium break-all">
-                                        {data.riven.media_metadata?.original_filename || data.riven.filesystem_entry?.original_filename}
+                                        {data.riven.media_metadata?.original_filename ||
+                                            data.riven.filesystem_entry?.original_filename}
                                     </p>
                                 </div>
                             {/if}
@@ -636,7 +676,8 @@
                                 <div class="flex flex-wrap gap-x-2 text-sm">
                                     {#if data.riven.media_metadata?.video?.resolution_width && data.riven.media_metadata?.video?.resolution_height}
                                         <Badge variant="outline">
-                                            {data.riven.media_metadata.video.resolution_width}x{data.riven.media_metadata.video.resolution_height}
+                                            {data.riven.media_metadata.video.resolution_width}x{data
+                                                .riven.media_metadata.video.resolution_height}
                                         </Badge>
                                     {/if}
                                     {#if data.riven.media_metadata?.video?.codec}
@@ -650,11 +691,14 @@
                                         </Badge>
                                     {/if}
                                     {#if data.riven.media_metadata?.video?.hdr_type}
-                                        <Badge variant="outline">{data.riven.media_metadata.video.hdr_type}</Badge>
+                                        <Badge variant="outline"
+                                            >{data.riven.media_metadata.video.hdr_type}</Badge>
                                     {/if}
                                     {#if data.riven.media_metadata?.bitrate}
                                         <Badge variant="outline">
-                                            {Math.round(data.riven.media_metadata.bitrate / 1000000)} Mbps
+                                            {Math.round(
+                                                data.riven.media_metadata.bitrate / 1000000
+                                            )} Mbps
                                         </Badge>
                                     {/if}
 
@@ -680,7 +724,9 @@
                                                           ? "5.1"
                                                           : audioTrack.channels + "ch"
                                                     : ""}
-                                                {audioTrack.language ? `(${audioTrack.language.toUpperCase()})` : ""}
+                                                {audioTrack.language
+                                                    ? `(${audioTrack.language.toUpperCase()})`
+                                                    : ""}
                                             </Badge>
                                         {/each}
                                     </div>
@@ -698,7 +744,9 @@
                                                     : subtitle.codec === "hdmv_pgs_subtitle"
                                                       ? "PGS"
                                                       : subtitle.codec?.toUpperCase() || "Unknown"}
-                                                {subtitle.language ? `(${subtitle.language.toUpperCase()})` : ""}
+                                                {subtitle.language
+                                                    ? `(${subtitle.language.toUpperCase()})`
+                                                    : ""}
                                             </Badge>
                                         {/each}
                                     </div>
@@ -709,11 +757,13 @@
                                 <p class="text-primary text-xs">Source</p>
                                 <div class="flex flex-wrap gap-x-2 text-sm">
                                     {#if data.riven.media_metadata?.quality_source}
-                                        <Badge variant="outline">{data.riven.media_metadata.quality_source}</Badge>
+                                        <Badge variant="outline"
+                                            >{data.riven.media_metadata.quality_source}</Badge>
                                     {/if}
                                     {#if data.riven.media_metadata?.container_format && data.riven.media_metadata.container_format.length > 0}
                                         {#each data.riven.media_metadata.container_format as container}
-                                            <Badge variant="outline">{container.toUpperCase()}</Badge>
+                                            <Badge variant="outline"
+                                                >{container.toUpperCase()}</Badge>
                                         {/each}
                                     {/if}
                                     {#if data.riven.media_metadata?.is_remux}
@@ -732,7 +782,9 @@
                                 <div class="flex flex-col gap-1">
                                     <p class="text-primary text-xs">File Size</p>
                                     <p class="text-sm font-medium">
-                                        {(data.riven.filesystem_entry.file_size / 1073741824).toFixed(2)} GB
+                                        {(
+                                            data.riven.filesystem_entry.file_size / 1073741824
+                                        ).toFixed(2)} GB
                                     </p>
                                 </div>
                             {/if}
@@ -742,7 +794,9 @@
                                     <p class="text-primary text-xs">Duration</p>
                                     <p class="text-sm font-medium">
                                         {Math.floor(data.riven.media_metadata.duration / 3600)}h
-                                        {Math.floor((data.riven.media_metadata.duration % 3600) / 60)}m
+                                        {Math.floor(
+                                            (data.riven.media_metadata.duration % 3600) / 60
+                                        )}m
                                         {Math.floor(data.riven.media_metadata.duration % 60)}s
                                     </p>
                                 </div>

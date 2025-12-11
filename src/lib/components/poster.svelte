@@ -67,7 +67,6 @@
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">
-
             <!-- <div class="bg-background/70 absolute top-0 right-0 bottom-0 left-0 h-full w-full">
             </div>
             <div

@@ -7,7 +7,6 @@ import type {
 } from "$lib/providers/parser";
 import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
-import { getItem } from "$lib/api";
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
@@ -65,7 +64,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
     return { traktSlug, traktRecs };
 }
 
-export const load = (async ({ fetch, params, cookies }) => {
+export const load = (async ({ fetch, params, cookies, locals }) => {
     const { id, mediaType } = params;
 
     if (mediaType !== "movie" && mediaType !== "tv") {
@@ -79,15 +78,31 @@ export const load = (async ({ fetch, params, cookies }) => {
     let rivenData;
 
     try {
-        rivenData = await getItem({
-            fetch: fetch,
-            path: {
-                id: id
+        // rivenData = await getItem({
+        //     fetch: fetch,
+        //     path: {
+        //         id: id
+        //     },
+        //     query: {
+        //         media_type: mediaType,
+        //         extended: true
+        //     }
+        // });
+        rivenData = await providers.riven.GET("/api/v1/items/{id}", {
+            params: {
+                path: {
+                    id: id
+                },
+                query: {
+                    media_type: mediaType,
+                    extended: true
+                }
             },
-            query: {
-                media_type: mediaType,
-                extended: true
-            }
+            baseUrl: locals.backendUrl,
+            headers: {
+                "x-api-key": locals.apiKey
+            },
+            fetch: fetch
         });
     } catch {
         /* empty */
@@ -152,10 +167,12 @@ export const load = (async ({ fetch, params, cookies }) => {
             error(500, detailsError);
         }
 
+        const languagesToCheck = ["jpn", "kor", "chi", "zho"];
+
         if (
             details?.data &&
             details?.data.originalLanguage &&
-            details.data.originalLanguage === "jpn"
+            languagesToCheck.includes(details.data.originalLanguage)
         ) {
             const { data: engEpisodesData, error: engEpisodesError } = await providers.tvdb.GET(
                 "/series/{id}/episodes/{season-type}/{lang}",

@@ -16,6 +16,7 @@
         data: SuperValidated<EmailChangeSchema>;
     } = $props();
 
+    // svelte-ignore state_referenced_locally
     const form = superForm(data, {
         validators: zod4Client(emailChangeSchema)
     });

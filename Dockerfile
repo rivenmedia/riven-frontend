@@ -18,7 +18,6 @@ WORKDIR /riven
 COPY --from=frontend  /app/build /riven/build
 COPY --from=frontend  /app/node_modules /riven/node_modules
 COPY --from=frontend  /app/package.json /riven/package.json
-COPY version.txt /riven/
 COPY drizzle /riven/drizzle
 
 # Add the entrypoint script
