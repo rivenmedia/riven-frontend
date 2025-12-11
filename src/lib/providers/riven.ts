@@ -944,6 +944,40 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AutoScrapeRequest */
+        AutoScrapeRequest: {
+            /** Item Id */
+            item_id?: string | null;
+            /** Tmdb Id */
+            tmdb_id?: string | null;
+            /** Tvdb Id */
+            tvdb_id?: string | null;
+            /** Imdb Id */
+            imdb_id?: string | null;
+            /**
+             * Media Type
+             * @enum {string}
+             */
+            media_type?: "movie" | "tv" | null;
+            /** Resolutions */
+            resolutions?: string[] | null;
+            /** Quality */
+            quality?: string[] | null;
+            /** Rips */
+            rips?: string[] | null;
+            /** Hdr */
+            hdr?: string[] | null;
+            /** Audio */
+            audio?: string[] | null;
+            /** Extras */
+            extras?: string[] | null;
+            /** Trash */
+            trash?: string[] | null;
+            /** Require */
+            require?: string[] | null;
+            /** Exclude */
+            exclude?: string[] | null;
+        };
         /** AddMediaItemPayload */
         AddMediaItemPayload: {
             /**

@@ -4,8 +4,7 @@
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
 
-    type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
-
+    import type { RtnSettingsModel } from "$lib/api/types.gen";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
     import * as Alert from "$lib/components/ui/alert/index.js";
@@ -36,6 +35,13 @@
     import Magnet from "@lucide/svelte/icons/magnet";
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
+
+    type Stream = components["schemas"]["Stream"];
+    type StartSessionResponse = components["schemas"]["StartSessionResponse"];
+    type DebridFile = components["schemas"]["DebridFile"];
+    type Container = components["schemas"]["Container"];
+    type ShowFileData = components["schemas"]["ShowFileData"];
+    type ParsedData = components["schemas"]["ParsedData"];
 
     interface Props {
         title: string | null | undefined;
@@ -383,12 +389,13 @@
             if (data) {
                 const ranking = data.ranking;
                 const newSelectedOptions = { ...selectedOptions };
+                const newRankingOptions: Record<string, string[]> = {};
 
                 // Resolutions
-                if (ranking.resolutions) {
-                    rankingOptions.resolutions = Object.keys(ranking.resolutions).filter(
+                if (ranking?.resolutions) {
+                    newRankingOptions.resolutions = Object.keys(ranking.resolutions).filter(
                         (k) => k !== "unknown"
-                    );
+                    ) as string[];
                     // Populate selected resolutions
                     newSelectedOptions.resolutions = Object.entries(ranking.resolutions)
                         .filter(([k, v]) => v === true && k !== "unknown")
@@ -396,23 +403,18 @@
                 }
 
                 // Custom Ranks
-                const categories: (keyof import("$lib/api/types.gen").CustomRanksConfig)[] = [
-                    "quality",
-                    "rips",
-                    "hdr",
-                    "audio",
-                    "extras",
-                    "trash"
-                ];
+                const categories: (keyof import("$lib/providers/riven").components["schemas"]["CustomRanksConfig"])[] =
+                    ["quality", "rips", "hdr", "audio", "extras", "trash"];
+                // Note: 'trash' might not be in CustomRanksConfig in the same way, need verification or ANY cast if strict.
+
                 categories.forEach((cat) => {
-                    if (ranking.custom_ranks && ranking.custom_ranks[cat]) {
-                        const categoryObj = ranking.custom_ranks[cat];
+                    if (ranking?.custom_ranks && (ranking.custom_ranks as any)[cat]) {
+                        const categoryObj = (ranking.custom_ranks as any)[cat];
                         if (!categoryObj) return;
 
-                        rankingOptions[cat] = Object.keys(categoryObj);
+                        newRankingOptions[cat] = Object.keys(categoryObj);
 
                         // Populate selected options for this category
-                        newSelectedOptions[cat] = Object.entries(categoryObj);
                         newSelectedOptions[cat] = Object.entries(categoryObj)
                             .filter(([_, val]) => {
                                 return (val as any)?.fetch === true;
@@ -421,6 +423,7 @@
                     }
                 });
 
+                rankingOptions = newRankingOptions;
                 selectedOptions = newSelectedOptions;
             }
         } catch (e) {
@@ -458,35 +461,12 @@
             }
 
             // Only include selected options if they have values
-            const rankingOverrides: Record<string, string[]> = {};
-            const topLevelOptions: Record<string, string[]> = {};
-
             Object.entries(selectedOptions).forEach(([key, value]) => {
                 if (value.length > 0) {
-                    if (
-                        [
-                            "resolutions",
-                            "quality",
-                            "rips",
-                            "hdr",
-                            "audio",
-                            "extras",
-                            "trash"
-                        ].includes(key)
-                    ) {
-                        rankingOverrides[key] = value;
-                    } else {
-                        // @ts-ignore
-                        topLevelOptions[key] = value;
-                    }
+                    // @ts-ignore
+                    body[key] = value;
                 }
             });
-
-            if (Object.keys(rankingOverrides).length > 0) {
-                body.ranking_overrides = rankingOverrides;
-            }
-
-            Object.assign(body, topLevelOptions);
 
             const { data, error: err } = await providers.riven.POST("/api/v1/scrape/auto", {
                 body: body
@@ -511,7 +491,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceDisableBitrateCheck: boolean = false) {
+    async function startScrapeSession(magnet: string, forceDisableFilesizeCheck: boolean = false) {
         loading = true;
         error = null;
 
