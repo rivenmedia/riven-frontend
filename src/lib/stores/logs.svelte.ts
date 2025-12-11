@@ -1,4 +1,4 @@
-import { logs as getOldLogs } from "$lib/api";
+import providers from "$lib/providers";
 
 export type LogEntry = {
     message?: string;
@@ -62,8 +62,10 @@ export class LogStore {
             this.#isLoadingHistorical = true;
             this.#historicalError = null;
 
-            const response = await getOldLogs();
-            console.log("Fetched historical logs:", response);
+            const response = await providers.riven.GET("/api/v1/logs")
+            if (response.error) {
+                throw new Error(response.error);
+            }
             // @ts-expect-error ignore
             this.#historicalLogs = response.data?.logs || [];
         } catch (e: any) {
@@ -117,7 +119,7 @@ export class LogStore {
 
                 buffer += decoder.decode(value, { stream: true });
 
-                let lines = buffer.split("\n");
+                const lines = buffer.split("\n");
                 buffer = lines.pop() || "";
 
                 for (const line of lines) {

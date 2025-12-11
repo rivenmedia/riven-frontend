@@ -1,9 +1,10 @@
 import type { PageServerLoad } from "./$types";
 import { redirect, error } from "@sveltejs/kit";
-import { getItems } from "$lib/api";
 import { itemsSearchSchema } from "$lib/schemas/items";
 import { zod4 } from "sveltekit-superforms/adapters";
-import { message, superValidate, fail, setError } from "sveltekit-superforms";
+import providers from "$lib/providers";
+import { superValidate } from "sveltekit-superforms";
+// import { message, fail, setError } from "sveltekit-superforms";
 
 function extractYear(airedAt: string | null): number | null {
     if (!airedAt) return null;
@@ -11,6 +12,7 @@ function extractYear(airedAt: string | null): number | null {
     return isNaN(year) ? null : year;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformItems(items: any[]) {
     return items.map((item) => ({
         id:
@@ -49,21 +51,34 @@ export const load: PageServerLoad = async (event) => {
 
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
 
-    const countResponse = await getItems({
-        fetch: event.fetch,
-        query: {
-            ...itemsSearchForm.data,
-            count_only: true
-        } as any
+    const countResponse = await providers.riven.GET("/api/v1/items", {
+        params: {
+            query: {
+                ...itemsSearchForm.data,
+                count_only: true
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any
+        },
+        baseUrl: event.locals.backendUrl,
+        headers: {
+            "x-api-key": event.locals.apiKey
+        },
+        fetch: event.fetch
     });
 
     if (countResponse.error) {
         error(500, "Failed to fetch items count");
     }
 
-    const itemsResponse = await getItems({
-        fetch: event.fetch,
-        query: itemsSearchForm.data
+    const itemsResponse = await providers.riven.GET("/api/v1/items", {
+        params: {
+            query: itemsSearchForm.data
+        },
+        baseUrl: event.locals.backendUrl,
+        headers: {
+            "x-api-key": event.locals.apiKey
+        },
+        fetch: event.fetch
     });
 
     if (itemsResponse.error) {

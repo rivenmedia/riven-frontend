@@ -20,12 +20,13 @@
     import * as Select from "$lib/components/ui/select/index.js";
     import ArrowUpDown from "@lucide/svelte/icons/arrow-up-down";
     import { ItemStore } from "$lib/stores/library-items.svelte";
-    import { removeItem, resetItems, retryItems, pauseItems, unpauseItems } from "$lib/api";
+    import providers from "$lib/providers";
     import * as Pagination from "$lib/components/ui/pagination/index.js";
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
     import { goto } from "$app/navigation";
     import { Skeleton } from "$lib/components/ui/skeleton";
+    import { DELETE } from "../api/[...backendProxy]/+server";
 
     let { data }: PageProps = $props();
 
@@ -202,7 +203,12 @@
 
                 {@render actionButton("Remove Selected", "destructive", async () => {
                     actionInProgress = true;
-                    const data = await removeItem({
+                    // const data = await removeItem({
+                    //     body: {
+                    //         ids: itemsStore.items.map((id) => id.toString())
+                    //     }
+                    // });
+                    const data = await providers.riven.DELETE("/api/v1/items/remove", {
                         body: {
                             ids: itemsStore.items.map((id) => id.toString())
                         }
@@ -220,7 +226,7 @@
 
                 {@render actionButton("Reset Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await resetItems({
+                    const data = await providers.riven.POST("/api/v1/items/reset", {
                         body: {
                             ids: itemsStore.items.map((id) => id.toString())
                         }
@@ -238,7 +244,7 @@
 
                 {@render actionButton("Retry Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await retryItems({
+                    const data = await providers.riven.POST("/api/v1/items/retry", {
                         body: {
                             ids: itemsStore.items.map((id) => id.toString())
                         }
@@ -256,7 +262,7 @@
 
                 {@render actionButton("Pause Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await pauseItems({
+                    const data = await providers.riven.POST("/api/v1/items/pause", {
                         body: {
                             ids: itemsStore.items.map((id) => id.toString())
                         }
@@ -274,7 +280,7 @@
 
                 {@render actionButton("Unpause Selected", "outline", async () => {
                     actionInProgress = true;
-                    const data = await unpauseItems({
+                    const data = await providers.riven.POST("/api/v1/items/unpause", {
                         body: {
                             ids: itemsStore.items.map((id) => id.toString())
                         }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { addItems } from "$lib/api";
+    import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -31,11 +31,10 @@
     }: Props = $props();
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
-        console.log("IDs:", ids);
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
         console.log("Valid IDs:", validIds);
 
-        const response = await addItems({
+        const response = await providers.riven.POST("/api/v1/items/add", {
             body: {
                 media_type: mediaType as "movie" | "tv",
                 tmdb_ids: mediaType === "movie" ? validIds : [],
@@ -46,6 +45,7 @@
         if (response.data) {
             toast.success("Media item requested successfully!");
         } else {
+            console.error("Error response:", response.error);
             toast.error("Failed to request media item.");
         }
     }

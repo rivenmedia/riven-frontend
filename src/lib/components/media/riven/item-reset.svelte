@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { resetItems } from "$lib/api";
+    import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -24,7 +24,7 @@
     async function resetMediaItem(ids: (string | null | undefined)[]) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
-        const response = await resetItems({
+        const response = await providers.riven.POST("/api/v1/items/reset", {
             body: {
                 ids: validIds
             }
@@ -33,6 +33,7 @@
         if (response.data) {
             toast.success("Media item reset successfully!");
         } else {
+            console.error("Error response:", response.error);
             toast.error("Failed to reset media item.");
         }
     }

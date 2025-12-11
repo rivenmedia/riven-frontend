@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { pauseItems, unpauseItems } from "$lib/api";
+    import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -33,12 +33,12 @@
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
         const response = isPaused
-            ? await unpauseItems({
+            ? await providers.riven.POST("/api/v1/items/pause", {
                   body: {
                       ids: validIds
                   }
               })
-            : await pauseItems({
+            : await providers.riven.POST("/api/v1/items/unpause", {
                   body: {
                       ids: validIds
                   }
@@ -47,6 +47,7 @@
         if (response.data) {
             toast.success(`Media item ${isPaused ? "unpaused" : "paused"} successfully!`);
         } else {
+            console.error("Error response:", response.error);
             toast.error(`Failed to ${isPaused ? "unpause" : "pause"} media item.`);
         }
     }
