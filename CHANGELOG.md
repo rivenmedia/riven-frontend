@@ -1,10 +1,12 @@
 # Changelog
 
-## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v0.21.2...v1.0.0-beta.0) (2025-12-07)
+## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/riven-frontend-v0.21.2...riven-frontend-v1.0.0-beta.0) (2025-12-11)
+
 
 ### ⚠ BREAKING CHANGES
 
-- Too many changes, will be docummented separately on riven.tv after release
+* New UI, themes, inbuilt authentication and much more.
+* See [rivenmedia/riven/pull/1170](https://github.com/rivenmedia/riven/pull/1170) for V1 changes
 
 ## [0.20.0](https://github.com/rivenmedia/riven-frontend/compare/v0.19.0...v0.20.0) (2025-04-04)
 
