@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-beta.1](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2025-12-12)
+
+
+### Build System and Dependencies
+
+* trying to fix the pre-release to release workflow ([3dd6868](https://github.com/rivenmedia/riven-frontend/commit/3dd6868b79308decbe2836f4b7bfd445a8a830ee))
+
 ## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v0.21.2...v1.0.0-beta.0) (2025-12-12)
 
 
