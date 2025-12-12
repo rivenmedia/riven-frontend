@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-beta.2](https://github.com/rivenmedia/riven-frontend/compare/riven-frontend-v1.0.0-beta.1...riven-frontend-v1.0.0-beta.2) (2025-12-12)
+
+
+### Code Refactoring
+
+* switch scripts to ts ([9df9c70](https://github.com/rivenmedia/riven-frontend/commit/9df9c70b6da77a9c775fd7e96586c126080859d4))
+
+
+### Build System and Dependencies
+
+* update deps ([40ef695](https://github.com/rivenmedia/riven-frontend/commit/40ef695bd01ae0b8941ec4b97f092309e11ba410))
+
 ## [1.0.0-beta.1](https://github.com/rivenmedia/riven-frontend/compare/riven-frontend-v1.0.0-beta.0...riven-frontend-v1.0.0-beta.1) (2025-12-11)
 
 
