@@ -320,7 +320,7 @@ function transformTraktRecommendations(
 ): TMDBTransformedListItem[] {
     if (!items || !Array.isArray(items)) return [];
 
-    return items
+    const transformed = items
         .map((item) => {
             const poster = item.images?.poster?.[0]
                 ? item.images.poster[0].startsWith("http")
@@ -355,6 +355,17 @@ function transformTraktRecommendations(
             };
         })
         .filter((item) => item.id > 0);
+
+    // Remove duplicates: prefer items with posters
+    const seen = new Map<number, TMDBTransformedListItem>();
+    for (const item of transformed) {
+        const existing = seen.get(item.id);
+        if (!existing || (item.poster_path && !existing.poster_path)) {
+            seen.set(item.id, item);
+        }
+    }
+
+    return Array.from(seen.values());
 }
 
 function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
