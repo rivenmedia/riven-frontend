@@ -13,6 +13,8 @@
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import { toast } from "svelte-sonner";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -211,6 +213,40 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []} />
+
+                            <Dialog.Root>
+                                <Dialog.Trigger>
+                                    {#snippet child({ props })}
+                                        <Button variant="ghost" class="bg-white/10" {...props}>
+                                            JSON
+                                        </Button>
+                                    {/snippet}
+                                </Dialog.Trigger>
+                                <Dialog.Content class="max-w-4xl! w-full">
+                                    <Dialog.Header>
+                                        <Dialog.Title>Raw Riven Data</Dialog.Title>
+                                        <Button
+                                            variant="outline"
+                                            onclick={() => {
+                                                navigator.clipboard.writeText(
+                                                    JSON.stringify(data.riven, null, 2)
+                                                );
+                                                toast.success("Riven data copied to clipboard!");
+                                            }}>
+                                            Copy
+                                        </Button>
+                                    </Dialog.Header>
+                                    <div
+                                        class="mt-4 max-h-100 overflow-auto rounded bg-zinc-800 p-2">
+                                        <pre
+                                            class="text-sm break-all whitespace-pre-wrap">{JSON.stringify(
+                                                data.riven,
+                                                null,
+                                                2
+                                            )}</pre>
+                                    </div>
+                                </Dialog.Content>
+                            </Dialog.Root>
                         {/if}
                     </div>
 
