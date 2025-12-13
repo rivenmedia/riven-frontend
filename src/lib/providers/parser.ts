@@ -416,7 +416,7 @@ export function parseTMDBMovieDetails(
         runtime,
         formatted_runtime: formatRuntime(runtime),
         homepage: data.homepage ?? null,
-        backdrop_path: buildTMDBImage(data.backdrop_path, "original"),
+        backdrop_path: buildTMDBImage(data.backdrop_path, "w1920"),
         poster_path: buildTMDBImage(data.poster_path, "w500"),
         logo: chosenLogo,
         trailer: trailer
@@ -476,7 +476,7 @@ export function parseTMDBMovieDetails(
                 poster_path: buildTMDBImage(data.belongs_to_collection.poster_path, "w500"),
                 backdrop_path: buildTMDBImage(
                     data.belongs_to_collection.backdrop_path,
-                    "original"
+                    "w1920"
                 )
             }
             : null,
@@ -1074,7 +1074,7 @@ export function parseCollectionDetails(collectionData: any): CollectionDetails {
         name: collectionData.name ?? "",
         overview: collectionData.overview ?? null,
         poster_path: buildTMDBImage(collectionData.poster_path, "w500"),
-        backdrop_path: buildTMDBImage(collectionData.backdrop_path, "original"),
+        backdrop_path: buildTMDBImage(collectionData.backdrop_path, "w1920"),
         parts: (collectionData.parts ?? [])
             .map((movie: any) => ({
                 id: movie.id ?? 0,
@@ -1082,7 +1082,7 @@ export function parseCollectionDetails(collectionData: any): CollectionDetails {
                 original_title: movie.original_title ?? "",
                 overview: movie.overview ?? null,
                 poster_path: buildTMDBImage(movie.poster_path, "w500"),
-                backdrop_path: buildTMDBImage(movie.backdrop_path, "original"),
+                backdrop_path: buildTMDBImage(movie.backdrop_path, "w1920"),
                 release_date: movie.release_date ?? null,
                 year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
                 vote_average: movie.vote_average ?? null,
