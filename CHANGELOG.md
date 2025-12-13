@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.0.0-beta.2](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2025-12-13)
+
+
+### Features
+
+* add raw riven data button on media page ([#256](https://github.com/rivenmedia/riven-frontend/issues/256)) ([f1fd684](https://github.com/rivenmedia/riven-frontend/commit/f1fd6848fbda0a158d3a8f412542c3f0d7c0bd20))
+
+
+### Bug Fixes
+
+* calendar current page date ([1876a43](https://github.com/rivenmedia/riven-frontend/commit/1876a4346128710cd6106328f4207d438170982b))
+* cookie package override to 0.7.0 ([40d6230](https://github.com/rivenmedia/riven-frontend/commit/40d62306d8f275d4e7085512e10a28c5093c97cf))
+* disable preload on settings temporarily ([bfc0980](https://github.com/rivenmedia/riven-frontend/commit/bfc09801d14f19b08627c86f5c416799c0883080))
+* handle trakt duplicate issue ([807dc59](https://github.com/rivenmedia/riven-frontend/commit/807dc59420d6e192d52b39580fb161c4cc10d66d))
+
+
+### Code Refactoring
+
+* improve the list & poster cache logic, utilize PersistedState rune and other improvements ([890bbfe](https://github.com/rivenmedia/riven-frontend/commit/890bbfe952b30f56919b9aea8668d28475cd4933))
+* parser improvements ([4caf36a](https://github.com/rivenmedia/riven-frontend/commit/4caf36af86e4b2faf333dee934da77629644889f))
+
+
+### Build System and Dependencies
+
+* build docker image ([a7b8b01](https://github.com/rivenmedia/riven-frontend/commit/a7b8b0196d9e1d181af543a14cac561a54811291))
+
 ## [1.0.0-beta.1](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2025-12-12)
 
 
