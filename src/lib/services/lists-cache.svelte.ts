@@ -1,115 +1,243 @@
 import { browser } from "$app/environment";
+import { PersistedState } from "runed";
 
-export class MediaListStore {
-    #key: string;
-    #apiPath: string;
-    #items = $state<any[]>([]);
-    #timeWindow = $state<"day" | "week" | null>(null);
-    #loading = $state<boolean>(false);
+interface CachedData<T> {
+    items: T[];
+    timestamp: number;
+}
+
+interface MediaListState {
+    timeWindow: "day" | "week";
+}
+
+/**
+ * Base interface for list items from various APIs.
+ * All items must have at least an `id` for tracking.
+ */
+export interface BaseListItem {
+    id: number;
+    title?: string;
+    name?: string;
+    poster_path?: string | null;
+    media_type?: string;
+    [key: string]: unknown;
+}
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache validity
+
+/**
+ * Extracts items from various API response formats
+ */
+function extractItems<T>(data: unknown): T[] {
+    let items: T[] = [];
+    
+    if (Array.isArray(data)) {
+        items = data;
+    } else if (data && typeof data === "object") {
+        const obj = data as Record<string, unknown>;
+        if (Array.isArray(obj.results)) {
+            items = obj.results;
+        } else if (obj.data && typeof obj.data === "object") {
+            const pageData = obj.data as Record<string, unknown>;
+            if (pageData.Page && typeof pageData.Page === "object") {
+                const page = pageData.Page as Record<string, unknown>;
+                if (Array.isArray(page.media)) {
+                    items = page.media;
+                }
+            }
+        }
+    }
+    
+    return items;
+}
+
+/**
+ * Deduplicates items by their id property
+ */
+function deduplicateById<T extends { id?: unknown }>(items: T[]): T[] {
+    const seenIds: unknown[] = [];
+    return items.filter((item) => {
+        if (item.id === undefined || seenIds.includes(item.id)) {
+            return false;
+        }
+        seenIds.push(item.id);
+        return true;
+    });
+}
+
+export class MediaListStore<T = unknown> {
+    readonly #key: string;
+    readonly #apiPath: string;
+    readonly #supportsTimeWindow: boolean;
+    readonly #defaultTimeWindow: "day" | "week";
+
+    // Use PersistedState for time window preference (persists across sessions)
+    #timeWindowState: PersistedState<MediaListState> | null = null;
+
+    // Runtime state (non-persisted)
+    #items = $state<T[]>([]);
+    #loading = $state(false);
     #error = $state<string | null>(null);
-    #page = $state<number>(1);
-    #hasMore = $state<boolean>(true);
+    #page = $state(1);
+    #hasMore = $state(true);
+    #initialized = $state(false);
 
     constructor(key: string, apiPath: string, initialTimeWindow: "day" | "week" | null = null) {
         this.#key = key;
         this.#apiPath = apiPath;
-        this.#timeWindow = initialTimeWindow;
+        this.#supportsTimeWindow = initialTimeWindow !== null;
+        this.#defaultTimeWindow = initialTimeWindow ?? "day";
 
-        if (browser && initialTimeWindow) {
-            const savedWindow = sessionStorage.getItem(`${key}TimeWindow`);
-            if (savedWindow && (savedWindow === "day" || savedWindow === "week")) {
-                this.#timeWindow = savedWindow;
+        if (browser && this.#supportsTimeWindow) {
+            this.#timeWindowState = new PersistedState<MediaListState>(
+                `${key}_preferences`,
+                { timeWindow: this.#defaultTimeWindow },
+                { storage: "session", syncTabs: false }
+            );
+        }
+
+        // Eagerly load data on construction in browser
+        if (browser) {
+            this.load();
+        }
+    }
+
+    get items(): T[] {
+        return this.#items;
+    }
+
+    get timeWindow(): "day" | "week" | null {
+        if (!this.#supportsTimeWindow) return null;
+        return this.#timeWindowState?.current.timeWindow ?? this.#defaultTimeWindow;
+    }
+
+    get loading(): boolean {
+        return this.#loading;
+    }
+
+    get error(): string | null {
+        return this.#error;
+    }
+
+    get hasMore(): boolean {
+        return this.#hasMore;
+    }
+
+    get initialized(): boolean {
+        return this.#initialized;
+    }
+
+    #getStorageKey(): string {
+        const tw = this.timeWindow;
+        return tw ? `${this.#key}_${tw}_cache` : `${this.#key}_cache`;
+    }
+
+    #getApiUrl(page: number = 1): string {
+        const tw = this.timeWindow;
+        const baseUrl = tw ? `${this.#apiPath}/${tw}/trending` : this.#apiPath;
+        return `${baseUrl}?page=${page}`;
+    }
+
+    #getCachedData(): CachedData<T> | null {
+        if (!browser) return null;
+
+        try {
+            const stored = sessionStorage.getItem(this.#getStorageKey());
+            if (!stored) return null;
+
+            const cached = JSON.parse(stored) as CachedData<T>;
+            const now = Date.now();
+
+            // Check if cache is still valid
+            if (now - cached.timestamp > CACHE_DURATION) {
+                sessionStorage.removeItem(this.#getStorageKey());
+                return null;
+            }
+
+            return cached;
+        } catch {
+            return null;
+        }
+    }
+
+    #setCachedData(items: T[]): void {
+        if (!browser) return;
+
+        try {
+            const cached: CachedData<T> = {
+                items,
+                timestamp: Date.now()
+            };
+            sessionStorage.setItem(this.#getStorageKey(), JSON.stringify(cached));
+        } catch (e) {
+            // Handle quota exceeded - clear old caches
+            if (e instanceof DOMException && e.name === "QuotaExceededError") {
+                this.#clearAllCaches();
             }
         }
     }
 
-    get items() {
-        // Load items on first access
-        if ($effect.tracking() && this.#items.length === 0 && !this.#loading) {
-            $effect(() => {
-                this.load();
-            });
+    #clearAllCaches(): void {
+        if (!browser) return;
+
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key?.includes("_cache")) {
+                keysToRemove.push(key);
+            }
         }
-        return this.#items;
-    }
-
-    get timeWindow() {
-        return this.#timeWindow;
-    }
-
-    get loading() {
-        return this.#loading;
-    }
-
-    get error() {
-        return this.#error;
-    }
-
-    get hasMore() {
-        return this.#hasMore;
-    }
-
-    getStorageKey(): string {
-        return this.#timeWindow ? `${this.#key}_${this.#timeWindow}` : this.#key;
-    }
-
-    getApiUrl(page: number = 1): string {
-        const baseUrl = this.#timeWindow
-            ? `${this.#apiPath}/${this.#timeWindow}/trending`
-            : this.#apiPath;
-        return `${baseUrl}?page=${page}`;
+        keysToRemove.forEach((key) => sessionStorage.removeItem(key));
     }
 
     async changeTimeWindow(window: "day" | "week"): Promise<void> {
-        if (this.#timeWindow === window) return;
+        if (!this.#supportsTimeWindow || this.timeWindow === window) return;
 
-        this.#timeWindow = window;
-        if (browser) {
-            sessionStorage.setItem(`${this.#key}TimeWindow`, window);
+        if (this.#timeWindowState) {
+            this.#timeWindowState.current = { timeWindow: window };
         }
 
+        // Reset pagination and reload
         this.#page = 1;
         this.#hasMore = true;
+        this.#items = [];
         await this.load();
     }
 
     async load(): Promise<void> {
         if (!browser) return;
 
-        const storageKey = this.getStorageKey();
-        const storedData = sessionStorage.getItem(storageKey);
-
-        if (storedData) {
-            try {
-                const parsedData = JSON.parse(storedData);
-                this.#items = parsedData.results || parsedData.data?.Page?.media || parsedData;
-                return;
-            } catch (e) {
-                console.error(`Error parsing stored data for ${this.#key}:`, e);
-            }
+        // Try to use cached data first
+        const cached = this.#getCachedData();
+        if (cached && cached.items.length > 0) {
+            this.#items = cached.items;
+            this.#initialized = true;
+            return;
         }
 
-        await this.fetchFromApi();
+        await this.#fetchFromApi();
     }
 
-    async fetchFromApi(): Promise<void> {
+    async #fetchFromApi(): Promise<void> {
+        if (this.#loading) return;
+
         try {
             this.#loading = true;
             this.#error = null;
 
-            const response = await fetch(this.getApiUrl(this.#page));
+            const response = await fetch(this.#getApiUrl(this.#page));
             if (!response.ok) {
-                throw new Error(`Failed to fetch data from ${this.getApiUrl(this.#page)}`);
+                throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
             }
 
             const result = await response.json();
-            if (browser) {
-                sessionStorage.setItem(this.getStorageKey(), JSON.stringify(result));
-            }
+            const items = deduplicateById(extractItems<T & { id?: unknown }>(result)) as T[];
 
-            this.#items = result.results || result.data?.Page?.media || result;
+            this.#items = items;
+            this.#initialized = true;
+            this.#setCachedData(items);
         } catch (error) {
-            console.error(`Error fetching data from ${this.getApiUrl(this.#page)}:`, error);
+            console.error(`[MediaListStore:${this.#key}] Fetch error:`, error);
             this.#error = error instanceof Error ? error.message : String(error);
         } finally {
             this.#loading = false;
@@ -124,21 +252,25 @@ export class MediaListStore {
             this.#error = null;
             this.#page += 1;
 
-            const response = await fetch(this.getApiUrl(this.#page));
+            const response = await fetch(this.#getApiUrl(this.#page));
             if (!response.ok) {
-                throw new Error(`Failed to fetch data from ${this.getApiUrl(this.#page)}`);
+                throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
             }
 
             const result = await response.json();
-            const newItems = result.results || result.data?.Page?.media || result;
+            const newItems = extractItems<T & { id?: unknown }>(result);
 
             if (newItems.length === 0) {
                 this.#hasMore = false;
             } else {
-                this.#items = [...this.#items, ...newItems];
+                // Combine and deduplicate items
+                const combined = [...this.#items, ...newItems] as (T & { id?: unknown })[];
+                this.#items = deduplicateById(combined) as T[];
+                // Update cache with all items
+                this.#setCachedData(this.#items);
             }
         } catch (error) {
-            console.error(`Error loading more data from ${this.getApiUrl(this.#page)}:`, error);
+            console.error(`[MediaListStore:${this.#key}] Load more error:`, error);
             this.#error = error instanceof Error ? error.message : String(error);
             this.#page -= 1;
         } finally {
@@ -146,9 +278,19 @@ export class MediaListStore {
         }
     }
 
+    /**
+     * Force refresh data from API, bypassing cache
+     */
+    async refresh(): Promise<void> {
+        this.clearCache();
+        this.#page = 1;
+        this.#hasMore = true;
+        await this.#fetchFromApi();
+    }
+
     clearCache(): void {
         if (browser) {
-            sessionStorage.removeItem(this.getStorageKey());
+            sessionStorage.removeItem(this.#getStorageKey());
         }
     }
 }

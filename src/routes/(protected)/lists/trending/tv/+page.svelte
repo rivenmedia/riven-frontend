@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { MediaListStore } from "$lib/services/lists-cache.svelte";
+    import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { onMount } from "svelte";
 
-    const trendingShowsStore = new MediaListStore("trendingShows", "/api/tmdb/tv", "day");
+    const trendingShowsStore = new MediaListStore<BaseListItem>("trendingShows", "/api/tmdb/tv", "day");
     let loadMoreTrigger: HTMLDivElement;
 
     onMount(() => {
@@ -63,7 +63,7 @@
                 </div>
             {/each}
             {#if trendingShowsStore.loading}
-                {#each Array(6) as _}
+                {#each Array(6) as _, i (i)}
                     <div class="w-full">
                         <Skeleton class="aspect-2/3 w-full rounded-sm" />
                         <Skeleton class="mt-2 h-4 w-full" />
@@ -77,7 +77,7 @@
         </div>
     {:else}
         <div class="flex flex-wrap gap-4">
-            {#each Array(12) as _}
+            {#each Array(12) as _, i (i)}
                 <div>
                     <Skeleton class="aspect-2/3 w-full rounded-sm" />
                     <Skeleton class="mt-2 h-4 w-full" />
