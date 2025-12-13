@@ -476,13 +476,12 @@
                 if (!externalId) {
                     throw new Error("No item ID or external ID available");
                 }
-            }
-
-            if (mediaType === "movie" && externalId) {
-                queryParams.tmdb_id = externalId;
-            }
-            if (mediaType === "tv" && externalId) {
-                queryParams.tvdb_id = externalId;
+                if (mediaType === "movie") {
+                    queryParams.tmdb_id = externalId;
+                }
+                if (mediaType === "tv") {
+                    queryParams.tvdb_id = externalId;
+                }
             }
 
             const { data, error: err } = await providers.riven.POST(

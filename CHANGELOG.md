@@ -1,14 +1,13 @@
 # Changelog
 
-## [1.0.0-beta.1](https://github.com/rivenmedia/riven-frontend/compare/riven-frontend-v1.0.0-beta.0...riven-frontend-v1.0.0-beta.1) (2025-12-11)
+## [1.0.0-beta.1](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2025-12-12)
 
 
 ### Build System and Dependencies
 
-* fix the checks to use beta instead of rc ([45642ed](https://github.com/rivenmedia/riven-frontend/commit/45642edef2960f07cce7f07babaacb8d21a9b497))
-* remove redundant prereleased event type since published has all ([d469e01](https://github.com/rivenmedia/riven-frontend/commit/d469e014ab257dcd621089a29c5f0b016a8907c9))
+* trying to fix the pre-release to release workflow ([3dd6868](https://github.com/rivenmedia/riven-frontend/commit/3dd6868b79308decbe2836f4b7bfd445a8a830ee))
 
-## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/riven-frontend-v0.21.2...riven-frontend-v1.0.0-beta.0) (2025-12-11)
+## [1.0.0-beta.0](https://github.com/rivenmedia/riven-frontend/compare/v0.21.2...v1.0.0-beta.0) (2025-12-12)
 
 
 ### ⚠ BREAKING CHANGES

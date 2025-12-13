@@ -1,18 +1,16 @@
 <script lang="ts">
     import type { PageData } from "./$types";
-    import { onMount } from "svelte";
-    import { browser } from "$app/environment";
     import TmdbNowPlaying from "$lib/components/tmdb-now-playing.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { MediaListStore } from "../../lib/services/lists-cache.svelte";
+    import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
 
     let { data }: { data: PageData } = $props();
 
-    const nowPlayingStore = new MediaListStore("nowPlaying", "/api/tmdb/now-playing");
-    const trendingMoviesStore = new MediaListStore("trendingMovies", "/api/tmdb/movie", "day");
-    const trendingShowsStore = new MediaListStore("trendingShows", "/api/tmdb/tv", "day");
-    const anilistTrendingStore = new MediaListStore("anilistTrending", "/api/anilist/trending");
+    const nowPlayingStore = new MediaListStore<BaseListItem>("nowPlaying", "/api/tmdb/now-playing");
+    const trendingMoviesStore = new MediaListStore<BaseListItem>("trendingMovies", "/api/tmdb/movie", "day");
+    const trendingShowsStore = new MediaListStore<BaseListItem>("trendingShows", "/api/tmdb/tv", "day");
+    const anilistTrendingStore = new MediaListStore<BaseListItem>("anilistTrending", "/api/anilist/trending");
 </script>
 
 <svelte:head>

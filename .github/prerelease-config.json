@@ -3,6 +3,7 @@
     "prerelease": true,
     "prerelease-type": "beta",
     "versioning": "prerelease",
+    "include-component-in-tag": false,
     "changelog-sections": [
         { "type": "feat", "hidden": false, "section": "Features" },
         { "type": "fix", "hidden": false, "section": "Bug Fixes" },

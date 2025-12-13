@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { posterCache, type RatingScore } from "$lib/services/poster-cache";
+    import { posterCache, type RatingScore } from "$lib/services/poster-cache.svelte";
 
     interface Props {
         id: number;

@@ -318,43 +318,46 @@ function transformTraktRecommendations(
     items: any[] | null,
     isMovie: boolean = false
 ): TMDBTransformedListItem[] {
-    if (!items || !Array.isArray(items)) return [];
+    if (!items?.length) return [];
 
-    return items
-        .map((item) => {
-            const poster = item.images?.poster?.[0]
-                ? item.images.poster[0].startsWith("http")
-                    ? item.images.poster[0]
-                    : `https://${item.images.poster[0]}`
-                : null;
+    const seen = new Map<number, TMDBTransformedListItem>();
 
-            let mediaType = isMovie ? "movie" : "tv";
-            let id = isMovie ? item.ids?.tmdb : item.ids?.tvdb;
-            let indexer: "tmdb" | "tvdb" = isMovie ? "tmdb" : "tvdb";
+    for (const item of items) {
+        const posterRaw = item.images?.poster?.[0];
+        const poster = posterRaw
+            ? posterRaw.startsWith("http") ? posterRaw : `https://${posterRaw}`
+            : null;
 
-            // Try to detect actual type from Trakt response
-            if (item.type === "movie" || item.movie) {
-                mediaType = "movie";
-                id = item.ids?.tmdb || item.movie?.ids?.tmdb;
-                indexer = "tmdb";
-            } else if (item.type === "show" || item.show) {
-                mediaType = "tv";
-                id = item.ids?.tvdb || item.show?.ids?.tvdb;
-                indexer = "tvdb";
-            }
+        // Detect type from Trakt response structure
+        const isMovieType = item.type === "movie" || item.movie;
+        const isShowType = item.type === "show" || item.show;
 
-            return {
-                id: id || 0,
+        const mediaType = isMovieType ? "movie" : isShowType ? "tv" : (isMovie ? "movie" : "tv");
+        const indexer: "tmdb" | "tvdb" = mediaType === "movie" ? "tmdb" : "tvdb";
+
+        const id = mediaType === "movie"
+            ? (item.ids?.tmdb || item.movie?.ids?.tmdb || 0)
+            : (item.ids?.tvdb || item.show?.ids?.tvdb || 0);
+
+        if (id <= 0) continue;
+
+        const existing = seen.get(id);
+        // Keep entry with poster, or add if not seen
+        if (!existing || (poster && !existing.poster_path)) {
+            seen.set(id, {
+                id,
                 title: item.title || item.movie?.title || item.show?.title || "",
                 poster_path: poster,
                 media_type: mediaType,
                 year: item.year || item.movie?.year || item.show?.year || "N/A",
                 vote_average: null,
                 vote_count: null,
-                indexer: indexer
-            };
-        })
-        .filter((item) => item.id > 0);
+                indexer
+            });
+        }
+    }
+
+    return Array.from(seen.values());
 }
 
 function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
@@ -391,13 +394,9 @@ export function parseTMDBMovieDetails(
     }));
 
     // Choose logo: prefer English (iso_639_1 === "en"), otherwise first available, otherwise null
+    const englishLogo = data.images.logos.find((logo) => logo.iso_639_1 === "en");
     const chosenLogo = data.images.logos.length
-        ? data.images.logos.find((logo) => logo.iso_639_1 === "en")?.file_path
-            ? buildTMDBImage(
-                data.images.logos.find((logo) => logo.iso_639_1 === "en")!.file_path,
-                "w500"
-            )
-            : buildTMDBImage(data.images.logos[0].file_path, "w500")
+        ? buildTMDBImage(englishLogo?.file_path ?? data.images.logos[0].file_path, "w500")
         : null;
 
     return {
@@ -1074,36 +1073,26 @@ export function parseCollectionDetails(collectionData: any): CollectionDetails {
         id: collectionData.id ?? 0,
         name: collectionData.name ?? "",
         overview: collectionData.overview ?? null,
-        poster_path: collectionData.poster_path
-            ? `${TMDB_IMAGE_BASE_URL}/w500${collectionData.poster_path}`
-            : null,
-        backdrop_path: collectionData.backdrop_path
-            ? `${TMDB_IMAGE_BASE_URL}/original${collectionData.backdrop_path}`
-            : null,
+        poster_path: buildTMDBImage(collectionData.poster_path, "w500"),
+        backdrop_path: buildTMDBImage(collectionData.backdrop_path, "original"),
         parts: (collectionData.parts ?? [])
             .map((movie: any) => ({
                 id: movie.id ?? 0,
                 title: movie.title ?? movie.original_title ?? "",
                 original_title: movie.original_title ?? "",
                 overview: movie.overview ?? null,
-                poster_path: movie.poster_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}`
-                    : null,
-                backdrop_path: movie.backdrop_path
-                    ? `${TMDB_IMAGE_BASE_URL}/original${movie.backdrop_path}`
-                    : null,
+                poster_path: buildTMDBImage(movie.poster_path, "w500"),
+                backdrop_path: buildTMDBImage(movie.backdrop_path, "original"),
                 release_date: movie.release_date ?? null,
                 year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
                 vote_average: movie.vote_average ?? null,
                 vote_count: movie.vote_count ?? null
             }))
-            .sort((a: CollectionMovie, b: CollectionMovie) => {
-                // Sort by release date
-                if (a.release_date && b.release_date) {
-                    return new Date(a.release_date).getTime() - new Date(b.release_date).getTime();
-                }
-                return 0;
-            })
+            .sort((a: CollectionMovie, b: CollectionMovie) =>
+                a.release_date && b.release_date
+                    ? new Date(a.release_date).getTime() - new Date(b.release_date).getTime()
+                    : 0
+            )
     };
 }
 
@@ -1167,65 +1156,46 @@ function getGenderString(gender: number | null): string | null {
     }
 }
 
+// Sort by release date (newest first), items with dates come before those without
+function sortByReleaseDateDesc<T extends { release_date: string | null }>(
+    a: T,
+    b: T
+): number {
+    if (a.release_date && b.release_date) {
+        return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+    }
+    return a.release_date ? -1 : b.release_date ? 1 : 0;
+}
+
+function transformPersonCredit(credit: any) {
+    const releaseDate = credit.release_date || credit.first_air_date || null;
+    return {
+        id: credit.id ?? 0,
+        title: credit.title || credit.name || credit.original_title || credit.original_name || "",
+        original_title: credit.original_title || credit.original_name || "",
+        poster_path: buildTMDBImage(credit.poster_path, "w500"),
+        release_date: releaseDate,
+        year: releaseDate ? new Date(releaseDate).getFullYear() : null,
+        media_type: (credit.media_type === "tv" ? "tv" : "movie") as "movie" | "tv",
+        vote_average: credit.vote_average ?? null
+    };
+}
+
 export function parsePersonDetails(personData: any): PersonDetails {
-    // Transform cast credits
     const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? [])
         .map((credit: any) => ({
-            id: credit.id ?? 0,
-            title:
-                credit.title || credit.name || credit.original_title || credit.original_name || "",
-            original_title: credit.original_title || credit.original_name || "",
-            character: credit.character ?? null,
-            poster_path: credit.poster_path
-                ? `${TMDB_IMAGE_BASE_URL}/w500${credit.poster_path}`
-                : null,
-            release_date: credit.release_date || credit.first_air_date || null,
-            year:
-                credit.release_date || credit.first_air_date
-                    ? new Date(credit.release_date || credit.first_air_date || "").getFullYear()
-                    : null,
-            media_type: credit.media_type === "tv" ? "tv" : "movie",
-            vote_average: credit.vote_average ?? null
+            ...transformPersonCredit(credit),
+            character: credit.character ?? null
         }))
-        .sort((a: PersonCreditCast, b: PersonCreditCast) => {
-            // Sort by release date (newest first)
-            if (a.release_date && b.release_date) {
-                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
-            }
-            if (a.release_date) return -1;
-            if (b.release_date) return 1;
-            return 0;
-        });
+        .sort(sortByReleaseDateDesc);
 
-    // Transform crew credits
     const crewCredits: PersonCreditCrew[] = (personData.combined_credits?.crew ?? [])
         .map((credit: any) => ({
-            id: credit.id ?? 0,
-            title:
-                credit.title || credit.name || credit.original_title || credit.original_name || "",
-            original_title: credit.original_title || credit.original_name || "",
+            ...transformPersonCredit(credit),
             job: credit.job ?? null,
-            department: credit.department ?? null,
-            poster_path: credit.poster_path
-                ? `${TMDB_IMAGE_BASE_URL}/w500${credit.poster_path}`
-                : null,
-            release_date: credit.release_date || credit.first_air_date || null,
-            year:
-                credit.release_date || credit.first_air_date
-                    ? new Date(credit.release_date || credit.first_air_date || "").getFullYear()
-                    : null,
-            media_type: credit.media_type === "tv" ? "tv" : "movie",
-            vote_average: credit.vote_average ?? null
+            department: credit.department ?? null
         }))
-        .sort((a: PersonCreditCrew, b: PersonCreditCrew) => {
-            // Sort by release date (newest first)
-            if (a.release_date && b.release_date) {
-                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
-            }
-            if (a.release_date) return -1;
-            if (b.release_date) return 1;
-            return 0;
-        });
+        .sort(sortByReleaseDateDesc);
 
     return {
         id: personData.id ?? 0,
@@ -1234,9 +1204,7 @@ export function parsePersonDetails(personData: any): PersonDetails {
         birthday: personData.birthday ?? null,
         deathday: personData.deathday ?? null,
         place_of_birth: personData.place_of_birth ?? null,
-        profile_path: personData.profile_path
-            ? `${TMDB_IMAGE_BASE_URL}/h632${personData.profile_path}`
-            : null,
+        profile_path: buildTMDBImage(personData.profile_path, "h632"),
         known_for_department: personData.known_for_department ?? null,
         gender: getGenderString(personData.gender ?? null),
         popularity: personData.popularity ?? null,

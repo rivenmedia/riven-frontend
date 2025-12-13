@@ -15,8 +15,9 @@
                 "lint": "prettier --check . && eslint .",
                 "ba:generate": "pnpx @better-auth/cli generate --config ./better-auth.config.ts --output ./src/lib/server/schema/ba-auth.ts --yes",
                 "db:generate": "drizzle-kit generate",
-                "db:pull": "bash ./scripts/drizzle_pull.sh",
-                "db:studio": "drizzle-kit studio"
+                "db:pull": "tsx ./scripts/drizzle_pull.ts",
+                "db:studio": "drizzle-kit studio",
+                "generate-api": "tsx ./scripts/generate_riven_api.ts"
         },
         "devDependencies": {
                 "@eslint/compat": "^1.4.1",
@@ -30,7 +31,7 @@
                 "@sveltejs/vite-plugin-svelte": "^6.2.1",
                 "@tailwindcss/forms": "^0.5.10",
                 "@tailwindcss/typography": "^0.5.19",
-                "@tailwindcss/vite": "^4.1.17",
+                "@tailwindcss/vite": "^4.1.18",
                 "@types/better-sqlite3": "^7.6.13",
                 "@types/d3-shape": "^3.1.7",
                 "@types/node": "^22.19.2",
@@ -56,7 +57,7 @@
                 "prettier-plugin-svelte": "^3.4.0",
                 "prettier-plugin-tailwindcss": "^0.7.2",
                 "runed": "^0.36.0",
-                "svelte": "^5.45.8",
+                "svelte": "^5.45.10",
                 "svelte-check": "^4.3.4",
                 "svelte-confetti": "^2.3.2",
                 "svelte-sonner": "^1.0.7",
@@ -66,7 +67,7 @@
                 "sveltekit-superforms": "^2.28.1",
                 "tailwind-merge": "^3.4.0",
                 "tailwind-variants": "^3.2.2",
-                "tailwindcss": "^4.1.17",
+                "tailwindcss": "^4.1.18",
                 "tsx": "^4.21.0",
                 "tw-animate-css": "^1.4.0",
                 "typescript": "^5.9.3",
@@ -88,11 +89,11 @@
                 "better-auth": "https://pkg.pr.new/better-auth/better-auth@5237",
                 "better-sqlite3": "^12.5.0",
                 "d3-shape": "^3.2.0",
-                "drizzle-orm": "^0.44.7",
+                "drizzle-orm": "^0.45.1",
                 "embla-carousel-autoplay": "^8.6.0",
                 "mode-watcher": "^1.1.0",
                 "nprogress": "^0.2.0",
-                "openapi-fetch": "^0.14.1",
+                "openapi-fetch": "^0.15.0",
                 "zod": "^4.1.13"
         },
         "pnpm": {
@@ -101,5 +102,8 @@
                         "better-sqlite3",
                         "esbuild"
                 ]
+        },
+        "overrides": {
+                "cookie": "^0.7.0"
         }
 }

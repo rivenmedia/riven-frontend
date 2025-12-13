@@ -252,7 +252,9 @@
 {/snippet}
 
 {#snippet calendarDayCard(day: CalendarDay)}
-    {@const isToday = day.dateKey === new Date().toISOString().split("T")[0]}
+    {@const today = new Date()}
+    {@const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
+    {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
             "min-h-[120px] rounded-lg border p-2 transition-colors",
@@ -269,7 +271,9 @@
 {/snippet}
 
 {#snippet mobileDayCard(day: CalendarDay)}
-    {@const isToday = day.dateKey === new Date().toISOString().split("T")[0]}
+    {@const today = new Date()}
+    {@const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
+    {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
             "bg-card border-border rounded-lg border p-3",
