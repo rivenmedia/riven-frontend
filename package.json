@@ -102,5 +102,8 @@
             "better-sqlite3",
             "esbuild"
         ]
+    },
+    "overrides": {
+        "cookie": "^0.7.0"
     }
 }
