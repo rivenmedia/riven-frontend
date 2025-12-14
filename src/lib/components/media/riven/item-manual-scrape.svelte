@@ -76,6 +76,7 @@
         filesize: number;
         season?: number;
         episode?: number;
+        download_url?: string | null;
     }
 
     interface ParsedTitleData {
@@ -273,7 +274,11 @@
                 const sData = data;
                 let mappings: FileMapping[];
 
-                if (sData.containers && sData.containers.files && sData.containers.files.length > 0) {
+                if (
+                    sData.containers &&
+                    sData.containers.files &&
+                    sData.containers.files.length > 0
+                ) {
                     const files = sData.containers.files;
                     const filenames = files
                         .map((f) => f.filename)
@@ -357,10 +362,10 @@
                 const newRankingOptions: Record<string, string[]> = {};
 
                 // Resolutions
-                if (ranking.resolutions) {
+                if (ranking?.resolutions) {
                     newRankingOptions.resolutions = Object.keys(ranking.resolutions).filter(
                         (k) => k !== "unknown"
-                    );
+                    ) as string[];
                     // Populate selected resolutions
                     newSelectedOptions.resolutions = Object.entries(ranking.resolutions)
                         .filter(([k, v]) => v === true && k !== "unknown")
@@ -373,7 +378,7 @@
                 // Note: 'trash' might not be in CustomRanksConfig in the same way, need verification or ANY cast if strict.
 
                 categories.forEach((cat) => {
-                    if (ranking.custom_ranks && (ranking.custom_ranks as any)[cat]) {
+                    if (ranking?.custom_ranks && (ranking.custom_ranks as any)[cat]) {
                         const categoryObj = (ranking.custom_ranks as any)[cat];
                         if (!categoryObj) return;
 
@@ -438,7 +443,8 @@
             });
 
             if (err) {
-                throw new Error(err.message || "Failed to start auto scrape");
+                // @ts-ignore
+                throw new Error(err.message || err.detail || "Failed to start auto scrape");
             }
 
             if (data) {
@@ -591,7 +597,11 @@
     }
 
     async function handleSelectAllFiles() {
-        if (!sessionData?.containers || !sessionData.containers.files || sessionData.containers.files.length === 0) {
+        if (
+            !sessionData?.containers ||
+            !sessionData.containers.files ||
+            sessionData.containers.files.length === 0
+        ) {
             error = "No files available to select";
             toast.error(error);
             return;
@@ -621,11 +631,12 @@
                 selectedFilesMappings = files.map((file, idx) => {
                     const parsedData = data.data[idx] as ParsedTitleData;
                     return {
-                        file_id: file.file_id?.toString() || "",
+                        file_id: file.file_id?.toString() || idx.toString(),
                         filename: file.filename || "",
                         filesize: file.filesize || 0,
                         season: parsedData?.seasons?.[0],
-                        episode: parsedData?.episodes?.[0]
+                        episode: parsedData?.episodes?.[0],
+                        download_url: file.download_url ?? undefined
                     };
                 });
                 step = 3;
@@ -659,7 +670,8 @@
                 container[mapping.file_id] = {
                     file_id: parseInt(mapping.file_id),
                     filename: mapping.filename,
-                    filesize: mapping.filesize
+                    filesize: mapping.filesize,
+                    download_url: mapping.download_url ?? undefined
                 };
             });
 
@@ -689,7 +701,8 @@
                 updateBody = {
                     file_id: parseInt(largestFile.file_id),
                     filename: largestFile.filename,
-                    filesize: largestFile.filesize
+                    filesize: largestFile.filesize,
+                    download_url: largestFile.download_url ?? undefined
                 };
             } else {
                 // For TV shows, map files to episodes
@@ -825,21 +838,15 @@
                         });
                     }
 
-                    await providers.riven.POST(
-                        "/api/v1/scrape/update_attributes/{session_id}",
-                        {
-                            params: { path: { session_id: session.sessionId } },
-                            body: updateBody
-                        }
-                    );
+                    await providers.riven.POST("/api/v1/scrape/update_attributes/{session_id}", {
+                        params: { path: { session_id: session.sessionId } },
+                        body: updateBody
+                    });
 
                     // Step 3: Complete
-                    await providers.riven.POST(
-                        "/api/v1/scrape/complete_session/{session_id}",
-                        {
-                            params: { path: { session_id: session.sessionId } }
-                        }
-                    );
+                    await providers.riven.POST("/api/v1/scrape/complete_session/{session_id}", {
+                        params: { path: { session_id: session.sessionId } }
+                    });
 
                     // Update session status
                     session.status = "completed";
@@ -926,64 +933,65 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Trigger>
-		{#snippet child({ props })}
-			<Button {variant} {size} {...restProps} {...props}>
-				<Search class="mr-1 h-4 w-4" />
-				Manual Scrape
-			</Button>
-		{/snippet}
-	</Dialog.Trigger>
-	<Dialog.Content class="max-w-4xl flex flex-col max-h-[90vh] overflow-hidden">
-		<Dialog.Header class="flex-shrink-0">
-			<Dialog.Title>
-				{#if step === 5}
+    <Dialog.Trigger>
+        {#snippet child({ props })}
+            <Button {variant} {size} {...restProps} {...props}>
+                <Search class="mr-1 h-4 w-4" />
+                Manual Scrape
+            </Button>
+        {/snippet}
+    </Dialog.Trigger>
+    <Dialog.Content class="flex max-h-[90vh] max-w-4xl flex-col overflow-hidden">
+        <Dialog.Header class="flex-shrink-0">
+            <Dialog.Title>
+                {#if step === 5}
                     Auto Scrape - Select Resolutions
                 {:else if step === 1}
-					Manual Scrape - Fetch Streams
-				{:else if step === 2}
-					Manual Scrape - Select Stream
-				{:else if step === 3}
-					Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
+                    Manual Scrape - Fetch Streams
+                {:else if step === 2}
+                    Manual Scrape - Select Stream
+                {:else if step === 3}
+                    Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
                 {:else if step === 4}
                     Manual Scrape - Auto Scrape Config
                 {:else if step === 6}
                     Batch Scrape - Confirm All ({batchSessions.length} items)
-				{/if}
-			</Dialog.Title>
-			<Dialog.Description>
-				{#if step === 5}
+                {/if}
+            </Dialog.Title>
+            <Dialog.Description>
+                {#if step === 5}
                     Select resolutions to include in the auto scrape
                 {:else if step === 1}
-					Fetch available streams for "{title}"
-				{:else if step === 2}
-					Choose a stream to download
-				{:else if step === 3}
-					{mediaType === "movie"
-						? "Confirm your file selection"
-						: "Map files to seasons and episodes"}
+                    Fetch available streams for "{title}"
+                {:else if step === 2}
+                    Choose a stream to download
+                {:else if step === 3}
+                    {mediaType === "movie"
+                        ? "Confirm your file selection"
+                        : "Map files to seasons and episodes"}
                 {:else if step === 4}
                     Configure constraints for auto scraping
                 {:else if step === 6}
                     Review and confirm file mappings for all selected torrents
-				{/if}
-			</Dialog.Description>
-		</Dialog.Header>
+                {/if}
+            </Dialog.Description>
+        </Dialog.Header>
 
-		{#if error}
-			<Alert.Root variant="destructive" class="mb-4 flex-shrink-0">
-				<AlertCircle class="h-4 w-4" />
-				<Alert.Description>{error}</Alert.Description>
-			</Alert.Root>
-		{/if}
+        {#if error}
+            <Alert.Root variant="destructive" class="mb-4 flex-shrink-0">
+                <AlertCircle class="h-4 w-4" />
+                <Alert.Description>{error}</Alert.Description>
+            </Alert.Root>
+        {/if}
 
-		<div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-6 px-6 py-4">
-			{#if step === 1}
-				<div class="flex flex-col gap-4">
-					<div class="flex flex-col gap-2">
-						<Label for="magnet">Magnet Link (Optional)</Label>
+        <div class="-mx-6 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 py-4">
+            {#if step === 1}
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2">
+                        <Label for="magnet">Magnet Link (Optional)</Label>
                         <div class="relative">
-                            <Magnet class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Magnet
+                                class="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                             <Input
                                 id="magnet"
                                 type="text"
@@ -991,17 +999,17 @@
                                 placeholder="magnet:?xt=urn:btih:..."
                                 bind:value={magnetLink}
                                 onkeydown={(e) => {
-                                    if (e.key === 'Enter') {
+                                    if (e.key === "Enter") {
                                         e.preventDefault();
                                         handleFetchStreams();
                                     }
                                 }}
                                 disabled={loading} />
                         </div>
-						<p class="text-muted-foreground text-xs">
-							Leave empty to fetch streams automatically
-						</p>
-					</div>
+                        <p class="text-muted-foreground text-xs">
+                            Leave empty to fetch streams automatically
+                        </p>
+                    </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
@@ -1014,29 +1022,43 @@
                             {/if}
                         </Button>
 
-                        <Button variant="secondary" onclick={() => (step = 4)} disabled={loading} class="w-full">
+                        <Button
+                            variant="secondary"
+                            onclick={() => (step = 4)}
+                            disabled={loading}
+                            class="w-full">
                             <Zap class="mr-2 h-4 w-4" />
                             Auto Scrape
                         </Button>
                     </div>
-				</div>
-			{:else if step === 2}
-                <div class="flex flex-col gap-3 h-full">
-					{#if step > 1}
+                </div>
+            {:else if step === 2}
+                <div class="flex h-full flex-col gap-3">
+                    {#if step > 1}
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center justify-between">
-                                <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onclick={() => (step = 1)}
+                                    class="w-fit">
                                     <ChevronLeft class="mr-1 h-4 w-4" />
                                     Back
                                 </Button>
 
                                 <div class="flex items-center space-x-2">
-                                    <Label for="disable-filesize-check" class="text-xs">Disable Filesize Check</Label>
-                                    <Switch id="disable-filesize-check" bind:checked={disableFilesizeCheck} />
+                                    <Label for="disable-filesize-check" class="text-xs"
+                                        >Disable Filesize Check</Label>
+                                    <Switch
+                                        id="disable-filesize-check"
+                                        bind:checked={disableFilesizeCheck} />
                                 </div>
-                                
+
                                 {#if selectedMagnets.size > 0}
-                                    <Button size="sm" onclick={handleBatchScrape} disabled={loading || preparingBatch}>
+                                    <Button
+                                        size="sm"
+                                        onclick={handleBatchScrape}
+                                        disabled={loading || preparingBatch}>
                                         {#if preparingBatch}
                                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                                             {batchProgress ? batchProgress.message : "Preparing..."}
@@ -1047,18 +1069,18 @@
                                     </Button>
                                 {/if}
                             </div>
-                            
+
                             <div class="relative">
-                                <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Search
+                                    class="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                                 <Input
                                     type="text"
                                     placeholder="Search torrents..."
                                     class="pl-9"
-                                    bind:value={searchQuery}
-                                />
+                                    bind:value={searchQuery} />
                             </div>
                         </div>
-					{/if}
+                    {/if}
 
                     {#if streams.length === 0}
                         <div class="flex flex-col items-center justify-center p-8 text-center">
@@ -1068,56 +1090,64 @@
                             </Button>
                         </div>
                     {:else}
-                        <Tabs.Root value={activeTab} onValueChange={(v) => activeTab = v} class="w-full flex-1 flex flex-col min-h-0">
+                        <Tabs.Root
+                            value={activeTab}
+                            onValueChange={(v) => (activeTab = v)}
+                            class="flex min-h-0 w-full flex-1 flex-col">
                             {#if mediaType === "tv"}
-                                <Tabs.List class="w-full grid grid-cols-4 mb-4 shrink-0">
+                                <Tabs.List class="mb-4 grid w-full shrink-0 grid-cols-4">
                                     <Tabs.Trigger value="all">All</Tabs.Trigger>
                                     <Tabs.Trigger value="show_packs">Show Packs</Tabs.Trigger>
                                     <Tabs.Trigger value="season_packs">Season Packs</Tabs.Trigger>
                                     <Tabs.Trigger value="episodes">Episodes</Tabs.Trigger>
                                 </Tabs.List>
                             {/if}
-                            
-                            <div class="flex-1 overflow-y-auto min-h-0">
+
+                            <div class="min-h-0 flex-1 overflow-y-auto">
                                 {#if filteredStreams.length === 0}
-                                    <div class="text-center py-8 text-muted-foreground">
+                                    <div class="text-muted-foreground py-8 text-center">
                                         No streams found for this category.
                                     </div>
                                 {:else}
                                     <div class="flex flex-col gap-3">
                                         {#each filteredStreams as { magnet, stream } (magnet)}
-                                            <StreamItem 
-                                                {stream} 
-                                                {magnet} 
+                                            <StreamItem
+                                                {stream}
+                                                {magnet}
                                                 isSelected={selectedMagnets.has(magnet)}
                                                 onSelect={toggleMagnetSelection}
                                                 onScrape={handleSelectStream}
-                                                showCheckbox={mediaType === "tv"}
-                                            />
+                                                showCheckbox={mediaType === "tv"} />
                                         {/each}
                                     </div>
                                 {/if}
                             </div>
                         </Tabs.Root>
                     {/if}
-				</div>
-			{:else if step === 4}
+                </div>
+            {:else if step === 4}
                 <div class="flex flex-col gap-4">
                     <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
                         <ChevronLeft class="mr-1 h-4 w-4" />
                         Back
                     </Button>
 
-                    <div class="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 border rounded-md p-2">
+                    <div
+                        class="flex max-h-[60vh] flex-col gap-2 overflow-y-auto rounded-md border p-2 pr-2">
                         <div class="flex items-center justify-between">
                             <Label>Quality Constraints</Label>
                             <div class="flex items-center space-x-2">
-                                <Label for="disable-filesize-check-auto" class="text-xs">Disable Filesize Check</Label>
-                                <Switch id="disable-filesize-check-auto" bind:checked={disableFilesizeCheck} />
+                                <Label for="disable-filesize-check-auto" class="text-xs"
+                                    >Disable Filesize Check</Label>
+                                <Switch
+                                    id="disable-filesize-check-auto"
+                                    bind:checked={disableFilesizeCheck} />
                             </div>
                         </div>
-                        <p class="text-xs text-muted-foreground mb-2">Configure constraints for the auto scrape process.</p>
-                        
+                        <p class="text-muted-foreground mb-2 text-xs">
+                            Configure constraints for the auto scrape process.
+                        </p>
+
                         {#if settingsLoading}
                             <div class="space-y-2">
                                 <Skeleton class="h-10 w-full" />
@@ -1129,45 +1159,60 @@
                                 <Skeleton class="h-10 w-full" />
                             </div>
                         {:else}
-                            <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="mb-4 grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2">
                                     <Label>Require</Label>
-                                    <Input 
+                                    <Input
                                         placeholder="e.g. 4K, HDR (comma separated)"
                                         value={selectedOptions.require?.join(", ") || ""}
                                         oninput={(e) => {
                                             const val = e.currentTarget.value;
-                                            selectedOptions.require = val ? val.split(",").map(s => s.trim()).filter(Boolean) : [];
-                                        }}
-                                    />
-                                    <p class="text-[10px] text-muted-foreground">Must contain ANY of these terms</p>
+                                            selectedOptions.require = val
+                                                ? val
+                                                      .split(",")
+                                                      .map((s) => s.trim())
+                                                      .filter(Boolean)
+                                                : [];
+                                        }} />
+                                    <p class="text-muted-foreground text-[10px]">
+                                        Must contain ANY of these terms
+                                    </p>
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <Label>Exclude</Label>
-                                    <Input 
+                                    <Input
                                         placeholder="e.g. CAM, TS (comma separated)"
                                         value={selectedOptions.exclude?.join(", ") || ""}
                                         oninput={(e) => {
                                             const val = e.currentTarget.value;
-                                            selectedOptions.exclude = val ? val.split(",").map(s => s.trim()).filter(Boolean) : [];
-                                        }}
-                                    />
-                                    <p class="text-[10px] text-muted-foreground">Must NOT contain ANY of these terms</p>
+                                            selectedOptions.exclude = val
+                                                ? val
+                                                      .split(",")
+                                                      .map((s) => s.trim())
+                                                      .filter(Boolean)
+                                                : [];
+                                        }} />
+                                    <p class="text-muted-foreground text-[10px]">
+                                        Must NOT contain ANY of these terms
+                                    </p>
                                 </div>
                             </div>
 
                             <Accordion.Root type="multiple" class="w-full">
                                 {#each Object.entries(rankingOptions) as [category, options] (category)}
                                     <Accordion.Item value={category}>
-                                        <Accordion.Trigger class="capitalize text-sm py-2 hover:no-underline">
+                                        <Accordion.Trigger
+                                            class="py-2 text-sm capitalize hover:no-underline">
                                             <div class="flex items-center gap-2">
                                                 {#if categoryIcons[category]}
                                                     {@const Icon = categoryIcons[category]}
                                                     <Icon class="h-4 w-4" />
                                                 {/if}
-                                                {category === 'trash' ? 'Bin' : category}
+                                                {category === "trash" ? "Bin" : category}
                                                 {#if selectedOptions[category]?.length}
-                                                    <Badge variant="secondary" class="text-[10px] h-5 px-1.5">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        class="h-5 px-1.5 text-[10px]">
                                                         {selectedOptions[category].length}
                                                     </Badge>
                                                 {/if}
@@ -1176,19 +1221,25 @@
                                         <Accordion.Content>
                                             <div class="flex flex-wrap gap-2 pt-2">
                                                 {#each options as option (option)}
-                                                    {@const isSelected = selectedOptions[category]?.includes(option)}
-                                                    <Badge 
+                                                    {@const isSelected =
+                                                        selectedOptions[category]?.includes(option)}
+                                                    <Badge
                                                         variant={isSelected ? "default" : "outline"}
-                                                        class="cursor-pointer hover:bg-primary/90 transition-colors"
+                                                        class="hover:bg-primary/90 cursor-pointer transition-colors"
                                                         onclick={() => {
                                                             if (isSelected) {
-                                                                selectedOptions[category] = (selectedOptions[category] || []).filter(r => r !== option);
+                                                                selectedOptions[category] = (
+                                                                    selectedOptions[category] || []
+                                                                ).filter((r) => r !== option);
                                                             } else {
-                                                                selectedOptions[category] = [...(selectedOptions[category] || []), option];
+                                                                selectedOptions[category] = [
+                                                                    ...(selectedOptions[category] ||
+                                                                        []),
+                                                                    option
+                                                                ];
                                                             }
-                                                        }}
-                                                    >
-                                                        {option.replace(/^r/, '')}
+                                                        }}>
+                                                        {option.replace(/^r/, "")}
                                                     </Badge>
                                                 {/each}
                                             </div>
@@ -1197,9 +1248,12 @@
                                 {/each}
                             </Accordion.Root>
                         {/if}
-                        </div>
+                    </div>
 
-                    <Button onclick={handleAutoScrape} disabled={loading || !canStartAutoScrape} class="w-full">
+                    <Button
+                        onclick={handleAutoScrape}
+                        disabled={loading || !canStartAutoScrape}
+                        class="w-full">
                         {#if loading}
                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                             Starting...
@@ -1209,79 +1263,87 @@
                         {/if}
                     </Button>
                 </div>
+            {:else if step === 3}
+                <div class="flex flex-col gap-3">
+                    {#if step > 1}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onclick={() => {
+                                if (isManualMagnet) {
+                                    step = 1;
+                                } else {
+                                    step = 2;
+                                }
+                            }}
+                            class="w-fit">
+                            <ChevronLeft class="mr-1 h-4 w-4" />
+                            Back
+                        </Button>
+                    {/if}
 
-			{:else if step === 3}
-				<div class="flex flex-col gap-3">
-					{#if step > 1}
-						<Button variant="ghost" size="sm" onclick={() => {
-                            if (isManualMagnet) {
-                                step = 1;
-                            } else {
-                                step = 2;
-                            }
-                        }} class="w-fit">
-							<ChevronLeft class="mr-1 h-4 w-4" />
-							Back
-						</Button>
-					{/if}
+                    <div class="mb-4 flex flex-col gap-3">
+                        {#each selectedFilesMappings as mapping, idx (mapping.file_id)}
+                            <Card.Root>
+                                <Card.Content class="flex flex-col gap-3 px-4">
+                                    <div class="flex items-start gap-3">
+                                        <FileIcon
+                                            class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-medium break-words">
+                                                {mapping.filename}
+                                            </p>
+                                            <p class="text-muted-foreground text-xs">
+                                                {formatFileSize(mapping.filesize)}
+                                            </p>
+                                        </div>
+                                    </div>
 
-					<div class="mb-4 flex flex-col gap-3">
-						{#each selectedFilesMappings as mapping, idx (mapping.file_id)}
-							<Card.Root>
-								<Card.Content class="flex flex-col gap-3 px-4">
-									<div class="flex items-start gap-3">
-										<FileIcon class="text-muted-foreground mt-1 h-5 w-5 shrink-0" />
-										<div class="flex-1 min-w-0">
-											<p class="text-sm font-medium break-words">{mapping.filename}</p>
-											<p class="text-muted-foreground text-xs">
-												{formatFileSize(mapping.filesize)}
-											</p>
-										</div>
-									</div>
+                                    {#if mediaType === "tv"}
+                                        <div class="flex gap-2">
+                                            <div class="flex-1">
+                                                <Label for={`season-${idx}`} class="text-xs"
+                                                    >Season</Label>
+                                                <Input
+                                                    id={`season-${idx}`}
+                                                    type="number"
+                                                    min="0"
+                                                    bind:value={mapping.season}
+                                                    placeholder="Season"
+                                                    class="mt-1" />
+                                            </div>
+                                            <div class="flex-1">
+                                                <Label for={`episode-${idx}`} class="text-xs"
+                                                    >Episode</Label>
+                                                <Input
+                                                    id={`episode-${idx}`}
+                                                    type="number"
+                                                    min="0"
+                                                    bind:value={mapping.episode}
+                                                    placeholder="Episode"
+                                                    class="mt-1" />
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </Card.Content>
+                            </Card.Root>
+                        {/each}
+                    </div>
 
-									{#if mediaType === "tv"}
-										<div class="flex gap-2">
-											<div class="flex-1">
-												<Label for={`season-${idx}`} class="text-xs">Season</Label>
-												<Input
-													id={`season-${idx}`}
-													type="number"
-													min="0"
-													bind:value={mapping.season}
-													placeholder="Season"
-													class="mt-1" />
-											</div>
-											<div class="flex-1">
-												<Label for={`episode-${idx}`} class="text-xs">Episode</Label>
-												<Input
-													id={`episode-${idx}`}
-													type="number"
-													min="0"
-													bind:value={mapping.episode}
-													placeholder="Episode"
-													class="mt-1" />
-											</div>
-										</div>
-									{/if}
-								</Card.Content>
-							</Card.Root>
-						{/each}
-					</div>
-
-					<Button
-						onclick={handleComplete}
-						disabled={loading || !canProceedToComplete()}
-						class="w-full">
-						{#if loading}
-							<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-							Completing...
-						{:else}
-							Confirm
-						{/if}
-					</Button>
-				</div>
+                    <Button
+                        onclick={handleComplete}
+                        disabled={loading || !canProceedToComplete()}
+                        class="w-full">
+                        {#if loading}
+                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                            Completing...
+                        {:else}
+                            Confirm
+                        {/if}
+                    </Button>
+                </div>
             {:else if step === 6}
-                <div class="flex flex-col gap-3 h-full">
+                <div class="flex h-full flex-col gap-3">
                     <Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
                         <ChevronLeft class="mr-1 h-4 w-4" />
                         Back to Streams
@@ -1295,23 +1357,30 @@
                         </div>
                     {/if}
 
-                    <div class="flex-1 overflow-y-auto min-h-0 space-y-6">
+                    <div class="min-h-0 flex-1 space-y-6 overflow-y-auto">
                         {#each batchSessions as session, sIdx (session.sessionId)}
                             <div class="space-y-2">
-                                <h3 class="font-medium text-sm flex items-center gap-2 sticky top-0 bg-background z-10 py-2 border-b">
-                                    <span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">#{sIdx + 1}</span>
+                                <h3
+                                    class="bg-background sticky top-0 z-10 flex items-center gap-2 border-b py-2 text-sm font-medium">
+                                    <span
+                                        class="bg-primary/10 text-primary rounded px-2 py-0.5 text-xs"
+                                        >#{sIdx + 1}</span>
                                     <span class="truncate">{session.stream.raw_title}</span>
                                 </h3>
-                                
+
                                 <div class="space-y-2 pl-2">
                                     {#each session.mappings as mapping, mIdx (mapping.file_id)}
                                         <Card.Root>
                                             <Card.Content class="flex flex-col gap-3 px-4 py-3">
                                                 <div class="flex items-start gap-3">
-                                                    <FileIcon class="text-muted-foreground mt-1 h-4 w-4 shrink-0" />
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-xs font-medium break-words">{mapping.filename}</p>
-                                                        <p class="text-muted-foreground text-[10px]">
+                                                    <FileIcon
+                                                        class="text-muted-foreground mt-1 h-4 w-4 shrink-0" />
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-xs font-medium break-words">
+                                                            {mapping.filename}
+                                                        </p>
+                                                        <p
+                                                            class="text-muted-foreground text-[10px]">
                                                             {formatFileSize(mapping.filesize)}
                                                         </p>
                                                     </div>
@@ -1320,7 +1389,9 @@
                                                 {#if mediaType === "tv"}
                                                     <div class="flex gap-2">
                                                         <div class="flex-1">
-                                                            <Label for={`s-${sIdx}-${mIdx}`} class="text-[10px]">Season</Label>
+                                                            <Label
+                                                                for={`s-${sIdx}-${mIdx}`}
+                                                                class="text-[10px]">Season</Label>
                                                             <Input
                                                                 id={`s-${sIdx}-${mIdx}`}
                                                                 type="number"
@@ -1330,7 +1401,9 @@
                                                                 class="mt-1 h-7 text-xs" />
                                                         </div>
                                                         <div class="flex-1">
-                                                            <Label for={`e-${sIdx}-${mIdx}`} class="text-[10px]">Episode</Label>
+                                                            <Label
+                                                                for={`e-${sIdx}-${mIdx}`}
+                                                                class="text-[10px]">Episode</Label>
                                                             <Input
                                                                 id={`e-${sIdx}-${mIdx}`}
                                                                 type="number"
@@ -1349,10 +1422,7 @@
                         {/each}
                     </div>
 
-                    <Button
-                        onclick={handleBatchComplete}
-                        disabled={loading}
-                        class="w-full">
+                    <Button onclick={handleBatchComplete} disabled={loading} class="w-full">
                         {#if loading}
                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                             {batchProgress ? batchProgress.message : "Processing..."}
@@ -1361,7 +1431,7 @@
                         {/if}
                     </Button>
                 </div>
-			{/if}
-		</div>
-	</Dialog.Content>
+            {/if}
+        </div>
+    </Dialog.Content>
 </Dialog.Root>
