@@ -1069,6 +1069,18 @@
         <Dialog.Header class="flex-shrink-0">
             <Dialog.Title>
                 {#if step === 5}
+    <Dialog.Trigger>
+        {#snippet child({ props })}
+            <Button {variant} {size} {...restProps} {...props}>
+                <Search class="mr-1 h-4 w-4" />
+                Manual Scrape
+            </Button>
+        {/snippet}
+    </Dialog.Trigger>
+    <Dialog.Content class="flex max-h-[90vh] max-w-4xl flex-col overflow-hidden">
+        <Dialog.Header class="flex-shrink-0">
+            <Dialog.Title>
+                {#if step === 5}
                     Auto Scrape - Select Resolutions
                 {:else if step === 1}
                     Manual Scrape - Fetch Streams
@@ -1241,6 +1253,7 @@
                                         {streamingProgress.totalStreams} streams found
                                     </Badge>
                                 </div>
+                                    bind:value={searchQuery} />
                             </div>
                         </div>
                     {/if}

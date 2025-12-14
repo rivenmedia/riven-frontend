@@ -627,7 +627,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape/start_session": {
+    "/api/v1/scrape/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Auto Scrape Item */
+        post: operations["auto_scrape_item"];
+        get?: never;
+        put?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scrape/start_session": {
         parameters: {
             query?: never;
             header?: never;
@@ -644,7 +661,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape/select_files/{session_id}": {
+    "/api/v1/scrape/select_files/{session_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -661,7 +678,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape/update_attributes/{session_id}": {
+    "/api/v1/scrape/update_attributes/{session_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -693,7 +710,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape/abort_session/{session_id}": {
+    "/api/v1/scrape/abort_session/{session_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -710,7 +727,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape/complete_session/{session_id}": {
+    "/api/v1/scrape/complete_session/{session_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4407,6 +4424,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScrapeItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_scrape_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoScrapeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
