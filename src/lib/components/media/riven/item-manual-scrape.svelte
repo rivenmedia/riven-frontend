@@ -142,6 +142,22 @@
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
+    let streamingProgress = $state<{
+        isStreaming: boolean;
+        currentService: string | null;
+        totalStreams: number;
+        servicesCompleted: number;
+        totalServices: number;
+        message: string | null;
+    }>({
+        isStreaming: false,
+        currentService: null,
+        totalStreams: 0,
+        servicesCompleted: 0,
+        totalServices: 0,
+        message: null
+    });
+    let eventSourceRef = $state<EventSource | null>(null);
 
     const categoryIcons: Record<string, any> = {
         resolutions: Monitor,
@@ -349,6 +365,20 @@
         searchQuery = "";
         batchSessions = [];
         preparingBatch = false;
+
+        // Close EventSource if active
+        if (eventSourceRef) {
+            eventSourceRef.close();
+            eventSourceRef = null;
+        }
+        streamingProgress = {
+            isStreaming: false,
+            currentService: null,
+            totalStreams: 0,
+            servicesCompleted: 0,
+            totalServices: 0,
+            message: null
+        };
     }
 
     async function fetchSettings() {
@@ -525,7 +555,7 @@
         loading = true;
         error = null;
 
-        // If magnet link is provided, use it directly
+        // If magnet link is provided, use it directly (non-streaming)
         if (magnetLink) {
             isManualMagnet = true;
             // When manually entering a magnet, we assume the user knows what they are doing,
@@ -534,59 +564,149 @@
             return;
         }
 
+        // Build query parameters for SSE endpoint
+        const params = new URLSearchParams();
+        params.set("media_type", mediaType);
+
+        if (itemId) {
+            params.set("item_id", itemId);
+        } else {
+            if (!externalId) {
+                error = "No item ID or external ID available";
+                toast.error(error);
+                loading = false;
+                return;
+            }
+        }
+
+        if (mediaType === "movie" && externalId) {
+            params.set("tmdb_id", externalId);
+        }
+        if (mediaType === "tv" && externalId) {
+            params.set("tvdb_id", externalId);
+        }
+
+        // Create EventSource for streaming - use dedicated SSE proxy endpoint
+        const url = `/api/scrape_stream?${params.toString()}`;
+
         try {
-            // Construct query parameters, only including non-null values
-            const queryParams: any = {
-                media_type: mediaType
+            const eventSource = new EventSource(url);
+            eventSourceRef = eventSource;
+
+            // Immediately move to step 2 to show streaming results
+            step = 2;
+            streams = [];
+            streamingProgress = {
+                isStreaming: true,
+                currentService: null,
+                totalStreams: 0,
+                servicesCompleted: 0,
+                totalServices: 0,
+                message: "Starting scrape..."
             };
 
-            // Always prioritize item_id if available
-            if (itemId) {
-                queryParams.item_id = parseInt(itemId as string);
-            } else {
-                // If no itemId, we must have external IDs to proceed
-                if (!externalId) {
-                    error = "No item ID or external ID available";
-                    toast.error(error);
-                    loading = false;
-                    return;
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.event === "start") {
+                        streamingProgress = {
+                            ...streamingProgress,
+                            totalServices: data.total_services,
+                            message: data.message || "Starting scrape..."
+                        };
+                    } else if (data.event === "streams" || data.event === "progress") {
+                        streamingProgress = {
+                            ...streamingProgress,
+                            isStreaming: true,
+                            currentService: data.service,
+                            totalStreams: data.total_streams,
+                            servicesCompleted: data.services_completed,
+                            totalServices: data.total_services,
+                            message: data.message
+                        };
+
+                        // Update streams if present
+                        if (data.streams) {
+                            const streamArray = Object.entries(data.streams).map(
+                                ([magnet, stream]) => ({
+                                    magnet,
+                                    stream: stream as Stream
+                                })
+                            );
+
+                            streams = streamArray.sort(
+                                (a, b) => (b.stream as Stream).rank - (a.stream as Stream).rank
+                            );
+                        }
+                    } else if (data.event === "complete") {
+                        streamingProgress = {
+                            ...streamingProgress,
+                            isStreaming: false,
+                            currentService: null,
+                            totalStreams: data.total_streams,
+                            servicesCompleted: data.services_completed,
+                            message: data.message
+                        };
+
+                        // Final update of streams
+                        if (data.streams) {
+                            const streamArray = Object.entries(data.streams).map(
+                                ([magnet, stream]) => ({
+                                    magnet,
+                                    stream: stream as Stream
+                                })
+                            );
+
+                            streams = streamArray.sort(
+                                (a, b) => (b.stream as Stream).rank - (a.stream as Stream).rank
+                            );
+                        }
+
+                        eventSource.close();
+                        eventSourceRef = null;
+                        loading = false;
+                        toast.success(`Found ${data.total_streams} streams`);
+                    } else if (data.event === "error") {
+                        console.error("Streaming scrape error:", data.message);
+                        // Don't stop streaming, just log the error - partial results may still be useful
+                        streamingProgress = {
+                            ...streamingProgress,
+                            message: data.message
+                        };
+                    }
+                } catch (e) {
+                    console.error("Failed to parse SSE event:", e);
                 }
-            }
+            };
 
-            if (mediaType === "movie" && externalId) {
-                queryParams.tmdb_id = externalId;
-            }
-            if (mediaType === "tv" && externalId) {
-                queryParams.tvdb_id = externalId;
-            }
+            eventSource.onerror = (err) => {
+                console.error("EventSource error:", err);
+                eventSource.close();
+                eventSourceRef = null;
 
-            const { data, error: err } = await providers.riven.GET("/api/v1/scrape/scrape", {
-                params: { query: queryParams }
-            });
+                streamingProgress = {
+                    ...streamingProgress,
+                    isStreaming: false,
+                    message: "Connection lost"
+                };
 
-            if (data) {
-                // @ts-ignore
-                const streamArray = Object.entries(data.streams).map(([magnet, stream]) => ({
-                    magnet,
-                    stream
-                }));
+                loading = false;
 
-                streams = streamArray.sort(
-                    (a, b) => (b.stream as Stream).rank - (a.stream as Stream).rank
-                ) as any;
-                step = 2;
-                toast.success("Streams fetched successfully!");
-            } else {
-                const errorMsg =
-                    (err as any)?.detail || (err as any)?.message || "Failed to fetch streams";
-                error = errorMsg;
-                toast.error(errorMsg);
-            }
+                // If we got no streams, show error
+                if (streams.length === 0) {
+                    error = "Failed to connect to scraping service";
+                    toast.error(error);
+                    step = 1;
+                } else {
+                    // We have partial results, that's okay
+                    toast.warning(`Scraping interrupted. Found ${streams.length} streams.`);
+                }
+            };
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : "An error occurred";
             error = errorMsg;
             toast.error(errorMsg);
-        } finally {
             loading = false;
         }
     }
@@ -1082,12 +1202,60 @@
                         </div>
                     {/if}
 
+                    {#if streamingProgress.isStreaming}
+                        <div class="bg-muted/50 flex items-center gap-3 rounded-lg border p-3">
+                            {#if streamingProgress.isStreaming}
+                                <LoaderCircle class="h-4 w-4 animate-spin text-blue-500" />
+                            {:else}
+                                <div class="h-4 w-4 rounded-full bg-green-500"></div>
+                            {/if}
+                            <div class="flex flex-1 flex-col gap-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium">
+                                        {streamingProgress.isStreaming ? "Scraping..." : "Complete"}
+                                    </span>
+                                    <span class="text-muted-foreground text-xs">
+                                        {streamingProgress.servicesCompleted}/{streamingProgress.totalServices}
+                                        sources
+                                    </span>
+                                </div>
+                                <div class="bg-secondary h-1.5 w-full overflow-hidden rounded-full">
+                                    <div
+                                        class="h-full bg-blue-500 transition-all duration-300"
+                                        style="width: {streamingProgress.totalServices > 0
+                                            ? (streamingProgress.servicesCompleted /
+                                                  streamingProgress.totalServices) *
+                                              100
+                                            : 0}%">
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted-foreground text-xs">
+                                        {streamingProgress.message || ""}
+                                    </span>
+                                    <Badge variant="secondary" class="text-xs">
+                                        {streamingProgress.totalStreams} streams found
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+
                     {#if streams.length === 0}
                         <div class="flex flex-col items-center justify-center p-8 text-center">
-                            <p class="text-muted-foreground mb-2">No streams found.</p>
-                            <Button variant="outline" size="sm" onclick={() => (step = 1)}>
-                                Back to Options
-                            </Button>
+                            {#if streamingProgress.isStreaming}
+                                <LoaderCircle
+                                    class="text-muted-foreground mb-2 h-8 w-8 animate-spin" />
+                                <p class="text-muted-foreground mb-2">Searching for streams...</p>
+                                <p class="text-muted-foreground text-xs">
+                                    {streamingProgress.message || ""}
+                                </p>
+                            {:else}
+                                <p class="text-muted-foreground mb-2">No streams found.</p>
+                                <Button variant="outline" size="sm" onclick={() => (step = 1)}>
+                                    Back to Options
+                                </Button>
+                            {/if}
                         </div>
                     {:else}
                         <Tabs.Root
