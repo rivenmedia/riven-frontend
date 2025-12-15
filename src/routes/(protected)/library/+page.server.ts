@@ -51,25 +51,6 @@ export const load: PageServerLoad = async (event) => {
 
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
 
-    const countResponse = await providers.riven.GET("/api/v1/items", {
-        params: {
-            query: {
-                ...itemsSearchForm.data,
-                count_only: true
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any
-        },
-        baseUrl: event.locals.backendUrl,
-        headers: {
-            "x-api-key": event.locals.apiKey
-        },
-        fetch: event.fetch
-    });
-
-    if (countResponse.error) {
-        error(500, "Failed to fetch items count");
-    }
-
     const itemsResponse = await providers.riven.GET("/api/v1/items", {
         params: {
             query: itemsSearchForm.data
@@ -81,12 +62,16 @@ export const load: PageServerLoad = async (event) => {
         fetch: event.fetch
     });
 
+    if (itemsResponse.error) {
+        error(500, "Failed to fetch items");
+    }
+
     return {
-        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
-        page: countResponse.data ? countResponse.data.page : 1,
-        totalPages: countResponse.data ? countResponse.data.total_pages : 1,
-        limit: countResponse.data ? countResponse.data.limit : 20,
-        totalItems: countResponse.data ? countResponse.data.total_items : 0,
+        items: transformItems(itemsResponse.data?.items ?? []),
+        page: itemsResponse.data?.page ?? 1,
+        totalPages: itemsResponse.data?.total_pages ?? 1,
+        limit: itemsResponse.data?.limit ?? 20,
+        totalItems: itemsResponse.data?.total_items ?? 0,
         itemsSearchForm
     };
 };
