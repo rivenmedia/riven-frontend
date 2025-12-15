@@ -1061,7 +1061,11 @@
             </Button>
         {/snippet}
     </Dialog.Trigger>
-    <Dialog.Content class="flex max-h-[90vh] max-w-4xl flex-col overflow-hidden">
+    <Dialog.Content
+        class={cn(
+            "flex w-full max-w-4xl flex-col overflow-hidden lg:max-w-7xl",
+            step === 2 ? "max-h-[75vh]" : "max-h-[90vh]"
+        )}>
         <Dialog.Header class="flex-shrink-0">
             <Dialog.Title>
                 {#if step === 5}
@@ -1205,7 +1209,7 @@
                     {#if streamingProgress.isStreaming}
                         <div class="bg-muted/50 flex items-center gap-3 rounded-lg border p-3">
                             {#if streamingProgress.isStreaming}
-                                <LoaderCircle class="h-4 w-4 animate-spin text-blue-500" />
+                                <LoaderCircle class="text-primary h-4 w-4 animate-spin" />
                             {:else}
                                 <div class="h-4 w-4 rounded-full bg-green-500"></div>
                             {/if}
@@ -1221,7 +1225,7 @@
                                 </div>
                                 <div class="bg-secondary h-1.5 w-full overflow-hidden rounded-full">
                                     <div
-                                        class="h-full bg-blue-500 transition-all duration-300"
+                                        class="bg-primary h-full transition-all duration-300"
                                         style="width: {streamingProgress.totalServices > 0
                                             ? (streamingProgress.servicesCompleted /
                                                   streamingProgress.totalServices) *
@@ -1277,7 +1281,7 @@
                                         No streams found for this category.
                                     </div>
                                 {:else}
-                                    <div class="flex flex-col gap-3">
+                                    <div class="flex flex-col gap-3 lg:grid lg:grid-cols-2">
                                         {#each filteredStreams as { magnet, stream } (magnet)}
                                             <StreamItem
                                                 {stream}
