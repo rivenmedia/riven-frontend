@@ -976,20 +976,23 @@ export interface components {
              * @enum {string}
              */
             media_type?: "movie" | "tv" | null;
-            /** Resolutions */
-            resolutions?: string[] | null;
-            /** Quality */
-            quality?: string[] | null;
-            /** Rips */
-            rips?: string[] | null;
-            /** Hdr */
-            hdr?: string[] | null;
-            /** Audio */
-            audio?: string[] | null;
-            /** Extras */
-            extras?: string[] | null;
-            /** Trash */
-            trash?: string[] | null;
+            /** Ranking Overrides */
+            ranking_overrides?: {
+                /** Resolutions */
+                resolutions?: string[] | null;
+                /** Quality */
+                quality?: string[] | null;
+                /** Rips */
+                rips?: string[] | null;
+                /** Hdr */
+                hdr?: string[] | null;
+                /** Audio */
+                audio?: string[] | null;
+                /** Extras */
+                extras?: string[] | null;
+                /** Trash */
+                trash?: string[] | null;
+            } | null;
             /** Require */
             require?: string[] | null;
             /** Exclude */
