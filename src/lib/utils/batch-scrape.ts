@@ -1,5 +1,20 @@
 import providers from "$lib/providers";
-import type { Stream, Container, ParsedTitleData } from "$lib/api/types.gen";
+import type { components } from "$lib/providers/riven";
+
+type Stream = components["schemas"]["Stream"];
+type Container = components["schemas"]["Container"];
+
+interface ParsedTitleData {
+    seasons?: number[];
+    episodes?: number[];
+    resolution?: string;
+    quality?: string;
+    hdr?: string[];
+    codec?: string;
+    audio?: string[];
+    languages?: string[];
+    complete?: boolean;
+}
 
 interface FileMapping {
     file_id: string;

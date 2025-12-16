@@ -4,7 +4,8 @@
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
 
-    import type { RtnSettingsModel } from "$lib/api/types.gen";
+    type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
+
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
     import * as Alert from "$lib/components/ui/alert/index.js";
@@ -461,12 +462,35 @@
             }
 
             // Only include selected options if they have values
+            const rankingOverrides: Record<string, string[]> = {};
+            const topLevelOptions: Record<string, string[]> = {};
+
             Object.entries(selectedOptions).forEach(([key, value]) => {
                 if (value.length > 0) {
-                    // @ts-ignore
-                    body[key] = value;
+                    if (
+                        [
+                            "resolutions",
+                            "quality",
+                            "rips",
+                            "hdr",
+                            "audio",
+                            "extras",
+                            "trash"
+                        ].includes(key)
+                    ) {
+                        rankingOverrides[key] = value;
+                    } else {
+                        // @ts-ignore
+                        topLevelOptions[key] = value;
+                    }
                 }
             });
+
+            if (Object.keys(rankingOverrides).length > 0) {
+                body.ranking_overrides = rankingOverrides;
+            }
+
+            Object.assign(body, topLevelOptions);
 
             const { data, error: err } = await providers.riven.POST("/api/v1/scrape/auto", {
                 body: body
