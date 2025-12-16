@@ -1196,7 +1196,7 @@
 
                                 <div class="flex items-center space-x-2">
                                     <Label for="disable-filesize-check" class="text-xs"
-                                        >Disable bitrate Check</Label>
+                                        >Disable Filesize Check</Label>
                                     <Switch
                                         id="disable-filesize-check"
                                         bind:checked={disableFilesizeCheck} />
@@ -1334,7 +1334,7 @@
                             <Label>Quality Constraints</Label>
                             <div class="flex items-center space-x-2">
                                 <Label for="disable-filesize-check-auto" class="text-xs"
-                                    >Disable bitrate Check</Label>
+                                    >Disable Filesize Check</Label>
                                 <Switch
                                     id="disable-filesize-check-auto"
                                     bind:checked={disableFilesizeCheck} />
