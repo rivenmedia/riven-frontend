@@ -8,7 +8,7 @@ import { env } from "$env/dynamic/private";
 import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
-import { admin as adminPlugin, openAPI, lastLoginMethod } from "better-auth/plugins";
+import { admin as adminPlugin, openAPI, lastLoginMethod, genericOAuth } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -32,7 +32,7 @@ export const auth = betterAuth({
         accountLinking: {
             enabled: true,
             allowDifferentEmails: true,
-            trustedProviders: ["plex"]
+            trustedProviders: ["plex", "authentik"]
         },
         encryptOAuthTokens: true
     },
@@ -74,6 +74,20 @@ export const auth = betterAuth({
         }),
         lastLoginMethod({
             storeInDatabase: true
+        }),
+        genericOAuth({
+            config: [
+                {
+                    providerId: "authentik",
+                    discoveryUrl: env.AUTHENTIK_ISSUER
+                        ? `${env.AUTHENTIK_ISSUER}/.well-known/openid-configuration`
+                        : undefined,
+                    clientId: env.AUTHENTIK_CLIENT_ID || "",
+                    clientSecret: env.AUTHENTIK_CLIENT_SECRET || "",
+                    scopes: ["openid", "profile", "email"],
+                    pkce: true
+                }
+            ]
         })
     ],
     advanced: {
@@ -108,6 +122,12 @@ export function getAuthProviders() {
             disableSignup: auth.options.emailAndPassword.disableSignUp
         };
     }
+
+    // Add Authentik provider from genericOAuth plugin
+    providers.authentik = {
+        enabled: env.DISABLE_AUTHENTIK !== "true" && !!env.AUTHENTIK_CLIENT_ID,
+        disableSignup: env.DISABLE_AUTHENTIK_SIGNUP === "true"
+    };
 
     return providers;
 }
