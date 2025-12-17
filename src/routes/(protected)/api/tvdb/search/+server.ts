@@ -158,8 +158,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
                 media_type: "tv",
                 year:
                     item.year ||
-                    dateUtils.getYearFromISO(item.first_air_time) ??
-                    "N/A",
+                    (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
                 vote_average: null,
                 vote_count: null,
                 overview: item.overview || null,
