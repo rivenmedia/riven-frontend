@@ -7,6 +7,7 @@ import type {
 } from "$lib/providers/parser";
 import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
@@ -66,6 +67,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
 
 export const load = (async ({ fetch, params, cookies, locals }) => {
     const { id, mediaType } = params;
+    const customFetch = createCustomFetch(fetch);
 
     if (mediaType !== "movie" && mediaType !== "tv") {
         error(400, "Invalid media type");
@@ -121,7 +123,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                             "external_ids,images,recommendations,similar,videos,credits,release_dates"
                     }
                 },
-                fetch: fetch
+                fetch: customFetch
             }
         );
 
@@ -129,7 +131,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             error(500, detailsError);
         }
 
-        const { traktRecs } = await getTraktData(fetch, id, true);
+        const { traktRecs } = await getTraktData(customFetch, id, true);
 
         const parsedDetails = providers.parser.parseTMDBMovieDetails(
             details as TMDBMovieDetailsExtended,
@@ -159,7 +161,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                 headers: {
                     Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
                 },
-                fetch: fetch
+                fetch: customFetch
             }
         );
 
@@ -190,7 +192,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                     headers: {
                         Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
                     },
-                    fetch: fetch
+                    fetch: customFetch
                 }
             );
 
@@ -206,7 +208,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             }
         }
 
-        const { traktRecs } = await getTraktData(fetch, id, false);
+        const { traktRecs } = await getTraktData(customFetch, id, false);
 
         if (!details) {
             error(500, "Failed to fetch TV show details");

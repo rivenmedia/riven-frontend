@@ -2,9 +2,11 @@ import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
 import { parseCollectionDetails } from "$lib/providers/parser";
 import { error } from "@sveltejs/kit";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 export const load = (async ({ fetch, params }) => {
     const { id } = params;
+    const customFetch = createCustomFetch(fetch);
 
     if (!id || isNaN(Number(id))) {
         error(400, "Invalid collection ID");
@@ -18,7 +20,7 @@ export const load = (async ({ fetch, params }) => {
                     collection_id: Number(id)
                 }
             },
-            fetch: fetch
+            fetch: customFetch
         }
     );
 

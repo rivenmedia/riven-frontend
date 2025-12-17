@@ -1,6 +1,7 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { getMediaDetails } from "$lib/providers/anilist";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 interface RatingScore {
     name: string;
@@ -10,12 +11,13 @@ interface RatingScore {
 
 export const GET: RequestHandler = async ({ params, fetch }) => {
     const { anilistId } = params;
+    const customFetch = createCustomFetch(fetch);
 
     const scores: RatingScore[] = [];
 
     try {
         // Fetch AniList rating
-        const mediaDetails = await getMediaDetails(Number(anilistId), fetch);
+        const mediaDetails = await getMediaDetails(Number(anilistId), customFetch);
 
         if (mediaDetails?.data?.Media) {
             const { averageScore, meanScore } = mediaDetails.data.Media;

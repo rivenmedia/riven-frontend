@@ -16,13 +16,15 @@ import type { paths as TMDBPaths } from "./tmdb";
 import type { paths as TraktPaths } from "./trakt";
 import type { paths as RivenPaths } from "./riven";
 import { parseTMDBMovieDetails, parseTVDBShowDetails } from "./parser";
+import { customFetch } from "$lib/custom-fetch";
 
 const rivenClient = createClient<RivenPaths>({
     baseUrl: ""
 });
 
 const tvdbClient = createClient<TVDBPaths>({
-    baseUrl: "https://api4.thetvdb.com/v4"
+    baseUrl: "https://api4.thetvdb.com/v4",
+    fetch: customFetch
 });
 
 const TMDB_READ_ACCESS_TOKEN =
@@ -33,7 +35,8 @@ const tmdbClient = createClient<TMDBPaths>({
     headers: {
         Authorization: `Bearer ${TMDB_READ_ACCESS_TOKEN}`,
         "Content-Type": "application/json;charset=utf-8"
-    }
+    },
+    fetch: customFetch
 });
 
 const traktClient = createClient<TraktPaths>({
@@ -44,7 +47,8 @@ const traktClient = createClient<TraktPaths>({
         "trakt-api-key":
             env.PUBLIC_TRAKT_CLIENT_ID ||
             "0183a05ad97098d87287fe46da4ae286f434f32e8e951caad4cc147c947d79a3"
-    }
+    },
+    fetch: customFetch
 });
 
 export const TVDB_ARTWORK_BASE_URL = "https://artworks.thetvdb.com";

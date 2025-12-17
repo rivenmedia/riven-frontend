@@ -2,6 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { env } from "$env/dynamic/private";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 interface RatingScore {
     name: string;
@@ -9,9 +10,10 @@ interface RatingScore {
     score: number | string | null;
 }
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, url, fetch }) => {
     const { tmdbId } = params;
     const mediaType = url.searchParams.get("type") as "movie" | "tv" | null;
+    const customFetch = createCustomFetch(fetch);
 
     if (!mediaType || !["movie", "tv"].includes(mediaType)) {
         throw error(400, 'Invalid or missing media type. Must be "movie" or "tv"');
@@ -107,7 +109,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
                 // }
 
                 const url = "https://api.imdbapi.dev/titles/" + imdbId;
-                const imdbResponse = await fetch(url);
+                const imdbResponse = await customFetch(url);
                 if (imdbResponse.ok) {
                     const imdbData = await imdbResponse.json();
                     const imdbRating = imdbData?.rating?.aggregateRating;
@@ -131,7 +133,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
                     const traktType = mediaType === "movie" ? "movies" : "shows";
                     const traktUrl = `https://api.trakt.tv/${traktType}/${imdbId}/ratings`;
 
-                    const traktResponse = await fetch(traktUrl, {
+                    const traktResponse = await customFetch(traktUrl, {
                         headers: {
                             "Content-Type": "application/json",
                             "trakt-api-version": "2",

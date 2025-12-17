@@ -3,6 +3,7 @@ import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL, TMDBMediaType, TMDBTimeWindow } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -10,6 +11,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
     const { type, window } = params;
     const page = parseInt(url.searchParams.get("page") || "1");
+    const customFetch = createCustomFetch(fetch);
 
     if (!Object.values(TMDBMediaType).includes(type as TMDBMediaType)) {
         error(400, "Invalid media type");
@@ -32,7 +34,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                         page
                     } as any
                 },
-                fetch
+                fetch: customFetch
             });
 
             if ((trending as any).error) {
@@ -54,7 +56,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                         page
                     } as any
                 },
-                fetch
+                fetch: customFetch
             });
 
             if ((trending as any).error) {
