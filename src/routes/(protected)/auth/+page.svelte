@@ -9,6 +9,7 @@
     import SetPasswordForm from "$lib/components/auth/set-password-form.svelte";
     import AccountLinks from "$lib/components/auth/account-links.svelte";
     import UpdateUserForm from "$lib/components/auth/update-user-form.svelte";
+    import * as dateUtils from "$lib/utils/date";
 
     let { data }: PageProps = $props();
     $inspect(data);
@@ -39,15 +40,15 @@
 
         <div class="flex flex-col">
             <p class="text-muted-foreground text-sm">
-                Member since {new Date(data.user.createdAt).toLocaleDateString()}
+                Member since {dateUtils.formatDate(data.user.createdAt)}
             </p>
 
             <p class="text-muted-foreground text-sm">
-                Last updated {new Date(data.user.updatedAt).toLocaleDateString()}
+                Last updated {dateUtils.formatDate(data.user.updatedAt)}
             </p>
 
             <p class="text-muted-foreground text-sm">
-                Session expires at {new Date(data.session.expiresAt).toLocaleDateString()}
+                Session expires at {dateUtils.formatDate(data.session.expiresAt)}
             </p>
         </div>
     </div>

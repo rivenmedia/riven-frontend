@@ -225,6 +225,8 @@ class PosterCacheStore {
         const oldest = Math.min(...timestamps);
         const newest = Math.max(...timestamps);
 
+        // Create Date objects from timestamps for display
+        // Note: Date.now() is still used throughout for performance-critical timestamp operations
         return {
             entries: entries.length,
             oldestEntry: new Date(oldest),

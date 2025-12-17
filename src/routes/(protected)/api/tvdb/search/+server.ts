@@ -1,6 +1,7 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
+import * as dateUtils from "$lib/utils/date";
 
 /**
  * Apply server-side filters to TVDB results
@@ -157,7 +158,8 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
                 media_type: "tv",
                 year:
                     item.year ||
-                    (item.first_air_time ? new Date(item.first_air_time).getFullYear() : "N/A"),
+                    dateUtils.getYearFromISO(item.first_air_time) ??
+                    "N/A",
                 vote_average: null,
                 vote_count: null,
                 overview: item.overview || null,

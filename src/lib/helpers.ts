@@ -1,22 +1,8 @@
+import * as dateUtils from "$lib/utils/date";
+import { CalendarDate } from "@internationalized/date";
+
 export function getSeasonAndYear(dateString: string): string {
-    if (!dateString) return "TBA";
-
-    const date = new Date(dateString);
-    const month = date.getMonth();
-    const year = date.getFullYear();
-
-    let season;
-    if (month >= 2 && month <= 4) {
-        season = "Spring";
-    } else if (month >= 5 && month <= 7) {
-        season = "Summer";
-    } else if (month >= 8 && month <= 10) {
-        season = "Fall";
-    } else {
-        season = "Winter";
-    }
-
-    return `${season} ${year}`;
+    return dateUtils.getSeasonAndYear(dateString);
 }
 
 export function flattenObject<T>(data: T): Record<string, unknown> {
@@ -71,15 +57,7 @@ export function calculateAge(
     birthday: string | null,
     deathday: string | null = null
 ): number | null {
-    if (!birthday) return null;
-    const birthDate = new Date(birthday);
-    const endDate = deathday ? new Date(deathday) : new Date();
-    let age = endDate.getFullYear() - birthDate.getFullYear();
-    const monthDiff = endDate.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
+    return dateUtils.calculateAge(birthday, deathday);
 }
 
 export const formatBytes = (bytes: number | null | undefined): string => {
@@ -92,23 +70,11 @@ export const formatBytes = (bytes: number | null | undefined): string => {
 };
 
 export function formatDate(dateStr: string | null): string | null {
-    if (!dateStr) return null;
-    return new Date(dateStr).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-    });
-}
-
-function isSameDayAndMonth(date1: Date, date2: Date): boolean {
-    return date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
+    return dateUtils.formatDate(dateStr);
 }
 
 export function isDayAndMonthToday(dateStr: string | null): boolean {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    return isSameDayAndMonth(date, today);
+    return dateUtils.isDayAndMonthToday(dateStr);
 }
 
 export const getServiceDisplayName = (service: string): string => {
@@ -124,10 +90,9 @@ export const getServiceDisplayName = (service: string): string => {
     }
 };
 
-export const getLastMonday = (start: Date) => {
-    const diff = (start.getDay() + 6) % 7;
-    start.setDate(start.getDate() - diff);
-    return start;
+export const getLastMonday = (date: { year: number; month: number; day: number }) => {
+    const calendarDate = new CalendarDate(date.year, date.month, date.day);
+    return dateUtils.getLastMonday(calendarDate);
 };
 
 export const getColor = (colors: string[], max: number, value: number) => {
@@ -137,27 +102,5 @@ export const getColor = (colors: string[], max: number, value: number) => {
 };
 
 export const getCalendar = (data: { [key: string]: number }, year: number) => {
-    const base = getLastMonday(new Date(year, 0, 1));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const out: any = {}; // >:)
-
-    out.max = 0;
-    out.calendar = Array.from({ length: 7 }, (_, i) => {
-        const start = new Date(base);
-        start.setDate(start.getDate() + i);
-        return Array.from({ length: 53 }, (_, j) => {
-            const day = new Date(start);
-            day.setDate(start.getDate() + j * 7);
-            if (day.getFullYear() == year) {
-                const date = day.toISOString().split("T")[0];
-                const value = data[date] ?? 0;
-                if (value > out.max) {
-                    out.max = value;
-                }
-                return { date, value };
-            }
-        });
-    });
-
-    return out;
+    return dateUtils.getCalendar(data, year);
 };

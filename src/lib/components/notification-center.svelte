@@ -128,7 +128,7 @@
             </div>
             <Separator />
 
-            <div class="max-h-[400px] overflow-y-auto">
+            <div class="max-h-100 overflow-y-auto">
                 {#if notificationStore.notifications.length === 0}
                     <div class="flex flex-col items-center justify-center p-8 text-center">
                         <Bell class="text-muted-foreground/30 size-12" />

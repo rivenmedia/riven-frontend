@@ -1,4 +1,5 @@
 import { TMDB_IMAGE_BASE_URL, TVDB_ARTWORK_BASE_URL } from "./index";
+import * as dateUtils from "$lib/utils/date";
 
 interface ParsedGenre {
     id: number;
@@ -302,10 +303,10 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
             year:
                 (item.media_type || type) === "movie"
                     ? item.release_date
-                        ? new Date(item.release_date).getFullYear()
+                        ? dateUtils.getYearFromISO(item.release_date) ?? "N/A"
                         : "N/A"
                     : item.first_air_date
-                      ? new Date(item.first_air_date).getFullYear()
+                      ? dateUtils.getYearFromISO(item.first_air_date) ?? "N/A"
                       : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
@@ -369,7 +370,7 @@ function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
 
     const sorted = officialTrailers.sort((a, b) => {
         if (b.size !== a.size) return b.size - a.size;
-        return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+        return dateUtils.compareDateStrings(b.published_at, a.published_at);
     });
 
     return sorted.length > 0 ? sorted[0] : null;
@@ -412,7 +413,7 @@ export function parseTMDBMovieDetails(
         release_date: data.release_date ?? null,
         end_date: null,
         next_air_date: null,
-        year: data.release_date ? new Date(data.release_date).getFullYear() : null,
+        year: dateUtils.getYearFromISO(data.release_date),
         runtime,
         formatted_runtime: formatRuntime(runtime),
         homepage: data.homepage ?? null,
@@ -1001,9 +1002,7 @@ export function parseTVDBShowDetails(
         next_air_date: data.nextAired ?? null,
         year: data.year
             ? Number(data.year)
-            : data.firstAired
-              ? new Date(data.firstAired).getFullYear()
-              : null,
+            : dateUtils.getYearFromISO(data.firstAired),
         runtime,
         formatted_runtime: formatRuntime(runtime),
         homepage: data.slug ? `https://thetvdb.com/series/${data.slug}` : null,
@@ -1084,14 +1083,12 @@ export function parseCollectionDetails(collectionData: any): CollectionDetails {
                 poster_path: buildTMDBImage(movie.poster_path, "w500"),
                 backdrop_path: buildTMDBImage(movie.backdrop_path, "original"),
                 release_date: movie.release_date ?? null,
-                year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+                year: dateUtils.getYearFromISO(movie.release_date),
                 vote_average: movie.vote_average ?? null,
                 vote_count: movie.vote_count ?? null
             }))
             .sort((a: CollectionMovie, b: CollectionMovie) =>
-                a.release_date && b.release_date
-                    ? new Date(a.release_date).getTime() - new Date(b.release_date).getTime()
-                    : 0
+                dateUtils.compareDateStrings(a.release_date, b.release_date)
             )
     };
 }
@@ -1162,7 +1159,7 @@ function sortByReleaseDateDesc<T extends { release_date: string | null }>(
     b: T
 ): number {
     if (a.release_date && b.release_date) {
-        return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+        return -dateUtils.compareDateStrings(a.release_date, b.release_date);
     }
     return a.release_date ? -1 : b.release_date ? 1 : 0;
 }
@@ -1175,7 +1172,7 @@ function transformPersonCredit(credit: any) {
         original_title: credit.original_title || credit.original_name || "",
         poster_path: buildTMDBImage(credit.poster_path, "w500"),
         release_date: releaseDate,
-        year: releaseDate ? new Date(releaseDate).getFullYear() : null,
+        year: dateUtils.getYearFromISO(releaseDate),
         media_type: (credit.media_type === "tv" ? "tv" : "movie") as "movie" | "tv",
         vote_average: credit.vote_average ?? null
     };

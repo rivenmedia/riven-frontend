@@ -4,12 +4,13 @@ import { itemsSearchSchema } from "$lib/schemas/items";
 import { zod4 } from "sveltekit-superforms/adapters";
 import providers from "$lib/providers";
 import { superValidate } from "sveltekit-superforms";
+import * as dateUtils from "$lib/utils/date";
 // import { message, fail, setError } from "sveltekit-superforms";
 
-function extractYear(airedAt: string | null): number | null {
-    if (!airedAt) return null;
-    const year = new Date(airedAt).getFullYear();
-    return isNaN(year) ? null : year;
+function extractYear(airedAt: string | null): number | string {
+    if (!airedAt) return "N/A";
+    const year = dateUtils.getYearFromISO(airedAt);
+    return year ?? "N/A";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

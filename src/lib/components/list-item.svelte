@@ -55,7 +55,7 @@
         <div class="flex items-center gap-0.5">
             <Calender class="text-muted-foreground size-3" />
             <p class="text-muted-foreground text-xs">
-                {data.year}
+                {data.year ?? "N/A"}
             </p>
         </div>
 

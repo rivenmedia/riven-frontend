@@ -10,6 +10,8 @@
     import type { PageData } from "./$types";
     import { cn } from "$lib/utils";
     import { IsMobile } from "$lib/hooks/is-mobile.svelte";
+    import * as dateUtils from "$lib/utils/date";
+    import { CalendarDate } from "@internationalized/date";
 
     let { data }: { data: PageData } = $props();
     const isMobile = $state(new IsMobile(1280));
@@ -42,7 +44,8 @@
 
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    let currentDate = $state(new Date());
+    const todayDate = dateUtils.getToday();
+    let currentDate = $state<CalendarDate>(todayDate);
     let showMovies = $state(true);
     let showEpisodes = $state(true);
     let showShows = $state(true);
@@ -56,8 +59,9 @@
         const result: Record<string, EntertainmentItem[]> = {};
 
         items.forEach((item) => {
-            const date = new Date(item.aired_at);
-            const dateKey = date.toISOString().split("T")[0];
+            const date = dateUtils.parseISODate(item.aired_at);
+            if (!date) return;
+            const dateKey = dateUtils.toISODate(date);
             if (!result[dateKey]) {
                 result[dateKey] = [];
             }
@@ -84,7 +88,7 @@
     });
 
     interface CalendarDay {
-        date: Date;
+        date: CalendarDate;
         dateKey: string;
         isCurrentMonth: boolean;
         items: EntertainmentItem[];
@@ -93,14 +97,14 @@
     }
 
     const calendarDays: CalendarDay[] = $derived.by(() => {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
+        const year = currentDate.year;
+        const month = currentDate.month;
 
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
+        const firstDay = dateUtils.getFirstDayOfMonth(year, month);
+        const lastDay = dateUtils.getLastDayOfMonth(year, month);
 
-        const startOffset = firstDay.getDay();
-        const totalDays = startOffset + lastDay.getDate() + (6 - lastDay.getDay());
+        const startOffset = dateUtils.getDayOfWeek(firstDay);
+        const totalDays = startOffset + lastDay.day + (6 - dateUtils.getDayOfWeek(lastDay));
         const rows = Math.ceil(totalDays / 7);
         const daysToShow = rows * 7;
 
@@ -108,9 +112,9 @@
 
         for (let i = 0; i < daysToShow; i++) {
             const dayNum = 1 - startOffset + i;
-            const currentDay = new Date(year, month, dayNum);
-            const dateKey = currentDay.toISOString().split("T")[0];
-            const isCurrentMonth = currentDay.getMonth() === month;
+            const currentDay = dateUtils.addDays(firstDay, dayNum - 1);
+            const dateKey = dateUtils.toISODate(currentDay);
+            const isCurrentMonth = currentDay.month === month;
             const items = filteredItemsByDate[dateKey] || [];
 
             days.push({
@@ -118,8 +122,8 @@
                 dateKey,
                 isCurrentMonth,
                 items,
-                day: currentDay.getDate(),
-                dayOfWeek: currentDay.getDay()
+                day: currentDay.day,
+                dayOfWeek: dateUtils.getDayOfWeek(currentDay)
             });
         }
 
@@ -130,14 +134,18 @@
 
     function navigateMonth(direction: "prev" | "next") {
         if (direction === "prev") {
-            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+            const newMonth = currentDate.month === 1 ? 12 : currentDate.month - 1;
+            const newYear = currentDate.month === 1 ? currentDate.year - 1 : currentDate.year;
+            currentDate = new CalendarDate(newYear, newMonth, 1);
         } else {
-            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+            const newMonth = currentDate.month === 12 ? 1 : currentDate.month + 1;
+            const newYear = currentDate.month === 12 ? currentDate.year + 1 : currentDate.year;
+            currentDate = new CalendarDate(newYear, newMonth, 1);
         }
     }
 
-    function formatDayTitle(date: Date) {
-        return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+    function formatDayTitle(date: CalendarDate) {
+        return `${dayNames[dateUtils.getDayOfWeek(date)]}, ${monthNames[date.month - 1]} ${date.day}`;
     }
 </script>
 
@@ -252,8 +260,8 @@
 {/snippet}
 
 {#snippet calendarDayCard(day: CalendarDay)}
-    {@const today = new Date()}
-    {@const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
+    {@const today = dateUtils.getToday()}
+    {@const todayKey = dateUtils.toISODate(today)}
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
@@ -271,8 +279,8 @@
 {/snippet}
 
 {#snippet mobileDayCard(day: CalendarDay)}
-    {@const today = new Date()}
-    {@const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
+    {@const today = dateUtils.getToday()}
+    {@const todayKey = dateUtils.toISODate(today)}
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
@@ -300,8 +308,8 @@
                 </Button>
 
                 <Card.Title class="text-xl font-bold md:text-2xl">
-                    {monthNames[currentDate.getMonth()]}
-                    {currentDate.getFullYear()}
+                    {monthNames[currentDate.month - 1]}
+                    {currentDate.year}
                 </Card.Title>
 
                 <Button variant="outline" size="sm" onclick={() => navigateMonth("next")}>
