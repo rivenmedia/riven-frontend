@@ -265,7 +265,7 @@
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
-            "min-h-[120px] rounded-lg border p-2 transition-colors",
+            "min-h-30 rounded-lg border p-2 transition-colors",
             day.isCurrentMonth
                 ? "bg-card border-border hover:bg-accent/50"
                 : "bg-muted/30 border-muted text-muted-foreground",

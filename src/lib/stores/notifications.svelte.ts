@@ -1,3 +1,5 @@
+import { source } from "sveltekit-sse";
+
 export type Notification = {
     id: string;
     title: string;
@@ -10,15 +12,21 @@ export type Notification = {
     read: boolean;
 };
 
+type NotificationEvent = {
+    title: string;
+    log_string: string;
+    timestamp: string;
+    type: "movie" | "show" | "season" | "episode";
+    year?: number;
+    duration?: number;
+    imdb_id?: string;
+};
+
 export class NotificationStore {
     #notifications = $state<Notification[]>([]);
-    #eventSource = $state<EventSource | null>(null);
-    #reconnectAttempts = $state<number>(0);
-    #reconnectTimeoutId: number | null = null;
-    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
-        "disconnected"
-    );
-    #maxReconnectAttempts = 10;
+    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+    #connection: ReturnType<typeof source> | null = null;
+    #unsubscribe: (() => void) | null = null;
 
     get notifications() {
         return this.#notifications;
@@ -60,49 +68,7 @@ export class NotificationStore {
         this.#notifications = this.#notifications.filter((n) => n.id !== id);
     }
 
-    #getReconnectDelay(attempt: number): number {
-        return Math.min(30000, Math.pow(2, attempt) * 1000 + Math.random() * 1000);
-    }
-
-    async #startStream() {
-        if (this.#eventSource) {
-            this.#eventSource.close();
-        }
-
-        this.#connectionStatus = "connecting";
-
-        try {
-            this.#eventSource = new EventSource("/api/notifications");
-
-            this.#eventSource.onopen = () => {
-                this.#connectionStatus = "connected";
-                this.#reconnectAttempts = 0;
-                console.log("Notification stream connected");
-            };
-
-            this.#eventSource.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    this.#handleNotificationEvent(data);
-                } catch (e) {
-                    console.warn("Failed to parse notification event:", e);
-                }
-            };
-
-            this.#eventSource.onerror = (error) => {
-                console.error("Notification stream error:", error);
-                this.#eventSource?.close();
-                this.#connectionStatus = "error";
-                this.#scheduleReconnect();
-            };
-        } catch (e) {
-            console.error("Failed to create EventSource:", e);
-            this.#connectionStatus = "error";
-            this.#scheduleReconnect();
-        }
-    }
-
-    #handleNotificationEvent(data: any) {
+    #handleNotificationEvent(data: NotificationEvent) {
         const message =
             data.type === "movie"
                 ? `${data.log_string} (${data.year || "Unknown"}) completed`
@@ -119,51 +85,67 @@ export class NotificationStore {
         });
     }
 
-    #scheduleReconnect() {
-        if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
-            this.#connectionStatus = "error";
-            console.error(
-                `Failed to reconnect to notifications after ${this.#maxReconnectAttempts} attempts`
-            );
+    connect() {
+        if (this.#connection) {
             return;
         }
 
-        const delay = this.#getReconnectDelay(this.#reconnectAttempts);
-        this.#reconnectAttempts++;
+        this.#connectionStatus = "connecting";
 
-        console.log(
-            `Scheduling notification reconnect attempt ${this.#reconnectAttempts}/${this.#maxReconnectAttempts} in ${Math.round(delay / 1000)}s`
+        this.#connection = source("/api/notifications", {
+            open: () => {
+                this.#connectionStatus = "connected";
+                console.log("Notification stream connected");
+            },
+            close: ({ connect }) => {
+                if (this.#connectionStatus !== "disconnected") {
+                    this.#connectionStatus = "error";
+                    console.log("Notification stream closed, reconnecting...");
+                    // Auto-reconnect
+                    setTimeout(() => {
+                        if (this.#connectionStatus !== "disconnected") {
+                            connect();
+                        }
+                    }, 1000);
+                }
+            },
+            error: (error) => {
+                console.error("Notification stream error:", error);
+                this.#connectionStatus = "error";
+            }
+        });
+
+        const notificationValue = this.#connection.select("notification").json<NotificationEvent>(
+            ({ error, previous }) => {
+                if (error) {
+                    console.warn("Failed to parse notification:", error);
+                }
+                return previous;
+            }
         );
 
-        this.#reconnectTimeoutId = setTimeout(() => {
-            if (this.#connectionStatus === "disconnected") return;
-            this.#startStream();
-        }, delay) as unknown as number;
-    }
-
-    connect() {
-        this.#startStream();
+        this.#unsubscribe = notificationValue.subscribe((value) => {
+            if (value) {
+                this.#handleNotificationEvent(value);
+            }
+        });
     }
 
     disconnect() {
-        if (this.#reconnectTimeoutId) {
-            clearTimeout(this.#reconnectTimeoutId);
-            this.#reconnectTimeoutId = null;
-        }
-        if (this.#eventSource) {
-            this.#eventSource.close();
-            this.#eventSource = null;
-        }
         this.#connectionStatus = "disconnected";
+        if (this.#unsubscribe) {
+            this.#unsubscribe();
+            this.#unsubscribe = null;
+        }
+        if (this.#connection) {
+            this.#connection.close();
+            this.#connection = null;
+        }
     }
 
     reconnect() {
-        if (this.#reconnectTimeoutId) {
-            clearTimeout(this.#reconnectTimeoutId);
-            this.#reconnectTimeoutId = null;
-        }
-        this.#reconnectAttempts = 0;
-        this.#startStream();
+        this.disconnect();
+        this.connect();
     }
 }
 

@@ -1,36 +1,84 @@
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { env } from "$env/dynamic/private";
+import { produce } from "sveltekit-sse";
 
-export const GET: RequestHandler = async ({ fetch, locals }) => {
+export const POST: RequestHandler = async ({ locals }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
 
-    try {
-        const response = await fetch(`${env.BACKEND_URL}/api/v1/stream/logging`, {
-            method: "GET",
-            headers: {
-                "x-api-key": env.BACKEND_API_KEY || "",
-                Accept: "text/event-stream",
-                "Cache-Control": "no-cache"
-            }
-        });
+    const backendUrl = env.BACKEND_URL;
+    if (!backendUrl) {
+        console.error("Logs proxy: BACKEND_URL is not configured");
+        error(500, "Backend URL is not configured");
+    }
 
-        if (!response.ok) {
-            throw error(response.status, `Backend error: ${response.statusText}`);
+    return produce(async function start({ emit, lock }) {
+        const abortController = new AbortController();
+
+        try {
+            const response = await fetch(`${backendUrl}/api/v1/stream/logging`, {
+                method: "GET",
+                headers: {
+                    "x-api-key": env.BACKEND_API_KEY || "",
+                    Accept: "text/event-stream",
+                    "Cache-Control": "no-cache"
+                },
+                signal: abortController.signal
+            });
+
+            if (!response.ok) {
+                console.error(`Logs proxy: Backend error ${response.status}`);
+                lock.set(false);
+                return function stop() {
+                    abortController.abort();
+                };
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) {
+                console.error("Logs proxy: No response body");
+                lock.set(false);
+                return function stop() {
+                    abortController.abort();
+                };
+            }
+
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const data = line.slice(6);
+                        const { error: emitError } = emit("log", data);
+                        if (emitError) {
+                            reader.cancel();
+                            return function stop() {
+                                abortController.abort();
+                            };
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            if (!(e instanceof Error && e.name === "AbortError")) {
+                console.error("Logs proxy: Connection error:", e);
+            }
+        } finally {
+            lock.set(false);
         }
 
-        return new Response(response.body, {
-            headers: {
-                "Content-Type": "text/event-stream",
-                "Cache-Control": "no-cache",
-                Connection: "keep-alive",
-                "Access-Control-Allow-Origin": "*"
-            }
-        });
-    } catch (e) {
-        console.error("Stream error:", e);
-        throw error(500, "Failed to connect to log stream");
-    }
+        return function stop() {
+            abortController.abort();
+        };
+    });
 };
