@@ -214,48 +214,71 @@
                             {/if}
 
                             <div class="flex flex-col gap-2">
-                                {#if data.authProviders.plex.enabled}
-                                    <Button
-                                        onclick={plexLogin}
-                                        variant={lastLoginMethod === "plex"
-                                            ? "secondary"
-                                            : "outline"}
-                                        class="relative w-full"
-                                        type="button">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 512 512">
-                                            <path
-                                                d="M256 70H148l108 186-108 186h108l108-186z"
-                                                fill="currentColor" />
-                                        </svg>
-                                        Login with Plex
-                                        {#if lastLoginMethod === "plex"}
-                                            {@render star()}
-                                        {/if}
-                                    </Button>
-                                {/if}
-                                {#if data.authProviders.authentik.enabled}
-                                    <Button
-                                        onclick={authentikLogin}
-                                        variant={lastLoginMethod === "authentik"
-                                            ? "secondary"
-                                            : "outline"}
-                                        class="relative w-full"
-                                        type="button">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 512 512">
-                                            <path
-                                                fill="currentColor"
-                                                d="M280 141h18v51h-18zm46-2h18v40h-18zM66 197c-24 0-46 14-57 35h30c14-12 33-15 47 0h33c-13-17-32-35-53-35m43 65c-42 88-116 13-71-30H8c-24 41 9 97 57 96 38 0 69-56 69-65 0-5-6-18-16-31H85c11 9 20 23 24 30m1-2M512 140v232c0 44-36 80-80 80h-34v-79H235v79h-35c-44 0-80-36-80-80v-73h258V160H254v78H120v-98a93 93 0 0 1 2-20l1-3 1-1v-1l1-2v-2l1-2 8-13 2-4 2-2 2-3 3-3 1-1 10-8 3-2 3-2 7-3 2-1 9-4 4-1h2l10-2h244l11 2h2l3 1a81 81 0 0 1 18 8l4 2 2 2a90 90 0 0 1 14 12l2 3 2 2 3 3v1a77 77 0 0 1 8 15v2l1 1 1 2v1l1 3 2 11v9M498 96H134c14-23 40-36 66-36h232c26 0 51 13 66 36m14 35H120c2-13 6-25 13-36h365c7 11 12 23 13 36m1 9v27H378v-7H254v7H120v-36h392v9m-392 27h134v35H120zm258 0h134v35H378zm-258 35h134v36H120zm258 0h134v36H378z" />
-                                        </svg>
-                                        Login with Authentik
-                                        {#if lastLoginMethod === "authentik"}
-                                            {@render star()}
-                                        {/if}
-                                    </Button>
-                                {/if}
+                                {#each Object.entries(data.authProviders) as [key, provider]}
+                                    {#if key !== "credential" && provider.enabled}
+                                        <Button
+                                            onclick={async () => {
+                                                if (key === "plex") {
+                                                    await plexLogin();
+                                                } else {
+                                                    await authClient.signIn.oauth2({
+                                                        providerId: key,
+                                                        callbackURL: "/"
+                                                    });
+                                                }
+                                            }}
+                                            variant={lastLoginMethod === key
+                                                ? "secondary"
+                                                : "outline"}
+                                            class="relative w-full"
+                                            type="button">
+                                            {#if key === "plex"}
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 512 512"
+                                                    class="mr-2 h-4 w-4">
+                                                    <path
+                                                        d="M256 70H148l108 186-108 186h108l108-186z"
+                                                        fill="currentColor" />
+                                                </svg>
+                                            {:else if provider.icon}
+                                                <img
+                                                    src={provider.icon}
+                                                    alt="{provider.name} icon"
+                                                    class="mr-2 h-4 w-4" />
+                                            {:else}
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    class="mr-2 h-4 w-4"
+                                                    ><rect
+                                                        width="20"
+                                                        height="20"
+                                                        x="2"
+                                                        y="2"
+                                                        rx="5"
+                                                        ry="5" /><path
+                                                        d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line
+                                                        x1="17.5"
+                                                        x2="17.51"
+                                                        y1="6.5"
+                                                        y2="6.5" /></svg>
+                                            {/if}
+                                            Login with {provider.name ||
+                                                key.charAt(0).toUpperCase() + key.slice(1)}
+                                            {#if lastLoginMethod === key}
+                                                {@render star()}
+                                            {/if}
+                                        </Button>
+                                    {/if}
+                                {/each}
                                 {#if supportsPasskey}
                                     <Button
                                         variant={lastLoginMethod === "passkey"

@@ -13,6 +13,7 @@ import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./permissions";
+import { getGenericOAuthProviders } from "./oauth-utils";
 
 export const auth = betterAuth({
     secret: env.AUTH_SECRET,
@@ -76,19 +77,7 @@ export const auth = betterAuth({
             storeInDatabase: true
         }),
         genericOAuth({
-            config: [
-                {
-                    providerId: "authentik",
-                    discoveryUrl: env.AUTHENTIK_ISSUER
-                        ? `${env.AUTHENTIK_ISSUER}/.well-known/openid-configuration`
-                        : undefined,
-                    clientId: env.AUTHENTIK_CLIENT_ID || "",
-                    clientSecret: env.AUTHENTIK_CLIENT_SECRET || "",
-                    scopes: ["openid", "profile", "email"],
-                    pkce: true,
-                    disableSignUp: env.ENABLE_AUTHENTIK_SIGNUP !== "true"
-                }
-            ]
+            config: getGenericOAuthProviders(env)
         })
     ],
     advanced: {
@@ -124,10 +113,16 @@ export function getAuthProviders() {
         };
     }
 
-    // Add Authentik provider from genericOAuth plugin
-    providers.authentik = {
-        enabled: env.DISABLE_AUTHENTIK !== "true" && !!process.env.AUTHENTIK_CLIENT_ID,
-        disableSignup: env.ENABLE_AUTHENTIK_SIGNUP !== "true"
-    };
+    // Add generic OAuth providers
+    const genericProviders = getGenericOAuthProviders(env);
+    for (const provider of genericProviders) {
+        providers[provider.providerId] = {
+            enabled: true,
+            disableSignup: !!provider.disableSignUp,
+            // @ts-ignore
+            name: provider.name || provider.providerId,
+            icon: provider.icon
+        };
+    }
     return providers;
 }

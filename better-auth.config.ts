@@ -13,6 +13,7 @@ import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./src/lib/server/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./src/lib/server/permissions";
+import { getGenericOAuthProviders } from "./src/lib/server/oauth-utils";
 import "dotenv/config";
 
 export const auth = betterAuth({
@@ -76,18 +77,7 @@ export const auth = betterAuth({
             storeInDatabase: true
         }),
         genericOAuth({
-            config: [
-                {
-                    providerId: "authentik",
-                    discoveryUrl: process.env.AUTHENTIK_ISSUER
-                        ? `${process.env.AUTHENTIK_ISSUER}/.well-known/openid-configuration`
-                        : undefined,
-                    clientId: process.env.AUTHENTIK_CLIENT_ID || "",
-                    clientSecret: process.env.AUTHENTIK_CLIENT_SECRET || "",
-                    scopes: ["openid", "profile", "email"],
-                    pkce: true
-                }
-            ]
+            config: getGenericOAuthProviders(process.env as Record<string, string>)
         })
     ],
     advanced: {
@@ -123,11 +113,14 @@ export function getAuthProviders() {
         };
     }
 
-    // Add Authentik provider from genericOAuth plugin
-    providers.authentik = {
-        enabled: process.env.DISABLE_AUTHENTIK !== "true" && !!process.env.AUTHENTIK_CLIENT_ID,
-        disableSignup: process.env.ENABLE_AUTHENTIK_SIGNUP !== "true"
-    };
+    // Add generic OAuth providers
+    const genericProviders = getGenericOAuthProviders(process.env as Record<string, string>);
+    for (const provider of genericProviders) {
+        providers[provider.providerId] = {
+            enabled: true,
+            disableSignup: !!provider.disableSignUp
+        };
+    }
 
     return providers;
 }
