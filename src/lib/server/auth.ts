@@ -85,7 +85,8 @@ export const auth = betterAuth({
                     clientId: env.AUTHENTIK_CLIENT_ID || "",
                     clientSecret: env.AUTHENTIK_CLIENT_SECRET || "",
                     scopes: ["openid", "profile", "email"],
-                    pkce: true
+                    pkce: true,
+                    disableSignUp: env.DISABLE_AUTHENTIK_SIGNUP === "true"
                 }
             ]
         })
