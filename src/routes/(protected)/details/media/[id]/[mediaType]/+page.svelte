@@ -18,7 +18,6 @@
     import { toast } from "svelte-sonner";
 
     let { data }: PageProps = $props();
-    $inspect(data);
 
     const externalMetaData: Record<string, { name: string; baseUrl: string }> = {
         imdb: {

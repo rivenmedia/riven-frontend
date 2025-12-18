@@ -32,8 +32,6 @@
             }
         });
 
-        invalidateAll();
-
         if (response.data) {
             invalidateAll();
             toast.success("Media item deletion successfully!");
