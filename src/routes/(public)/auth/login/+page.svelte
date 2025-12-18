@@ -91,7 +91,15 @@
     let supportsPasskeyAutofill = $state(false);
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
 
+    let activeTab = $state("login");
+    let lastLoginMethod = $state(authClient.getLastUsedLoginMethod());
+
     onMount(async () => {
+        const storedMethod = localStorage.getItem("riven-last-login-method");
+        if (storedMethod) {
+            lastLoginMethod = storedMethod;
+        }
+
         if (
             doesBrowserSupportPasskeys() &&
             typeof window.PublicKeyCredential.isConditionalMediationAvailable === "function"
@@ -104,6 +112,7 @@
                     autoFill: true,
                     fetchOptions: {
                         onSuccess() {
+                            localStorage.setItem("riven-last-login-method", "passkey");
                             goto("/");
                         },
                         onError(context) {
@@ -117,6 +126,7 @@
 
     async function handlePasskeySignIn() {
         isPasskeyLoading = true;
+        localStorage.setItem("riven-last-login-method", "passkey");
         try {
             await authClient.signIn.passkey({
                 fetchOptions: {
@@ -134,9 +144,6 @@
             isPasskeyLoading = false;
         }
     }
-
-    let activeTab = $state("login");
-    const lastLoginMethod = authClient.getLastUsedLoginMethod();
 </script>
 
 {#snippet star()}
@@ -171,7 +178,16 @@
                         </Card.Header>
                         <Card.Content>
                             {#if data.authProviders.credential?.enabled}
-                                <form method="POST" use:loginEnhance action="?/login">
+                                <form
+                                    method="POST"
+                                    use:loginEnhance
+                                    action="?/login"
+                                    onsubmit={() => {
+                                        localStorage.setItem(
+                                            "riven-last-login-method",
+                                            "credential"
+                                        );
+                                    }}>
                                     <Form.Field form={loginForm} name="username">
                                         <Form.Control>
                                             {#snippet children({ props })}
@@ -218,6 +234,10 @@
                                     {#if key !== "credential" && provider.enabled}
                                         <Button
                                             onclick={async () => {
+                                                localStorage.setItem(
+                                                    "riven-last-login-method",
+                                                    key
+                                                );
                                                 if (key === "plex") {
                                                     await plexLogin();
                                                 } else {
