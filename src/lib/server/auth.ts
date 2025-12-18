@@ -86,7 +86,7 @@ export const auth = betterAuth({
                     clientSecret: env.AUTHENTIK_CLIENT_SECRET || "",
                     scopes: ["openid", "profile", "email"],
                     pkce: true,
-                    disableSignUp: env.DISABLE_AUTHENTIK_SIGNUP === "true"
+                    disableSignUp: env.ENABLE_AUTHENTIK_SIGNUP !== "true"
                 }
             ]
         })
@@ -126,9 +126,8 @@ export function getAuthProviders() {
 
     // Add Authentik provider from genericOAuth plugin
     providers.authentik = {
-        enabled: env.DISABLE_AUTHENTIK !== "true" && !!env.AUTHENTIK_CLIENT_ID,
-        disableSignup: env.DISABLE_AUTHENTIK_SIGNUP === "true"
+        enabled: env.DISABLE_AUTHENTIK !== "true" && !!process.env.AUTHENTIK_CLIENT_ID,
+        disableSignup: env.ENABLE_AUTHENTIK_SIGNUP !== "true"
     };
-
     return providers;
 }

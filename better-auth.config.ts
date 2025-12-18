@@ -126,7 +126,7 @@ export function getAuthProviders() {
     // Add Authentik provider from genericOAuth plugin
     providers.authentik = {
         enabled: process.env.DISABLE_AUTHENTIK !== "true" && !!process.env.AUTHENTIK_CLIENT_ID,
-        disableSignup: process.env.DISABLE_AUTHENTIK_SIGNUP === "true"
+        disableSignup: process.env.ENABLE_AUTHENTIK_SIGNUP !== "true"
     };
 
     return providers;
