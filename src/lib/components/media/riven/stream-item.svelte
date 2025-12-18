@@ -29,19 +29,15 @@
 
 <div class="flex items-start gap-3">
     {#if showCheckbox}
-        <Checkbox 
-            checked={isSelected}
-            onCheckedChange={() => onSelect(magnet)}
-            class="mt-4"
-        />
+        <Checkbox checked={isSelected} onCheckedChange={() => onSelect(magnet)} class="mt-4" />
     {/if}
     <Card.Root
-        class="flex-1 cursor-pointer transition-all hover:border-primary hover:shadow-md"
+        class="hover:border-primary flex-1 cursor-pointer transition-all hover:shadow-md"
         onclick={() => onScrape(magnet)}>
         <Card.Content class="px-4 py-3">
             <div class="flex flex-col gap-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-sm font-medium break-all flex-1 min-w-0">{stream.raw_title}</p>
+                    <p class="min-w-0 flex-1 text-sm font-medium break-all">{stream.raw_title}</p>
                     <Badge variant={stream.rank > 0 ? "default" : "destructive"} class="shrink-0">
                         Rank: {stream.rank}
                     </Badge>

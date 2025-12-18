@@ -51,9 +51,12 @@ export async function processBatchItem({
         if (mediaType === "tv") queryParams.tvdb_id = externalId;
     }
 
-    const { data: sessionData, error: sessionError } = await providers.riven.POST("/api/v1/scrape/start_session", {
-        params: { query: queryParams }
-    });
+    const { data: sessionData, error: sessionError } = await providers.riven.POST(
+        "/api/v1/scrape/start_session",
+        {
+            params: { query: queryParams }
+        }
+    );
 
     if (sessionError || !sessionData) {
         const msg = (sessionError as any)?.message || (sessionError as any)?.detail || "Unknown";
@@ -64,7 +67,9 @@ export async function processBatchItem({
     const files = sessionData.containers?.files || [];
 
     // 2. Parse Titles (to auto-select relevant files)
-    const filenames = Object.values(files).map((f: any) => f.filename).filter((f: any): f is string => f != null);
+    const filenames = Object.values(files)
+        .map((f: any) => f.filename)
+        .filter((f: any): f is string => f != null);
     const { data: parseData } = await providers.riven.POST("/api/v1/scrape/parse", {
         body: filenames
     });
@@ -92,7 +97,7 @@ export async function processBatchItem({
     const container: any = {}; // Container is TorrentContainer? alias via types.gen.ts
     // TorrentContainer interface has files?: { [key: string]: TorrentFile } ...
     // BUT here container is being used as body for manualSelect.
-    // manualSelect body expecting? riven.ts: /api/v1/scrape/select_files/{session_id}. 
+    // manualSelect body expecting? riven.ts: /api/v1/scrape/select_files/{session_id}.
     // Op: manual_select. Input: DebridContainer (likely).
     // Let's check manual_select body type in riven.ts later. Assuming it matches Container alias.
     // Actually previous code: container[file_id] = { ... }.
@@ -136,7 +141,7 @@ export async function processBatchItem({
         updateBody = {};
 
         // Find the stream object to get torrent-level metadata
-        const streamObj = streams.find(s => s.magnet === magnet)?.stream;
+        const streamObj = streams.find((s) => s.magnet === magnet)?.stream;
         const torrentSeason = streamObj?.parsed_data?.seasons?.[0];
 
         let mappedCount = 0;
