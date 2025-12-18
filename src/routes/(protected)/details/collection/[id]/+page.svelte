@@ -4,7 +4,6 @@
     import MediaCard from "$lib/components/media/media-card.svelte";
 
     let { data }: PageProps = $props();
-    $inspect(data);
 </script>
 
 <svelte:head>

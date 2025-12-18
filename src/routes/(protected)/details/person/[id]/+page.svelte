@@ -6,7 +6,6 @@
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
 
     let { data }: PageProps = $props();
-    $inspect(data);
 
     let selectedTab = $state<"acting" | "crew">("acting");
 

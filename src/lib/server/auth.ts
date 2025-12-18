@@ -38,7 +38,7 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: env.DISABLE_EMAIL_PASSWORD !== "true",
-        disableSignUp: env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true"
+        disableSignUp: env.ENABLE_EMAIL_PASSWORD_SIGNUP !== "true"
     },
     socialProviders: {
         plex: {
@@ -47,10 +47,10 @@ export const auth = betterAuth({
             version: "1.0",
             platform: "Web",
             enabled: env.DISABLE_PLEX !== "true",
-            disableSignUp: env.DISABLE_PLEX_SIGNUP === "true"
+            disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true"
         }
     },
-    trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", env.PASSKEY_ORIGIN].filter(
+    trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", env.ORIGIN].filter(
         Boolean
     ) as string[],
     plugins: [
@@ -68,9 +68,9 @@ export const auth = betterAuth({
         openAPI(),
         sveltekitCookies(getRequestEvent),
         passkey({
-            rpID: env.PASSKEY_RP_ID || "localhost",
+            rpID: env.PASSKEY_RP_ID || "riven",
             rpName: env.PASSKEY_RP_NAME || "Riven Media",
-            origin: env.PASSKEY_ORIGIN || "http://localhost:5173"
+            origin: env.ORIGIN || "http://localhost:5173"
         }),
         lastLoginMethod({
             storeInDatabase: true

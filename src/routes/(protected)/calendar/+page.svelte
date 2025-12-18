@@ -130,8 +130,6 @@
         return days;
     });
 
-    $inspect(calendarDays);
-
     function navigateMonth(direction: "prev" | "next") {
         if (direction === "prev") {
             const newMonth = currentDate.month === 1 ? 12 : currentDate.month - 1;
