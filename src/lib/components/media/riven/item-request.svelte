@@ -32,7 +32,6 @@
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
-        console.log("Valid IDs:", validIds);
 
         const response = await providers.riven.POST("/api/v1/items/add", {
             body: {
@@ -52,8 +51,6 @@
 
     let open = $state(false);
     let loading = $state(false);
-
-    $inspect(open);
 </script>
 
 <AlertDialog.Root bind:open>

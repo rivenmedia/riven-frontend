@@ -1,9 +1,11 @@
 import type { RequestHandler } from "./$types";
 import { error, redirect, json } from "@sveltejs/kit";
 import providers from "$lib/providers";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 export const GET: RequestHandler = async ({ params, fetch, locals }) => {
     const { indexer, type, id } = params;
+    const customFetch = createCustomFetch(fetch);
 
     switch (indexer) {
         case "tmdb":
@@ -19,7 +21,7 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
                                     series_id: Number(id)
                                 }
                             },
-                            fetch: fetch
+                            fetch: customFetch
                         }
                     );
 
@@ -55,7 +57,7 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
                 case "TV_SHORT":
                 case "MOVIE":
                 case "ONA": {
-                    const anilistExternalIDsResponse = await fetch(
+                    const anilistExternalIDsResponse = await customFetch(
                         `https://api.ani.zip/v1/mappings?anilist_id=${id}`,
                         {
                             headers: {

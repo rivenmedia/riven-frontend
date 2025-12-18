@@ -158,7 +158,6 @@
                                     size="sm"
                                     onclick={async () => {
                                         try {
-                                            console.log("Deleting passkey:", passkey);
                                             await authClient.passkey.deletePasskey({
                                                 id: passkey.id,
                                                 fetchOptions: {

@@ -3,6 +3,7 @@ import { json, error } from "@sveltejs/kit";
 import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 /**
  * Apply server-side filters to TMDB results
@@ -112,6 +113,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
 
     const { type } = params;
+    const customFetch = createCustomFetch(fetch);
 
     if (type !== "movie" && type !== "tv") {
         error(400, "Invalid media type. Must be 'movie' or 'tv'");
@@ -191,7 +193,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     params: {
                         query: queryParams as any
                     },
-                    fetch
+                    fetch: customFetch
                 });
 
                 if (searchResult.error) {
@@ -214,7 +216,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     params: {
                         query: queryParams as any
                     },
-                    fetch
+                    fetch: customFetch
                 });
 
                 if ((searchResult as any).error) {
@@ -240,7 +242,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     params: {
                         query: queryParams as any
                     },
-                    fetch
+                    fetch: customFetch
                 });
 
                 if ((discover as any).error) {
@@ -263,7 +265,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     params: {
                         query: queryParams as any
                     },
-                    fetch
+                    fetch: customFetch
                 });
 
                 if ((discover as any).error) {

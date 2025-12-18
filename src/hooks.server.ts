@@ -8,6 +8,7 @@ import providers from "$lib/providers";
 import { dev } from "$app/environment";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "$lib/server/db";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 export const init: ServerInit = async () => {
     if (!env.BACKEND_URL) {
@@ -48,11 +49,12 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
     const tvdbCookie = event.cookies.get("tvdb_cookie");
 
     if (!tvdbCookie) {
+        const customFetch = createCustomFetch(event.fetch);
         const tvdbLogin = await providers.tvdb.POST("/login", {
             body: {
                 apikey: "6be85335-5c4f-4d8d-b945-d3ed0eb8cdce"
             },
-            fetch: event.fetch
+            fetch: customFetch
         });
 
         if (tvdbLogin.error) {
@@ -72,8 +74,4 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
     return resolve(event);
 };
 
-export const handle: Handle = sequence(
-    configureLocals,
-    betterAuthHandler,
-    handleTVDBCookie
-);
+export const handle: Handle = sequence(configureLocals, betterAuthHandler, handleTVDBCookie);

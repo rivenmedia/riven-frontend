@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
-import { env } from "$env/dynamic/private";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 interface RatingScore {
     name: string;
@@ -9,9 +9,10 @@ interface RatingScore {
     score: number | string | null;
 }
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, url, fetch }) => {
     const { tmdbId } = params;
     const mediaType = url.searchParams.get("type") as "movie" | "tv" | null;
+    const customFetch = createCustomFetch(fetch);
 
     if (!mediaType || !["movie", "tv"].includes(mediaType)) {
         throw error(400, 'Invalid or missing media type. Must be "movie" or "tv"');
@@ -28,7 +29,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
                         path: {
                             movie_id: Number(tmdbId)
                         }
-                    }
+                    },
+                    fetch: customFetch
                 });
 
                 if (movieData.data?.vote_average) {
@@ -44,7 +46,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
                         path: {
                             series_id: Number(tmdbId)
                         }
-                    }
+                    },
+                    fetch: customFetch
                 });
 
                 if (tvData.data?.vote_average) {
@@ -68,7 +71,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
                         path: {
                             movie_id: Number(tmdbId)
                         }
-                    }
+                    },
+                    fetch: customFetch
                 });
                 imdbId = externalIds.data?.imdb_id || null;
             } else {
@@ -77,7 +81,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
                         path: {
                             series_id: Number(tmdbId)
                         }
-                    }
+                    },
+                    fetch: customFetch
                 });
                 imdbId = externalIds.data?.imdb_id || null;
             }
@@ -86,28 +91,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
         }
 
         if (imdbId) {
-            // 3. IMDB Rating via Cinemeta
             try {
-                // const cinemetaType = mediaType === "movie" ? "movie" : "series";
-                // const cinemetaUrl = `https://v3-cinemeta.strem.io/meta/${cinemetaType}/${imdbId}.json`;
-
-                // const cinemetaResponse = await fetch(cinemetaUrl);
-                // if (cinemetaResponse.ok) {
-                //     const cinemetaData = await cinemetaResponse.json();
-                // 	console.log("cinemetaData", cinemetaData);
-                //     const imdbRating = cinemetaData?.meta?.imdbRating;
-
-                //     if (imdbRating) {
-                //         scores.push({
-                //             name: "imdb",
-                //             image: "imdb.png",
-                //             score: imdbRating
-                //         });
-                //     }
-                // }
-
                 const url = "https://api.imdbapi.dev/titles/" + imdbId;
-                const imdbResponse = await fetch(url);
+                const imdbResponse = await customFetch(url);
                 if (imdbResponse.ok) {
                     const imdbData = await imdbResponse.json();
                     const imdbRating = imdbData?.rating?.aggregateRating;
@@ -124,36 +110,45 @@ export const GET: RequestHandler = async ({ params, url }) => {
                 console.error("IMDB rating fetch failed:", e);
             }
 
-            // 4. Trakt Rating (optional - requires API key)
-            const traktClientId = env.TRAKT_CLIENT_ID;
-            if (traktClientId) {
-                try {
-                    const traktType = mediaType === "movie" ? "movies" : "shows";
-                    const traktUrl = `https://api.trakt.tv/${traktType}/${imdbId}/ratings`;
-
-                    const traktResponse = await fetch(traktUrl, {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "trakt-api-version": "2",
-                            "trakt-api-key": traktClientId
-                        }
+            // 4. Trakt Rating
+            try {
+                if (mediaType === "movie") {
+                    const traktData = await providers.trakt.GET("/movies/{id}/ratings", {
+                        params: {
+                            path: {
+                                id: imdbId
+                            }
+                        },
+                        fetch: customFetch
                     });
 
-                    if (traktResponse.ok) {
-                        const traktData = await traktResponse.json();
-                        const traktRating = traktData?.rating;
-
-                        if (traktRating) {
-                            scores.push({
-                                name: "trakt",
-                                image: "trakt.png",
-                                score: Math.round(traktRating * 10) / 10
-                            });
-                        }
+                    if (traktData.data?.rating) {
+                        scores.push({
+                            name: "trakt",
+                            image: "trakt.png",
+                            score: Math.round(traktData.data.rating * 10) / 10
+                        });
                     }
-                } catch (e) {
-                    console.error("Trakt rating fetch failed:", e);
+                } else {
+                    const traktData = await providers.trakt.GET("/shows/{id}/ratings", {
+                        params: {
+                            path: {
+                                id: imdbId
+                            }
+                        },
+                        fetch: customFetch
+                    });
+
+                    if (traktData.data?.rating) {
+                        scores.push({
+                            name: "trakt",
+                            image: "trakt.png",
+                            score: Math.round(traktData.data.rating * 10) / 10
+                        });
+                    }
                 }
+            } catch (e) {
+                console.error("Trakt rating fetch failed:", e);
             }
         }
 

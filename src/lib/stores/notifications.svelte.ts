@@ -24,7 +24,9 @@ type NotificationEvent = {
 
 export class NotificationStore {
     #notifications = $state<Notification[]>([]);
-    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
+        "disconnected"
+    );
     #connection: ReturnType<typeof source> | null = null;
     #unsubscribe: (() => void) | null = null;
 
@@ -115,14 +117,14 @@ export class NotificationStore {
             }
         });
 
-        const notificationValue = this.#connection.select("notification").json<NotificationEvent>(
-            ({ error, previous }) => {
+        const notificationValue = this.#connection
+            .select("notification")
+            .json<NotificationEvent>(({ error, previous }) => {
                 if (error) {
                     console.warn("Failed to parse notification:", error);
                 }
                 return previous;
-            }
-        );
+            });
 
         this.#unsubscribe = notificationValue.subscribe((value) => {
             if (value) {

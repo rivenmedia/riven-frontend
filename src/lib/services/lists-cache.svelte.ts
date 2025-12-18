@@ -30,7 +30,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache validity
  */
 function extractItems<T>(data: unknown): T[] {
     let items: T[] = [];
-    
+
     if (Array.isArray(data)) {
         items = data;
     } else if (data && typeof data === "object") {
@@ -47,7 +47,7 @@ function extractItems<T>(data: unknown): T[] {
             }
         }
     }
-    
+
     return items;
 }
 

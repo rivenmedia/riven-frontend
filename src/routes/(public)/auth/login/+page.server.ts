@@ -9,18 +9,25 @@ import { getUsersCount } from "$lib/server/functions";
 import { getAuthProviders } from "$lib/server/auth";
 
 const authProviders = getAuthProviders();
+const isSignupEnabled =
+    authProviders.credential?.enabled && !authProviders.credential?.disableSignup;
+const isCredentialEnabled = authProviders.credential?.enabled;
 
 export const load: PageServerLoad = async (event) => {
     if (event.locals.user) {
         return redirect(302, "/auth");
     }
+
+    const isFirstUser = await noUserExists();
+    const canRegister = isSignupEnabled || isFirstUser;
+
     const loginForm = await superValidate(zod4(loginSchema), {
         id: "loginForm"
     });
-    const registerForm = await superValidate(zod4(registerSchema), {
-        id: "registerForm"
-    });
-    return { loginForm, registerForm, authProviders: authProviders };
+    const registerForm = canRegister
+        ? await superValidate(zod4(registerSchema), { id: "registerForm" })
+        : null;
+    return { loginForm, registerForm, authProviders, isFirstUser };
 };
 
 async function noUserExists() {
@@ -30,6 +37,10 @@ async function noUserExists() {
 
 export const actions: Actions = {
     login: async (event) => {
+        if (!isCredentialEnabled) {
+            return fail(403, { message: "Email/password login is disabled" });
+        }
+
         const loginForm = await superValidate(event.request, zod4(loginSchema));
         if (!loginForm.valid) return fail(400, { loginForm });
 
@@ -57,6 +68,13 @@ export const actions: Actions = {
         return redirect(303, "/");
     },
     register: async (event) => {
+        const isFirstUser = await noUserExists();
+
+        // Allow registration if signup is enabled OR if this is the first user (admin setup)
+        if (!isSignupEnabled && !isFirstUser) {
+            return fail(403, { message: "Registration is disabled" });
+        }
+
         const registerForm = await superValidate(event.request, zod4(registerSchema));
         if (!registerForm.valid) return fail(400, { registerForm });
 

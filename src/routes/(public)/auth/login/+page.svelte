@@ -23,8 +23,9 @@
     }: {
         data: {
             loginForm: SuperValidated<Infer<typeof loginSchema>>;
-            registerForm: SuperValidated<Infer<typeof registerSchema>>;
+            registerForm: SuperValidated<Infer<typeof registerSchema>> | null;
             authProviders: any;
+            isFirstUser: boolean;
         };
     } = $props();
 
@@ -35,17 +36,19 @@
     });
 
     // svelte-ignore state_referenced_locally
-    const registerForm = superForm(data.registerForm, {
-        validators: zod4Client(registerSchema),
-        resetForm: true
-    });
+    const registerForm = data.registerForm
+        ? superForm(data.registerForm, {
+              validators: zod4Client(registerSchema),
+              resetForm: true
+          })
+        : null;
 
     const { form: loginFormData, enhance: loginEnhance, message: loginMessage } = loginForm;
     const {
         form: registerFormData,
         enhance: registerEnhance,
         message: registerMessage
-    } = registerForm;
+    } = registerForm ?? { form: null, enhance: null, message: null };
 
     $effect(() => {
         if ($loginMessage) {
@@ -64,6 +67,12 @@
             }
         }
     });
+
+    // Check if signup is enabled (or first user setup)
+    const isSignupEnabled = $derived(
+        (data.authProviders.credential?.enabled && !data.authProviders.credential?.disableSignup) ||
+            data.isFirstUser
+    );
 
     async function plexLogin() {
         await authClient.signIn.social({
@@ -140,10 +149,12 @@
         </div>
         <div class="flex flex-1 items-center justify-center">
             <Tabs.Root bind:value={activeTab} class="w-full max-w-md">
-                <Tabs.List class="w-full">
-                    <Tabs.Trigger value="login">Login</Tabs.Trigger>
-                    <Tabs.Trigger value="register">Register</Tabs.Trigger>
-                </Tabs.List>
+                {#if isSignupEnabled}
+                    <Tabs.List class="w-full">
+                        <Tabs.Trigger value="login">Login</Tabs.Trigger>
+                        <Tabs.Trigger value="register">Register</Tabs.Trigger>
+                    </Tabs.List>
+                {/if}
                 <Tabs.Content value="login">
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
@@ -152,46 +163,48 @@
                                 >Enter your username below to login to your account</Card.Description>
                         </Card.Header>
                         <Card.Content>
-                            <form method="POST" use:loginEnhance action="?/login">
-                                <Form.Field form={loginForm} name="username">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Username</Form.Label>
-                                            <Input
-                                                {...props}
-                                                autocomplete="username webauthn"
-                                                bind:value={$loginFormData.username} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
+                            {#if data.authProviders.credential?.enabled}
+                                <form method="POST" use:loginEnhance action="?/login">
+                                    <Form.Field form={loginForm} name="username">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Username</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    autocomplete="username webauthn"
+                                                    bind:value={$loginFormData.username} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
 
-                                <Form.Field form={loginForm} name="password">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Password</Form.Label>
-                                            <Input
-                                                {...props}
-                                                type="password"
-                                                autocomplete="current-password webauthn"
-                                                bind:value={$loginFormData.password} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
-                                <Form.Button class="mt-4 w-full">Submit</Form.Button>
-                            </form>
+                                    <Form.Field form={loginForm} name="password">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Password</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    type="password"
+                                                    autocomplete="current-password webauthn"
+                                                    bind:value={$loginFormData.password} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
+                                    <Form.Button class="mt-4 w-full">Submit</Form.Button>
+                                </form>
 
-                            <div class="relative my-4">
-                                <div class="absolute inset-0 flex items-center">
-                                    <span class="w-full border-t"></span>
+                                <div class="relative my-4">
+                                    <div class="absolute inset-0 flex items-center">
+                                        <span class="w-full border-t"></span>
+                                    </div>
+                                    <div class="relative flex justify-center text-xs uppercase">
+                                        <span class="bg-card text-muted-foreground px-2">
+                                            Or continue with
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="relative flex justify-center text-xs uppercase">
-                                    <span class="bg-card text-muted-foreground px-2">
-                                        Or continue with
-                                    </span>
-                                </div>
-                            </div>
+                            {/if}
 
                             <div class="flex flex-col gap-2">
                                 {#if data.authProviders.plex.enabled}
@@ -238,83 +251,87 @@
                         </Card.Content>
                     </Card.Root>
                 </Tabs.Content>
-                <Tabs.Content value="register">
-                    <Card.Root class="mx-auto w-full">
-                        <Card.Header>
-                            <Card.Title class="text-2xl">Register</Card.Title>
-                            <Card.Description
-                                >Enter your details below to create a new account</Card.Description>
-                        </Card.Header>
-                        <Card.Content>
-                            <form method="POST" use:registerEnhance action="?/register">
-                                <Form.Field form={registerForm} name="username">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Username</Form.Label>
-                                            <Input
-                                                {...props}
-                                                bind:value={$registerFormData.username} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
+                {#if isSignupEnabled && registerForm && registerEnhance && $registerFormData}
+                    <Tabs.Content value="register">
+                        <Card.Root class="mx-auto w-full">
+                            <Card.Header>
+                                <Card.Title class="text-2xl">Register</Card.Title>
+                                <Card.Description
+                                    >Enter your details below to create a new account</Card.Description>
+                            </Card.Header>
+                            <Card.Content>
+                                <form method="POST" use:registerEnhance action="?/register">
+                                    <Form.Field form={registerForm} name="username">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Username</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    bind:value={$registerFormData.username} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
 
-                                <Form.Field form={registerForm} name="email">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Email</Form.Label>
-                                            <Input
-                                                {...props}
-                                                type="email"
-                                                bind:value={$registerFormData.email} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
+                                    <Form.Field form={registerForm} name="email">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Email</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    type="email"
+                                                    bind:value={$registerFormData.email} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
 
-                                <Form.Field form={registerForm} name="image">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Image</Form.Label>
-                                            <Input
-                                                {...props}
-                                                type="text"
-                                                bind:value={$registerFormData.image} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
+                                    <Form.Field form={registerForm} name="image">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Image</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    type="text"
+                                                    bind:value={$registerFormData.image} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
 
-                                <Form.Field form={registerForm} name="password">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Password</Form.Label>
-                                            <Input
-                                                {...props}
-                                                type="password"
-                                                bind:value={$registerFormData.password} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
+                                    <Form.Field form={registerForm} name="password">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Password</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    type="password"
+                                                    bind:value={$registerFormData.password} />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
 
-                                <Form.Field form={registerForm} name="confirmPassword">
-                                    <Form.Control>
-                                        {#snippet children({ props })}
-                                            <Form.Label>Confirm Password</Form.Label>
-                                            <Input
-                                                {...props}
-                                                type="password"
-                                                bind:value={$registerFormData.confirmPassword} />
-                                        {/snippet}
-                                    </Form.Control>
-                                    <Form.FieldErrors />
-                                </Form.Field>
-                                <Form.Button class="mt-4">Submit</Form.Button>
-                            </form>
-                        </Card.Content>
-                    </Card.Root>
-                </Tabs.Content>
+                                    <Form.Field form={registerForm} name="confirmPassword">
+                                        <Form.Control>
+                                            {#snippet children({ props })}
+                                                <Form.Label>Confirm Password</Form.Label>
+                                                <Input
+                                                    {...props}
+                                                    type="password"
+                                                    bind:value={
+                                                        $registerFormData.confirmPassword
+                                                    } />
+                                            {/snippet}
+                                        </Form.Control>
+                                        <Form.FieldErrors />
+                                    </Form.Field>
+                                    <Form.Button class="mt-4">Submit</Form.Button>
+                                </form>
+                            </Card.Content>
+                        </Card.Root>
+                    </Tabs.Content>
+                {/if}
             </Tabs.Root>
         </div>
     </div>

@@ -2,6 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import * as dateUtils from "$lib/utils/date";
+import { createCustomFetch } from "$lib/custom-fetch";
 
 /**
  * Apply server-side filters to TVDB results
@@ -64,6 +65,8 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
+
+    const customFetch = createCustomFetch(fetch);
 
     // Extract all TVDB search parameters from URL
     const query = url.searchParams.get("query") || url.searchParams.get("q");
@@ -141,7 +144,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
             headers: {
                 Authorization: `Bearer ${tvdbToken}`
             },
-            fetch
+            fetch: customFetch
         });
 
         if (searchResult.error) {
@@ -156,9 +159,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
                 title: item.translations?.eng || item.name || "Unknown",
                 poster_path: item.image_url || null,
                 media_type: "tv",
-                year:
-                    item.year ||
-                    (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
+                year: item.year || (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
                 vote_average: null,
                 vote_count: null,
                 overview: item.overview || null,

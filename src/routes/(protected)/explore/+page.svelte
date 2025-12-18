@@ -58,8 +58,6 @@
             setupObserver();
         }
     });
-
-    $inspect(searchStore.results);
 </script>
 
 <svelte:head>

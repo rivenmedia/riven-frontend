@@ -9,7 +9,6 @@
     setShadcnContext();
 
     let { data }: { data: PageData } = $props();
-    $inspect(data.form);
 
     const meta = createMeta<ActionData, PageData>().form;
 

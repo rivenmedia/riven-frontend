@@ -12,7 +12,6 @@
     import * as dateUtils from "$lib/utils/date";
 
     let { data }: PageProps = $props();
-    $inspect(data);
 
     function hasCredentialProvider(providers: any[]): boolean {
         return providers.some((provider) => provider.providerId === "credential");

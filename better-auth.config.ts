@@ -39,7 +39,7 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: process.env.DISABLE_EMAIL_PASSWORD !== "true",
-        disableSignUp: process.env.DISABLE_EMAIL_PASSWORD_SIGNUP === "true"
+        disableSignUp: process.env.ENABLE_EMAIL_PASSWORD_SIGNUP !== "true"
     },
     socialProviders: {
         plex: {
@@ -48,7 +48,7 @@ export const auth = betterAuth({
             version: "1.0",
             platform: "Web",
             enabled: process.env.DISABLE_PLEX !== "true",
-            disableSignUp: process.env.DISABLE_PLEX_SIGNUP === "true"
+            disableSignUp: process.env.ENABLE_PLEX_SIGNUP !== "true"
         }
     },
     trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", process.env.ORIGIN].filter(

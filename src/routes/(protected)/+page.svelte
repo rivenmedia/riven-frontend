@@ -8,9 +8,20 @@
     let { data }: { data: PageData } = $props();
 
     const nowPlayingStore = new MediaListStore<BaseListItem>("nowPlaying", "/api/tmdb/now-playing");
-    const trendingMoviesStore = new MediaListStore<BaseListItem>("trendingMovies", "/api/tmdb/movie", "day");
-    const trendingShowsStore = new MediaListStore<BaseListItem>("trendingShows", "/api/tmdb/tv", "day");
-    const anilistTrendingStore = new MediaListStore<BaseListItem>("anilistTrending", "/api/anilist/trending");
+    const trendingMoviesStore = new MediaListStore<BaseListItem>(
+        "trendingMovies",
+        "/api/tmdb/movie",
+        "day"
+    );
+    const trendingShowsStore = new MediaListStore<BaseListItem>(
+        "trendingShows",
+        "/api/tmdb/tv",
+        "day"
+    );
+    const anilistTrendingStore = new MediaListStore<BaseListItem>(
+        "anilistTrending",
+        "/api/anilist/trending"
+    );
 </script>
 
 <svelte:head>
