@@ -5,6 +5,8 @@ type Stream = components["schemas"]["Stream"];
 type Container = components["schemas"]["Container"];
 
 interface ParsedTitleData {
+    filename?: string;
+    original_filename?: string;
     seasons?: number[];
     episodes?: number[];
     resolution?: string;
@@ -64,30 +66,42 @@ export async function processBatchItem({
     }
 
     const sId = sessionData.session_id;
-    const files = sessionData.containers?.files || [];
+    const files = sessionData.containers?.files || {};
 
     // 2. Parse Titles (to auto-select relevant files)
-    const filenames = Object.values(files)
-        .map((f: any) => f.filename)
-        .filter((f: any): f is string => f != null);
+    const fileList = Object.values(files);
+    const filenames = fileList.map((f: any) => f.filename).filter((f: any): f is string => !!f);
+
     const { data: parseData } = await providers.riven.POST("/api/v1/scrape/parse", {
         body: filenames
     });
 
     let fileMappings: FileMapping[] = [];
-    if (parseData) {
-        // files is object or array? previous code used map. sessionData.containers.files is likely array or dict.
-        // In riven.ts, TorrentContainer.files is { [key: string]: TorrentFile }.
-        // So Object.values(files).
-        const fileList = Object.values(files);
+    if (parseData?.data) {
+        const parsedList = parseData.data as any[];
+        const lookup: Record<string, ParsedTitleData> = {};
+        const useIndex = parsedList.length === filenames.length;
+
+        parsedList.forEach((p, i) => {
+            const key = p.filename || p.original_filename;
+            if (key) {
+                lookup[key] = p;
+            } else if (useIndex) {
+                lookup[filenames[i]] = p;
+            }
+        });
+
         fileMappings = fileList.map((file: any, idx: number) => {
-            const parsedData = parseData.data[idx] as ParsedTitleData;
+            const parsed = file.filename ? lookup[file.filename] : undefined;
             return {
-                file_id: file.file_id?.toString() || idx.toString(),
+                file_id:
+                    file.file_id !== undefined && file.file_id !== null
+                        ? String(file.file_id)
+                        : String(idx),
                 filename: file.filename || "",
                 filesize: file.filesize || 0,
-                season: parsedData?.seasons?.[0],
-                episode: parsedData?.episodes?.[0],
+                season: parsed?.seasons?.[0],
+                episode: parsed?.episodes?.[0],
                 download_url: file.download_url
             };
         });

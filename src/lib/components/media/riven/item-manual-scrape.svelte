@@ -227,24 +227,25 @@
         try {
             const magnets = Array.from(selectedMagnets);
             const CONCURRENCY = 3;
+            let itemsProcessed = 0;
 
             for (let i = 0; i < magnets.length; i += CONCURRENCY) {
                 const chunk = magnets.slice(i, i + CONCURRENCY);
 
                 await Promise.all(
-                    chunk.map(async (magnet, index) => {
-                        const globalIndex = i + index;
-                        batchProgress = {
-                            current: globalIndex + 1,
-                            total: magnets.length,
-                            message: `Preparing ${globalIndex + 1}/${magnets.length}`
-                        };
-
+                    chunk.map(async (magnet) => {
                         // Find stream info
                         const streamInfo = streams.find((s) => s.magnet === magnet);
                         if (streamInfo) {
                             await prepareBatchSession(magnet, streamInfo.stream);
                         }
+
+                        itemsProcessed++;
+                        batchProgress = {
+                            current: itemsProcessed,
+                            total: magnets.length,
+                            message: `Preparing ${itemsProcessed}/${magnets.length}`
+                        };
                     })
                 );
             }
@@ -449,8 +450,11 @@
 
             // Only include IDs if they have valid values
             if (itemId) {
-                // @ts-ignore
-                body.item_id = parseInt(itemId as string).toString();
+                const parsed = parseInt(String(itemId), 10);
+                if (!isNaN(parsed)) {
+                    // @ts-ignore
+                    body.item_id = parsed.toString();
+                }
             }
 
             if (externalId) {
