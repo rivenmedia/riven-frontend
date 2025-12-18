@@ -51,7 +51,6 @@
 
     let open = $state(false);
     let loading = $state(false);
-
 </script>
 
 <AlertDialog.Root bind:open>

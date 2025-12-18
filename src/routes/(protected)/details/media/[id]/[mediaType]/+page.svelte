@@ -221,7 +221,7 @@
                                         </Button>
                                     {/snippet}
                                 </Dialog.Trigger>
-                                <Dialog.Content class="max-w-4xl! w-full">
+                                <Dialog.Content class="w-full max-w-4xl!">
                                     <Dialog.Header>
                                         <Dialog.Title>Raw Riven Data</Dialog.Title>
                                         <Button

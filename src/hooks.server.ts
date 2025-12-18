@@ -74,8 +74,4 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
     return resolve(event);
 };
 
-export const handle: Handle = sequence(
-    configureLocals,
-    betterAuthHandler,
-    handleTVDBCookie
-);
+export const handle: Handle = sequence(configureLocals, betterAuthHandler, handleTVDBCookie);

@@ -69,7 +69,7 @@
 
     async function handleUploadLogs() {
         try {
-            const response = await providers.riven.POST("/api/v1/upload_logs")
+            const response = await providers.riven.POST("/api/v1/upload_logs");
             if (response.error) {
                 toast.error(`Failed to upload logs: ${response.error}`);
             }

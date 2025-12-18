@@ -58,7 +58,6 @@
             setupObserver();
         }
     });
-
 </script>
 
 <svelte:head>

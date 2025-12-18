@@ -71,7 +71,7 @@
     // Check if signup is enabled (or first user setup)
     const isSignupEnabled = $derived(
         (data.authProviders.credential?.enabled && !data.authProviders.credential?.disableSignup) ||
-        data.isFirstUser
+            data.isFirstUser
     );
 
     async function plexLogin() {

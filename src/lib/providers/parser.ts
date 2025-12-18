@@ -303,10 +303,10 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
             year:
                 (item.media_type || type) === "movie"
                     ? item.release_date
-                        ? dateUtils.getYearFromISO(item.release_date) ?? "N/A"
+                        ? (dateUtils.getYearFromISO(item.release_date) ?? "N/A")
                         : "N/A"
                     : item.first_air_date
-                      ? dateUtils.getYearFromISO(item.first_air_date) ?? "N/A"
+                      ? (dateUtils.getYearFromISO(item.first_air_date) ?? "N/A")
                       : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
@@ -326,19 +326,22 @@ function transformTraktRecommendations(
     for (const item of items) {
         const posterRaw = item.images?.poster?.[0];
         const poster = posterRaw
-            ? posterRaw.startsWith("http") ? posterRaw : `https://${posterRaw}`
+            ? posterRaw.startsWith("http")
+                ? posterRaw
+                : `https://${posterRaw}`
             : null;
 
         // Detect type from Trakt response structure
         const isMovieType = item.type === "movie" || item.movie;
         const isShowType = item.type === "show" || item.show;
-        
-        const mediaType = isMovieType ? "movie" : isShowType ? "tv" : (isMovie ? "movie" : "tv");
+
+        const mediaType = isMovieType ? "movie" : isShowType ? "tv" : isMovie ? "movie" : "tv";
         const indexer: "tmdb" | "tvdb" = mediaType === "movie" ? "tmdb" : "tvdb";
-        
-        const id = mediaType === "movie"
-            ? (item.ids?.tmdb || item.movie?.ids?.tmdb || 0)
-            : (item.ids?.tvdb || item.show?.ids?.tvdb || 0);
+
+        const id =
+            mediaType === "movie"
+                ? item.ids?.tmdb || item.movie?.ids?.tmdb || 0
+                : item.ids?.tvdb || item.show?.ids?.tvdb || 0;
 
         if (id <= 0) continue;
 
@@ -1000,9 +1003,7 @@ export function parseTVDBShowDetails(
         release_date: data.firstAired ?? null,
         end_date: data.lastAired ?? null,
         next_air_date: data.nextAired ?? null,
-        year: data.year
-            ? Number(data.year)
-            : dateUtils.getYearFromISO(data.firstAired),
+        year: data.year ? Number(data.year) : dateUtils.getYearFromISO(data.firstAired),
         runtime,
         formatted_runtime: formatRuntime(runtime),
         homepage: data.slug ? `https://thetvdb.com/series/${data.slug}` : null,
@@ -1154,10 +1155,7 @@ function getGenderString(gender: number | null): string | null {
 }
 
 // Sort by release date (newest first), items with dates come before those without
-function sortByReleaseDateDesc<T extends { release_date: string | null }>(
-    a: T,
-    b: T
-): number {
+function sortByReleaseDateDesc<T extends { release_date: string | null }>(a: T, b: T): number {
     if (a.release_date && b.release_date) {
         return -dateUtils.compareDateStrings(a.release_date, b.release_date);
     }

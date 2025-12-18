@@ -9,7 +9,8 @@ import { getUsersCount } from "$lib/server/functions";
 import { getAuthProviders } from "$lib/server/auth";
 
 const authProviders = getAuthProviders();
-const isSignupEnabled = authProviders.credential?.enabled && !authProviders.credential?.disableSignup;
+const isSignupEnabled =
+    authProviders.credential?.enabled && !authProviders.credential?.disableSignup;
 const isCredentialEnabled = authProviders.credential?.enabled;
 
 export const load: PageServerLoad = async (event) => {

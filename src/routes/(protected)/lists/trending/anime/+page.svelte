@@ -4,7 +4,10 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { onMount } from "svelte";
 
-    const anilistTrendingStore = new MediaListStore<BaseListItem>("anilistTrending", "/api/anilist/trending");
+    const anilistTrendingStore = new MediaListStore<BaseListItem>(
+        "anilistTrending",
+        "/api/anilist/trending"
+    );
     let loadMoreTrigger: HTMLDivElement;
 
     onMount(() => {

@@ -57,7 +57,7 @@ export const load: PageServerLoad = async (event) => {
             query: {
                 ...itemsSearchForm.data,
                 count_only: true
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any
         },
         baseUrl: event.locals.backendUrl,

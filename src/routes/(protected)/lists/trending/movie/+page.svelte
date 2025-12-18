@@ -5,7 +5,11 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { onMount } from "svelte";
 
-    const trendingMoviesStore = new MediaListStore<BaseListItem>("trendingMovies", "/api/tmdb/movie", "day");
+    const trendingMoviesStore = new MediaListStore<BaseListItem>(
+        "trendingMovies",
+        "/api/tmdb/movie",
+        "day"
+    );
     let loadMoreTrigger: HTMLDivElement;
 
     onMount(() => {

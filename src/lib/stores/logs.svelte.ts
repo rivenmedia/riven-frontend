@@ -12,7 +12,9 @@ export class LogStore {
     #activeTab = $state<"live" | "historical">("live");
     #error = $state<string | null>(null);
     #historicalError = $state<string | null>(null);
-    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+    #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
+        "disconnected"
+    );
     #connection: ReturnType<typeof source> | null = null;
     #unsubscribe: (() => void) | null = null;
 
@@ -94,14 +96,12 @@ export class LogStore {
             }
         });
 
-        const logValue = this.#connection.select("log").json<LogEntry>(
-            ({ error, previous }) => {
-                if (error) {
-                    console.warn("Failed to parse log entry:", error);
-                }
-                return previous;
+        const logValue = this.#connection.select("log").json<LogEntry>(({ error, previous }) => {
+            if (error) {
+                console.warn("Failed to parse log entry:", error);
             }
-        );
+            return previous;
+        });
 
         this.#connectionStatus = "connected";
 
