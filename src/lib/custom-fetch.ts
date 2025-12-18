@@ -138,7 +138,8 @@ export function createCustomFetch(fetchFn: FetchFn = fetch, options: CustomFetch
 					} else {
 						const retryDate = new Date(retryAfter);
 						if (!isNaN(retryDate.getTime())) {
-							delay = Math.max(0, retryDate.getTime() - Date.now());
+							const rawDelay = Math.max(0, retryDate.getTime() - Date.now());
+							delay = rawDelay * (0.9 + Math.random() * 0.2);
 						}
 					}
 				}
