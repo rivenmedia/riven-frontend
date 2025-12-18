@@ -149,12 +149,12 @@
         </div>
         <div class="flex flex-1 items-center justify-center">
             <Tabs.Root bind:value={activeTab} class="w-full max-w-md">
-                <Tabs.List class="w-full">
-                    <Tabs.Trigger value="login">Login</Tabs.Trigger>
-                    {#if isSignupEnabled}
+                {#if isSignupEnabled}
+                    <Tabs.List class="w-full">
+                        <Tabs.Trigger value="login">Login</Tabs.Trigger>
                         <Tabs.Trigger value="register">Register</Tabs.Trigger>
-                    {/if}
-                </Tabs.List>
+                    </Tabs.List>
+                {/if}
                 <Tabs.Content value="login">
                     <Card.Root class="mx-auto w-full">
                         <Card.Header>
