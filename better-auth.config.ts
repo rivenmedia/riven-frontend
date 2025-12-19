@@ -8,11 +8,12 @@ import { betterAuth } from "better-auth";
 import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
-import { admin as adminPlugin, openAPI, lastLoginMethod } from "better-auth/plugins";
+import { admin as adminPlugin, openAPI, lastLoginMethod, genericOAuth } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./src/lib/server/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./src/lib/server/permissions";
+import { getGenericOAuthProviders } from "./src/lib/server/oauth-utils";
 import "dotenv/config";
 
 export const auth = betterAuth({
@@ -33,7 +34,12 @@ export const auth = betterAuth({
         accountLinking: {
             enabled: true,
             allowDifferentEmails: true,
-            trustedProviders: ["plex"]
+            trustedProviders: [
+                "plex",
+                ...getGenericOAuthProviders(process.env as Record<string, string>).map(
+                    (p) => p.providerId
+                )
+            ]
         },
         encryptOAuthTokens: true
     },
@@ -74,6 +80,9 @@ export const auth = betterAuth({
         }),
         lastLoginMethod({
             storeInDatabase: true
+        }),
+        genericOAuth({
+            config: getGenericOAuthProviders(process.env as Record<string, string>)
         })
     ],
     advanced: {
@@ -99,13 +108,24 @@ export function getAuthProviders() {
             };
             return acc;
         },
-        {} as Record<string, { enabled: boolean; disableSignup: boolean }>
+        {} as Record<string, { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }>
     );
 
     if (auth.options.emailAndPassword) {
         providers.credential = {
             enabled: auth.options.emailAndPassword.enabled,
             disableSignup: auth.options.emailAndPassword.disableSignUp
+        };
+    }
+
+    // Add generic OAuth providers
+    const genericProviders = getGenericOAuthProviders(process.env as Record<string, string>);
+    for (const provider of genericProviders) {
+        providers[provider.providerId] = {
+            enabled: true,
+            disableSignup: !!provider.disableSignUp,
+            name: provider.name || provider.providerId,
+            icon: provider.icon
         };
     }
 

@@ -8,11 +8,12 @@ import { env } from "$env/dynamic/private";
 import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
-import { admin as adminPlugin, openAPI, lastLoginMethod } from "better-auth/plugins";
+import { admin as adminPlugin, openAPI, lastLoginMethod, genericOAuth } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { db } from "./db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./permissions";
+import { getGenericOAuthProviders } from "./oauth-utils";
 
 export const auth = betterAuth({
     secret: env.AUTH_SECRET,
@@ -32,7 +33,7 @@ export const auth = betterAuth({
         accountLinking: {
             enabled: true,
             allowDifferentEmails: true,
-            trustedProviders: ["plex"]
+            trustedProviders: ["plex", ...getGenericOAuthProviders(env).map((p) => p.providerId)]
         },
         encryptOAuthTokens: true
     },
@@ -74,6 +75,9 @@ export const auth = betterAuth({
         }),
         lastLoginMethod({
             storeInDatabase: true
+        }),
+        genericOAuth({
+            config: getGenericOAuthProviders(env)
         })
     ],
     advanced: {
@@ -99,7 +103,7 @@ export function getAuthProviders() {
             };
             return acc;
         },
-        {} as Record<string, { enabled: boolean; disableSignup: boolean }>
+        {} as Record<string, { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }>
     );
 
     if (auth.options.emailAndPassword) {
@@ -109,5 +113,15 @@ export function getAuthProviders() {
         };
     }
 
+    // Add generic OAuth providers
+    const genericProviders = getGenericOAuthProviders(env);
+    for (const provider of genericProviders) {
+        providers[provider.providerId] = {
+            enabled: true,
+            disableSignup: !!provider.disableSignUp,
+            name: provider.name || provider.providerId,
+            icon: provider.icon
+        };
+    }
     return providers;
 }

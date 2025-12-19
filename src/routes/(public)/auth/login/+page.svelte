@@ -80,11 +80,25 @@
         });
     }
 
+    async function authentikLogin() {
+        await authClient.signIn.oauth2({
+            providerId: "authentik",
+            callbackURL: "/"
+        });
+    }
+
     let isPasskeyLoading = $state(false);
     let supportsPasskeyAutofill = $state(false);
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
 
+    let activeTab = $state("login");
+    let lastLoginMethod = $state("");
     onMount(async () => {
+        const storedMethod = localStorage.getItem("riven-last-login-method");
+        if (storedMethod) {
+            lastLoginMethod = storedMethod;
+        }
+
         if (
             doesBrowserSupportPasskeys() &&
             typeof window.PublicKeyCredential.isConditionalMediationAvailable === "function"
@@ -97,6 +111,7 @@
                     autoFill: true,
                     fetchOptions: {
                         onSuccess() {
+                            localStorage.setItem("riven-last-login-method", "passkey");
                             goto("/");
                         },
                         onError(context) {
@@ -110,6 +125,7 @@
 
     async function handlePasskeySignIn() {
         isPasskeyLoading = true;
+        localStorage.setItem("riven-last-login-method", "passkey");
         try {
             await authClient.signIn.passkey({
                 fetchOptions: {
@@ -127,9 +143,6 @@
             isPasskeyLoading = false;
         }
     }
-
-    let activeTab = $state("login");
-    const lastLoginMethod = authClient.getLastUsedLoginMethod();
 </script>
 
 {#snippet star()}
@@ -164,7 +177,16 @@
                         </Card.Header>
                         <Card.Content>
                             {#if data.authProviders.credential?.enabled}
-                                <form method="POST" use:loginEnhance action="?/login">
+                                <form
+                                    method="POST"
+                                    use:loginEnhance
+                                    action="?/login"
+                                    onsubmit={() => {
+                                        localStorage.setItem(
+                                            "riven-last-login-method",
+                                            "credential"
+                                        );
+                                    }}>
                                     <Form.Field form={loginForm} name="username">
                                         <Form.Control>
                                             {#snippet children({ props })}
@@ -207,27 +229,75 @@
                             {/if}
 
                             <div class="flex flex-col gap-2">
-                                {#if data.authProviders.plex.enabled}
-                                    <Button
-                                        onclick={plexLogin}
-                                        variant={lastLoginMethod === "plex"
-                                            ? "secondary"
-                                            : "outline"}
-                                        class="relative w-full"
-                                        type="button">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 512 512">
-                                            <path
-                                                d="M256 70H148l108 186-108 186h108l108-186z"
-                                                fill="currentColor" />
-                                        </svg>
-                                        Login with Plex
-                                        {#if lastLoginMethod === "plex"}
-                                            {@render star()}
-                                        {/if}
-                                    </Button>
-                                {/if}
+                                {#each Object.entries(data.authProviders) as [key, provider]}
+                                    {#if key !== "credential" && provider.enabled}
+                                        <Button
+                                            onclick={async () => {
+                                                localStorage.setItem(
+                                                    "riven-last-login-method",
+                                                    key
+                                                );
+                                                if (key === "plex") {
+                                                    await plexLogin();
+                                                } else {
+                                                    await authClient.signIn.oauth2({
+                                                        providerId: key,
+                                                        callbackURL: "/"
+                                                    });
+                                                }
+                                            }}
+                                            variant={lastLoginMethod === key
+                                                ? "secondary"
+                                                : "outline"}
+                                            class="relative w-full"
+                                            type="button">
+                                            {#if key === "plex"}
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 512 512"
+                                                    class="mr-2 h-4 w-4">
+                                                    <path
+                                                        d="M256 70H148l108 186-108 186h108l108-186z"
+                                                        fill="currentColor" />
+                                                </svg>
+                                            {:else if provider.icon}
+                                                <img
+                                                    src={provider.icon}
+                                                    alt="{provider.name} icon"
+                                                    class="mr-2 h-4 w-4" />
+                                            {:else}
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="24"
+                                                    height="24"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    class="mr-2 h-4 w-4"
+                                                    ><rect
+                                                        width="20"
+                                                        height="20"
+                                                        x="2"
+                                                        y="2"
+                                                        rx="5"
+                                                        ry="5" /><path
+                                                        d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line
+                                                        x1="17.5"
+                                                        x2="17.51"
+                                                        y1="6.5"
+                                                        y2="6.5" /></svg>
+                                            {/if}
+                                            Login with {provider.name ||
+                                                key.charAt(0).toUpperCase() + key.slice(1)}
+                                            {#if lastLoginMethod === key}
+                                                {@render star()}
+                                            {/if}
+                                        </Button>
+                                    {/if}
+                                {/each}
                                 {#if supportsPasskey}
                                     <Button
                                         variant={lastLoginMethod === "passkey"
