@@ -92,8 +92,7 @@
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
 
     let activeTab = $state("login");
-    let lastLoginMethod = $state(authClient.getLastUsedLoginMethod());
-
+    let lastLoginMethod = $state("");
     onMount(async () => {
         const storedMethod = localStorage.getItem("riven-last-login-method");
         if (storedMethod) {

@@ -103,7 +103,7 @@ export function getAuthProviders() {
             };
             return acc;
         },
-        {} as Record<string, { enabled: boolean; disableSignup: boolean }>
+        {} as Record<string, { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }>
     );
 
     if (auth.options.emailAndPassword) {
@@ -119,7 +119,6 @@ export function getAuthProviders() {
         providers[provider.providerId] = {
             enabled: true,
             disableSignup: !!provider.disableSignUp,
-            // @ts-ignore
             name: provider.name || provider.providerId,
             icon: provider.icon
         };
