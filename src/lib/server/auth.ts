@@ -33,7 +33,7 @@ export const auth = betterAuth({
         accountLinking: {
             enabled: true,
             allowDifferentEmails: true,
-            trustedProviders: ["plex", "authentik"]
+            trustedProviders: ["plex", ...getGenericOAuthProviders(env).map((p) => p.providerId)]
         },
         encryptOAuthTokens: true
     },
