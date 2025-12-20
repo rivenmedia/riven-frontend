@@ -21,8 +21,18 @@
         providers
     }: {
         accounts: Account[];
-        providers: Record<string, { enabled: boolean; disableSignup: boolean }>;
+        providers: Record<
+            string,
+            { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }
+        >;
     } = $props();
+
+    // Built-in social providers that use linkSocial()
+    const builtInProviders = ["plex"];
+
+    function isGenericOAuthProvider(providerId: string): boolean {
+        return !builtInProviders.includes(providerId) && providerId !== "credential";
+    }
 </script>
 
 <Card.Root>
@@ -34,9 +44,14 @@
         <div class="flex flex-col gap-4">
             {#each Object.entries(providers) as [providerId, config] (providerId)}
                 {#if config.enabled && providerId !== "credential"}
+                    {@const providerName =
+                        config.name || providerId.charAt(0).toUpperCase() + providerId.slice(1)}
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="uppercase">{providerId}</span>
+                            {#if config.icon}
+                                <img src={config.icon} alt="{providerName} icon" class="h-4 w-4" />
+                            {/if}
+                            <span>{providerName}</span>
                         </div>
                         {#if accounts.find((account) => account.providerId === providerId)}
                             <Button
@@ -56,9 +71,19 @@
                             <Button
                                 size="sm"
                                 onclick={async () => {
-                                    await authClient.linkSocial({
-                                        provider: providerId
-                                    });
+                                    if (isGenericOAuthProvider(providerId)) {
+                                        // Use oauth2.link() for generic OAuth providers
+                                        await authClient.oauth2.link({
+                                            providerId: providerId,
+                                            callbackURL: "/auth"
+                                        });
+                                    } else {
+                                        // Use linkSocial() for built-in social providers (plex)
+                                        await authClient.linkSocial({
+                                            provider: providerId,
+                                            callbackURL: "/auth"
+                                        });
+                                    }
                                     toast.success(`${providerId} linked successfully.`);
                                 }}>
                                 <Link2 class="mr-2 h-4 w-4" />

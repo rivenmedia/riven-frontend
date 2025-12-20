@@ -17,13 +17,15 @@
     import { page } from "$app/state";
     import Star from "@lucide/svelte/icons/star";
 
+    type AuthProvider = { enabled: boolean; disableSignup: boolean; name?: string; icon?: string };
+
     let {
         data
     }: {
         data: {
             loginForm: SuperValidated<Infer<typeof loginSchema>>;
             registerForm: SuperValidated<Infer<typeof registerSchema>> | null;
-            authProviders: any;
+            authProviders: Record<string, AuthProvider>;
             isFirstUser: boolean;
         };
     } = $props();
@@ -162,11 +164,7 @@
                         </Card.Header>
                         <Card.Content>
                             {#if data.authProviders.credential?.enabled}
-                                <form
-                                    method="POST"
-                                    use:loginEnhance
-                                    action="?/login"
-                                    >
+                                <form method="POST" use:loginEnhance action="?/login">
                                     <Form.Field form={loginForm} name="username">
                                         <Form.Control>
                                             {#snippet children({ props })}

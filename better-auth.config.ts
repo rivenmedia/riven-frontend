@@ -108,7 +108,10 @@ export function getAuthProviders() {
             };
             return acc;
         },
-        {} as Record<string, { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }>
+        {} as Record<
+            string,
+            { enabled: boolean; disableSignup: boolean; name?: string; icon?: string }
+        >
     );
 
     if (auth.options.emailAndPassword) {
