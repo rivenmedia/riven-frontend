@@ -6,6 +6,7 @@ import "@sjsf/form/fields/extra/multi-enum-include";
 import "@sjsf/form/fields/extra/unknown-native-file-include";
 
 export { theme } from "@sjsf/shadcn4-theme";
+import "@sjsf/shadcn4-theme/extra-widgets/switch-include";
 import "@sjsf/shadcn4-theme/extra-widgets/textarea-include";
 import "@sjsf/shadcn4-theme/extra-widgets/checkboxes-include";
 import "@sjsf/shadcn4-theme/extra-widgets/radio-include";

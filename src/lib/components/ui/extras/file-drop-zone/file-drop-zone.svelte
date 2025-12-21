@@ -23,11 +23,14 @@
         ...rest
     }: FileDropZoneProps = $props();
 
-    if (maxFiles !== undefined && fileCount === undefined) {
-        console.warn(
-            "Make sure to provide FileDropZone with `fileCount` when using the `maxFiles` prompt"
-        );
-    }
+    // Warn about missing fileCount when maxFiles is set
+    $effect(() => {
+        if (maxFiles !== undefined && fileCount === undefined) {
+            console.warn(
+                "Make sure to provide FileDropZone with `fileCount` when using the `maxFiles` prop"
+            );
+        }
+    });
 
     let uploading = $state(false);
 
