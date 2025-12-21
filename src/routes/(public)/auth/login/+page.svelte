@@ -80,6 +80,12 @@
         });
     }
 
+    async function robloxLogin() {
+        await authClient.signIn.social({
+            provider: "roblox"
+        });
+    }
+
     let isPasskeyLoading = $state(false);
     let supportsPasskeyAutofill = $state(false);
     let supportsPasskey = $state<boolean | undefined>(doesBrowserSupportPasskeys());
@@ -224,6 +230,50 @@
                                         </svg>
                                         Login with Plex
                                         {#if lastLoginMethod === "plex"}
+                                            {@render star()}
+                                        {/if}
+                                    </Button>
+                                {/if}
+                                {#if data.authProviders.roblox.enabled}
+                                    <Button
+                                        onclick={robloxLogin}
+                                        variant={lastLoginMethod === "roblox"
+                                            ? "secondary"
+                                            : "outline"}
+                                        class="relative w-full"
+                                        type="button">
+                                        <svg
+                                            version="1.1"
+                                            id="Roblox_-_Icon_x2C__2025"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            xmlns:xlink="http://www.w3.org/1999/xlink"
+                                            x="0px"
+                                            y="0px"
+                                            viewBox="0 0 512 512"
+                                            style="enable-background:new 0 0 512 512;"
+                                            xml:space="preserve">
+                                            <style type="text/css">
+                                                .st0 {
+                                                    fill: transparent;
+                                                }
+                                                .st1 {
+                                                    fill: #ffffff;
+                                                }
+                                            </style>
+                                            <g id="Player">
+                                                <rect
+                                                    id="rect1_00000160909882699762151210000012706363363085821102_"
+                                                    class="st0"
+                                                    width="512"
+                                                    height="512" />
+                                                <path
+                                                    id="O_Blck"
+                                                    class="st1"
+                                                    d="M144.8,63.3L63.3,366.7l303.9,82l81.5-303.4l-152-41L144.8,63.3z M224.9,202l84.8,23.3L287.1,310   l-84.8-23.3L224.9,202z" />
+                                            </g>
+                                        </svg>
+                                        Login with Roblox
+                                        {#if lastLoginMethod === "roblox"}
                                             {@render star()}
                                         {/if}
                                     </Button>

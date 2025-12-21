@@ -38,7 +38,7 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: env.DISABLE_EMAIL_PASSWORD !== "true",
-        disableSignUp: env.ENABLE_EMAIL_PASSWORD_SIGNUP !== "true"
+        disableSignUp: env.ENABLE_EMAIL_PASSWORD_SIGNUP === "false"
     },
     socialProviders: {
         plex: {
@@ -47,7 +47,13 @@ export const auth = betterAuth({
             version: "1.0",
             platform: "Web",
             enabled: env.DISABLE_PLEX !== "true",
-            disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true"
+            disableSignUp: env.ENABLE_PLEX_SIGNUP === "false"
+        },
+        roblox: {
+            clientId: env.ROBUX_CLIENT_ID || "5162285183573707482",
+            clientSecret: env.ROBUX_CLIENT_SECRET || "RBX-NMhHZ9ECHE282esR5WRDDqwJTE2NuFR8DRCmVmRjMh6cOqPDfl8nqXHRC_9_h_UW",
+            enabled: env.DISABLE_ROBLOX !== "true",
+            disableSignUp: env.ENABLE_ROBLOX_SIGNUP === "false"
         }
     },
     trustedOrigins: ["http://localhost:5173", "http://192.168.1.*:5173", env.ORIGIN].filter(
