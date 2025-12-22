@@ -37,6 +37,7 @@
     import Magnet from "@lucide/svelte/icons/magnet";
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
+    import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
 
     type Stream = components["schemas"]["Stream"];
     type StartSessionResponse = components["schemas"]["StartSessionResponse"];
@@ -60,13 +61,7 @@
             | undefined;
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
-        seasons?: {
-            id: number;
-            season_number: number;
-            episode_count: number;
-            name: string;
-            status?: string;
-        }[];
+        seasons?: SeasonInfo[];
     }
 
     let {
@@ -150,32 +145,8 @@
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
 
-    // Season Selection State
+    // Season Selection State - managed by SeasonSelector component
     let selectedSeasons = $state<Set<number>>(new Set());
-
-    $effect(() => {
-        if (open && seasons.length > 0 && selectedSeasons.size === 0) {
-            selectedSeasons = new Set(seasons.map((s) => s.season_number));
-        }
-    });
-
-    function toggleSeason(seasonNumber: number) {
-        const newSet = new Set(selectedSeasons);
-        if (newSet.has(seasonNumber)) {
-            newSet.delete(seasonNumber);
-        } else {
-            newSet.add(seasonNumber);
-        }
-        selectedSeasons = newSet;
-    }
-
-    function toggleAllSeasons() {
-        if (selectedSeasons.size === seasons.length) {
-            selectedSeasons = new Set();
-        } else {
-            selectedSeasons = new Set(seasons.map((s) => s.season_number));
-        }
-    }
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
@@ -1404,44 +1375,11 @@
                     </Button>
 
                     {#if mediaType === "tv" && seasons.length > 0}
-                        <div class="my-2 max-h-[40vh] overflow-y-auto rounded-md border p-2">
-                            <div class="mb-2 flex items-center justify-between border-b px-2 pb-2">
-                                <span class="text-sm font-bold">Select Seasons</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground text-xs"
-                                        >{selectedSeasons.size} selected</span>
-                                    <Switch
-                                        checked={selectedSeasons.size === seasons.length}
-                                        onCheckedChange={toggleAllSeasons} />
-                                </div>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                {#each seasons as season (season.id)}
-                                    <div
-                                        class="hover:bg-muted/50 flex items-center justify-between rounded-md p-2 transition-colors">
-                                        <div class="flex items-center gap-4">
-                                            <Switch
-                                                checked={selectedSeasons.has(season.season_number)}
-                                                onCheckedChange={() =>
-                                                    toggleSeason(season.season_number)} />
-                                            <div class="flex flex-col">
-                                                <span class="font-medium">{season.name}</span>
-                                                <span class="text-muted-foreground text-xs"
-                                                    >{season.episode_count} Episodes</span>
-                                            </div>
-                                        </div>
-                                        {#if season.status}
-                                            <Badge
-                                                variant={season.status === "Available"
-                                                    ? "default"
-                                                    : "secondary"}>
-                                                {season.status}
-                                            </Badge>
-                                        {/if}
-                                    </div>
-                                {/each}
-                            </div>
-                        </div>
+                        <SeasonSelector
+                            {seasons}
+                            {open}
+                            bind:selectedSeasons
+                            class="my-2 max-h-[40vh]" />
                     {/if}
 
                     <div

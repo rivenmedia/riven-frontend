@@ -1,20 +1,11 @@
 <script lang="ts">
     import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
-    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { Switch } from "$lib/components/ui/switch/index.js";
-    import { Badge } from "$lib/components/ui/badge/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
     import type { ScrapeSeasonRequest } from "$lib/types";
-
-    interface SeasonInfo {
-        id: number;
-        season_number: number;
-        episode_count: number;
-        name: string;
-        status?: string;
-    }
+    import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
 
     interface Props {
         title: string | null | undefined;
@@ -50,49 +41,8 @@
     let open = $state(false);
     let loading = $state(false);
 
-    // State for season selection
+    // State for season selection - managed by SeasonSelector component
     let selectedSeasons = $state<Set<number>>(new Set());
-    let hasInitialized = $state(false);
-
-    // Initialize selectedSeasons when dialog opens
-    $effect(() => {
-        if (open && seasons.length > 0 && !hasInitialized) {
-            // Single-pass: only select Available seasons
-            selectedSeasons = new Set(
-                seasons.reduce<number[]>((acc, s) => {
-                    if (s.status === "Available") acc.push(s.season_number);
-                    return acc;
-                }, [])
-            );
-            hasInitialized = true;
-        }
-        // Reset hasInitialized when dialog closes so next open re-initializes
-        if (!open) {
-            hasInitialized = false;
-        }
-    });
-
-    function toggleSeason(seasonNumber: number) {
-        const newSet = new Set(selectedSeasons);
-        if (newSet.has(seasonNumber)) {
-            newSet.delete(seasonNumber);
-        } else {
-            newSet.add(seasonNumber);
-        }
-        selectedSeasons = newSet;
-    }
-
-    function toggleAll() {
-        // Switch is checked when all seasons are selected
-        // Clicking should toggle between all selected and none selected
-        if (selectedSeasons.size === seasons.length) {
-            // All are selected, deselect all
-            selectedSeasons = new Set();
-        } else {
-            // Not all are selected, select all
-            selectedSeasons = new Set(seasons.map((s) => s.season_number));
-        }
-    }
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
@@ -151,70 +101,36 @@
     }
 </script>
 
-<AlertDialog.Root bind:open>
-    <AlertDialog.Trigger>
+<Dialog.Root bind:open>
+    <Dialog.Trigger>
         {#snippet child({ props })}
             <Button {variant} {size} class={className} {...restProps} {...props}
                 >{buttonLabel}</Button>
         {/snippet}
-    </AlertDialog.Trigger>
-    <AlertDialog.Content class="max-w-2xl">
-        <AlertDialog.Header>
-            <AlertDialog.Title>
+    </Dialog.Trigger>
+    <Dialog.Content class="max-w-2xl">
+        <Dialog.Header>
+            <Dialog.Title>
                 Requesting "{title ?? "Media Item"}"
-            </AlertDialog.Title>
-            <AlertDialog.Description>
+            </Dialog.Title>
+            <Dialog.Description>
                 This will send a request to Riven to add this media.
-            </AlertDialog.Description>
-        </AlertDialog.Header>
+            </Dialog.Description>
+        </Dialog.Header>
 
         {#if mediaType === "tv" && seasons.length > 0}
-            <div class="my-4 max-h-[60vh] overflow-y-auto rounded-md border p-2">
-                <div class="mb-2 flex items-center justify-between border-b px-2 pb-2">
-                    <span class="text-sm font-bold">Select Seasons</span>
-                    <div class="flex items-center gap-2">
-                        <span class="text-muted-foreground text-xs"
-                            >{selectedSeasons.size} selected</span>
-                        <Switch
-                            checked={selectedSeasons.size === seasons.length}
-                            onCheckedChange={toggleAll} />
-                    </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                    {#each seasons as season (season.id)}
-                        <div
-                            class="hover:bg-muted/50 flex items-center justify-between rounded-md p-2 transition-colors">
-                            <div class="flex items-center gap-4">
-                                <Switch
-                                    checked={selectedSeasons.has(season.season_number)}
-                                    onCheckedChange={() => toggleSeason(season.season_number)} />
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{season.name}</span>
-                                    <span class="text-muted-foreground text-xs"
-                                        >{season.episode_count} Episodes</span>
-                                </div>
-                            </div>
-                            {#if season.status}
-                                <Badge
-                                    variant={season.status === "Available"
-                                        ? "default"
-                                        : "secondary"}>
-                                    {season.status}
-                                </Badge>
-                            {/if}
-                        </div>
-                    {/each}
-                </div>
-            </div>
+            <SeasonSelector {seasons} {open} bind:selectedSeasons class="my-4" />
         {:else}
             <div class="text-muted-foreground py-4 text-sm">
                 This request will be approved automatically.
             </div>
         {/if}
 
-        <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
+        <Dialog.Footer>
+            <Dialog.Close>
+                <Button variant="outline">Cancel</Button>
+            </Dialog.Close>
+            <Button
                 disabled={loading ||
                     (mediaType === "tv" && seasons.length > 0 && selectedSeasons.size === 0)}
                 onclick={async (e) => {
@@ -229,7 +145,7 @@
                     <Loader2 class="mr-1 inline-block animate-spin" />
                 {/if}
                 {mediaType === "tv" && seasons.length > 0 ? "Select Season(s)" : "Request"}
-            </AlertDialog.Action>
-        </AlertDialog.Footer>
-    </AlertDialog.Content>
-</AlertDialog.Root>
+            </Button>
+        </Dialog.Footer>
+    </Dialog.Content>
+</Dialog.Root>
