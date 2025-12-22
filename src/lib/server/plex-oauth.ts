@@ -1,13 +1,13 @@
 /**
  * Plex OAuth Provider for Better Auth Generic OAuth Plugin
- * 
+ *
  * Implements Plex's PIN-based authentication flow as a generic OAuth provider.
  * Unlike traditional OAuth2, Plex uses a PIN-based flow:
  * 1. Generate a PIN from Plex API
  * 2. Redirect user to Plex auth page with the PIN
  * 3. Poll/check the PIN status for the auth token
  * 4. Use the auth token to fetch user info
- * 
+ *
  * Since the generic OAuth plugin expects standard OAuth2 flow, this implementation
  * uses a workaround:
  * - The authorization URL generation is handled separately via a custom endpoint
@@ -116,7 +116,10 @@ interface PlexPinResponse {
 /**
  * Gets the standard Plex API headers
  */
-export function getPlexHeaders(options: PlexOAuthOptions, includeToken?: string): Record<string, string> {
+export function getPlexHeaders(
+    options: PlexOAuthOptions,
+    includeToken?: string
+): Record<string, string> {
     const headers: Record<string, string> = {
         "X-Plex-Product": options.product || "Riven Media",
         "X-Plex-Version": options.version || "1.0",
@@ -124,7 +127,7 @@ export function getPlexHeaders(options: PlexOAuthOptions, includeToken?: string)
         "X-Plex-Platform": options.platform || "Web",
         "X-Plex-Device": options.device || "Browser",
         "Content-Type": "application/json",
-        Accept: "application/json",
+        Accept: "application/json"
     };
     if (includeToken) {
         headers["X-Plex-Token"] = includeToken;
@@ -140,8 +143,8 @@ export async function generatePlexPin(options: PlexOAuthOptions): Promise<PlexPi
         method: "POST",
         headers: getPlexHeaders(options),
         body: JSON.stringify({
-            strong: true,
-        }),
+            strong: true
+        })
     });
 
     if (!response.ok) {
@@ -154,7 +157,11 @@ export async function generatePlexPin(options: PlexOAuthOptions): Promise<PlexPi
 /**
  * Builds the Plex authorization URL with a PIN
  */
-export function buildPlexAuthUrl(options: PlexOAuthOptions, pinCode: string, forwardUrl?: string): URL {
+export function buildPlexAuthUrl(
+    options: PlexOAuthOptions,
+    pinCode: string,
+    forwardUrl?: string
+): URL {
     const product = options.product || "Riven Media";
     const version = options.version || "1.0";
     const platform = options.platform || "Web";
@@ -173,10 +180,14 @@ export function buildPlexAuthUrl(options: PlexOAuthOptions, pinCode: string, for
 /**
  * Checks the status of a Plex PIN and retrieves the auth token if available
  */
-export async function checkPlexPin(options: PlexOAuthOptions, pinId: string, pinCode: string): Promise<PlexPinResponse> {
+export async function checkPlexPin(
+    options: PlexOAuthOptions,
+    pinId: string,
+    pinCode: string
+): Promise<PlexPinResponse> {
     const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {
         method: "GET",
-        headers: getPlexHeaders(options, pinCode),
+        headers: getPlexHeaders(options, pinCode)
     });
 
     if (!response.ok) {
@@ -189,10 +200,13 @@ export async function checkPlexPin(options: PlexOAuthOptions, pinId: string, pin
 /**
  * Fetches user profile from Plex API
  */
-export async function getPlexUserProfile(options: PlexOAuthOptions, authToken: string): Promise<PlexProfile> {
+export async function getPlexUserProfile(
+    options: PlexOAuthOptions,
+    authToken: string
+): Promise<PlexProfile> {
     const response = await fetch("https://plex.tv/api/v2/user", {
         method: "GET",
-        headers: getPlexHeaders(options, authToken),
+        headers: getPlexHeaders(options, authToken)
     });
 
     if (!response.ok) {
@@ -204,16 +218,16 @@ export async function getPlexUserProfile(options: PlexOAuthOptions, authToken: s
 
 /**
  * Creates a Plex OAuth provider configuration for the Generic OAuth plugin.
- * 
+ *
  * Note: Since Plex uses a non-standard PIN-based auth flow, this configuration
- * requires a custom sign-in endpoint that handles the PIN generation and 
+ * requires a custom sign-in endpoint that handles the PIN generation and
  * authorization URL building before redirecting the user.
- * 
+ *
  * @example
  * ```ts
  * import { genericOAuth } from "better-auth/plugins";
  * import { plexOAuth } from "./plex-oauth";
- * 
+ *
  * export const auth = betterAuth({
  *     plugins: [
  *         genericOAuth({
@@ -235,7 +249,7 @@ export function plexOAuth(options: PlexOAuthOptions & { baseURL?: string }): Gen
 
     // Use custom authorization endpoint that handles Plex PIN flow
     const baseURL = options.baseURL || "";
-    
+
     return {
         providerId: "plex",
         clientId: options.clientId,
@@ -274,7 +288,7 @@ export function plexOAuth(options: PlexOAuthOptions & { baseURL?: string }): Gen
                 accessTokenExpiresAt: undefined,
                 refreshToken: undefined,
                 scopes: [],
-                raw: pinStatus,
+                raw: pinStatus
             };
         },
 
@@ -292,13 +306,13 @@ export function plexOAuth(options: PlexOAuthOptions & { baseURL?: string }): Gen
                     name: profile.title || profile.username,
                     email: profile.email,
                     image: profile.thumb,
-                    emailVerified: profile.emailOnlyAuth,
+                    emailVerified: profile.emailOnlyAuth
                 };
             } catch (error) {
                 console.error("Failed to fetch user info from Plex:", error);
                 return null;
             }
-        },
+        }
     };
 }
 
@@ -312,6 +326,6 @@ export function getDefaultPlexOptions(env: Record<string, string | undefined>): 
         version: "1.0",
         platform: "Web",
         device: "Browser",
-        disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true",
+        disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true"
     };
 }

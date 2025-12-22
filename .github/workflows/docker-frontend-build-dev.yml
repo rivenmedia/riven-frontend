@@ -4,6 +4,7 @@ on:
     push:
         branches-ignore:
             - "release-please--branches--main"
+    workflow_dispatch:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,11 +13,13 @@ concurrency:
 env:
     REGISTRY_IMAGE_GHCR: ghcr.io/rivenmedia/riven-frontend
     REGISTRY_IMAGE_DOCKERHUB: docker.io/spoked/riven-frontend
+    BETTER_AUTH_SECRET: "secret"
 
 jobs:
     build:
         runs-on: ${{ matrix.runner }}
         if: >
+            github.event_name == 'workflow_dispatch' ||
             startsWith(github.event.head_commit.message, 'fix') ||
             startsWith(github.event.head_commit.message, 'feat') ||
             startsWith(github.event.head_commit.message, 'build') ||

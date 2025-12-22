@@ -9,7 +9,7 @@ import { username } from "better-auth/plugins";
 // import { sveltekitCookies } from 'better-auth/svelte-kit';
 // import { getRequestEvent } from '$app/server';
 import { admin as adminPlugin, openAPI, lastLoginMethod, genericOAuth } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey"
+import { passkey } from "@better-auth/passkey";
 import { db } from "./src/lib/server/db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./src/lib/server/permissions";
@@ -75,15 +75,19 @@ export const auth = betterAuth({
         }),
         genericOAuth({
             config: [
-                ...(process.env.DISABLE_PLEX !== "true" ? [plexOAuth({
-                    clientId: process.env.PLEX_CLIENT_ID || "riven",
-                    product: "Riven Media",
-                    version: "1.0",
-                    platform: "Web",
-                    device: "Browser",
-                    disableSignUp: process.env.ENABLE_PLEX_SIGNUP !== "true",
-                    baseURL: process.env.ORIGIN || "http://localhost:5173",
-                })] : []),
+                ...(process.env.DISABLE_PLEX !== "true"
+                    ? [
+                          plexOAuth({
+                              clientId: process.env.PLEX_CLIENT_ID || "riven",
+                              product: "Riven Media",
+                              version: "1.0",
+                              platform: "Web",
+                              device: "Browser",
+                              disableSignUp: process.env.ENABLE_PLEX_SIGNUP !== "true",
+                              baseURL: process.env.ORIGIN || "http://localhost:5173"
+                          })
+                      ]
+                    : []),
                 ...getGenericOAuthProviders(process.env as Record<string, string>)
             ]
         })

@@ -9,7 +9,7 @@ import { username } from "better-auth/plugins";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { admin as adminPlugin, openAPI, lastLoginMethod, genericOAuth } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey"
+import { passkey } from "@better-auth/passkey";
 import { db } from "./db";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./permissions";
@@ -73,15 +73,19 @@ export const auth = betterAuth({
         }),
         genericOAuth({
             config: [
-                ...(env.DISABLE_PLEX !== "true" ? [plexOAuth({
-                    clientId: env.PLEX_CLIENT_ID || "riven",
-                    product: "Riven Media",
-                    version: "1.0",
-                    platform: "Web",
-                    device: "Browser",
-                    disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true",
-                    baseURL: env.ORIGIN || "http://localhost:5173",
-                })] : []),
+                ...(env.DISABLE_PLEX !== "true"
+                    ? [
+                          plexOAuth({
+                              clientId: env.PLEX_CLIENT_ID || "riven",
+                              product: "Riven Media",
+                              version: "1.0",
+                              platform: "Web",
+                              device: "Browser",
+                              disableSignUp: env.ENABLE_PLEX_SIGNUP !== "true",
+                              baseURL: env.ORIGIN || "http://localhost:5173"
+                          })
+                      ]
+                    : []),
                 ...getGenericOAuthProviders(env)
             ]
         })
