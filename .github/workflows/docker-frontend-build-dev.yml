@@ -13,7 +13,6 @@ concurrency:
 env:
     REGISTRY_IMAGE_GHCR: ghcr.io/rivenmedia/riven-frontend
     REGISTRY_IMAGE_DOCKERHUB: docker.io/spoked/riven-frontend
-    BETTER_AUTH_SECRET: "thisisnotarealsecretandshouldbeoverriddeninproduction"
 
 jobs:
     build:
@@ -88,8 +87,6 @@ jobs:
                   outputs: type=image,name=${{ env.REGISTRY_IMAGE_GHCR }},push-by-digest=true,name-canonical=true,push=true
                   cache-from: type=gha,scope=${{ github.workflow }}-${{ env.PLATFORM_PAIR }}
                   cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ env.PLATFORM_PAIR }}
-                  build-args: |
-                    BETTER_AUTH_SECRET=${{ env.BETTER_AUTH_SECRET }}
 
             - name: Export digest
               run: |
