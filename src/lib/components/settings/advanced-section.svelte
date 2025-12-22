@@ -21,10 +21,15 @@
     };
 
     function handleExport() {
-        const settings = getValueSnapshot(form);
-        const timestamp = new Date().toISOString().slice(0, 10);
-        exportSettings(settings, `riven-settings-${timestamp}.json`);
-        toast.success("Settings exported");
+        try {
+            const settings = getValueSnapshot(form);
+            const timestamp = new Date().toISOString().slice(0, 10);
+            exportSettings(settings, `riven-settings-${timestamp}.json`);
+            toast.success("Settings exported");
+        } catch (error) {
+            console.error("Failed to export settings:", error);
+            toast.error("Failed to export settings");
+        }
     }
 </script>
 

@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { Field, getValueSnapshot, setValue, type FormState } from "@sjsf/form";
+    import { Field, getValueSnapshot, type FormState } from "@sjsf/form";
     import ServiceCard from "./service-card.svelte";
+    import { createToggleHelpers } from "./toggle-helpers";
 
     interface Props {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,7 +11,12 @@
     let { form }: Props = $props();
 
     const formValue = $derived(getValueSnapshot(form) as Record<string, unknown>);
-    const scraping = $derived((formValue?.scraping ?? {}) as Record<string, unknown>);
+
+    const { getEnabled, setEnabled } = createToggleHelpers(
+        () => form,
+        () => formValue,
+        "scraping"
+    );
 
     const providers = [
         {
@@ -77,26 +83,6 @@
             fields: ["url", "timeout", "retries", "ratelimit"]
         }
     ];
-
-    function getProviderEnabled(providerKey: string): boolean {
-        const provider = scraping[providerKey] as Record<string, unknown> | undefined;
-        return (provider?.enabled as boolean) ?? false;
-    }
-
-    function setProviderEnabled(providerKey: string, enabled: boolean) {
-        const currentScraping = (formValue?.scraping ?? {}) as Record<string, unknown>;
-        const currentProvider = (currentScraping[providerKey] ?? {}) as Record<string, unknown>;
-
-        setValue(form, {
-            scraping: {
-                ...currentScraping,
-                [providerKey]: {
-                    ...currentProvider,
-                    enabled
-                }
-            }
-        });
-    }
 </script>
 
 <div class="space-y-6">
@@ -138,12 +124,12 @@
     <div class="space-y-4">
         <h4 class="text-sm font-medium">Scraper Providers</h4>
         {#each providers as provider (provider.key)}
-            {@const isEnabled = getProviderEnabled(provider.key)}
+            {@const isEnabled = getEnabled(provider.key)}
             <ServiceCard
                 title={provider.title}
                 description={provider.description}
                 enabled={isEnabled}
-                onToggle={(enabled) => setProviderEnabled(provider.key, enabled)}>
+                onToggle={(enabled) => setEnabled(provider.key, enabled)}>
                 <div class="space-y-4">
                     {#each provider.fields as fieldName (fieldName)}
                         <Field {form} path={["scraping", provider.key, fieldName]} />

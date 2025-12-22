@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { Field, getValueSnapshot, setValue, type FormState } from "@sjsf/form";
+    import { Field, getValueSnapshot, type FormState } from "@sjsf/form";
     import ServiceCard from "./service-card.svelte";
+    import { createToggleHelpers } from "./toggle-helpers";
 
     interface Props {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,7 +11,12 @@
     let { form }: Props = $props();
 
     const formValue = $derived(getValueSnapshot(form) as Record<string, unknown>);
-    const downloaders = $derived((formValue?.downloaders ?? {}) as Record<string, unknown>);
+
+    const { getEnabled, setEnabled } = createToggleHelpers(
+        () => form,
+        () => formValue,
+        "downloaders"
+    );
 
     const services = [
         {
@@ -32,26 +38,6 @@
             fields: ["api_key"]
         }
     ];
-
-    function getServiceEnabled(serviceKey: string): boolean {
-        const service = downloaders[serviceKey] as Record<string, unknown> | undefined;
-        return (service?.enabled as boolean) ?? false;
-    }
-
-    function setServiceEnabled(serviceKey: string, enabled: boolean) {
-        const currentDownloaders = (formValue?.downloaders ?? {}) as Record<string, unknown>;
-        const currentService = (currentDownloaders[serviceKey] ?? {}) as Record<string, unknown>;
-
-        setValue(form, {
-            downloaders: {
-                ...currentDownloaders,
-                [serviceKey]: {
-                    ...currentService,
-                    enabled
-                }
-            }
-        });
-    }
 </script>
 
 <div class="space-y-6">
@@ -96,12 +82,12 @@
     <div class="space-y-4">
         <h4 class="text-sm font-medium">Debrid Services</h4>
         {#each services as service (service.key)}
-            {@const isEnabled = getServiceEnabled(service.key)}
+            {@const isEnabled = getEnabled(service.key)}
             <ServiceCard
                 title={service.title}
                 description={service.description}
                 enabled={isEnabled}
-                onToggle={(enabled) => setServiceEnabled(service.key, enabled)}>
+                onToggle={(enabled) => setEnabled(service.key, enabled)}>
                 <div class="space-y-4">
                     {#each service.fields as fieldName (fieldName)}
                         <Field {form} path={["downloaders", service.key, fieldName]} />

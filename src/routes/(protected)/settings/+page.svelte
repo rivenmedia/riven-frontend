@@ -31,9 +31,7 @@
                 await invalidateAll();
                 await tick();
                 // Sync form state with refreshed page data
-                if (data.form?.initialValue) {
-                    setValue(form, data.form.initialValue);
-                }
+                setValue(form, data.form.initialValue!);
             } else {
                 toast.error("Failed to save settings");
             }

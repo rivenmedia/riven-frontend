@@ -4,7 +4,10 @@ const SENSITIVE_KEY_PATTERNS = [
     /secret/i,
     /password/i,
     /credential/i,
-    /_key$/i,
+    /auth/i,
+    /private/i,
+    /bearer/i,
+    /[_-]?key$/i, // Matches camelCase (apiKey, privateKey) and snake_case (api_key)
     /^rss$/i // RSS feeds can contain auth tokens
 ];
 

@@ -17,6 +17,17 @@
 
     let { form, section }: Props = $props();
 
+    // Map section IDs to their custom components
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SECTION_COMPONENTS: Record<string, any> = {
+        content: ContentSourcesSection,
+        scraping: ScrapingSection,
+        media_servers: MediaServersSection,
+        downloaders: DownloadersSection,
+        notifications: NotificationsSection,
+        advanced: AdvancedSection
+    };
+
     // Hide the top-level object title since we show our own section header
     const uiSchema: UiSchemaRoot = {
         "ui:options": {
@@ -34,18 +45,13 @@
         <p class="text-muted-foreground mt-1 text-sm">{section.description}</p>
     </div>
 
-    {#if section.id === "content"}
-        <ContentSourcesSection {form} />
-    {:else if section.id === "scraping"}
-        <ScrapingSection {form} />
-    {:else if section.id === "media_servers"}
-        <MediaServersSection {form} />
-    {:else if section.id === "downloaders"}
-        <DownloadersSection {form} />
-    {:else if section.id === "notifications"}
-        <NotificationsSection {form} />
-    {:else if section.id === "advanced"}
-        <AdvancedSection {form} paths={section.paths} />
+    {#if SECTION_COMPONENTS[section.id]}
+        {@const Component = SECTION_COMPONENTS[section.id]}
+        {#if section.id === "advanced"}
+            <Component {form} paths={section.paths} />
+        {:else}
+            <Component {form} />
+        {/if}
     {:else}
         <!-- Default form field rendering -->
         <Card.Root>

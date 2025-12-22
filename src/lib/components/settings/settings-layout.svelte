@@ -41,7 +41,9 @@
         const url = new URL(page.url);
         url.searchParams.set("section", sectionId);
         // Use history API directly since we're updating query params, not navigating
-        history.replaceState(history.state, "", url);
+        if (browser) {
+            history.replaceState(history.state, "", url);
+        }
     }
 </script>
 

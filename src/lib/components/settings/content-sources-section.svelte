@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { Field, getValueSnapshot, setValue, type FormState } from "@sjsf/form";
+    import { Field, getValueSnapshot, type FormState } from "@sjsf/form";
     import ServiceCard from "./service-card.svelte";
+    import { createToggleHelpers } from "./toggle-helpers";
 
     interface Props {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,7 +12,12 @@
 
     // Get reactive form values
     const formValue = $derived(getValueSnapshot(form) as Record<string, unknown>);
-    const content = $derived((formValue?.content ?? {}) as Record<string, unknown>);
+
+    const { getEnabled, setEnabled } = createToggleHelpers(
+        () => form,
+        () => formValue,
+        "content"
+    );
 
     // Service definitions with their display info
     const services = [
@@ -56,36 +62,16 @@
             ]
         }
     ];
-
-    function getServiceEnabled(serviceKey: string): boolean {
-        const service = content[serviceKey] as Record<string, unknown> | undefined;
-        return (service?.enabled as boolean) ?? false;
-    }
-
-    function setServiceEnabled(serviceKey: string, enabled: boolean) {
-        const currentContent = (formValue?.content ?? {}) as Record<string, unknown>;
-        const currentService = (currentContent[serviceKey] ?? {}) as Record<string, unknown>;
-
-        setValue(form, {
-            content: {
-                ...currentContent,
-                [serviceKey]: {
-                    ...currentService,
-                    enabled
-                }
-            }
-        });
-    }
 </script>
 
 <div class="space-y-4">
     {#each services as service (service.key)}
-        {@const isEnabled = getServiceEnabled(service.key)}
+        {@const isEnabled = getEnabled(service.key)}
         <ServiceCard
             title={service.title}
             description={service.description}
             enabled={isEnabled}
-            onToggle={(enabled) => setServiceEnabled(service.key, enabled)}>
+            onToggle={(enabled) => setEnabled(service.key, enabled)}>
             <div class="space-y-4">
                 {#each service.fields as fieldName (fieldName)}
                     <Field {form} path={["content", service.key, fieldName]} />
