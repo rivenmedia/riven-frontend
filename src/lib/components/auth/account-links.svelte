@@ -28,7 +28,8 @@
     } = $props();
 
     // Built-in social providers that use linkSocial()
-    const builtInProviders = ["plex"];
+    // Plex is now a generic OAuth provider, so it's no longer in this list
+    const builtInProviders: string[] = [];
 
     function isGenericOAuthProvider(providerId: string): boolean {
         return !builtInProviders.includes(providerId) && providerId !== "credential";

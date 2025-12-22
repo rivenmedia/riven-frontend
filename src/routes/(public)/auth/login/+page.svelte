@@ -76,8 +76,9 @@
     );
 
     async function plexLogin() {
-        await authClient.signIn.social({
-            provider: "plex"
+        await authClient.signIn.oauth2({
+            providerId: "plex",
+            callbackURL: "/"
         });
     }
 
