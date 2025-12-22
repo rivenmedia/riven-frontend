@@ -1,12 +1,15 @@
 # Frontend Builder
-FROM node:22-alpine AS frontend
+FROM node:24-alpine AS frontend
+
+ENV BETTER_AUTH_SECRET=thisisnotarealsecretandshouldbeoverriddeninproduction
+
 WORKDIR /app
 COPY . .
 RUN npm install -g pnpm && pnpm install
 RUN pnpm run build && pnpm prune --prod
 
 # Final Image
-FROM node:22-alpine
+FROM node:24-alpine
 LABEL name="Riven" \
     description="Riven Media Server: Frontend" \
     url="https://github.com/rivenmedia/riven-frontend"
