@@ -6,11 +6,18 @@ settings:
 
 overrides:
   cookie: ^0.7.0
+  '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237
 
 importers:
 
   .:
     dependencies:
+      '@better-auth/core':
+        specifier: https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237
+        version: https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+      '@better-auth/passkey':
+        specifier: https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237
+        version: https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-auth@https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0))(better-call@1.0.19)(nanostores@1.1.0)
       '@internationalized/date':
         specifier: ^3.10.1
         version: 3.10.1
@@ -40,7 +47,7 @@ importers:
         version: 3.0.1(ajv@8.17.1)
       better-auth:
         specifier: https://pkg.pr.new/better-auth/better-auth@5237
-        version: https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(better-sqlite3@12.5.0)(svelte@5.46.0)
+        version: https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)
       better-sqlite3:
         specifier: ^12.5.0
         version: 12.5.0
@@ -252,16 +259,26 @@ packages:
     resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
     engines: {node: '>=6.9.0'}
 
-  '@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b':
-    resolution: {tarball: https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b}
-    version: 1.4.0-beta.9
+  '@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237':
+    resolution: {integrity: sha512-RZGiyMIXachQSnvWjpPMZaZ3wFP6NzvN85FFYaVJZrK2dV+87M5oF8hTSzywgJJlLPOdhrjTNUvga+lfbFklNA==, tarball: https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237}
+    version: 1.4.8-beta.4
     peerDependencies:
       '@better-auth/utils': 0.3.0
-      '@better-fetch/fetch': 1.1.18
-      better-call: 1.0.19
-      better-sqlite3: ^12.4.1
+      '@better-fetch/fetch': 1.1.21
+      better-call: 1.1.7
       jose: ^6.1.0
       kysely: ^0.28.5
+      nanostores: ^1.0.1
+
+  '@better-auth/passkey@https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237':
+    resolution: {integrity: sha512-VsT8FiYsSV4e75/9zKXKdFDZZNNhBuB9gQ0VCmcQf/mVlXc08X+v1epoOZfdIcxr319snrqUky7qOWMpJ9DyzQ==, tarball: https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237}
+    version: 1.4.8-beta.4
+    peerDependencies:
+      '@better-auth/core': 1.4.8-beta.4
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+      better-auth: 1.4.8-beta.4
+      better-call: 1.1.7
       nanostores: ^1.0.1
 
   '@better-auth/telemetry@https://pkg.pr.new/better-auth/better-auth/@better-auth/telemetry@ccbb2938eed2625932d5448bc7b8401cd468e77b':
@@ -3128,20 +3145,32 @@ snapshots:
   '@babel/runtime@7.28.4':
     optional: true
 
-  '@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(better-sqlite3@12.5.0)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)':
+  '@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)':
     dependencies:
       '@better-auth/utils': 0.3.0
       '@better-fetch/fetch': 1.1.18
+      '@standard-schema/spec': 1.1.0
       better-call: 1.0.19
-      better-sqlite3: 12.5.0
       jose: 6.1.3
       kysely: 0.28.9
       nanostores: 1.1.0
       zod: 4.2.1
 
-  '@better-auth/telemetry@https://pkg.pr.new/better-auth/better-auth/@better-auth/telemetry@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(better-sqlite3@12.5.0)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))':
+  '@better-auth/passkey@https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-auth@https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0))(better-call@1.0.19)(nanostores@1.1.0)':
     dependencies:
-      '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(better-sqlite3@12.5.0)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+      '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.18
+      '@simplewebauthn/browser': 13.2.2
+      '@simplewebauthn/server': 13.2.2
+      better-auth: https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)
+      better-call: 1.0.19
+      nanostores: 1.1.0
+      zod: 4.2.1
+
+  '@better-auth/telemetry@https://pkg.pr.new/better-auth/better-auth/@better-auth/telemetry@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))':
+    dependencies:
+      '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
       '@better-auth/utils': 0.3.0
       '@better-fetch/fetch': 1.1.18
 
@@ -4217,10 +4246,10 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  better-auth@https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(better-sqlite3@12.5.0)(svelte@5.46.0):
+  better-auth@https://pkg.pr.new/better-auth/better-auth@5237(@sveltejs/kit@2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0):
     dependencies:
-      '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(better-sqlite3@12.5.0)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
-      '@better-auth/telemetry': https://pkg.pr.new/better-auth/better-auth/@better-auth/telemetry@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(better-sqlite3@12.5.0)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
+      '@better-auth/core': https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+      '@better-auth/telemetry': https://pkg.pr.new/better-auth/better-auth/@better-auth/telemetry@ccbb2938eed2625932d5448bc7b8401cd468e77b(@better-auth/core@https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.18)(better-call@1.0.19)(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
       '@better-auth/utils': 0.3.0
       '@better-fetch/fetch': 1.1.18
       '@noble/ciphers': 2.1.1
@@ -4236,8 +4265,6 @@ snapshots:
     optionalDependencies:
       '@sveltejs/kit': 2.49.2(@sveltejs/vite-plugin-svelte@6.2.1(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)))(svelte@5.46.0)(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
       svelte: 5.46.0
-    transitivePeerDependencies:
-      - better-sqlite3
 
   better-call@1.0.19:
     dependencies:

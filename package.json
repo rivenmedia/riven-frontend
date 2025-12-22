@@ -87,6 +87,8 @@
         "ajv": "^8.17.1",
         "ajv-formats": "^3.0.1",
         "better-auth": "https://pkg.pr.new/better-auth/better-auth@5237",
+        "@better-auth/core": "https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237",
+        "@better-auth/passkey": "https://pkg.pr.new/better-auth/better-auth/@better-auth/passkey@5237",
         "better-sqlite3": "^12.5.0",
         "d3-shape": "^3.2.0",
         "drizzle-orm": "^0.45.1",
@@ -103,7 +105,8 @@
             "esbuild"
         ],
         "overrides": {
-            "cookie": "^0.7.0"
+            "cookie": "^0.7.0",
+            "@better-auth/core": "https://pkg.pr.new/better-auth/better-auth/@better-auth/core@5237"
         }
     }
 }
