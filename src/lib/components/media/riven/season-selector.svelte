@@ -26,7 +26,12 @@
 
     let hasInitialized = $state(false);
 
-    // Initialize selectedSeasons when dialog opens
+    // Check if a season is already available (can't be toggled off)
+    function isSeasonLocked(season: SeasonInfo): boolean {
+        return season.status === "Available";
+    }
+
+    // Get count of toggleable (non-locked) seasons
     $effect(() => {
         if (open && seasons.length > 0 && !hasInitialized) {
             // Select all seasons by default
@@ -39,26 +44,43 @@
         }
     });
 
-    function toggleSeason(seasonNumber: number) {
+    function toggleSeason(season: SeasonInfo) {
+        // Don't allow toggling locked (Available) seasons
+        if (isSeasonLocked(season)) return;
+
         const newSet = new Set(selectedSeasons);
-        if (newSet.has(seasonNumber)) {
-            newSet.delete(seasonNumber);
+        if (newSet.has(season.season_number)) {
+            newSet.delete(season.season_number);
         } else {
-            newSet.add(seasonNumber);
+            newSet.add(season.season_number);
         }
         selectedSeasons = newSet;
     }
 
     function toggleAll() {
-        // Switch is checked when all seasons are selected
-        // Clicking should toggle between all selected and none selected
-        if (selectedSeasons.size === seasons.length) {
-            // All are selected, deselect all
-            selectedSeasons = new Set();
+        // Get non-locked seasons
+        const toggleableSeasons = seasons.filter((s) => !isSeasonLocked(s));
+        const lockedSeasons = seasons.filter((s) => isSeasonLocked(s));
+
+        // Check if all toggleable seasons are currently selected
+        const allToggleableSelected = toggleableSeasons.every((s) =>
+            selectedSeasons.has(s.season_number)
+        );
+
+        if (allToggleableSelected) {
+            // Deselect all toggleable seasons, keep locked ones selected
+            selectedSeasons = new Set(lockedSeasons.map((s) => s.season_number));
         } else {
-            // Not all are selected, select all
+            // Select all seasons
             selectedSeasons = new Set(seasons.map((s) => s.season_number));
         }
+    }
+
+    // Check if all toggleable seasons are selected (for the toggle-all switch state)
+    function areAllToggleableSelected(): boolean {
+        const toggleableSeasons = seasons.filter((s) => !isSeasonLocked(s));
+        if (toggleableSeasons.length === 0) return true;
+        return toggleableSeasons.every((s) => selectedSeasons.has(s.season_number));
     }
 </script>
 
@@ -67,19 +89,23 @@
         <span class="text-sm font-bold">Select Seasons</span>
         <div class="flex items-center gap-2">
             <span class="text-muted-foreground text-xs">{selectedSeasons.size} selected</span>
-            <Switch checked={selectedSeasons.size === seasons.length} onCheckedChange={toggleAll} />
+            <Switch checked={areAllToggleableSelected()} onCheckedChange={toggleAll} />
         </div>
     </div>
     <div class="flex flex-col gap-1">
         {#each seasons as season (season.id)}
+            {@const locked = isSeasonLocked(season)}
             <div
-                class="hover:bg-muted/50 flex items-center justify-between rounded-md p-2 transition-colors">
+                class="flex items-center justify-between rounded-md p-2 transition-colors
+                    {locked ? 'opacity-60' : 'hover:bg-muted/50'}">
                 <div class="flex items-center gap-4">
                     <Switch
                         checked={selectedSeasons.has(season.season_number)}
-                        onCheckedChange={() => toggleSeason(season.season_number)} />
+                        disabled={locked}
+                        onCheckedChange={() => toggleSeason(season)} />
                     <div class="flex flex-col">
-                        <span class="font-medium">{season.name}</span>
+                        <span class="font-medium {locked ? 'text-muted-foreground' : ''}"
+                            >{season.name}</span>
                         <span class="text-muted-foreground text-xs"
                             >{season.episode_count} Episodes</span>
                     </div>
