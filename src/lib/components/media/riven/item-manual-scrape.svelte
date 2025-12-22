@@ -3,6 +3,7 @@
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
+    import type { ScrapeSeasonRequest } from "$lib/types";
 
     type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
 
@@ -59,6 +60,13 @@
             | undefined;
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
+        seasons?: {
+            id: number;
+            season_number: number;
+            episode_count: number;
+            name: string;
+            status?: string;
+        }[];
     }
 
     let {
@@ -68,6 +76,7 @@
         mediaType,
         variant = "ghost",
         size = "sm",
+        seasons = [],
         ...restProps
     }: Props = $props();
 
@@ -140,6 +149,33 @@
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
+
+    // Season Selection State
+    let selectedSeasons = $state<Set<number>>(new Set());
+
+    $effect(() => {
+        if (open && seasons.length > 0 && selectedSeasons.size === 0) {
+            selectedSeasons = new Set(seasons.map((s) => s.season_number));
+        }
+    });
+
+    function toggleSeason(seasonNumber: number) {
+        const newSet = new Set(selectedSeasons);
+        if (newSet.has(seasonNumber)) {
+            newSet.delete(seasonNumber);
+        } else {
+            newSet.add(seasonNumber);
+        }
+        selectedSeasons = newSet;
+    }
+
+    function toggleAllSeasons() {
+        if (selectedSeasons.size === seasons.length) {
+            selectedSeasons = new Set();
+        } else {
+            selectedSeasons = new Set(seasons.map((s) => s.season_number));
+        }
+    }
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
@@ -495,6 +531,37 @@
             }
 
             Object.assign(body, topLevelOptions);
+
+            if (
+                mediaType === "tv" &&
+                seasons.length > 0 &&
+                selectedSeasons.size > 0 &&
+                selectedSeasons.size < seasons.length
+            ) {
+                // Use ScrapeSeasonRequest if available
+                const seasonBody: ScrapeSeasonRequest = {
+                    ...body,
+                    season_numbers: Array.from(selectedSeasons)
+                };
+
+                // HACK: Casting providers.riven to any because the endpoint might not be in the generated client
+                const { data: sData, error: sErr } = await (providers.riven as any).POST(
+                    "/api/v1/scrape/seasons",
+                    {
+                        body: seasonBody
+                    }
+                );
+
+                if (sErr) {
+                    // @ts-ignore
+                    throw new Error(sErr.message || sErr.detail || "Failed to start auto scrape");
+                }
+                if (sData) {
+                    toast.success(sData.message || "Auto scrape started successfully");
+                    open = false;
+                    return; // Return early
+                }
+            }
 
             const { data, error: err } = await providers.riven.POST("/api/v1/scrape/auto", {
                 body: body
@@ -1331,6 +1398,47 @@
                         <ChevronLeft class="mr-1 h-4 w-4" />
                         Back
                     </Button>
+
+                    {#if mediaType === "tv" && seasons.length > 0}
+                        <div class="my-2 max-h-[40vh] overflow-y-auto rounded-md border p-2">
+                            <div class="mb-2 flex items-center justify-between border-b px-2 pb-2">
+                                <span class="text-sm font-bold">Select Seasons</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-muted-foreground text-xs"
+                                        >{selectedSeasons.size} selected</span>
+                                    <Switch
+                                        checked={selectedSeasons.size === seasons.length}
+                                        onCheckedChange={toggleAllSeasons} />
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                {#each seasons as season (season.id)}
+                                    <div
+                                        class="hover:bg-muted/50 flex items-center justify-between rounded-md p-2 transition-colors">
+                                        <div class="flex items-center gap-4">
+                                            <Switch
+                                                checked={selectedSeasons.has(season.season_number)}
+                                                onCheckedChange={() =>
+                                                    toggleSeason(season.season_number)} />
+                                            <div class="flex flex-col">
+                                                <span class="font-medium">{season.name}</span>
+                                                <span class="text-muted-foreground text-xs"
+                                                    >{season.episode_count} Episodes</span>
+                                            </div>
+                                        </div>
+                                        {#if season.status}
+                                            <Badge
+                                                variant={season.status === "Available"
+                                                    ? "default"
+                                                    : "secondary"}>
+                                                {season.status}
+                                            </Badge>
+                                        {/if}
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    {/if}
 
                     <div
                         class="flex max-h-[60vh] flex-col gap-2 overflow-y-auto rounded-md border p-2 pr-2">
