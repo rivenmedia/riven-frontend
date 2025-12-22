@@ -70,7 +70,10 @@ export async function processBatchItem({
 
     // 2. Parse Titles (to auto-select relevant files)
     const fileList = Object.values(files);
-    const filenames = fileList.map((f: any) => f.filename).filter((f: any): f is string => !!f);
+    const filenames = fileList.reduce<string[]>((acc, f: any) => {
+        if (f.filename) acc.push(f.filename);
+        return acc;
+    }, []);
 
     const { data: parseData } = await providers.riven.POST("/api/v1/scrape/parse", {
         body: filenames

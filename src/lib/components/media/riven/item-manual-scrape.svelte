@@ -334,9 +334,10 @@
                     sData.containers.files.length > 0
                 ) {
                     const files = sData.containers.files;
-                    const filenames = files
-                        .map((f) => f.filename)
-                        .filter((f): f is string => f != null);
+                    const filenames = files.reduce<string[]>((acc, f) => {
+                        if (f.filename != null) acc.push(f.filename);
+                        return acc;
+                    }, []);
 
                     // Only call parseTorrentTitles if we have valid filenames
                     if (filenames.length > 0) {
@@ -828,7 +829,10 @@
         try {
             const files = sessionData.containers.files || [];
             // Parse filenames to extract season/episode info
-            const filenames = files.map((f) => f.filename).filter((f): f is string => f != null);
+            const filenames = files.reduce<string[]>((acc, f) => {
+                if (f.filename != null) acc.push(f.filename);
+                return acc;
+            }, []);
 
             // Ensure we have valid filenames before calling the API
             if (filenames.length === 0) {

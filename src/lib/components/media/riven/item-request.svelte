@@ -57,12 +57,13 @@
     // Initialize selectedSeasons when dialog opens
     $effect(() => {
         if (open && seasons.length > 0 && !hasInitialized) {
-            // Default to non-Paused seasons - keep Available (completed) seasons selected
-            // Paused seasons should be unselected by default
-            const nonPausedSeasons = seasons
-                .filter((s) => s.status !== "Paused")
-                .map((s) => s.season_number);
-            selectedSeasons = new Set(nonPausedSeasons);
+            // Single-pass: only select Available seasons
+            selectedSeasons = new Set(
+                seasons.reduce<number[]>((acc, s) => {
+                    if (s.status === "Available") acc.push(s.season_number);
+                    return acc;
+                }, [])
+            );
             hasInitialized = true;
         }
         // Reset hasInitialized when dialog closes so next open re-initializes
