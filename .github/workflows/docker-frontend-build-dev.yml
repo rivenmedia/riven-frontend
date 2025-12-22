@@ -13,7 +13,7 @@ concurrency:
 env:
     REGISTRY_IMAGE_GHCR: ghcr.io/rivenmedia/riven-frontend
     REGISTRY_IMAGE_DOCKERHUB: docker.io/spoked/riven-frontend
-    BETTER_AUTH_SECRET: "secret"
+    BETTER_AUTH_SECRET: "thisisnotarealsecretandshouldbeoverriddeninproduction"
 
 jobs:
     build:
