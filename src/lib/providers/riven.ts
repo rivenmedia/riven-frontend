@@ -620,6 +620,30 @@ export interface paths {
          */
         get: operations["scrape_item"];
         put?: never;
+        /**
+         * Scrape Item
+         * @description Get streams for an item by any supported ID (item_id, tmdb_id, tvdb_id, imdb_id)
+         */
+        post: operations["scrape_item_api_v1_scrape_scrape_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scrape/scrape_stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream scraping results via SSE
+         * @description Stream scraping results via SSE.
+         */
+        get: operations["scrape_item_stream"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -627,17 +651,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/auto": {
+    "/api/v1/scrape/seasons": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Auto Scrape Item */
-        post: operations["auto_scrape_item"];
         get?: never;
         put?: never;
+        /**
+         * Scrape specific seasons of a show
+         * @description Scrape specific seasons of a show and pause unselected ones.
+         */
+        post: operations["scrape_seasons"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scrape/scrape_stream/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream auto scraping results via SSE
+         * @description Stream auto scraping results via SSE.
+         */
+        post: operations["auto_scrape_item_stream"];
         delete?: never;
         options?: never;
         head?: never;
@@ -775,6 +822,28 @@ export interface paths {
          * @description Get all overseerr requests and make sure they exist in the database
          */
         post: operations["fetch_overseerr_requests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scrape/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auto scrape an item with resolution overrides
+         * @description Auto scrape an item with specific resolution overrides.
+         *     This performs a one-time scrape using the provided resolutions
+         *     and triggers the downloader if new streams are found.
+         */
+        post: operations["auto_scrape_item"];
         delete?: never;
         options?: never;
         head?: never;
@@ -961,43 +1030,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AutoScrapeRequest */
-        AutoScrapeRequest: {
-            /** Item Id */
-            item_id?: string | null;
-            /** Tmdb Id */
-            tmdb_id?: string | null;
-            /** Tvdb Id */
-            tvdb_id?: string | null;
-            /** Imdb Id */
-            imdb_id?: string | null;
-            /**
-             * Media Type
-             * @enum {string}
-             */
-            media_type?: "movie" | "tv" | null;
-            /** Ranking Overrides */
-            ranking_overrides?: {
-                /** Resolutions */
-                resolutions?: string[] | null;
-                /** Quality */
-                quality?: string[] | null;
-                /** Rips */
-                rips?: string[] | null;
-                /** Hdr */
-                hdr?: string[] | null;
-                /** Audio */
-                audio?: string[] | null;
-                /** Extras */
-                extras?: string[] | null;
-                /** Trash */
-                trash?: string[] | null;
-            } | null;
-            /** Require */
-            require?: string[] | null;
-            /** Exclude */
-            exclude?: string[] | null;
-        };
         /** AddMediaItemPayload */
         AddMediaItemPayload: {
             /**
@@ -1132,6 +1164,36 @@ export interface components {
             stereo?: components["schemas"]["CustomRank"];
             surround?: components["schemas"]["CustomRank"];
             truehd?: components["schemas"]["CustomRank"];
+        };
+        /** AutoScrapeRequestPayload */
+        AutoScrapeRequestPayload: {
+            /**
+             * Item Id
+             * @description The ID of the media item
+             */
+            item_id?: number | null;
+            /**
+             * Tmdb Id
+             * @description The TMDB ID of the media item
+             */
+            tmdb_id?: string | null;
+            /**
+             * Tvdb Id
+             * @description The TVDB ID of the media item
+             */
+            tvdb_id?: string | null;
+            /**
+             * Imdb Id
+             * @description The IMDB ID of the media item
+             */
+            imdb_id?: string | null;
+            /**
+             * Media Type
+             * @description The media type
+             */
+            media_type?: ("movie" | "tv") | null;
+            /** @description Ranking overrides for the media item */
+            ranking_overrides?: components["schemas"]["RankingOverrides"] | null;
         };
         /** CalendarResponse */
         CalendarResponse: {
@@ -2536,6 +2598,27 @@ export interface components {
             /** @description Custom ranking configurations for specific attributes */
             custom_ranks?: components["schemas"]["CustomRanksConfig"];
         };
+        /** RankingOverrides */
+        RankingOverrides: {
+            /** Resolutions */
+            resolutions?: string[] | null;
+            /** Quality */
+            quality?: string[] | null;
+            /** Rips */
+            rips?: string[] | null;
+            /** Hdr */
+            hdr?: string[] | null;
+            /** Audio */
+            audio?: string[] | null;
+            /** Extras */
+            extras?: string[] | null;
+            /** Trash */
+            trash?: string[] | null;
+            /** Require */
+            require?: string[] | null;
+            /** Exclude */
+            exclude?: string[] | null;
+        };
         /** RarbgConfig */
         RarbgConfig: {
             /**
@@ -2702,6 +2785,17 @@ export interface components {
             streams: {
                 [key: string]: components["schemas"]["Stream"];
             };
+        };
+        /** ScrapeSeasonsRequest */
+        ScrapeSeasonsRequest: {
+            /** Tvdb Id */
+            tvdb_id?: string | null;
+            /** Tmdb Id */
+            tmdb_id?: string | null;
+            /** Imdb Id */
+            imdb_id?: string | null;
+            /** Season Numbers */
+            season_numbers: number[];
         };
         /** ScraperModel */
         ScraperModel: {
@@ -2895,6 +2989,8 @@ export interface components {
              * @default false
              */
             is_cached: boolean;
+            /** Resolution */
+            resolution?: string | null;
         };
         /** StreamModel */
         StreamModel: {
@@ -3772,6 +3868,8 @@ export interface operations {
                 search?: string | null;
                 /** @description Include extended item details */
                 extended?: boolean;
+                /** @description Only return the count of items */
+                count_only?: boolean;
             };
             header?: never;
             path?: never;
@@ -4440,7 +4538,87 @@ export interface operations {
             };
         };
     };
-    auto_scrape_item: {
+    scrape_item_api_v1_scrape_scrape_post: {
+        parameters: {
+            query?: {
+                /** @description The ID of the media item */
+                item_id?: number | null;
+                /** @description The TMDB ID of the media item */
+                tmdb_id?: string | null;
+                /** @description The TVDB ID of the media item */
+                tvdb_id?: string | null;
+                /** @description The IMDB ID of the media item */
+                imdb_id?: string | null;
+                /** @description The media type */
+                media_type?: ("movie" | "tv") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScrapeItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scrape_item_stream: {
+        parameters: {
+            query?: {
+                /** @description The ID of the media item */
+                item_id?: number | null;
+                /** @description The TMDB ID of the media item */
+                tmdb_id?: string | null;
+                /** @description The TVDB ID of the media item */
+                tvdb_id?: string | null;
+                /** @description The IMDB ID of the media item */
+                imdb_id?: string | null;
+                /** @description The media type */
+                media_type?: ("movie" | "tv") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scrape_seasons: {
         parameters: {
             query?: never;
             header?: never;
@@ -4449,7 +4627,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AutoScrapeRequest"];
+                "application/json": components["schemas"]["ScrapeSeasonsRequest"];
             };
         };
         responses: {
@@ -4459,7 +4637,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": components["schemas"]["ScrapeItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_scrape_item_stream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoScrapeRequestPayload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -4487,6 +4698,8 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
+                /** @description Disable filesize check */
+                disable_filesize_check?: boolean;
             };
             header?: never;
             path?: never;
@@ -4696,6 +4909,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_scrape_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoScrapeRequestPayload"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
