@@ -528,9 +528,6 @@
                                 (sErr as any).detail ||
                                 "Failed to start auto scrape";
                             toast.error(errorMsg);
-                        } else if (sData) {
-                            // Only show success if it wasn't already closed/handled or just as a confirmation
-                            toast.success(sData.message || "Auto scrape started successfully");
                         }
                     })
                     .catch((e) => {
@@ -538,7 +535,7 @@
                         toast.error("An error occurred starting the scrape");
                     });
 
-                toast.success("Scrape request sent");
+                toast.success("Media item requested successfully!");
                 open = false;
                 loading = false;
                 return;
@@ -554,8 +551,6 @@
                         // @ts-ignore
                         const errorMsg = err.message || err.detail || "Failed to start auto scrape";
                         toast.error(errorMsg);
-                    } else if (data) {
-                        toast.success(data.message || "Auto scrape started successfully");
                     }
                 })
                 .catch((e) => {
@@ -563,7 +558,7 @@
                     toast.error(errorMsg);
                 });
 
-            toast.success("Scrape request sent");
+            toast.success("Media item requested successfully!");
             open = false; // Close dialog immediately
             loading = false;
         } catch (e) {
