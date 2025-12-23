@@ -1,5 +1,10 @@
 import * as dateUtils from "$lib/utils/date";
 import { CalendarDate } from "@internationalized/date";
+import { randomBytes } from "crypto";
+
+export function generateSecret(length: number = 32): string {
+    return randomBytes(length).toString("base64");
+}
 
 export function getSeasonAndYear(dateString: string): string {
     return dateUtils.getSeasonAndYear(dateString);

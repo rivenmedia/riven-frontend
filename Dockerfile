@@ -1,8 +1,5 @@
 # Frontend Builder
 FROM node:24-alpine AS frontend
-
-ENV BETTER_AUTH_SECRET=thisisnotarealsecretandshouldbeoverriddeninproduction
-
 WORKDIR /app
 COPY . .
 RUN npm install -g pnpm && pnpm install
