@@ -20,12 +20,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? item.tmdb_id
                 : item.type === "show"
-                  ? item.tvdb_id
-                  : item.type === "season"
-                    ? item.parent_ids.tvdb_id
-                    : item.type === "episode"
-                      ? item.parent_ids.tvdb_id
-                      : null,
+                    ? item.tvdb_id
+                    : item.type === "season"
+                        ? item.parent_ids.tvdb_id
+                        : item.type === "episode"
+                            ? item.parent_ids.tvdb_id
+                            : null,
         title: item.title,
         poster_path: item.poster_path,
         media_type: item.type,
@@ -35,12 +35,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? "movie"
                 : item.type === "show"
-                  ? "show"
-                  : item.type === "season"
-                    ? "season"
-                    : item.type === "episode"
-                      ? "episode"
-                      : "unknown",
+                    ? "show"
+                    : item.type === "season"
+                        ? "season"
+                        : item.type === "episode"
+                            ? "episode"
+                            : "unknown",
         riven_id: item.id
     }));
 }
@@ -51,25 +51,6 @@ export const load: PageServerLoad = async (event) => {
     }
 
     const itemsSearchForm = await superValidate(event.url.searchParams, zod4(itemsSearchSchema));
-
-    const countResponse = await providers.riven.GET("/api/v1/items", {
-        params: {
-            query: {
-                ...itemsSearchForm.data,
-                count_only: true
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any
-        },
-        baseUrl: event.locals.backendUrl,
-        headers: {
-            "x-api-key": event.locals.apiKey
-        },
-        fetch: event.fetch
-    });
-
-    if (countResponse.error) {
-        error(500, "Failed to fetch items count");
-    }
 
     const itemsResponse = await providers.riven.GET("/api/v1/items", {
         params: {
@@ -88,10 +69,11 @@ export const load: PageServerLoad = async (event) => {
 
     return {
         items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
-        page: countResponse.data ? countResponse.data.page : 1,
-        totalPages: countResponse.data ? countResponse.data.total_pages : 1,
-        limit: countResponse.data ? countResponse.data.limit : 20,
-        totalItems: countResponse.data ? countResponse.data.total_items : 0,
+        page: itemsResponse.data ? itemsResponse.data.page : 1,
+        totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
+        limit: itemsResponse.data ? itemsResponse.data.limit : 20,
+        totalItems: itemsResponse.data ? itemsResponse.data.total_items : 0,
         itemsSearchForm
     };
 };
+
