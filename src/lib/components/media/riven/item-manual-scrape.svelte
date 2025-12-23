@@ -1242,7 +1242,7 @@
 
                                 <div class="flex items-center space-x-2">
                                     <Label for="disable-filesize-check" class="text-xs"
-                                        >Disable Filesize Check</Label>
+                                        >Disable filesize check</Label>
                                     <Switch
                                         id="disable-filesize-check"
                                         bind:checked={disableFilesizeCheck} />
@@ -1388,7 +1388,7 @@
                             <Label>Quality Constraints</Label>
                             <div class="flex items-center space-x-2">
                                 <Label for="disable-filesize-check-auto" class="text-xs"
-                                    >Disable Filesize Check</Label>
+                                    >Disable filesize check</Label>
                                 <Switch
                                     id="disable-filesize-check-auto"
                                     bind:checked={disableFilesizeCheck} />
@@ -1456,9 +1456,15 @@
                                             <div class="flex items-center gap-2">
                                                 {#if categoryIcons[category]}
                                                     {@const Icon = categoryIcons[category]}
-                                                    <Icon class="h-4 w-4" />
+                                                    <Icon class="h-4 w-4 shrink-0" />
                                                 {/if}
-                                                {category === "trash" ? "Bin" : category}
+                                                <span class="translate-y-[1px]">
+                                                    {category === "trash"
+                                                        ? "Bin"
+                                                        : category === "hdr"
+                                                          ? "HDR"
+                                                          : category}
+                                                </span>
                                                 {#if selectedOptions[category]?.length}
                                                     <Badge
                                                         variant="secondary"
@@ -1489,7 +1495,9 @@
                                                                 ];
                                                             }
                                                         }}>
-                                                        {option.replace(/^r/, "")}
+                                                        {category === "resolutions"
+                                                            ? option.replace(/^r/, "")
+                                                            : option}
                                                     </Badge>
                                                 {/each}
                                             </div>
