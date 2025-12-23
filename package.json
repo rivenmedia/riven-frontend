@@ -73,13 +73,11 @@
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.50.0",
         "vaul-svelte": "1.0.0-next.7",
-        "vite": "^7.3.0",
-        "yeezy-dates": "^1.0.1"
+        "vite": "^7.3.0"
     },
     "dependencies": {
         "@better-auth/passkey": "^1.4.7",
         "@internationalized/date": "^3.10.1",
-        "@sjsf-lab/shadcn-extras-theme": "^3.1.0",
         "@sjsf/ajv8-validator": "^3.2.0",
         "@sjsf/form": "^3.2.0",
         "@sjsf/lucide-icons": "^3.2.0",

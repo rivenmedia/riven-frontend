@@ -15,9 +15,10 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { ac, admin, user, manager } from "./permissions";
 import { getGenericOAuthProviders } from "./oauth-utils";
 import { plexOAuth } from "./plex-oauth";
+import { generateSecret } from "$lib/helpers";
 
 export const auth = betterAuth({
-    secret: env.AUTH_SECRET,
+    secret: env.AUTH_SECRET || generateSecret(),
     baseURL: env.ORIGIN,
     database: drizzleAdapter(db, {
         provider: "sqlite"

@@ -5,7 +5,7 @@
 
 @import "./themes/all.css";
 @source "../node_modules/@sjsf/shadcn4-theme/dist";
-@source "../node_modules/@sjsf-lab/shadcn-extras-theme/dist";
+/* @source "../node_modules/@sjsf-lab/shadcn-extras-theme/dist"; */
 
 @theme {
     --font-sans: "Oxanium", sans-serif;
