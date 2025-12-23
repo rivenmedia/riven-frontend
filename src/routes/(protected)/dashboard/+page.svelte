@@ -14,9 +14,13 @@
 
     function transformStatesToArray(states: Record<string, number> | undefined) {
         if (!states) return [];
-        return Object.entries(states)
-            .filter(([_, value]) => value > 0)
-            .map(([state, value]) => ({ state, value }));
+        return Object.entries(states).reduce<{ state: string; value: number }[]>(
+            (acc, [state, value]) => {
+                if (value > 0) acc.push({ state, value });
+                return acc;
+            },
+            []
+        );
     }
 
     const transformedStates = $derived(transformStatesToArray(data.statistics?.states));
