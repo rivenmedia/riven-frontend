@@ -35,9 +35,9 @@ export const GET: RequestHandler = async ({ cookies }) => {
     } catch {
         console.error("Plex callback: Failed to parse auth state cookie");
         redirect(302, "/auth/login?error=invalid_state");
+    } finally {
+        cookies.delete("plex_auth_state", { path: "/" });
     }
-
-    cookies.delete("plex_auth_state", { path: "/" });
 
     const options = getDefaultPlexOptions(env);
 
