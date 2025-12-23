@@ -516,38 +516,56 @@
                     season_numbers: Array.from(selectedSeasons)
                 };
 
-                // HACK: Casting providers.riven to any because the endpoint might not be in the generated client
-                const { data: sData, error: sErr } = await (providers.riven as any).POST(
-                    "/api/v1/scrape/seasons",
-                    {
+                // Fire and forget - don't await this
+                providers.riven
+                    .POST("/api/v1/scrape/seasons", {
                         body: seasonBody
+                    })
+                    .then(({ data: sData, error: sErr }) => {
+                        if (sErr) {
+                            const errorMsg =
+                                (sErr as any).message ||
+                                (sErr as any).detail ||
+                                "Failed to start auto scrape";
+                            toast.error(errorMsg);
+                        } else if (sData) {
+                            // Only show success if it wasn't already closed/handled or just as a confirmation
+                            toast.success(sData.message || "Auto scrape started successfully");
+                        }
+                    })
+                    .catch((e) => {
+                        console.error("Auto scrape failed", e);
+                        toast.error("An error occurred starting the scrape");
+                    });
+
+                toast.success("Scrape request sent");
+                open = false;
+                loading = false;
+                return;
+            }
+
+            // Fire and forget - non-blocking
+            providers.riven
+                .POST("/api/v1/scrape/auto", {
+                    body: body
+                })
+                .then(({ data, error: err }) => {
+                    if (err) {
+                        // @ts-ignore
+                        const errorMsg = err.message || err.detail || "Failed to start auto scrape";
+                        toast.error(errorMsg);
+                    } else if (data) {
+                        toast.success(data.message || "Auto scrape started successfully");
                     }
-                );
+                })
+                .catch((e) => {
+                    const errorMsg = e instanceof Error ? e.message : "An error occurred";
+                    toast.error(errorMsg);
+                });
 
-                if (sErr) {
-                    // @ts-ignore
-                    throw new Error(sErr.message || sErr.detail || "Failed to start auto scrape");
-                }
-                if (sData) {
-                    toast.success(sData.message || "Auto scrape started successfully");
-                    open = false;
-                    return; // Return early
-                }
-            }
-
-            const { data, error: err } = await providers.riven.POST("/api/v1/scrape/auto", {
-                body: body
-            });
-
-            if (err) {
-                // @ts-ignore
-                throw new Error(err.message || err.detail || "Failed to start auto scrape");
-            }
-
-            if (data) {
-                toast.success(data.message || "Auto scrape started successfully");
-                open = false; // Close dialog on success
-            }
+            toast.success("Scrape request sent");
+            open = false; // Close dialog immediately
+            loading = false;
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : "An error occurred";
             error = errorMsg;
