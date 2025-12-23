@@ -18,7 +18,7 @@ import { plexOAuth } from "./src/lib/server/plex-oauth";
 import "dotenv/config";
 
 export const auth = betterAuth({
-    secret: process.env.AUTH_SECRET || "RGPjGw6G1+IYfwoNtoPgUgwN6Er5N9HokYvloMkXXAw=",
+    secret: process.env.AUTH_SECRET,
     baseURL: process.env.ORIGIN,
     database: drizzleAdapter(db, {
         provider: "sqlite"
@@ -77,16 +77,16 @@ export const auth = betterAuth({
             config: [
                 ...(process.env.DISABLE_PLEX !== "true"
                     ? [
-                        plexOAuth({
-                            clientId: process.env.PLEX_CLIENT_ID || "riven",
-                            product: "Riven Media",
-                            version: "1.0",
-                            platform: "Web",
-                            device: "Browser",
-                            disableSignUp: process.env.ENABLE_PLEX_SIGNUP !== "true",
-                            baseURL: process.env.ORIGIN || "http://localhost:5173"
-                        })
-                    ]
+                          plexOAuth({
+                              clientId: process.env.PLEX_CLIENT_ID || "riven",
+                              product: "Riven Media",
+                              version: "1.0",
+                              platform: "Web",
+                              device: "Browser",
+                              disableSignUp: process.env.ENABLE_PLEX_SIGNUP !== "true",
+                              baseURL: process.env.ORIGIN || "http://localhost:5173"
+                          })
+                      ]
                     : []),
                 ...getGenericOAuthProviders(process.env as Record<string, string>)
             ]
