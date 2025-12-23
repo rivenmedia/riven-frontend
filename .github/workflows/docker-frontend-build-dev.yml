@@ -4,6 +4,7 @@ on:
     push:
         branches-ignore:
             - "release-please--branches--main"
+    workflow_dispatch:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +18,7 @@ jobs:
     build:
         runs-on: ${{ matrix.runner }}
         if: >
+            github.event_name == 'workflow_dispatch' ||
             startsWith(github.event.head_commit.message, 'fix') ||
             startsWith(github.event.head_commit.message, 'feat') ||
             startsWith(github.event.head_commit.message, 'build') ||

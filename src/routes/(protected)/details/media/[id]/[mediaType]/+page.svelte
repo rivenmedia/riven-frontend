@@ -13,6 +13,7 @@
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
+    import ItemManualScrape from "$lib/components/media/riven/item-manual-scrape.svelte";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
     import { toast } from "svelte-sonner";
 
@@ -188,7 +189,50 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
-                                mediaType={data.mediaDetails?.type} />
+                                mediaType={data.mediaDetails?.type}
+                                seasons={data.mediaDetails?.type === "tv" &&
+                                data.mediaDetails?.details?.seasons
+                                    ? data.mediaDetails.details.seasons.map((s) => ({
+                                          id: s.id,
+                                          season_number: s.number ?? 0,
+                                          episode_count:
+                                              (data.mediaDetails?.details as any)?.episodes?.filter(
+                                                  (ep: any) => ep.seasonNumber === s.number
+                                              ).length ?? 0,
+                                          name: `Season ${s.number}`,
+                                          status:
+                                              data.riven?.seasons?.find(
+                                                  (rs) => rs.season_number === s.number
+                                              )?.state === "Completed"
+                                                  ? "Available"
+                                                  : undefined
+                                      }))
+                                    : []} />
+
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details?.title}
+                                itemId={null}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                mediaType={data.mediaDetails?.type}
+                                seasons={data.mediaDetails?.type === "tv" &&
+                                data.mediaDetails?.details?.seasons
+                                    ? data.mediaDetails.details.seasons.map((s) => ({
+                                          id: s.id,
+                                          season_number: s.number ?? 0,
+                                          episode_count:
+                                              (data.mediaDetails?.details as any)?.episodes?.filter(
+                                                  (ep: any) => ep.seasonNumber === s.number
+                                              ).length ?? 0,
+                                          name: `Season ${s.number}`,
+                                          status:
+                                              data.riven?.seasons?.find(
+                                                  (rs) => rs.season_number === s.number
+                                              )?.state === "Completed"
+                                                  ? "Available"
+                                                  : undefined
+                                      }))
+                                    : []} />
                         {:else if data.riven?.id != null}
                             <ItemDelete
                                 class="bg-white/10"
@@ -212,6 +256,60 @@
                                 class="bg-white/10"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []} />
+
+                            {#if data.mediaDetails?.type === "tv"}
+                                <ItemRequest
+                                    class="bg-white/10"
+                                    title={data.mediaDetails?.details.title}
+                                    ids={rivenId ? [rivenId.toString()] : []}
+                                    mediaType={data.mediaDetails?.type}
+                                    buttonLabel="Request More"
+                                    externalId={data.mediaDetails?.details?.id?.toString()}
+                                    seasons={data.mediaDetails?.details?.seasons
+                                        ? data.mediaDetails.details.seasons.map((s) => ({
+                                              id: s.id,
+                                              season_number: s.number ?? 0,
+                                              episode_count:
+                                                  (
+                                                      data.mediaDetails?.details as any
+                                                  )?.episodes?.filter(
+                                                      (ep: any) => ep.seasonNumber === s.number
+                                                  ).length ?? 0,
+                                              name: `Season ${s.number}`,
+                                              status:
+                                                  data.riven?.seasons?.find(
+                                                      (rs) => rs.season_number === s.number
+                                                  )?.state === "Completed"
+                                                      ? "Available"
+                                                      : undefined
+                                          }))
+                                        : []} />
+                            {/if}
+
+                            <ItemManualScrape
+                                class="bg-white/10"
+                                title={data.mediaDetails?.details?.title}
+                                itemId={rivenId?.toString() ?? null}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                mediaType={data.mediaDetails?.type}
+                                seasons={data.mediaDetails?.type === "tv" &&
+                                data.mediaDetails?.details?.seasons
+                                    ? data.mediaDetails.details.seasons.map((s) => ({
+                                          id: s.id,
+                                          season_number: s.number ?? 0,
+                                          episode_count:
+                                              (data.mediaDetails?.details as any)?.episodes?.filter(
+                                                  (ep: any) => ep.seasonNumber === s.number
+                                              ).length ?? 0,
+                                          name: `Season ${s.number}`,
+                                          status:
+                                              data.riven?.seasons?.find(
+                                                  (rs) => rs.season_number === s.number
+                                              )?.state === "Completed"
+                                                  ? "Available"
+                                                  : undefined
+                                      }))
+                                    : []} />
 
                             <Dialog.Root>
                                 <Dialog.Trigger>
