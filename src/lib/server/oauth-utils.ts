@@ -111,7 +111,7 @@ export function getGenericOAuthProviders(
                     ((config["ISSUER"] as string)
                         ? `${config["ISSUER"]}/.well-known/openid-configuration`
                         : undefined),
-                scopes: (config["SCOPES"] as string)?.split(","),
+                scopes: (config["SCOPES"] as string)?.split(",").map((s) => s.trim()),
                 pkce: (config["PKCE"] as string) === "true",
                 disableSignUp:
                     ((config["DISABLE"] as NestedObject)?.["SIGNUP"] as string) === "true",
