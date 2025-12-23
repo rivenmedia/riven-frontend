@@ -2,6 +2,7 @@ import { redirect } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { env } from "$env/dynamic/private";
 import { generatePlexPin, buildPlexAuthUrl, getDefaultPlexOptions } from "$lib/server/plex-oauth";
+import { dev } from "$app/environment";
 
 /**
  * Custom Plex authorization endpoint
@@ -39,7 +40,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         cookies.set("plex_auth_state", JSON.stringify(authData), {
             path: "/",
             httpOnly: true,
-            secure: env.NODE_ENV === "production",
+            secure: !dev,
             sameSite: "lax",
             maxAge: 60 * 10 // 10 minutes
         });

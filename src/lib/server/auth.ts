@@ -123,7 +123,7 @@ export function getAuthProviders() {
             enabled: true,
             disableSignup: env.ENABLE_PLEX_SIGNUP !== "true",
             name: "Plex",
-            icon: "https://api.iconify.design/mdi:plex.svg"
+            icon: "https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/plex.svg"
         };
     }
 
