@@ -978,9 +978,9 @@ export function parseTVDBShowDetails(
         });
     }
 
-    const seasons = (data.seasons ?? []).filter(
-        (season) => season.type?.name === "Aired Order" && season.number !== 0
-    );
+    const seasons = (data.seasons ?? [])
+        .filter((season) => season.type?.name === "Aired Order" && season.number !== 0)
+        .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 
     const episodes: TVDBEpisodeItem[] = (data.episodes ?? []).reduce<TVDBEpisodeItem[]>(
         (acc, episode) => {
