@@ -1424,29 +1424,29 @@ export interface components {
              */
             video_extensions?: string[];
             /**
-             * Movie Filesize Mb Min
-             * @description Minimum file size in MB for movies
-             * @default 700
+             * Movie Bitrate Mbps Min
+             * @description Minimum bitrate in Mbps for movies (0 for no limit)
+             * @default 1
              */
-            movie_filesize_mb_min: number;
+            movie_bitrate_mbps_min: number;
             /**
-             * Movie Filesize Mb Max
-             * @description Maximum file size in MB for movies (-1 for no limit)
+             * Movie Bitrate Mbps Max
+             * @description Maximum bitrate in Mbps for movies (0 for no limit)
              * @default -1
              */
-            movie_filesize_mb_max: number;
+            movie_bitrate_mbps_max: number;
             /**
-             * Episode Filesize Mb Min
-             * @description Minimum file size in MB for episodes
-             * @default 100
+             * Episode Bitrate Mbps Min
+             * @description Minimum bitrate in Mbps for episodes (0 for no limit)
+             * @default 1
              */
-            episode_filesize_mb_min: number;
+            episode_bitrate_mbps_min: number;
             /**
-             * Episode Filesize Mb Max
-             * @description Maximum file size in MB for episodes (-1 for no limit)
+             * Episode Bitrate Mbps Max
+             * @description Maximum bitrate in Mbps for episodes (0 for no limit)
              * @default -1
              */
-            episode_filesize_mb_max: number;
+            episode_bitrate_mbps_max: number;
             /**
              * Proxy Url
              * @description Proxy URL for downloaders (optional)
@@ -4927,8 +4927,8 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
-                /** @description Disable filesize check */
-                disable_filesize_check?: boolean;
+                /** @description Disable bitrate check */
+                disable_bitrate_check?: boolean;
                 api_key?: string | null;
             };
             header?: never;

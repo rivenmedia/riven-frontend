@@ -143,7 +143,7 @@
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
-    let disableFilesizeCheck = $state(false);
+    let disableBitrateCheck = $state(false);
 
     let customTitle = $state("");
     let customImdbId = $state("");
@@ -284,9 +284,9 @@
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
             }
 
-            if (disableFilesizeCheck) {
+            if (disableBitrateCheck) {
                 // @ts-ignore
-                queryParams.disable_filesize_check = true;
+                queryParams.disable_bitrate_check = true;
             }
 
             const { data, error: err } = await providers.riven.POST(
@@ -574,7 +574,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceDisableFilesizeCheck: boolean = false) {
+    async function startScrapeSession(magnet: string, forceDisableBitrateCheck: boolean = false) {
         loading = true;
         error = null;
 
@@ -584,9 +584,9 @@
                 magnet: magnet
             };
 
-            if (forceDisableFilesizeCheck || disableFilesizeCheck) {
+            if (forceDisableBitrateCheck || disableBitrateCheck) {
                 // @ts-ignore
-                queryParams.disable_filesize_check = true;
+                queryParams.disable_bitrate_check = true;
             }
 
             if (itemId) {
@@ -1296,11 +1296,11 @@
                                 </Button>
 
                                 <div class="flex items-center space-x-2">
-                                    <Label for="disable-filesize-check" class="text-xs"
-                                        >Disable filesize check</Label>
+                                    <Label for="disable-bitrate-check" class="text-xs"
+                                        >Disable bitrate check</Label>
                                     <Switch
-                                        id="disable-filesize-check"
-                                        bind:checked={disableFilesizeCheck} />
+                                        id="disable-bitrate-check"
+                                        bind:checked={disableBitrateCheck} />
                                 </div>
 
                                 {#if selectedMagnets.size > 0}
@@ -1442,11 +1442,11 @@
                         <div class="flex items-center justify-between">
                             <Label>Quality Constraints</Label>
                             <div class="flex items-center space-x-2">
-                                <Label for="disable-filesize-check-auto" class="text-xs"
-                                    >Disable filesize check</Label>
+                                <Label for="disable-bitrate-check-auto" class="text-xs"
+                                    >Disable bitrate check</Label>
                                 <Switch
-                                    id="disable-filesize-check-auto"
-                                    bind:checked={disableFilesizeCheck} />
+                                    id="disable-bitrate-check-auto"
+                                    bind:checked={disableBitrateCheck} />
                             </div>
                         </div>
                         <p class="text-muted-foreground mb-2 text-xs">
