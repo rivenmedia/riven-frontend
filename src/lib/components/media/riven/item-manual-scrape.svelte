@@ -145,6 +145,9 @@
     let searchQuery = $state("");
     let disableFilesizeCheck = $state(false);
 
+    let customTitle = $state("");
+    let customImdbId = $state("");
+
     // Season Selection State - managed by SeasonSelector component
     let selectedSeasons = $state<Set<number>>(new Set());
     let isManualMagnet = $state(false);
@@ -664,6 +667,15 @@
         }
         if (mediaType === "tv" && externalId) {
             params.set("tvdb_id", externalId);
+        }
+
+        if (customTitle) {
+            // @ts-ignore
+            params.set("custom_title", customTitle);
+        }
+        if (customImdbId) {
+            // @ts-ignore
+            params.set("custom_imdb_id", customImdbId);
         }
 
         // Create EventSource for streaming - use dedicated SSE proxy endpoint
@@ -1217,6 +1229,38 @@
                             Leave empty to fetch streams automatically
                         </p>
                     </div>
+
+                    <Accordion.Root type="single" collapsible>
+                        <Accordion.Item value="custom-params">
+                            <Accordion.Trigger>Custom Scrape Parameters</Accordion.Trigger>
+                            <Accordion.Content>
+                                <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2">
+                                    <div class="flex flex-col gap-2">
+                                        <Label for="custom-title">Custom Title</Label>
+                                        <Input
+                                            id="custom-title"
+                                            placeholder="e.g. French Title"
+                                            bind:value={customTitle}
+                                        />
+                                        <p class="text-xs text-muted-foreground">
+                                            Override the title used for searching.
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <Label for="custom-imdb">Custom IMDB ID</Label>
+                                        <Input
+                                            id="custom-imdb"
+                                            placeholder="tt1234567"
+                                            bind:value={customImdbId}
+                                        />
+                                        <p class="text-xs text-muted-foreground">
+                                            Override the IMDB ID used for searching.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Accordion.Content>
+                        </Accordion.Item>
+                    </Accordion.Root>
 
                     <div class="grid grid-cols-2 gap-4">
                         <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
