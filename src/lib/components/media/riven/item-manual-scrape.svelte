@@ -34,6 +34,7 @@
     import Volume2 from "@lucide/svelte/icons/volume-2";
     import Plus from "@lucide/svelte/icons/plus";
     import Trash2 from "@lucide/svelte/icons/trash-2";
+    import X from "@lucide/svelte/icons/x";
     import Magnet from "@lucide/svelte/icons/magnet";
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
@@ -456,7 +457,8 @@
 
         try {
             const body: AutoScrapeRequest = {
-                media_type: mediaType
+                media_type: mediaType,
+                disable_bitrate_check: disableBitrateCheck
             };
 
             // Only include IDs if they have valid values
@@ -1610,6 +1612,19 @@
                                                 {formatFileSize(mapping.filesize)}
                                             </p>
                                         </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            class="h-6 w-6 shrink-0"
+                                            onclick={() => {
+                                                selectedFilesMappings =
+                                                    selectedFilesMappings.filter(
+                                                        (_, i) => i !== idx
+                                                    );
+                                            }}>
+                                            <X
+                                                class="text-muted-foreground hover:text-foreground h-4 w-4" />
+                                        </Button>
                                     </div>
 
                                     {#if mediaType === "tv"}
