@@ -1026,6 +1026,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stream/file/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream File
+         * @description Stream a file directly from the provider.
+         *
+         *     Args:
+         *         item_id: The ID of the MediaItem to stream.
+         *         request: The FastAPI request object.
+         *
+         *     Returns:
+         *         A StreamingResponse for the file content.
+         */
+        get: operations["stream_file_api_v1_stream_file__item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3461,7 +3488,9 @@ export interface operations {
     };
     health: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3484,11 +3513,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     download_user_info: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3511,11 +3551,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     generate_apikey: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3538,11 +3589,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     services: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3567,11 +3629,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     trakt_oauth_initiate: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3594,6 +3667,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     trakt_oauth_callback: {
@@ -3601,6 +3683,7 @@ export interface operations {
             query: {
                 /** @description The OAuth code returned by Trakt */
                 code: string;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -3637,7 +3720,9 @@ export interface operations {
     };
     stats: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3660,11 +3745,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     logs: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3687,11 +3783,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     events: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3714,11 +3821,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     mount: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3741,11 +3859,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     upload_logs: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3768,11 +3897,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     fetch_calendar: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3795,11 +3935,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_vfs_stats: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3822,11 +3973,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_states: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3849,6 +4011,15 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_items: {
@@ -3870,6 +4041,7 @@ export interface operations {
                 extended?: boolean;
                 /** @description Only return the count of items */
                 count_only?: boolean;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -3906,7 +4078,9 @@ export interface operations {
     };
     add_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3951,6 +4125,7 @@ export interface operations {
                 media_type: "movie" | "tv" | "item";
                 /** @description Whether to include extended information */
                 extended?: boolean;
+                api_key?: string | null;
             };
             header?: never;
             path: {
@@ -3995,7 +4170,9 @@ export interface operations {
     };
     reset_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4035,7 +4212,9 @@ export interface operations {
     };
     retry_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4075,7 +4254,9 @@ export interface operations {
     };
     retry_library_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4098,11 +4279,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     remove_item: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4142,7 +4334,9 @@ export interface operations {
     };
     get_item_streams: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4181,7 +4375,9 @@ export interface operations {
     };
     blacklist_item_stream: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4222,7 +4418,9 @@ export interface operations {
     };
     unblacklist_item_stream: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4263,7 +4461,9 @@ export interface operations {
     };
     reset_item_streams: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4302,7 +4502,9 @@ export interface operations {
     };
     pause_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4342,7 +4544,9 @@ export interface operations {
     };
     unpause_items: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4382,7 +4586,9 @@ export interface operations {
     };
     composite_reindexer: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4422,7 +4628,9 @@ export interface operations {
     };
     get_item_aliases: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4461,7 +4669,9 @@ export interface operations {
     };
     get_item_metadata: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The ID of the media item */
@@ -4511,6 +4721,11 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
+                /** @description Custom title to use for scraping */
+                custom_title?: string | null;
+                /** @description Custom IMDB ID to use for scraping */
+                custom_imdb_id?: string | null;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -4551,6 +4766,11 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
+                /** @description Custom title to use for scraping */
+                custom_title?: string | null;
+                /** @description Custom IMDB ID to use for scraping */
+                custom_imdb_id?: string | null;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -4591,6 +4811,11 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
+                /** @description Custom title to use for scraping */
+                custom_title?: string | null;
+                /** @description Custom IMDB ID to use for scraping */
+                custom_imdb_id?: string | null;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -4620,7 +4845,9 @@ export interface operations {
     };
     scrape_seasons: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4653,7 +4880,9 @@ export interface operations {
     };
     auto_scrape_item_stream: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4700,6 +4929,7 @@ export interface operations {
                 media_type?: ("movie" | "tv") | null;
                 /** @description Disable filesize check */
                 disable_filesize_check?: boolean;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -4729,7 +4959,9 @@ export interface operations {
     };
     manual_select: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Identifier of the scraping session containing item and torrent context. */
@@ -4765,7 +4997,9 @@ export interface operations {
     };
     manual_update_attributes: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Identifier of the scraping session containing item and torrent context. */
@@ -4801,7 +5035,9 @@ export interface operations {
     };
     abort_manual_session: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Identifier of the scraping session containing item and torrent context. */
@@ -4833,7 +5069,9 @@ export interface operations {
     };
     complete_manual_session: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Identifier of the scraping session containing item and torrent context. */
@@ -4865,7 +5103,9 @@ export interface operations {
     };
     parse_torrent_titles: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4903,6 +5143,7 @@ export interface operations {
                 filter?: ("all" | "approved" | "available" | "pending" | "processing" | "unavailable" | "failed" | "deleted" | "completed") | null;
                 /** @description Number of requests to fetch */
                 take?: number;
+                api_key?: string | null;
             };
             header?: never;
             path?: never;
@@ -4932,7 +5173,9 @@ export interface operations {
     };
     auto_scrape_item: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4965,7 +5208,9 @@ export interface operations {
     };
     get_settings_schema: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4990,11 +5235,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     load_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5016,12 +5272,23 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
     save_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5044,11 +5311,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_all_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5071,11 +5349,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Comma-separated list of settings paths */
@@ -5116,7 +5405,9 @@ export interface operations {
     };
     set_all_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5158,7 +5449,9 @@ export interface operations {
     };
     set_settings: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5198,7 +5491,9 @@ export interface operations {
     };
     overseerr_api_v1_webhook_overseerr_post: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5221,11 +5516,22 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     get_event_types_api_v1_stream_event_types_get: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5248,15 +5554,66 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     stream_events_api_v1_stream__event_type__get: {
         parameters: {
-            query?: never;
+            query?: {
+                api_key?: string | null;
+            };
             header?: never;
             path: {
                 /** @description The type of event to stream */
                 event_type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_file_api_v1_stream_file__item_id__get: {
+        parameters: {
+            query?: {
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
             };
             cookie?: never;
         };
