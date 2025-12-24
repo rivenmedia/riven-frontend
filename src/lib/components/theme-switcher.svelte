@@ -9,6 +9,7 @@
         amethysthaze: "Amethyst Haze",
         bubblegum: "Bubblegum",
         caffeine: "Caffeine",
+        catppuccin: "Catppuccin",
         cyberpunk: "Cyberpunk",
         darkmatter: "Dark Matter",
         doom64: "Doom 64",
