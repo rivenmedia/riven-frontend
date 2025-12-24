@@ -3,7 +3,7 @@ FROM node:24-alpine AS frontend
 WORKDIR /app
 COPY . .
 RUN npm install -g pnpm && pnpm install
-RUN pnpm run build && pnpm prune --prod
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build && pnpm prune --prod
 
 # Final Image
 FROM node:24-alpine

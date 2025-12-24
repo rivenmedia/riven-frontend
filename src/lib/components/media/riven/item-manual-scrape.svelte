@@ -1234,7 +1234,8 @@
 
                     <Accordion.Root type="single" collapsible>
                         <Accordion.Item value="custom-params">
-                            <Accordion.Trigger>Custom Scrape Parameters</Accordion.Trigger>
+                            <Accordion.Trigger class="hover:no-underline"
+                                >Custom Scrape Parameters</Accordion.Trigger>
                             <Accordion.Content>
                                 <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2">
                                     <div class="flex flex-col gap-2">
