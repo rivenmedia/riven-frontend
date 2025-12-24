@@ -20,12 +20,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? item.tmdb_id
                 : item.type === "show"
-                    ? item.tvdb_id
-                    : item.type === "season"
-                        ? item.parent_ids.tvdb_id
-                        : item.type === "episode"
-                            ? item.parent_ids.tvdb_id
-                            : null,
+                  ? item.tvdb_id
+                  : item.type === "season"
+                    ? item.parent_ids.tvdb_id
+                    : item.type === "episode"
+                      ? item.parent_ids.tvdb_id
+                      : null,
         title: item.title,
         poster_path: item.poster_path,
         media_type: item.type,
@@ -35,12 +35,12 @@ function transformItems(items: any[]) {
             item.type === "movie"
                 ? "movie"
                 : item.type === "show"
-                    ? "show"
-                    : item.type === "season"
-                        ? "season"
-                        : item.type === "episode"
-                            ? "episode"
-                            : "unknown",
+                  ? "show"
+                  : item.type === "season"
+                    ? "season"
+                    : item.type === "episode"
+                      ? "episode"
+                      : "unknown",
         riven_id: item.id
     }));
 }
@@ -76,4 +76,3 @@ export const load: PageServerLoad = async (event) => {
         itemsSearchForm
     };
 };
-

@@ -56,9 +56,11 @@ class ImdbService {
 
         try {
             const params = new URLSearchParams();
-            uniqueIds.forEach(id => params.append("titleIds", id));
+            uniqueIds.forEach((id) => params.append("titleIds", id));
 
-            const response = await customFetch(`https://api.imdbapi.dev/titles:batchGet?${params.toString()}`);
+            const response = await customFetch(
+                `https://api.imdbapi.dev/titles:batchGet?${params.toString()}`
+            );
 
             if (!response.ok) {
                 throw new Error(`IMDb API error: ${response.statusText}`);
@@ -67,13 +69,12 @@ class ImdbService {
             const data = await response.json();
 
             const titles: ImdbTitle[] = data.titles || [];
-            const titleMap = new Map(titles.map(t => [t.id, t]));
+            const titleMap = new Map(titles.map((t) => [t.id, t]));
 
             batch.forEach((req) => {
                 const title = titleMap.get(req.id);
                 req.resolve(title || null);
             });
-
         } catch (error) {
             console.error("IMDb Batch Fetch Error:", error);
             batch.forEach((req) => {

@@ -2,20 +2,18 @@
 
 ## [1.0.0-beta.3](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2025-12-24)
 
-
 ### Features
 
-* add catppuccin theme ([#286](https://github.com/rivenmedia/riven-frontend/issues/286)) ([5d1e8f2](https://github.com/rivenmedia/riven-frontend/commit/5d1e8f2958d7c5b0f71bbd406b466d6eb2613836))
-* add custom fetch to support retries on failure and auth improvements & fixes ([#277](https://github.com/rivenmedia/riven-frontend/issues/277)) ([1641b72](https://github.com/rivenmedia/riven-frontend/commit/1641b72cfd52b84f531901039d668f9b40b7b5cf))
-* add custom title and IMDB ID input fields for manual scraping ([#287](https://github.com/rivenmedia/riven-frontend/issues/287)) ([d93ee74](https://github.com/rivenmedia/riven-frontend/commit/d93ee74815b37188983686baf638560ed4bd2c3f))
-* generic oauth2 ([#281](https://github.com/rivenmedia/riven-frontend/issues/281)) ([#282](https://github.com/rivenmedia/riven-frontend/issues/282)) ([eea412b](https://github.com/rivenmedia/riven-frontend/commit/eea412b40c5bb1765573afa7b83917dedd53836a))
-* implement batched IMDb title fetching ([#283](https://github.com/rivenmedia/riven-frontend/issues/283)) ([326c9f5](https://github.com/rivenmedia/riven-frontend/commit/326c9f5025a7262e4ada50bd476952ef7b76f20b))
-* manual scraping ([#280](https://github.com/rivenmedia/riven-frontend/issues/280)) ([57e9d37](https://github.com/rivenmedia/riven-frontend/commit/57e9d37e4d3547b4d793249220d09ae4edec3610))
-
+- add catppuccin theme ([#286](https://github.com/rivenmedia/riven-frontend/issues/286)) ([5d1e8f2](https://github.com/rivenmedia/riven-frontend/commit/5d1e8f2958d7c5b0f71bbd406b466d6eb2613836))
+- add custom fetch to support retries on failure and auth improvements & fixes ([#277](https://github.com/rivenmedia/riven-frontend/issues/277)) ([1641b72](https://github.com/rivenmedia/riven-frontend/commit/1641b72cfd52b84f531901039d668f9b40b7b5cf))
+- add custom title and IMDB ID input fields for manual scraping ([#287](https://github.com/rivenmedia/riven-frontend/issues/287)) ([d93ee74](https://github.com/rivenmedia/riven-frontend/commit/d93ee74815b37188983686baf638560ed4bd2c3f))
+- generic oauth2 ([#281](https://github.com/rivenmedia/riven-frontend/issues/281)) ([#282](https://github.com/rivenmedia/riven-frontend/issues/282)) ([eea412b](https://github.com/rivenmedia/riven-frontend/commit/eea412b40c5bb1765573afa7b83917dedd53836a))
+- implement batched IMDb title fetching ([#283](https://github.com/rivenmedia/riven-frontend/issues/283)) ([326c9f5](https://github.com/rivenmedia/riven-frontend/commit/326c9f5025a7262e4ada50bd476952ef7b76f20b))
+- manual scraping ([#280](https://github.com/rivenmedia/riven-frontend/issues/280)) ([57e9d37](https://github.com/rivenmedia/riven-frontend/commit/57e9d37e4d3547b4d793249220d09ae4edec3610))
 
 ### Build System and Dependencies
 
-* update backend api spec ([0d1cfb4](https://github.com/rivenmedia/riven-frontend/commit/0d1cfb45d9be8bf2bc8ae5fd18ac041ffa5db946))
+- update backend api spec ([0d1cfb4](https://github.com/rivenmedia/riven-frontend/commit/0d1cfb45d9be8bf2bc8ae5fd18ac041ffa5db946))
 
 ## [1.0.0-beta.2](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2025-12-17)
 

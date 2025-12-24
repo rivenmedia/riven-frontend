@@ -1240,9 +1240,8 @@
                                         <Input
                                             id="custom-title"
                                             placeholder="e.g. French Title"
-                                            bind:value={customTitle}
-                                        />
-                                        <p class="text-xs text-muted-foreground">
+                                            bind:value={customTitle} />
+                                        <p class="text-muted-foreground text-xs">
                                             Override the title used for searching.
                                         </p>
                                     </div>
@@ -1251,9 +1250,8 @@
                                         <Input
                                             id="custom-imdb"
                                             placeholder="tt1234567"
-                                            bind:value={customImdbId}
-                                        />
-                                        <p class="text-xs text-muted-foreground">
+                                            bind:value={customImdbId} />
+                                        <p class="text-muted-foreground text-xs">
                                             Override the IMDB ID used for searching.
                                         </p>
                                     </div>
