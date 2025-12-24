@@ -2,6 +2,7 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { imdbService } from "$lib/services/imdb";
 
 interface RatingScore {
     name: string;
@@ -92,19 +93,15 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
 
         if (imdbId) {
             try {
-                const url = "https://api.imdbapi.dev/titles/" + imdbId;
-                const imdbResponse = await customFetch(url);
-                if (imdbResponse.ok) {
-                    const imdbData = await imdbResponse.json();
-                    const imdbRating = imdbData?.rating?.aggregateRating;
+                const imdbData = await imdbService.getTitle(imdbId);
+                const imdbRating = imdbData?.rating?.aggregateRating;
 
-                    if (imdbRating) {
-                        scores.push({
-                            name: "imdb",
-                            image: "imdb.png",
-                            score: imdbRating
-                        });
-                    }
+                if (imdbRating) {
+                    scores.push({
+                        name: "imdb",
+                        image: "imdb.png",
+                        score: imdbRating
+                    });
                 }
             } catch (e) {
                 console.error("IMDB rating fetch failed:", e);
