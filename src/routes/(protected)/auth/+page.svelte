@@ -28,7 +28,7 @@
     <div class="mt-4 flex flex-col gap-4">
         <div class="flex flex-row items-center gap-4">
             <img
-                src={data.user.image || "https://avatar.iran.liara.run/public"}
+                src={data.user.image || "https://i.pravatar.cc/200"}
                 alt={data.user.name}
                 class="h-16 w-16 rounded-full object-cover" />
             <div>

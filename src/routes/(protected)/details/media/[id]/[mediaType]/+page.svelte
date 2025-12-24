@@ -422,7 +422,7 @@
                                                         class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
                                                         src={cast.profile_path
                                                             ? cast.profile_path
-                                                            : "https://avatar.iran.liara.run/public"}
+                                                            : "https://i.pravatar.cc/200"}
                                                         loading="lazy" />
                                                 </a>
                                             {/snippet}
@@ -656,7 +656,7 @@
                                                             class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
                                                             src={company.logo_path
                                                                 ? company.logo_path
-                                                                : "https://avatar.iran.liara.run/public"}
+                                                                : "https://i.pravatar.cc/200"}
                                                             loading="lazy" />
                                                     </div>
                                                 {/snippet}

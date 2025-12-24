@@ -74,7 +74,7 @@
                 {#snippet trigger()}
                     <Avatar.Root class="cursor-pointer">
                         <Avatar.Image
-                            src={user.image || "https://avatar.iran.liara.run/public"}
+                            src={user.image || "https://i.pravatar.cc/200"}
                             alt={user.name} />
                         <Avatar.Fallback>CN</Avatar.Fallback>
                     </Avatar.Root>
@@ -104,7 +104,7 @@
             </Button>
         {:else}
             <Avatar.Root class="cursor-pointer">
-                <Avatar.Image src="https://avatar.iran.liara.run/public" alt="@guest" />
+                <Avatar.Image src="https://i.pravatar.cc/200" alt="@guest" />
                 <Avatar.Fallback>G</Avatar.Fallback>
             </Avatar.Root>
         {/if}
@@ -119,7 +119,7 @@
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-poiter">
                         <Avatar.Image
-                            src={user.image || "https://avatar.iran.liara.run/public"}
+                            src={user.image || "https://i.pravatar.cc/200"}
                             alt={user.username} />
                         <Avatar.Fallback>CN</Avatar.Fallback>
                     </Avatar.Root>
@@ -152,7 +152,7 @@
             {:else}
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-pointer">
-                        <Avatar.Image src="https://avatar.iran.liara.run/public" alt="@guest" />
+                        <Avatar.Image src="https://i.pravatar.cc/200" alt="@guest" />
                         <Avatar.Fallback>G</Avatar.Fallback>
                     </Avatar.Root>
                     <p class="font-medium">Guest</p>
