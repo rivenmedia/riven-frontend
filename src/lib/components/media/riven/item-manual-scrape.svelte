@@ -483,9 +483,17 @@
 
             Object.entries(selectedOptions).forEach(([key, value]) => {
                 if (
-                    ["resolutions", "quality", "rips", "hdr", "audio", "extras", "trash"].includes(
-                        key
-                    )
+                    [
+                        "resolutions",
+                        "quality",
+                        "rips",
+                        "hdr",
+                        "audio",
+                        "extras",
+                        "trash",
+                        "require",
+                        "exclude"
+                    ].includes(key)
                 ) {
                     rankingOverrides[key] = value;
                 } else {
