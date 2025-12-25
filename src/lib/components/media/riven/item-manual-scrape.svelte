@@ -483,23 +483,15 @@
             const topLevelOptions: Record<string, string[]> = {};
 
             Object.entries(selectedOptions).forEach(([key, value]) => {
-                if (value.length > 0) {
-                    if (
-                        [
-                            "resolutions",
-                            "quality",
-                            "rips",
-                            "hdr",
-                            "audio",
-                            "extras",
-                            "trash"
-                        ].includes(key)
-                    ) {
-                        rankingOverrides[key] = value;
-                    } else {
-                        // @ts-ignore
-                        topLevelOptions[key] = value;
-                    }
+                if (
+                    ["resolutions", "quality", "rips", "hdr", "audio", "extras", "trash"].includes(
+                        key
+                    )
+                ) {
+                    rankingOverrides[key] = value;
+                } else {
+                    // @ts-ignore
+                    topLevelOptions[key] = value;
                 }
             });
 
