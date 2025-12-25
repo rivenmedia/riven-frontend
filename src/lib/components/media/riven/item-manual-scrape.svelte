@@ -286,7 +286,6 @@
             }
 
             if (disableBitrateCheck) {
-                // @ts-ignore
                 queryParams.disable_bitrate_check = true;
             }
 
