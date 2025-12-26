@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.0-beta.4](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2025-12-26)
+
+
+### Bug Fixes
+
+* change random avatar generator link ([d1a6b2c](https://github.com/rivenmedia/riven-frontend/commit/d1a6b2c235237128395a45ae1046b384cdbf5a4a))
+
+
+### Miscellaneous Chores
+
+* format ([2702e90](https://github.com/rivenmedia/riven-frontend/commit/2702e90e13893b422dd97af0f5a40ab3ad916ca8))
+
+
+### Build System and Dependencies
+
+* update api endpoints spec ([f25f491](https://github.com/rivenmedia/riven-frontend/commit/f25f491b756141349d04a199767705021e339f0c))
+* update deps ([4513a83](https://github.com/rivenmedia/riven-frontend/commit/4513a83d1e7d0eb94184045341813d6a92f52c1d))
+
 ## [1.0.0-beta.3](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2025-12-24)
 
 ### Features
