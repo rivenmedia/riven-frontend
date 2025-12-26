@@ -21,6 +21,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/database/backup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Backup Database
+         * @description Create a backup of the database and return the backup filename.
+         *
+         *     The backup is stored in ./data/db_snapshot/ directory.
+         */
+        post: operations["backup_database"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/database/backup/download/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Backup
+         * @description Download a database backup file by filename.
+         *
+         *     Use the filename returned from the /backup endpoint.
+         */
+        get: operations["download_backup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/database/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Database
+         * @description Restore the database from a backup.
+         *
+         *     Provide either:
+         *     - filename: Name of an existing backup file in the db_snapshot folder
+         *     - file: Upload a SQL backup file to restore from
+         *
+         *     If neither is provided, restores from 'latest.sql'.
+         */
+        post: operations["restore_database"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/database/backup/clean": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clean Snapshots Endpoint
+         * @description Clean database snapshot files.
+         *
+         *     If filename is provided, deletes only that specific snapshot.
+         *     If no filename is provided, deletes all snapshots.
+         */
+        delete: operations["clean_snapshots"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -262,6 +355,26 @@ export interface paths {
         get: operations["get_vfs_stats"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/debug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Debug Bundle
+         * @description Upload logs and create database backup for debugging purposes
+         */
+        post: operations["generate_debug_bundle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1200,6 +1313,12 @@ export interface components {
              */
             item_id?: number | null;
             /**
+             * Disable Bitrate Check
+             * @description Disable bitrate check for this scrape
+             * @default false
+             */
+            disable_bitrate_check: boolean;
+            /**
              * Tmdb Id
              * @description The TMDB ID of the media item
              */
@@ -1222,6 +1341,28 @@ export interface components {
             /** @description Ranking overrides for the media item */
             ranking_overrides?: components["schemas"]["RankingOverrides"] | null;
         };
+        /** BackupResponse */
+        BackupResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
+            /** Filename */
+            filename?: string | null;
+        };
+        /** Body_restore_database */
+        Body_restore_database: {
+            /**
+             * Filename
+             * @description Name of backup file in db_snapshot folder to restore from
+             */
+            filename?: string | null;
+            /**
+             * File
+             * @description SQL backup file to upload and restore from
+             */
+            file?: string | null;
+        };
         /** CalendarResponse */
         CalendarResponse: {
             /**
@@ -1233,6 +1374,15 @@ export interface components {
                     [key: string]: unknown;
                 };
             };
+        };
+        /** CleanSnapshotsResponse */
+        CleanSnapshotsResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
+            /** Deleted Files */
+            deleted_files: string[];
         };
         /** CometConfig */
         CometConfig: {
@@ -1376,6 +1526,34 @@ export interface components {
              */
             api_key: string;
         };
+        /** DebugResponse */
+        DebugResponse: {
+            /** Success */
+            success: boolean;
+            /**
+             * Log Url
+             * @description URL to the uploaded log file
+             */
+            log_url: string | null;
+            /**
+             * Db Backup Filename
+             * @description Filename of the database backup
+             */
+            db_backup_filename: string | null;
+            /**
+             * System Info
+             * @description System information
+             */
+            system_info: {
+                [key: string]: unknown;
+            };
+            /**
+             * Errors
+             * @description List of any errors that occurred
+             * @default []
+             */
+            errors: string[];
+        };
         /**
          * DownloaderUserInfo
          * @description Normalized downloader user information response
@@ -1425,25 +1603,25 @@ export interface components {
             video_extensions?: string[];
             /**
              * Movie Bitrate Mbps Min
-             * @description Minimum bitrate in Mbps for movies (0 for no limit)
+             * @description Minimum bitrate in Mbps for movies (-1 for no limit)
              * @default 1
              */
             movie_bitrate_mbps_min: number;
             /**
              * Movie Bitrate Mbps Max
-             * @description Maximum bitrate in Mbps for movies (0 for no limit)
+             * @description Maximum bitrate in Mbps for movies (-1 for no limit)
              * @default -1
              */
             movie_bitrate_mbps_max: number;
             /**
              * Episode Bitrate Mbps Min
-             * @description Minimum bitrate in Mbps for episodes (0 for no limit)
+             * @description Minimum bitrate in Mbps for episodes (-1 for no limit)
              * @default 1
              */
             episode_bitrate_mbps_min: number;
             /**
              * Episode Bitrate Mbps Max
-             * @description Maximum bitrate in Mbps for episodes (0 for no limit)
+             * @description Maximum bitrate in Mbps for episodes (-1 for no limit)
              * @default -1
              */
             episode_bitrate_mbps_max: number;
@@ -2770,6 +2948,13 @@ export interface components {
              */
             unknown: boolean;
         };
+        /** RestoreResponse */
+        RestoreResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
+        };
         /** RetryResponse */
         RetryResponse: {
             /** Message */
@@ -3486,6 +3671,163 @@ export interface operations {
             };
         };
     };
+    backup_database: {
+        parameters: {
+            query?: {
+                api_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_backup: {
+        parameters: {
+            query?: {
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                filename: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_database: {
+        parameters: {
+            query?: {
+                api_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_restore_database"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clean_snapshots: {
+        parameters: {
+            query?: {
+                filename?: string | null;
+                api_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CleanSnapshotsResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: {
@@ -3964,6 +4306,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VFSStatsResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_debug_bundle: {
+        parameters: {
+            query?: {
+                api_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DebugResponse"];
                 };
             };
             /** @description Not found */
@@ -4815,6 +5195,8 @@ export interface operations {
                 custom_title?: string | null;
                 /** @description Custom IMDB ID to use for scraping */
                 custom_imdb_id?: string | null;
+                /** @description JSON string of ranking overrides */
+                ranking_overrides?: string | null;
                 api_key?: string | null;
             };
             header?: never;
