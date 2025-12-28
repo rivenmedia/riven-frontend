@@ -166,6 +166,13 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
         });
     } catch (e) {
         console.error("Rating fetch error:", e);
-        throw error(500, "Failed to fetch ratings");
+        // Return partial results instead of throwing 500
+        return json({
+            scores: [],
+            tmdbId: Number(tmdbId),
+            mediaType,
+            imdbId: null,
+            error: "Failed to fetch some ratings"
+        });
     }
 };

@@ -128,7 +128,8 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         );
 
         if (detailsError) {
-            error(500, detailsError);
+            console.error("TMDB movie details fetch failed:", detailsError);
+            error(503, "Unable to connect to TMDB. Please try again later.");
         }
 
         const { traktRecs } = await getTraktData(customFetch, id, true);
@@ -166,7 +167,8 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         );
 
         if (detailsError) {
-            error(500, detailsError);
+            console.error("TVDB show details fetch failed:", detailsError);
+            error(503, "Unable to connect to TVDB. Please try again later.");
         }
 
         const languagesToCheck = ["jpn", "kor", "chi", "zho"];

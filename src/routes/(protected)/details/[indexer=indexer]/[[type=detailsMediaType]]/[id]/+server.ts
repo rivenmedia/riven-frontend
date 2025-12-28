@@ -13,26 +13,35 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
                 case "movie":
                     throw redirect(307, `/details/media/${id}/movie`);
                 case "tv": {
-                    const showExternalIDs = await providers.tmdb.GET(
-                        "/3/tv/{series_id}/external_ids",
-                        {
-                            params: {
-                                path: {
-                                    series_id: Number(id)
-                                }
-                            },
-                            fetch: customFetch
+                    try {
+                        const showExternalIDs = await providers.tmdb.GET(
+                            "/3/tv/{series_id}/external_ids",
+                            {
+                                params: {
+                                    path: {
+                                        series_id: Number(id)
+                                    }
+                                },
+                                fetch: customFetch
+                            }
+                        );
+
+                        if (showExternalIDs.error) {
+                            throw error(404, "Show not found");
                         }
-                    );
 
-                    if (showExternalIDs.error) {
-                        throw error(404, "Show not found");
-                    }
-
-                    if (showExternalIDs.data.tvdb_id) {
-                        throw redirect(307, `/details/media/${showExternalIDs.data.tvdb_id}/tv`);
-                    } else {
-                        throw error(404, "TVDB ID not found for this show");
+                        if (showExternalIDs.data.tvdb_id) {
+                            throw redirect(307, `/details/media/${showExternalIDs.data.tvdb_id}/tv`);
+                        } else {
+                            throw error(404, "TVDB ID not found for this show");
+                        }
+                    } catch (e) {
+                        // Re-throw redirect errors
+                        if (e && typeof e === "object" && "status" in e && (e as { status: number }).status === 307) {
+                            throw e;
+                        }
+                        console.error("Failed to fetch TMDB external IDs:", e);
+                        throw error(503, "Unable to connect to TMDB. Please try again later.");
                     }
                 }
                 case undefined:
