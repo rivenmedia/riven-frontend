@@ -3,7 +3,17 @@
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
-    import type { ScrapeSeasonRequest } from "$lib/types";
+    import type {
+        ScrapeSeasonRequest,
+        Stream,
+        StartSessionResponse,
+        DebridFile,
+        Container,
+        ShowFileData,
+        FileMapping,
+        ParsedTitleData,
+        BatchSession
+    } from "$lib/types";
 
     type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
 
@@ -40,13 +50,6 @@
     import StreamItem from "./stream-item.svelte";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
 
-    type Stream = components["schemas"]["Stream"];
-    type StartSessionResponse = components["schemas"]["StartSessionResponse"];
-    type DebridFile = components["schemas"]["DebridFile"];
-    type Container = components["schemas"]["Container"];
-    type ShowFileData = components["schemas"]["ShowFileData"];
-    type ParsedData = components["schemas"]["ParsedData"];
-
     interface Props {
         title: string | null | undefined;
         itemId?: string | null;
@@ -76,27 +79,6 @@
         ...restProps
     }: Props = $props();
 
-    interface FileMapping {
-        file_id: string;
-        filename: string;
-        filesize: number;
-        season?: number;
-        episode?: number;
-        download_url?: string | null;
-    }
-
-    interface ParsedTitleData {
-        seasons?: number[];
-        episodes?: number[];
-        resolution?: string;
-        quality?: string;
-        hdr?: string[];
-        codec?: string;
-        audio?: string[];
-        languages?: string[];
-        complete?: boolean;
-    }
-
     interface FileSelection {
         file_id: number;
         filename: string;
@@ -104,16 +86,6 @@
     }
 
     type UpdateBody = DebridFile | ShowFileData;
-
-    interface BatchSession {
-        sessionId: string;
-        magnet: string;
-        stream: Stream;
-        sessionData: StartSessionResponse;
-        mappings: FileMapping[];
-        status: "pending" | "completed" | "error";
-        error?: string;
-    }
 
     let open = $state(false);
     let step = $state(1);

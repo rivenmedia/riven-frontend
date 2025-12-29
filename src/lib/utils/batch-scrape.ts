@@ -1,31 +1,12 @@
 import providers from "$lib/providers";
-import type { components } from "$lib/providers/riven";
-
-type Stream = components["schemas"]["Stream"];
-type Container = components["schemas"]["Container"];
-
-interface ParsedTitleData {
-    filename?: string;
-    original_filename?: string;
-    seasons?: number[];
-    episodes?: number[];
-    resolution?: string;
-    quality?: string;
-    hdr?: string[];
-    codec?: string;
-    audio?: string[];
-    languages?: string[];
-    complete?: boolean;
-}
-
-interface FileMapping {
-    file_id: string;
-    filename: string;
-    filesize: number;
-    season?: number;
-    episode?: number;
-    download_url?: string;
-}
+import type {
+    Stream,
+    FileMapping,
+    ParsedTitleData,
+    ContainerBody,
+    ShowUpdateBody,
+    DebridFile
+} from "$lib/types";
 
 interface ProcessBatchItemParams {
     magnet: string;
@@ -111,18 +92,7 @@ export async function processBatchItem({
     }
 
     // 3. Select Files (Auto-select based on logic)
-    const container: any = {}; // Container is TorrentContainer? alias via types.gen.ts
-    // TorrentContainer interface has files?: { [key: string]: TorrentFile } ...
-    // BUT here container is being used as body for manualSelect.
-    // manualSelect body expecting? riven.ts: /api/v1/scrape/select_files/{session_id}.
-    // Op: manual_select. Input: DebridContainer (likely).
-    // Let's check manual_select body type in riven.ts later. Assuming it matches Container alias.
-    // Actually previous code: container[file_id] = { ... }.
-    // If Container alias is TorrentContainer (from riven.ts), it has structure.
-    // But manualSelect likely takes a simpler structure or matches.
-
-    // Using any for container build to avoid strict type mess if alias is partial
-    const containerBody: any = {};
+    const containerBody: ContainerBody = {};
 
     fileMappings.forEach((m) => {
         containerBody[m.file_id] = {
@@ -138,7 +108,7 @@ export async function processBatchItem({
     });
 
     // 4. Update Attributes
-    let updateBody: any;
+    let updateBody: DebridFile | ShowUpdateBody;
     if (mediaType === "movie") {
         if (fileMappings.length > 0) {
             const largestFile = fileMappings.reduce((prev, current) =>
@@ -155,7 +125,7 @@ export async function processBatchItem({
             updateBody = {};
         }
     } else {
-        updateBody = {};
+        const showUpdateBody: ShowUpdateBody = {};
 
         // Find the stream object to get torrent-level metadata
         const streamObj = streams.find((s) => s.magnet === magnet)?.stream;
@@ -170,10 +140,10 @@ export async function processBatchItem({
             if (season !== undefined && episode !== undefined) {
                 const seasonKey = season.toString();
                 const episodeKey = episode.toString();
-                if (!updateBody[seasonKey]) {
-                    updateBody[seasonKey] = {};
+                if (!showUpdateBody[seasonKey]) {
+                    showUpdateBody[seasonKey] = {};
                 }
-                updateBody[seasonKey][episodeKey] = {
+                showUpdateBody[seasonKey][episodeKey] = {
                     file_id: parseInt(mapping.file_id),
                     filename: mapping.filename,
                     filesize: mapping.filesize,
@@ -187,6 +157,7 @@ export async function processBatchItem({
             console.warn(`Could not map any files for torrent: ${streamObj?.raw_title || magnet}`);
             // We still proceed to complete session, effectively skipping this torrent but closing the session
         }
+        updateBody = showUpdateBody;
     }
 
     await providers.riven.POST("/api/v1/scrape/update_attributes/{session_id}", {
