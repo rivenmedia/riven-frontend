@@ -2,6 +2,9 @@ import { error } from "@sveltejs/kit";
 import type { RequestHandler, RequestEvent } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { produce } from "sveltekit-sse";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("scrape-stream");
 
 /**
  * SSE proxy endpoint for streaming scrape results.
@@ -15,7 +18,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
     const backendUrl = env.BACKEND_URL;
     if (!backendUrl) {
-        console.error("Scrape stream proxy: BACKEND_URL is not configured");
+        logger.error("Scrape stream proxy: BACKEND_URL is not configured");
         error(500, "Backend URL is not configured");
     }
 
@@ -36,7 +39,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
             if (!response.ok) {
                 const text = await response.text();
-                console.error(`Scrape stream proxy error ${response.status}: ${text}`);
+                logger.error(`Scrape stream proxy error ${response.status}: ${text}`);
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -45,7 +48,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
             const reader = response.body?.getReader();
             if (!reader) {
-                console.error("Scrape stream proxy: No response body");
+                logger.error("Scrape stream proxy: No response body");
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -78,7 +81,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             }
         } catch (e) {
             if (!(e instanceof Error && e.name === "AbortError")) {
-                console.error("Scrape stream proxy: Connection error:", e);
+                logger.error("Scrape stream proxy: Connection error:", e);
             }
         } finally {
             lock.set(false);

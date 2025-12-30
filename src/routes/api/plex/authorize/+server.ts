@@ -3,6 +3,9 @@ import type { RequestHandler } from "./$types";
 import { env } from "$env/dynamic/private";
 import { generatePlexPin, buildPlexAuthUrl, getDefaultPlexOptions } from "$lib/server/plex-oauth";
 import { dev } from "$app/environment";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("plex-authorize");
 
 /**
  * Custom Plex authorization endpoint
@@ -56,7 +59,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         if (error && typeof error === "object" && "status" in error && "location" in error) {
             throw error;
         }
-        console.error("Plex authorize error:", error);
+        logger.error("Plex authorize error:", error);
         redirect(302, "/auth/login?error=plex_auth_failed");
     }
 };

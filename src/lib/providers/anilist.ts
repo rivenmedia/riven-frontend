@@ -1,3 +1,7 @@
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("anilist");
+
 export type AnilistTrendingResponse = {
     data: {
         Page: {
@@ -81,13 +85,13 @@ export async function getTrending(fetch: FetchFunction, page: number = 1) {
         const data = await response.json();
 
         if (data.errors) {
-            console.error("GraphQL errors:", data.errors);
+            logger.error("GraphQL errors:", data.errors);
             return null;
         }
 
         return data as AnilistTrendingResponse;
     } catch (error) {
-        console.error("Fetch error:", error);
+        logger.error("Fetch error:", error);
         return null;
     }
 }
@@ -109,13 +113,13 @@ export async function getMediaDetails(anilistId: number, fetch: FetchFunction) {
         const data = await response.json();
 
         if (data.errors) {
-            console.error("GraphQL errors:", data.errors);
+            logger.error("GraphQL errors:", data.errors);
             return null;
         }
 
         return data as AnilistMediaRatingsResponse;
     } catch (error) {
-        console.error("Fetch error:", error);
+        logger.error("Fetch error:", error);
         return null;
     }
 }

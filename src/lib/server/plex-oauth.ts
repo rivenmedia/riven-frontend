@@ -16,6 +16,9 @@
  */
 
 import type { GenericOAuthConfig } from "better-auth/plugins";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("plex-oauth");
 
 export interface PlexProfile {
     id: number;
@@ -309,7 +312,7 @@ export function plexOAuth(options: PlexOAuthOptions & { baseURL?: string }): Gen
                     emailVerified: profile.emailOnlyAuth
                 };
             } catch (error) {
-                console.error("Failed to fetch user info from Plex:", error);
+                logger.error("Failed to fetch user info from Plex:", error);
                 return null;
             }
         }

@@ -49,6 +49,9 @@
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("manual-scrape");
 
     interface Props {
         title: string | null | undefined;
@@ -235,7 +238,7 @@
 
             step = 6; // Batch Confirmation Step
         } catch (e) {
-            console.error("Batch preparation failed", e);
+            logger.error("Batch preparation failed", e);
             toast.error("Failed to prepare batch sessions");
         } finally {
             preparingBatch = false;
@@ -318,7 +321,7 @@
                 }
             }
         } catch (e) {
-            console.error(`Failed to prepare session for ${magnet}`, e);
+            logger.error(`Failed to prepare session for ${magnet}`, e);
         }
     }
 
@@ -412,7 +415,7 @@
                 selectedOptions = newSelectedOptions;
             }
         } catch (e) {
-            console.error("Failed to fetch settings", e);
+            logger.error("Failed to fetch settings", e);
         } finally {
             settingsLoading = false;
         }
@@ -507,7 +510,7 @@
                         }
                     })
                     .catch((e) => {
-                        console.error("Auto scrape failed", e);
+                        logger.error("Auto scrape failed", e);
                         toast.error("An error occurred starting the scrape");
                     });
 
@@ -733,7 +736,7 @@
                         loading = false;
                         toast.success(`Found ${data.total_streams} streams`);
                     } else if (data.event === "error") {
-                        console.error("Streaming scrape error:", data.message);
+                        logger.error("Streaming scrape error:", data.message);
                         // Don't stop streaming, just log the error - partial results may still be useful
                         streamingProgress = {
                             ...streamingProgress,
@@ -741,12 +744,12 @@
                         };
                     }
                 } catch (e) {
-                    console.error("Failed to parse SSE event:", e);
+                    logger.error("Failed to parse SSE event:", e);
                 }
             };
 
             eventSource.onerror = (err) => {
-                console.error("EventSource error:", err);
+                logger.error("EventSource error:", err);
                 eventSource.close();
                 eventSourceRef = null;
 
@@ -922,7 +925,7 @@
             );
 
             if (!updateData) {
-                console.error(updateErr);
+                logger.error(updateErr);
                 const errorMsg = (updateErr as any)?.message || "Failed to update attributes";
                 error = errorMsg;
                 toast.error(errorMsg);
@@ -1039,7 +1042,7 @@
                     // Update session status
                     session.status = "completed";
                 } catch (e) {
-                    console.error(`Failed to process session ${session.sessionId}`, e);
+                    logger.error(`Failed to process session ${session.sessionId}`, e);
                     session.status = "error";
                     session.error = e instanceof Error ? e.message : "Unknown error";
                 }
@@ -1050,7 +1053,7 @@
             resetFlow();
             await invalidateAll();
         } catch (e) {
-            console.error("Batch completion failed", e);
+            logger.error("Batch completion failed", e);
             toast.error("Batch completion failed");
         } finally {
             loading = false;

@@ -3,6 +3,9 @@ import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { ratingsCache } from "$lib/services/api-cache";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("ratings");
 
 interface RatingScore {
     name: string;
@@ -146,7 +149,7 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
             imdbId = tmdbData.data.external_ids?.imdb_id || null;
         }
     } catch (e) {
-        console.error("[ratings] TMDB fetch failed:", e);
+        logger.error("[ratings] TMDB fetch failed:", e);
     }
 
     // Fetch IMDB rating via Radarr's public proxy
@@ -176,7 +179,7 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                 }
             }
         } catch (e) {
-            console.error("[ratings] Radarr IMDB proxy failed:", e);
+            logger.error("[ratings] Radarr IMDB proxy failed:", e);
         }
     }
 
@@ -242,7 +245,7 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                 }
             }
         } catch (e) {
-            console.error("[ratings] Rotten Tomatoes fetch failed:", e);
+            logger.error("[ratings] Rotten Tomatoes fetch failed:", e);
         }
     }
 

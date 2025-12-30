@@ -4,6 +4,9 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { toast } from "svelte-sonner";
     import { logStore, type LogEntry } from "$lib/stores/logs.svelte";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("logs-page");
 
     const {
         logs,
@@ -83,7 +86,7 @@
                 );
             }
         } catch (e: any) {
-            console.error("Failed to upload logs:", e);
+            logger.error("Failed to upload logs:", e);
         }
     }
 </script>

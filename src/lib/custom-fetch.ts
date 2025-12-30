@@ -1,3 +1,7 @@
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("fetch");
+
 type FetchFn = typeof fetch;
 
 interface RetryConfig {
@@ -152,8 +156,8 @@ export function createCustomFetch(
                 }
 
                 if (attempt < retryConfig.maxAttempts) {
-                    console.warn(
-                        `[custom-fetch] Request to ${url} failed with status ${response.status}. ` +
+                    logger.warn(
+                        `Request to ${url} failed with status ${response.status}. ` +
                             `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
                     );
                     await sleep(delay);
@@ -163,8 +167,8 @@ export function createCustomFetch(
 
                 if (attempt < retryConfig.maxAttempts) {
                     const delay = calculateDelayWithJitter(retryConfig.baseDelay, attempt - 1);
-                    console.warn(
-                        `[custom-fetch] Request to ${url} failed with error: ${lastError.message}. ` +
+                    logger.warn(
+                        `Request to ${url} failed with error: ${lastError.message}. ` +
                             `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
                     );
                     await sleep(delay);
@@ -173,16 +177,16 @@ export function createCustomFetch(
         }
 
         if (lastResponse) {
-            console.error(
-                `[custom-fetch] Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
+            logger.error(
+                `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
                     `with status ${lastResponse.status}`
             );
             return lastResponse;
         }
 
         if (lastError) {
-            console.error(
-                `[custom-fetch] Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
+            logger.error(
+                `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
                     `with error: ${lastError.message}`
             );
             throw lastError;

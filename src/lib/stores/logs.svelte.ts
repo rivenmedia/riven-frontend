@@ -1,5 +1,8 @@
 import { source } from "sveltekit-sse";
 import providers from "$lib/providers";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("logs");
 
 export type LogEntry = {
     message?: string;
@@ -59,7 +62,7 @@ export class LogStore {
             this.#historicalLogs = response.data?.logs || [];
         } catch (e: unknown) {
             const message = e instanceof Error ? e.message : "Unknown error";
-            console.error("Failed to fetch historical logs:", e);
+            logger.error("Failed to fetch historical logs:", e);
             this.#historicalError = `Failed to fetch historical logs: ${message}`;
         } finally {
             this.#isLoadingHistorical = false;
@@ -90,7 +93,7 @@ export class LogStore {
                 }
             },
             error: (error) => {
-                console.error("Log stream error:", error);
+                logger.error("Log stream error:", error);
                 this.#error = "Connection error";
                 this.#connectionStatus = "error";
             }
@@ -98,7 +101,7 @@ export class LogStore {
 
         const logValue = this.#connection.select("log").json<LogEntry>(({ error, previous }) => {
             if (error) {
-                console.warn("Failed to parse log entry:", error);
+                logger.warn("Failed to parse log entry:", error);
             }
             return previous;
         });

@@ -4,6 +4,9 @@
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("item-pause");
 
     interface Props {
         title: string | null | undefined;
@@ -47,7 +50,7 @@
         if (response.data) {
             toast.success(`Media item ${isPaused ? "unpaused" : "paused"} successfully!`);
         } else {
-            console.error("Error response:", response.error);
+            logger.error("Error response:", response.error);
             toast.error(`Failed to ${isPaused ? "unpause" : "pause"} media item.`);
         }
     }

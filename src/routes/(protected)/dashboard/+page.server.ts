@@ -1,6 +1,9 @@
 import type { PageServerLoad } from "./$types";
 import providers from "$lib/providers";
 import { error } from "@sveltejs/kit";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("dashboard");
 
 export const load = (async ({ fetch, locals }) => {
     const [statistics, svc, downloaderInfo] = await Promise.all([
@@ -29,17 +32,17 @@ export const load = (async ({ fetch, locals }) => {
     ]);
 
     if (statistics.error) {
-        console.error("Statistics fetch error:", statistics.error);
+        logger.error("Statistics fetch error:", statistics.error);
         error(500, "Unable to fetch stats data");
     }
 
     if (svc.error) {
-        console.error("Services fetch error:", svc.error);
+        logger.error("Services fetch error:", svc.error);
         error(500, "Unable to fetch services data");
     }
 
     if (downloaderInfo.error) {
-        console.error("Downloader info fetch error:", downloaderInfo.error);
+        logger.error("Downloader info fetch error:", downloaderInfo.error);
         error(500, "Unable to fetch downloader info data");
     }
 

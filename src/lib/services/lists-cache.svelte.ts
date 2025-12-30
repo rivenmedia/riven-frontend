@@ -1,5 +1,8 @@
 import { browser } from "$app/environment";
 import { PersistedState } from "runed";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("lists-cache");
 
 interface CachedData<T> {
     items: T[];
@@ -237,7 +240,7 @@ export class MediaListStore<T = unknown> {
             this.#initialized = true;
             this.#setCachedData(items);
         } catch (error) {
-            console.error(`[MediaListStore:${this.#key}] Fetch error:`, error);
+            logger.error(`[MediaListStore:${this.#key}] Fetch error:`, error);
             this.#error = error instanceof Error ? error.message : String(error);
         } finally {
             this.#loading = false;
@@ -270,7 +273,7 @@ export class MediaListStore<T = unknown> {
                 this.#setCachedData(this.#items);
             }
         } catch (error) {
-            console.error(`[MediaListStore:${this.#key}] Load more error:`, error);
+            logger.error(`[MediaListStore:${this.#key}] Load more error:`, error);
             this.#error = error instanceof Error ? error.message : String(error);
             this.#page -= 1;
         } finally {

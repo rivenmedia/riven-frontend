@@ -8,6 +8,9 @@
     import { displaySize } from ".";
     import { useId } from "bits-ui";
     import type { FileDropZoneProps, FileRejectedReason } from "./types";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("file-drop-zone");
 
     let {
         id = useId(),
@@ -24,7 +27,7 @@
     }: FileDropZoneProps = $props();
 
     if (maxFiles !== undefined && fileCount === undefined) {
-        console.warn(
+        logger.warn(
             "Make sure to provide FileDropZone with `fileCount` when using the `maxFiles` prompt"
         );
     }

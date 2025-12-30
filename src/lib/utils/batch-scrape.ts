@@ -1,4 +1,8 @@
 import providers from "$lib/providers";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("batch-scrape");
+
 import type {
     Stream,
     FileMapping,
@@ -154,7 +158,7 @@ export async function processBatchItem({
         });
 
         if (mappedCount === 0) {
-            console.warn(`Could not map any files for torrent: ${streamObj?.raw_title || magnet}`);
+            logger.warn(`Could not map any files for torrent: ${streamObj?.raw_title || magnet}`);
             // We still proceed to complete session, effectively skipping this torrent but closing the session
         }
         updateBody = showUpdateBody;

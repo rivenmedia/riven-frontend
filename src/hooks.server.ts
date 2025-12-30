@@ -9,6 +9,9 @@ import { dev } from "$app/environment";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "$lib/server/db";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("hooks");
 
 export const init: ServerInit = async () => {
     if (!env.BACKEND_URL) {
@@ -18,6 +21,9 @@ export const init: ServerInit = async () => {
         throw new Error("BACKEND_API_KEY environment variable is required");
     }
     migrate(db, { migrationsFolder: "drizzle" });
+
+    // @ts-expect-error ignore
+    logger.box(`Riven Frontend v${__APP_VERSION__}`);
 };
 
 export const betterAuthHandler: Handle = async ({ event, resolve }) => {
@@ -67,7 +73,7 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
                 secure: !dev,
                 maxAge: 60 * 60 * 24 * 30 // 30 days
             });
-            console.log("Set TVDB cookie");
+            logger.info("Set TVDB cookie");
         }
     }
 

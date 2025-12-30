@@ -2,6 +2,9 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import { getMediaDetails } from "$lib/providers/anilist";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("anilist-ratings");
 
 interface RatingScore {
     name: string;
@@ -47,7 +50,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
             anilistId: Number(anilistId)
         });
     } catch (e) {
-        console.error("AniList rating fetch error:", e);
+        logger.error("AniList rating fetch error:", e);
         throw error(500, "Failed to fetch AniList ratings");
     }
 };

@@ -3,6 +3,9 @@ import { json, error } from "@sveltejs/kit";
 
 import { getTrending } from "$lib/providers/anilist";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("anilist-trending");
 
 export const GET: RequestHandler = async ({ fetch, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -29,7 +32,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url }) => {
 
         return json(nowPlaying);
     } catch (err) {
-        console.error("Error fetching anilist trending data:", err);
+        logger.error("Error fetching anilist trending data:", err);
         error(500, "Failed to fetch anilist trending data");
     }
 };

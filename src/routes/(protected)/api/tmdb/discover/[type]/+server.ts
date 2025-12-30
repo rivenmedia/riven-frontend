@@ -4,6 +4,9 @@ import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("tmdb-discover");
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -17,7 +20,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
         error(400, "Invalid media type. Must be 'movie' or 'tv'");
     }
 
-    console.log(`Discovering ${type}s with params:`, Object.fromEntries(url.searchParams));
+    logger.info(`Discovering ${type}s with params:`, Object.fromEntries(url.searchParams));
 
     try {
         // Get all query parameters from the URL
@@ -63,7 +66,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             });
 
             if ((discover as any).error) {
-                console.error("TMDB API error:", discover.error);
+                logger.error("TMDB API error:", discover.error);
                 error(500, "Failed to discover movies");
             }
             const transformedResults = transformTMDBList(
@@ -85,7 +88,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             });
 
             if ((discover as any).error) {
-                console.error("TMDB API error:", discover.error);
+                logger.error("TMDB API error:", discover.error);
                 error(500, "Failed to discover TV shows");
             }
             const transformedResults = transformTMDBList(
@@ -101,7 +104,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             });
         }
     } catch (err) {
-        console.error("Error discovering media:", err);
+        logger.error("Error discovering media:", err);
         error(500, "Failed to discover media");
     }
 };

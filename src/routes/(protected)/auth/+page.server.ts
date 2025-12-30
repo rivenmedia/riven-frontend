@@ -11,6 +11,9 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { message, superValidate, fail, setError } from "sveltekit-superforms";
 import { auth } from "$lib/server/auth";
 import { APIError } from "better-auth/api";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("auth-settings");
 
 export const load: PageServerLoad = async (event) => {
     if (!event.locals.user || !event.locals.session) {
@@ -67,7 +70,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during password change:", error);
+            logger.error("Error during password change:", error);
             return message(passwordChangeForm, "An unexpected error occurred", {
                 status: 500
             });
@@ -93,7 +96,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during setting password:", error);
+            logger.error("Error during setting password:", error);
             return message(setPasswordForm, "An unexpected error occurred", {
                 status: 500
             });
@@ -119,7 +122,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during email change:", error);
+            logger.error("Error during email change:", error);
             return message(emailChangeForm, "An unexpected error occurred", {
                 status: 500
             });
@@ -177,7 +180,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during user data update:", error);
+            logger.error("Error during user data update:", error);
             return message(changeUserDataForm, "An unexpected error occurred", {
                 status: 500
             });

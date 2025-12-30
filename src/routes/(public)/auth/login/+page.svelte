@@ -16,6 +16,9 @@
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
     import { page } from "$app/state";
     import Star from "@lucide/svelte/icons/star";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("login");
 
     type AuthProvider = { enabled: boolean; disableSignup: boolean; name?: string; icon?: string };
 
@@ -103,7 +106,7 @@
                             goto("/");
                         },
                         onError(context) {
-                            console.debug("Passkey autofill failed:", context.error);
+                            logger.debug("Passkey autofill failed:", context.error);
                         }
                     }
                 });
