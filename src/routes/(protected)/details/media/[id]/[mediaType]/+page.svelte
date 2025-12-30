@@ -431,7 +431,9 @@
                     {#if data.mediaDetails?.details.genres && data.mediaDetails?.details.genres.length > 0}
                         <div class="mb-3 flex flex-wrap gap-2">
                             {#each data.mediaDetails?.details.genres as genre (genre.id)}
-                                <Badge variant="outline" class="border-primary">
+                                <Badge
+                                    variant="outline"
+                                    class="border-primary h-5 rounded-md border-[1.5px] px-2.5 py-0 leading-none font-semibold">
                                     {genre.name}
                                 </Badge>
                             {/each}
