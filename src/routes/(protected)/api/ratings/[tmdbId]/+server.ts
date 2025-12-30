@@ -2,15 +2,81 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { createCustomFetch } from "$lib/custom-fetch";
-import { imdbService } from "$lib/services/imdb";
+import { ratingsCache } from "$lib/services/api-cache";
 
 interface RatingScore {
     name: string;
-    image?: string;
-    score: number | string | null;
+    image: string;
+    score: number | string;
+    url: string;
 }
 
-export const GET: RequestHandler = async ({ params, url, fetch }) => {
+interface RatingsResponse {
+    scores: RatingScore[];
+    tmdbId: number;
+    mediaType: "movie" | "tv";
+    imdbId: string | null;
+    cached?: boolean;
+}
+
+// Radarr's public IMDB proxy response
+interface RadarrImdbResponse {
+    ImdbId: string;
+    Title: string;
+    MovieRatings: {
+        Imdb?: { Value: number; Count: number };
+    };
+}
+
+// Rotten Tomatoes Algolia response
+interface RTAlgoliaResponse {
+    results: Array<{
+        hits: RTHit[];
+        index: string;
+    }>;
+}
+
+interface RTHit {
+    title: string;
+    vanity: string;
+    releaseYear: number;
+    type: string;
+    rottenTomatoes?: {
+        criticsScore: number;
+        audienceScore: number;
+        certifiedFresh: boolean;
+    };
+}
+
+function getCacheKey(tmdbId: string, mediaType: string): string {
+    return `ratings:${mediaType}:${tmdbId}`;
+}
+
+// Simple title similarity check
+function normalizeTitle(s: string): string {
+    return s
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, "")
+        .trim();
+}
+
+function findBestRTMatch(hits: RTHit[], title: string, year?: number): RTHit | null {
+    const normalizedTitle = normalizeTitle(title);
+
+    const scored = hits
+        .filter((h) => h.rottenTomatoes)
+        .map((h) => {
+            const titleMatch = normalizeTitle(h.title) === normalizedTitle ? 1 : 0.5;
+            const yearMatch = year && h.releaseYear === year ? 1 : year ? 0.7 : 1;
+            return { hit: h, score: titleMatch * yearMatch };
+        })
+        .filter(({ score }) => score > 0.3)
+        .sort((a, b) => b.score - a.score);
+
+    return scored[0]?.hit || null;
+}
+
+export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) => {
     const { tmdbId } = params;
     const mediaType = url.searchParams.get("type") as "movie" | "tv" | null;
     const customFetch = createCustomFetch(fetch);
@@ -19,160 +85,177 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
         throw error(400, 'Invalid or missing media type. Must be "movie" or "tv"');
     }
 
+    // Check cache first
+    const cacheKey = getCacheKey(tmdbId, mediaType);
+    const cached = ratingsCache.get(cacheKey) as RatingsResponse | null;
+    if (cached) {
+        setHeaders({ "Cache-Control": "public, max-age=3600", "X-Cache": "HIT" });
+        return json({ ...cached, cached: true });
+    }
+
     const scores: RatingScore[] = [];
+    let imdbId: string | null = null;
+    let title: string | null = null;
+    let year: number | undefined;
 
+    // SINGLE TMDB call with append_to_response
     try {
-        // 1. TMDB Rating
-        try {
+        const tmdbData =
+            mediaType === "movie"
+                ? await providers.tmdb.GET("/3/movie/{movie_id}", {
+                      params: {
+                          path: { movie_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  })
+                : await providers.tmdb.GET("/3/tv/{series_id}", {
+                      params: {
+                          path: { series_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  });
+
+        if (tmdbData.data) {
+            const vote_average = tmdbData.data.vote_average;
+            const vote_count = tmdbData.data.vote_count;
+
+            // Get title and year for RT search
             if (mediaType === "movie") {
-                const movieData = await providers.tmdb.GET("/3/movie/{movie_id}", {
-                    params: {
-                        path: {
-                            movie_id: Number(tmdbId)
-                        }
-                    },
-                    fetch: customFetch
-                });
-
-                if (movieData.data?.vote_average) {
-                    scores.push({
-                        name: "tmdb",
-                        image: "tmdb.png",
-                        score: Math.round(movieData.data.vote_average * 10) / 10
-                    });
-                }
+                title = (tmdbData.data as { title?: string }).title || null;
+                const releaseDate = (tmdbData.data as { release_date?: string }).release_date;
+                year = releaseDate ? parseInt(releaseDate.substring(0, 4), 10) : undefined;
             } else {
-                const tvData = await providers.tmdb.GET("/3/tv/{series_id}", {
-                    params: {
-                        path: {
-                            series_id: Number(tmdbId)
-                        }
-                    },
-                    fetch: customFetch
-                });
-
-                if (tvData.data?.vote_average) {
-                    scores.push({
-                        name: "tmdb",
-                        image: "tmdb.png",
-                        score: Math.round(tvData.data.vote_average * 10) / 10
-                    });
-                }
+                title = (tmdbData.data as { name?: string }).name || null;
+                const firstAirDate = (tmdbData.data as { first_air_date?: string }).first_air_date;
+                year = firstAirDate ? parseInt(firstAirDate.substring(0, 4), 10) : undefined;
             }
-        } catch (e) {
-            console.error("TMDB rating fetch failed:", e);
-        }
 
-        // 2. Get IMDB ID for other providers
-        let imdbId: string | null = null;
+            // Add TMDB rating - only require vote_average to exist and be > 0
+            if (vote_average && vote_average > 0) {
+                scores.push({
+                    name: "tmdb",
+                    image: "tmdb.svg",
+                    score: `${Math.round(vote_average * 10)}%`, // Convert to percentage
+                    url: `https://www.themoviedb.org/${mediaType}/${tmdbId}`
+                });
+            }
+
+            // @ts-expect-error - external_ids is appended dynamically
+            imdbId = tmdbData.data.external_ids?.imdb_id || null;
+        }
+    } catch (e) {
+        console.error("[ratings] TMDB fetch failed:", e);
+    }
+
+    // Fetch IMDB rating via Radarr's public proxy
+    if (imdbId && mediaType === "movie") {
         try {
-            if (mediaType === "movie") {
-                const externalIds = await providers.tmdb.GET("/3/movie/{movie_id}/external_ids", {
-                    params: {
-                        path: {
-                            movie_id: Number(tmdbId)
-                        }
-                    },
-                    fetch: customFetch
-                });
-                imdbId = externalIds.data?.imdb_id || null;
-            } else {
-                const externalIds = await providers.tmdb.GET("/3/tv/{series_id}/external_ids", {
-                    params: {
-                        path: {
-                            series_id: Number(tmdbId)
-                        }
-                    },
-                    fetch: customFetch
-                });
-                imdbId = externalIds.data?.imdb_id || null;
-            }
-        } catch (e) {
-            console.error("Failed to fetch IMDB ID:", e);
-        }
+            const radarrResponse = await customFetch(
+                `https://api.radarr.video/v1/movie/imdb/${imdbId}`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json"
+                    }
+                }
+            );
 
-        if (imdbId) {
-            try {
-                const imdbData = await imdbService.getTitle(imdbId);
-                const imdbRating = imdbData?.rating?.aggregateRating;
+            if (radarrResponse.ok) {
+                const data: RadarrImdbResponse[] = await radarrResponse.json();
+                const movie = data.find((m) => m.ImdbId === imdbId);
 
-                if (imdbRating) {
+                if (movie?.MovieRatings?.Imdb?.Value) {
                     scores.push({
                         name: "imdb",
-                        image: "imdb.png",
-                        score: imdbRating
+                        image: "imdb.svg",
+                        score: movie.MovieRatings.Imdb.Value,
+                        url: `https://www.imdb.com/title/${imdbId}/`
                     });
                 }
-            } catch (e) {
-                console.error("IMDB rating fetch failed:", e);
             }
-
-            // 4. Trakt Rating
-            try {
-                if (mediaType === "movie") {
-                    const traktData = await providers.trakt.GET("/movies/{id}/ratings", {
-                        params: {
-                            path: {
-                                id: imdbId
-                            }
-                        },
-                        fetch: customFetch
-                    });
-
-                    if (traktData.data?.rating) {
-                        scores.push({
-                            name: "trakt",
-                            image: "trakt.png",
-                            score: Math.round(traktData.data.rating * 10) / 10
-                        });
-                    }
-                } else {
-                    const traktData = await providers.trakt.GET("/shows/{id}/ratings", {
-                        params: {
-                            path: {
-                                id: imdbId
-                            }
-                        },
-                        fetch: customFetch
-                    });
-
-                    if (traktData.data?.rating) {
-                        scores.push({
-                            name: "trakt",
-                            image: "trakt.png",
-                            score: Math.round(traktData.data.rating * 10) / 10
-                        });
-                    }
-                }
-            } catch (e) {
-                console.error("Trakt rating fetch failed:", e);
-            }
+        } catch (e) {
+            console.error("[ratings] Radarr IMDB proxy failed:", e);
         }
-
-        // Filter out null scores
-        const validScores = scores.filter(
-            (score) =>
-                score.score !== null &&
-                score.score !== "" &&
-                score.score !== 0 &&
-                score.score !== "0.0"
-        );
-
-        return json({
-            scores: validScores,
-            tmdbId: Number(tmdbId),
-            mediaType,
-            imdbId
-        });
-    } catch (e) {
-        console.error("Rating fetch error:", e);
-        // Return partial results instead of throwing 500
-        return json({
-            scores: [],
-            tmdbId: Number(tmdbId),
-            mediaType,
-            imdbId: null,
-            error: "Failed to fetch some ratings"
-        });
     }
+
+    // Fetch Rotten Tomatoes via Algolia
+    if (title) {
+        try {
+            const filters = encodeURIComponent(
+                `isEmsSearchable=1 AND type:"${mediaType === "movie" ? "movie" : "tv"}"`
+            );
+
+            const rtResponse = await customFetch(
+                "https://79frdp12pn-dsn.algolia.net/1/indexes/*/queries",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "x-algolia-agent": "Algolia for JavaScript (4.14.3); Browser (lite)",
+                        "x-algolia-api-key": "175588f6e5f8319b27702e4cc4013561",
+                        "x-algolia-application-id": "79FRDP12PN"
+                    },
+                    body: JSON.stringify({
+                        requests: [
+                            {
+                                indexName: "content_rt",
+                                query: title.replace(/\bthe\b ?/gi, ""),
+                                params: `filters=${filters}&hitsPerPage=20`
+                            }
+                        ]
+                    })
+                }
+            );
+
+            if (rtResponse.ok) {
+                const data: RTAlgoliaResponse = await rtResponse.json();
+                const contentResults = data.results.find((r) => r.index === "content_rt");
+                const match = findBestRTMatch(contentResults?.hits || [], title, year);
+
+                if (match?.rottenTomatoes) {
+                    const rt = match.rottenTomatoes;
+
+                    // Critics score (Tomatometer)
+                    if (rt.criticsScore > 0) {
+                        const isFresh = rt.criticsScore >= 60;
+                        scores.push({
+                            name: "rt-critics",
+                            image: isFresh ? "rt_fresh.svg" : "rt_rotten.svg",
+                            score: `${rt.criticsScore}%`,
+                            url: `https://www.rottentomatoes.com/${mediaType === "movie" ? "m" : "tv"}/${match.vanity}`
+                        });
+                    }
+
+                    // Audience score (Popcorn)
+                    if (rt.audienceScore > 0) {
+                        const isUpright = rt.audienceScore >= 60;
+                        scores.push({
+                            name: "rt-audience",
+                            image: isUpright ? "rt_aud_fresh.svg" : "rt_aud_rotten.svg",
+                            score: `${rt.audienceScore}%`,
+                            url: `https://www.rottentomatoes.com/${mediaType === "movie" ? "m" : "tv"}/${match.vanity}`
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("[ratings] Rotten Tomatoes fetch failed:", e);
+        }
+    }
+
+    const response: RatingsResponse = {
+        scores,
+        tmdbId: Number(tmdbId),
+        mediaType,
+        imdbId
+    };
+
+    // Cache response
+    ratingsCache.set(cacheKey, response);
+    setHeaders({ "Cache-Control": "public, max-age=3600", "X-Cache": "MISS" });
+
+    return json(response);
 };

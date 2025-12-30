@@ -51,12 +51,6 @@ const DEFAULT_DOMAIN_CONFIGS: DomainConfig[] = [
         maxAttempts: 3,
         baseDelay: 1000,
         retryOnStatus: [429, 500, 502, 503, 504]
-    },
-    {
-        pattern: "api.imdbapi.dev",
-        maxAttempts: 2,
-        baseDelay: 500,
-        retryOnStatus: [429, 500, 502, 503, 504]
     }
 ];
 

@@ -27,17 +27,21 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
                         );
 
                         if (showExternalIDs.error) {
-                            throw error(404, "Show not found");
+                            // TMDB returned an error - show not found
+                            throw error(404, `TV show with TMDB ID ${id} not found`);
                         }
 
                         if (showExternalIDs.data.tvdb_id) {
-                            throw redirect(307, `/details/media/${showExternalIDs.data.tvdb_id}/tv`);
+                            throw redirect(
+                                307,
+                                `/details/media/${showExternalIDs.data.tvdb_id}/tv`
+                            );
                         } else {
                             throw error(404, "TVDB ID not found for this show");
                         }
                     } catch (e) {
-                        // Re-throw redirect errors
-                        if (e && typeof e === "object" && "status" in e && (e as { status: number }).status === 307) {
+                        // Re-throw redirect and HTTP error responses
+                        if (e && typeof e === "object" && "status" in e) {
                             throw e;
                         }
                         console.error("Failed to fetch TMDB external IDs:", e);

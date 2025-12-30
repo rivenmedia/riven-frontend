@@ -46,8 +46,6 @@
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
-        // Use externalId prop if provided, otherwise fallback to first id (for backward compatibility)
-        const tvdbOrTmdbId = externalId ?? validIds[0];
 
         try {
             if (
@@ -55,11 +53,10 @@
                 seasons.length > 0 &&
                 selectedSeasons.size > 0 &&
                 selectedSeasons.size < seasons.length &&
-                tvdbOrTmdbId
+                externalId
             ) {
-                // Use new ScrapeSeasonRequest if available
                 const body: ScrapeSeasonRequest = {
-                    tvdb_id: tvdbOrTmdbId,
+                    tvdb_id: externalId,
                     season_numbers: Array.from(selectedSeasons)
                 };
 

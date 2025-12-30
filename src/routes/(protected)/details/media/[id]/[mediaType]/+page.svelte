@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { browser } from "$app/environment";
     import { type PageProps } from "./$types";
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
@@ -63,16 +64,47 @@
         return externalMetaData[normalizedKey];
     }
 
-    let showTrailer = $state(
+    let showTrailerDefault = $derived(
         !data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer
     );
+    let showTrailerOverride = $state<boolean | null>(null);
+    let showTrailer = $derived(showTrailerOverride ?? showTrailerDefault);
 
     function toggleTrailer() {
-        showTrailer = !showTrailer;
+        showTrailerOverride = !showTrailer;
     }
 
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+    // For TV shows, use TMDB ID from external_ids for ratings lookup; for movies, use the direct ID
+    let ratingsId = $derived(
+        data.mediaDetails?.type === "tv"
+            ? (data.mediaDetails?.details?.external_ids?.["themoviedb.com"] ?? null)
+            : data.mediaDetails?.details?.id
+    );
+    let mediaType = $derived(data.mediaDetails?.type);
+
+    // Ratings data fetched client-side only
+    let ratingsData = $state<{
+        scores: Array<{ name: string; image?: string; score: string; url: string }>;
+    } | null>(null);
+
+    $effect(() => {
+        if (!browser) return;
+        const id = ratingsId;
+        const type = mediaType;
+        if (!id) return;
+
+        ratingsData = null;
+        fetch(`/api/ratings/${id}?type=${type}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                ratingsData = d;
+            })
+            .catch(() => {
+                /* Ratings failed to load - silently ignore */
+            });
+    });
 </script>
 
 <svelte:head>
@@ -190,6 +222,7 @@
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type}
+                                externalId={data.mediaDetails?.details?.id?.toString()}
                                 seasons={data.mediaDetails?.type === "tv" &&
                                 data.mediaDetails?.details?.seasons
                                     ? data.mediaDetails.details.seasons.map((s) => ({
@@ -401,6 +434,26 @@
                                 <Badge variant="outline" class="border-primary">
                                     {genre.name}
                                 </Badge>
+                            {/each}
+                        </div>
+                    {/if}
+
+                    {#if ratingsData?.scores && ratingsData.scores.length > 0}
+                        <div class="mb-3 flex flex-wrap items-center gap-3">
+                            {#each ratingsData.scores as score (score.name)}
+                                <a
+                                    href={score.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-1.5 opacity-90 transition-opacity duration-200 ease-in-out hover:opacity-60">
+                                    {#if score.image}
+                                        <img
+                                            src="/rating-logos/{score.image}"
+                                            alt={score.name}
+                                            class="h-5 w-5 object-contain" />
+                                    {/if}
+                                    <span class="text-sm font-semibold">{score.score}</span>
+                                </a>
                             {/each}
                         </div>
                     {/if}

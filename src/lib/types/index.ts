@@ -1,6 +1,6 @@
 import type { components } from "$lib/providers/riven";
 
-export type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
+export type AutoScrapeRequestPayload = components["schemas"]["AutoScrapeRequestPayload"];
 export type Stream = components["schemas"]["Stream"];
 export type StartSessionResponse = components["schemas"]["StartSessionResponse"];
 export type DebridFile = components["schemas"]["DebridFile"];
@@ -8,7 +8,7 @@ export type Container = components["schemas"]["Container"];
 export type ShowFileData = components["schemas"]["ShowFileData"];
 export type ParsedData = components["schemas"]["ParsedData"];
 
-export interface ScrapeSeasonRequest extends AutoScrapeRequest {
+export interface ScrapeSeasonRequest extends AutoScrapeRequestPayload {
     season_numbers: number[];
 }
 
