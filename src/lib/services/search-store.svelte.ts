@@ -106,11 +106,12 @@ export class SearchStore {
             this.#moviePage = 1;
             this.#tvPage = 1;
 
-            if (this.#mediaType === "both" || this.#mediaType === "movie") {
+            // Parallelize requests when searching both types
+            if (this.#mediaType === "both") {
+                await Promise.all([this.fetchMovies(1), this.fetchTV(1)]);
+            } else if (this.#mediaType === "movie") {
                 await this.fetchMovies(1);
-            }
-
-            if (this.#mediaType === "both" || this.#mediaType === "tv") {
+            } else {
                 await this.fetchTV(1);
             }
         } catch (error) {
@@ -190,6 +191,52 @@ export class SearchStore {
         this.#tvHasMore = result.page < result.total_pages;
     }
 
+    private async loadMoreMovies(): Promise<void> {
+        if (!this.#parsedSearch || !this.#movieHasMore) return;
+
+        this.#moviePage += 1;
+        const queryString = buildTMDBQueryString(this.#parsedSearch, this.#moviePage);
+        const response = await fetch(`/api/tmdb/search/movie?${queryString}`);
+
+        if (!response.ok) {
+            this.#moviePage -= 1;
+            throw new Error("Failed to fetch more movie results");
+        }
+
+        const result = await response.json();
+        const newItems = result.results || [];
+
+        if (newItems.length > 0) {
+            const uniqueNewItems = this.deduplicateItems(newItems, this.#movieResults);
+            this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
+        }
+
+        this.#movieHasMore = result.page < result.total_pages;
+    }
+
+    private async loadMoreTV(): Promise<void> {
+        if (!this.#parsedSearch || !this.#tvHasMore) return;
+
+        this.#tvPage += 1;
+        const queryString = buildTVDBQueryString(this.#parsedSearch, this.#tvPage);
+        const response = await fetch(`/api/tvdb/search?${queryString}`);
+
+        if (!response.ok) {
+            this.#tvPage -= 1;
+            throw new Error("Failed to fetch more TV results from TVDB");
+        }
+
+        const result = await response.json();
+        const newItems = result.results || [];
+
+        if (newItems.length > 0) {
+            const uniqueNewItems = this.deduplicateItems(newItems, this.#tvResults);
+            this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
+        }
+
+        this.#tvHasMore = result.page < result.total_pages;
+    }
+
     async loadMore(): Promise<void> {
         if (!browser || this.#loading || !this.hasMore || !this.#parsedSearch) return;
 
@@ -197,46 +244,18 @@ export class SearchStore {
             this.#loading = true;
             this.#error = null;
 
-            if ((this.#mediaType === "both" || this.#mediaType === "movie") && this.#movieHasMore) {
-                this.#moviePage += 1;
-                const queryString = buildTMDBQueryString(this.#parsedSearch, this.#moviePage);
-                const response = await fetch(`/api/tmdb/search/movie?${queryString}`);
+            const shouldLoadMovies =
+                (this.#mediaType === "both" || this.#mediaType === "movie") && this.#movieHasMore;
+            const shouldLoadTV =
+                (this.#mediaType === "both" || this.#mediaType === "tv") && this.#tvHasMore;
 
-                if (!response.ok) {
-                    this.#moviePage -= 1;
-                    throw new Error("Failed to fetch more movie results");
-                }
-
-                const result = await response.json();
-                const newItems = result.results || [];
-
-                if (newItems.length > 0) {
-                    const uniqueNewItems = this.deduplicateItems(newItems, this.#movieResults);
-                    this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
-                }
-
-                this.#movieHasMore = result.page < result.total_pages;
-            }
-
-            if ((this.#mediaType === "both" || this.#mediaType === "tv") && this.#tvHasMore) {
-                this.#tvPage += 1;
-                const queryString = buildTVDBQueryString(this.#parsedSearch, this.#tvPage);
-                const response = await fetch(`/api/tvdb/search?${queryString}`);
-
-                if (!response.ok) {
-                    this.#tvPage -= 1;
-                    throw new Error("Failed to fetch more TV results from TVDB");
-                }
-
-                const result = await response.json();
-                const newItems = result.results || [];
-
-                if (newItems.length > 0) {
-                    const uniqueNewItems = this.deduplicateItems(newItems, this.#tvResults);
-                    this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
-                }
-
-                this.#tvHasMore = result.page < result.total_pages;
+            // Parallelize requests when loading both types
+            if (shouldLoadMovies && shouldLoadTV) {
+                await Promise.all([this.loadMoreMovies(), this.loadMoreTV()]);
+            } else if (shouldLoadMovies) {
+                await this.loadMoreMovies();
+            } else if (shouldLoadTV) {
+                await this.loadMoreTV();
             }
         } catch (error) {
             logger.error("Error loading more results:", error);
