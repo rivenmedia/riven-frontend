@@ -18,30 +18,35 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
     const mediaType = isMovie ? "movie" : "show";
     const endpointPrefix = isMovie ? "movies" : "shows";
 
-    let traktSlug = null;
-    let traktRecs = null;
-
-    const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
-        "/search/{id_type}/{id}",
-        {
-            params: {
-                path: {
-                    id_type: idType,
-                    id: mediaId
+    try {
+        // First get the Trakt slug
+        const { data: traktSlugResp, error: traktSlugError } = await providers.trakt.GET(
+            "/search/{id_type}/{id}",
+            {
+                params: {
+                    path: {
+                        id_type: idType,
+                        id: mediaId
+                    },
+                    query: {
+                        type: mediaType
+                    }
                 },
-                query: {
-                    type: mediaType
-                }
-            },
-            fetch: fetch
+                fetch: fetch
+            }
+        );
+
+        if (traktSlugError || !traktSlugResp || traktSlugResp.length === 0) {
+            return { traktSlug: null, traktRecs: null };
         }
-    );
 
-    if (!traktSlugError && traktSlugResp && traktSlugResp.length > 0) {
-        traktSlug = (traktSlugResp[0] as any)[mediaType]?.ids?.slug;
-    }
+        const traktSlug = (traktSlugResp[0] as any)[mediaType]?.ids?.slug;
 
-    if (traktSlug) {
+        if (!traktSlug) {
+            return { traktSlug: null, traktRecs: null };
+        }
+
+        // Then get recommendations
         const { data: traktRecsData, error: traktRecsError } = await providers.trakt.GET(
             `/${endpointPrefix}/{id}/related`,
             {
@@ -57,12 +62,14 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
             }
         );
 
-        if (!traktRecsError && traktRecsData) {
-            traktRecs = traktRecsData;
-        }
+        return {
+            traktSlug,
+            traktRecs: !traktRecsError && traktRecsData ? traktRecsData : null
+        };
+    } catch {
+        // Return empty data if Trakt fails - don't block the page load
+        return { traktSlug: null, traktRecs: null };
     }
-
-    return { traktSlug, traktRecs };
 }
 
 export const load = (async ({ fetch, params, cookies, locals }) => {
@@ -77,20 +84,9 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         error(400, "Invalid ID");
     }
 
-    let rivenData;
-
-    try {
-        // rivenData = await getItem({
-        //     fetch: fetch,
-        //     path: {
-        //         id: id
-        //     },
-        //     query: {
-        //         media_type: mediaType,
-        //         extended: true
-        //     }
-        // });
-        rivenData = await providers.riven.GET("/api/v1/items/{id}", {
+    // Fetch Riven data in parallel with other requests (non-blocking)
+    const rivenPromise = providers.riven
+        .GET("/api/v1/items/{id}", {
             params: {
                 path: {
                     id: id
@@ -105,15 +101,13 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                 "x-api-key": locals.apiKey
             },
             fetch: fetch
-        });
-    } catch {
-        /* empty */
-    }
+        })
+        .catch(() => null);
 
     if (mediaType === "movie") {
-        const { data: details, error: detailsError } = await providers.tmdb.GET(
-            `/3/movie/{movie_id}`,
-            {
+        // Fetch TMDB details and Trakt data in parallel
+        const [tmdbResult, traktResult, rivenData] = await Promise.all([
+            providers.tmdb.GET(`/3/movie/{movie_id}`, {
                 params: {
                     path: {
                         movie_id: Number(id)
@@ -124,19 +118,21 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                     }
                 },
                 fetch: customFetch
-            }
-        );
+            }),
+            getTraktData(customFetch, id, true),
+            rivenPromise
+        ]);
+
+        const { data: details, error: detailsError } = tmdbResult;
 
         if (detailsError) {
             console.error("TMDB movie details fetch failed:", detailsError);
             error(503, "Unable to connect to TMDB. Please try again later.");
         }
 
-        const { traktRecs } = await getTraktData(customFetch, id, true);
-
         const parsedDetails = providers.parser.parseTMDBMovieDetails(
             details as TMDBMovieDetailsExtended,
-            traktRecs
+            traktResult.traktRecs
         );
 
         return {
@@ -147,9 +143,11 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             } as MediaDetails
         };
     } else if (mediaType === "tv") {
-        const { data: details, error: detailsError } = await providers.tvdb.GET(
-            `/series/{id}/extended`,
-            {
+        const tvdbToken = cookies.get("tvdb_cookie") || "";
+
+        // Fetch TVDB details, Trakt data, and Riven data in parallel
+        const [tvdbResult, traktResult, rivenData] = await Promise.all([
+            providers.tvdb.GET(`/series/{id}/extended`, {
                 params: {
                     path: {
                         id: Number(id)
@@ -160,17 +158,26 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                     }
                 },
                 headers: {
-                    Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
+                    Authorization: `Bearer ${tvdbToken}`
                 },
                 fetch: customFetch
-            }
-        );
+            }),
+            getTraktData(customFetch, id, false),
+            rivenPromise
+        ]);
+
+        const { data: details, error: detailsError } = tvdbResult;
 
         if (detailsError) {
             console.error("TVDB show details fetch failed:", detailsError);
             error(503, "Unable to connect to TVDB. Please try again later.");
         }
 
+        if (!details) {
+            error(500, "Failed to fetch TV show details");
+        }
+
+        // Check if we need English episodes (for Asian content) - this is a follow-up request
         const languagesToCheck = ["jpn", "kor", "chi", "zho"];
 
         if (
@@ -192,7 +199,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                         }
                     },
                     headers: {
-                        Authorization: `Bearer ${cookies.get("tvdb_cookie") || ""}`
+                        Authorization: `Bearer ${tvdbToken}`
                     },
                     fetch: customFetch
                 }
@@ -210,14 +217,11 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             }
         }
 
-        const { traktRecs } = await getTraktData(customFetch, id, false);
-
-        if (!details) {
-            error(500, "Failed to fetch TV show details");
-        }
-
-        // @ts-expect-error type mismatch in generated types
-        const parsedDetails = providers.parser.parseTVDBShowDetails(details.data, traktRecs);
+        const parsedDetails = providers.parser.parseTVDBShowDetails(
+            // Type assertion needed: TVDB extended response differs from TVDBBaseItem in generated types
+            details.data as unknown as Parameters<typeof providers.parser.parseTVDBShowDetails>[0],
+            traktResult.traktRecs
+        );
 
         return {
             riven: rivenData?.data as RivenMediaItem | undefined,

@@ -20,12 +20,13 @@
     onNavigate((navigation) => {
         if (!document.startViewTransition) return;
 
-        return new Promise((resolve) => {
-            document.startViewTransition(async () => {
-                resolve();
-                await navigation.complete;
-            });
+        // Start View Transition without blocking SvelteKit navigation
+        // The callback updates the DOM when navigation completes
+        document.startViewTransition(async () => {
+            await navigation.complete;
         });
+
+        // Don't return a promise - let SvelteKit proceed with navigation
     });
 
     NProgress.configure({
