@@ -2,6 +2,9 @@ import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { env } from "$env/dynamic/private";
 import { produce } from "sveltekit-sse";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("notifications-api");
 
 export const POST: RequestHandler = async ({ locals }) => {
     if (!locals.user || !locals.session) {
@@ -10,7 +13,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 
     const backendUrl = env.BACKEND_URL;
     if (!backendUrl) {
-        console.error("Notification proxy: BACKEND_URL is not configured");
+        logger.error("Notification proxy: BACKEND_URL is not configured");
         error(500, "Backend URL is not configured");
     }
 
@@ -29,7 +32,7 @@ export const POST: RequestHandler = async ({ locals }) => {
             });
 
             if (!response.ok) {
-                console.error(`Notification proxy: Backend error ${response.status}`);
+                logger.error(`Notification proxy: Backend error ${response.status}`);
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -38,7 +41,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 
             const reader = response.body?.getReader();
             if (!reader) {
-                console.error("Notification proxy: No response body");
+                logger.error("Notification proxy: No response body");
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -71,7 +74,7 @@ export const POST: RequestHandler = async ({ locals }) => {
             }
         } catch (e) {
             if (!(e instanceof Error && e.name === "AbortError")) {
-                console.error("Notification proxy: Connection error:", e);
+                logger.error("Notification proxy: Connection error:", e);
             }
         } finally {
             lock.set(false);

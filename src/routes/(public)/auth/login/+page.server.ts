@@ -7,6 +7,9 @@ import { auth } from "$lib/server/auth";
 import { APIError } from "better-auth/api";
 import { getUsersCount } from "$lib/server/functions";
 import { getAuthProviders } from "$lib/server/auth";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("auth");
 
 const authProviders = getAuthProviders();
 const isSignupEnabled =
@@ -59,7 +62,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during login:", error);
+            logger.error("Error during login:", error);
             return message(loginForm, "An unexpected error occurred", {
                 status: 500
             });
@@ -85,7 +88,7 @@ export const actions: Actions = {
         try {
             const isFirstUser = await noUserExists();
             if (isFirstUser) {
-                console.log("No users exist, assigning admin role to the first registered user.");
+                logger.info("No users exist, assigning admin role to the first registered user.");
 
                 const data = await auth.api.createUser({
                     body: {
@@ -100,7 +103,7 @@ export const actions: Actions = {
                     }
                 });
 
-                console.log("First user (admin) created:", data);
+                logger.info("First user (admin) created:", data);
 
                 await auth.api.signInUsername({
                     body: {
@@ -127,7 +130,7 @@ export const actions: Actions = {
                     status: 400
                 });
             }
-            console.error("Error during sign up:", error);
+            logger.error("Error during sign up:", error);
             return message(registerForm, "An unexpected error occurred", {
                 status: 500
             });

@@ -4,6 +4,9 @@ import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("tmdb-search");
 
 /**
  * Apply server-side filters to TMDB results
@@ -120,7 +123,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
 
     const searchMode = url.searchParams.get("searchMode") || "discover";
-    console.log(`Searching ${type}s with mode: ${searchMode}`);
+    logger.info(`Searching ${type}s with mode: ${searchMode}`);
 
     try {
         // Get all query parameters from the URL
@@ -186,7 +189,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
         // Route to appropriate endpoint based on searchMode
         if (searchMode === "search" || searchMode === "hybrid") {
-            console.log("Search with the following params", queryParams);
+            logger.info("Search with the following params", queryParams);
             // Use search endpoint
             if (type === "movie") {
                 const searchResult = await providers.tmdb.GET("/3/search/movie", {
@@ -197,7 +200,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if (searchResult.error) {
-                    console.error("TMDB API error:", (searchResult as any).error);
+                    logger.error("TMDB API error:", (searchResult as any).error);
                     error(500, "Failed to search movies");
                 }
 
@@ -220,7 +223,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((searchResult as any).error) {
-                    console.error("TMDB API error:", (searchResult as any).error);
+                    logger.error("TMDB API error:", (searchResult as any).error);
                     error(500, "Failed to search TV shows");
                 }
 
@@ -246,7 +249,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((discover as any).error) {
-                    console.error("TMDB API error:", (discover as any).error);
+                    logger.error("TMDB API error:", (discover as any).error);
                     error(500, "Failed to discover movies");
                 }
 
@@ -269,7 +272,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 });
 
                 if ((discover as any).error) {
-                    console.error("TMDB API error:", (discover as any).error);
+                    logger.error("TMDB API error:", (discover as any).error);
                     error(500, "Failed to discover TV shows");
                 }
 
@@ -286,7 +289,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             }
         }
     } catch (err) {
-        console.error("Error searching/discovering media:", err);
+        logger.error("Error searching/discovering media:", err);
         error(500, "Failed to search/discover media");
     }
 };

@@ -2,6 +2,9 @@ import { redirect } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { env } from "$env/dynamic/private";
 import { checkPlexPin, getDefaultPlexOptions } from "$lib/server/plex-oauth";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("plex-callback");
 
 /**
  * Plex OAuth callback handler
@@ -18,7 +21,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
     const storedDataStr = cookies.get("plex_auth_state");
 
     if (!storedDataStr) {
-        console.error("Plex callback: No auth state cookie found");
+        logger.error("Plex callback: No auth state cookie found");
         redirect(302, "/auth/login?error=state_not_found");
     }
 
@@ -33,7 +36,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
     try {
         storedData = JSON.parse(storedDataStr);
     } catch {
-        console.error("Plex callback: Failed to parse auth state cookie");
+        logger.error("Plex callback: Failed to parse auth state cookie");
         redirect(302, "/auth/login?error=invalid_state");
     } finally {
         cookies.delete("plex_auth_state", { path: "/" });
@@ -50,7 +53,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
         );
 
         if (!pinStatus.authToken) {
-            console.error("Plex callback: PIN not authorized yet");
+            logger.error("Plex callback: PIN not authorized yet");
             redirect(302, "/auth/login?error=not_authorized");
         }
 
@@ -67,7 +70,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
         if (error && typeof error === "object" && "status" in error) {
             throw error;
         }
-        console.error("Plex callback error:", error);
+        logger.error("Plex callback error:", error);
         redirect(302, "/auth/login?error=callback_failed");
     }
 };

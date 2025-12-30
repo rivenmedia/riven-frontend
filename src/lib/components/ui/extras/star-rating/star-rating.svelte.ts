@@ -4,6 +4,9 @@
 
 import type { ReadableBoxedValues, WritableBoxedValues } from "svelte-toolbelt";
 import { Context } from "runed";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("star-rating");
 
 type RootProps = WritableBoxedValues<{
     value: number;
@@ -23,7 +26,7 @@ export class StarRatingRootState {
         if (this.opts.disabled.current || this.opts.readonly.current) return;
 
         if (star > this.opts.stars.current || star < 0) {
-            console.warn(`[star-rating] ${star} is not a valid rating`);
+            logger.warn(`[star-rating] ${star} is not a valid rating`);
             return;
         }
 

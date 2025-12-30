@@ -9,6 +9,9 @@
     import { onMount } from "svelte";
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("passkeys");
 
     let isRegisteringPasskey = $state(false);
     let userPasskeys = $state<any[]>([]);
@@ -27,7 +30,7 @@
             const response = await authClient.passkey.listUserPasskeys();
             userPasskeys = response.data || [];
         } catch (error) {
-            console.error("Failed to load passkeys:", error);
+            logger.error("Failed to load passkeys:", error);
             userPasskeys = [];
         } finally {
             isLoadingPasskeys = false;

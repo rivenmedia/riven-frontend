@@ -3,6 +3,9 @@ import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import * as dateUtils from "$lib/utils/date";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("tvdb-search");
 
 /**
  * Apply server-side filters to TVDB results
@@ -148,7 +151,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         });
 
         if (searchResult.error) {
-            console.error("TVDB search error:", searchResult.error);
+            logger.error("TVDB search error:", searchResult.error);
             error(500, "Failed to search TVDB");
         }
 
@@ -181,7 +184,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
             total_results: totalItems
         });
     } catch (err) {
-        console.error("Error searching TVDB:", err);
+        logger.error("Error searching TVDB:", err);
         error(500, err instanceof Error ? err.message : "Failed to search TVDB");
     }
 };

@@ -3,6 +3,9 @@ import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { imdbService } from "$lib/services/imdb";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("ratings");
 
 interface RatingScore {
     name: string;
@@ -60,7 +63,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
                 }
             }
         } catch (e) {
-            console.error("TMDB rating fetch failed:", e);
+            logger.error("TMDB rating fetch failed:", e);
         }
 
         // 2. Get IMDB ID for other providers
@@ -88,7 +91,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
                 imdbId = externalIds.data?.imdb_id || null;
             }
         } catch (e) {
-            console.error("Failed to fetch IMDB ID:", e);
+            logger.error("Failed to fetch IMDB ID:", e);
         }
 
         if (imdbId) {
@@ -104,7 +107,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
                     });
                 }
             } catch (e) {
-                console.error("IMDB rating fetch failed:", e);
+                logger.error("IMDB rating fetch failed:", e);
             }
 
             // 4. Trakt Rating
@@ -145,7 +148,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
                     }
                 }
             } catch (e) {
-                console.error("Trakt rating fetch failed:", e);
+                logger.error("Trakt rating fetch failed:", e);
             }
         }
 
@@ -165,7 +168,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
             imdbId
         });
     } catch (e) {
-        console.error("Rating fetch error:", e);
+        logger.error("Rating fetch error:", e);
         throw error(500, "Failed to fetch ratings");
     }
 };

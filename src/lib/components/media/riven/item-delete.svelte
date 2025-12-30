@@ -5,6 +5,9 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
     import { invalidateAll } from "$app/navigation";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("item-delete");
 
     interface Props {
         title: string | null | undefined;
@@ -24,7 +27,7 @@
 
     async function removeMediaItem(ids: (string | null | undefined)[]) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
-        console.log("Removing media items with IDs:", validIds);
+        logger.info("Removing media items with IDs:", validIds);
 
         const response = await providers.riven.DELETE("/api/v1/items/remove", {
             body: {
@@ -36,7 +39,7 @@
             invalidateAll();
             toast.success("Media item deletion successfully!");
         } else {
-            console.error("Error response:", response.error);
+            logger.error("Error response:", response.error);
             toast.error("Failed to delete media item.");
         }
     }

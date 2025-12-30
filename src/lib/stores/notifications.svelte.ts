@@ -1,4 +1,7 @@
 import { source } from "sveltekit-sse";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("notifications");
 
 export type Notification = {
     id: string;
@@ -97,12 +100,12 @@ export class NotificationStore {
         this.#connection = source("/api/notifications", {
             open: () => {
                 this.#connectionStatus = "connected";
-                console.log("Notification stream connected");
+                logger.info("Notification stream connected");
             },
             close: ({ connect }) => {
                 if (this.#connectionStatus !== "disconnected") {
                     this.#connectionStatus = "error";
-                    console.log("Notification stream closed, reconnecting...");
+                    logger.info("Notification stream closed, reconnecting...");
                     // Auto-reconnect
                     setTimeout(() => {
                         if (this.#connectionStatus !== "disconnected") {
@@ -112,7 +115,7 @@ export class NotificationStore {
                 }
             },
             error: (error) => {
-                console.error("Notification stream error:", error);
+                logger.error("Notification stream error:", error);
                 this.#connectionStatus = "error";
             }
         });
@@ -121,7 +124,7 @@ export class NotificationStore {
             .select("notification")
             .json<NotificationEvent>(({ error, previous }) => {
                 if (error) {
-                    console.warn("Failed to parse notification:", error);
+                    logger.warn("Failed to parse notification:", error);
                 }
                 return previous;
             });

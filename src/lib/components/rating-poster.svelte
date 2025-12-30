@@ -1,6 +1,9 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { posterCache, type RatingScore } from "$lib/services/poster-cache.svelte";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("rating-poster");
 
     interface Props {
         id: number;
@@ -41,7 +44,7 @@
                 error = true;
             }
         } catch (e) {
-            console.error("Failed to fetch ratings:", e);
+            logger.error("Failed to fetch ratings:", e);
             error = true;
         } finally {
             loading = false;

@@ -4,6 +4,9 @@ import { TMDBMediaType, TMDBTimeWindow } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("tmdb-trending");
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -21,7 +24,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
         error(400, "Invalid time window");
     }
 
-    console.log(`Fetching trending ${type} for window ${window}`);
+    logger.info(`Fetching trending ${type} for window ${window}`);
 
     try {
         if (type === "movie") {
@@ -73,7 +76,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
         error(400, "Invalid media type");
     } catch (err) {
-        console.error("Error fetching trending data:", err);
+        logger.error("Error fetching trending data:", err);
         error(500, "Failed to fetch trending data");
     }
 };

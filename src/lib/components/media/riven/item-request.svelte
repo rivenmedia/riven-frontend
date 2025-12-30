@@ -6,6 +6,9 @@
     import Loader2 from "@lucide/svelte/icons/loader-2";
     import type { ScrapeSeasonRequest } from "$lib/types";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
+    import { createScopedLogger } from "$lib/logger";
+
+    const logger = createScopedLogger("item-request");
 
     interface Props {
         title: string | null | undefined;
@@ -73,7 +76,7 @@
                     toast.success("Media item requested successfully!");
                     open = false;
                 } else {
-                    console.error("Error response:", response.error);
+                    logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
                 }
             } else {
@@ -90,12 +93,12 @@
                     toast.success("Media item requested successfully!");
                     open = false;
                 } else {
-                    console.error("Error response:", response.error);
+                    logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
                 }
             }
         } catch (e) {
-            console.error("Request failed", e);
+            logger.error("Request failed", e);
             toast.error("Failed to request media item.");
         }
     }

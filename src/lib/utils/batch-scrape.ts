@@ -1,5 +1,8 @@
 import providers from "$lib/providers";
 import type { components } from "$lib/providers/riven";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("batch-scrape");
 
 type Stream = components["schemas"]["Stream"];
 type Container = components["schemas"]["Container"];
@@ -184,7 +187,7 @@ export async function processBatchItem({
         });
 
         if (mappedCount === 0) {
-            console.warn(`Could not map any files for torrent: ${streamObj?.raw_title || magnet}`);
+            logger.warn(`Could not map any files for torrent: ${streamObj?.raw_title || magnet}`);
             // We still proceed to complete session, effectively skipping this torrent but closing the session
         }
     }

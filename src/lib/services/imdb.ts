@@ -1,4 +1,7 @@
 import { customFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("imdb");
 
 interface ImdbTitle {
     id: string;
@@ -52,7 +55,7 @@ class ImdbService {
         const ids = batch.map((item) => item.id);
         const uniqueIds = [...new Set(ids)];
 
-        console.log("Fetching titles for IDs:", uniqueIds);
+        logger.info("Fetching titles for IDs:", uniqueIds);
 
         try {
             const params = new URLSearchParams();
@@ -76,7 +79,7 @@ class ImdbService {
                 req.resolve(title || null);
             });
         } catch (error) {
-            console.error("IMDb Batch Fetch Error:", error);
+            logger.error("IMDb Batch Fetch Error:", error);
             batch.forEach((req) => {
                 req.reject(error);
             });

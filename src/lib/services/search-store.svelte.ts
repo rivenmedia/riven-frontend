@@ -1,6 +1,9 @@
 import { browser } from "$app/environment";
 import type { ParsedSearchQuery } from "$lib/search-parser";
 import { buildTMDBQueryString, buildTVDBQueryString } from "$lib/utils/query-builder";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("search");
 
 export class SearchStore {
     #searchQuery = $state<string>("");
@@ -111,7 +114,7 @@ export class SearchStore {
                 await this.fetchTV(1);
             }
         } catch (error) {
-            console.error("Error searching:", error);
+            logger.error("Error searching:", error);
             this.#error = error instanceof Error ? error.message : String(error);
         } finally {
             this.#loading = false;
@@ -236,7 +239,7 @@ export class SearchStore {
                 this.#tvHasMore = result.page < result.total_pages;
             }
         } catch (error) {
-            console.error("Error loading more results:", error);
+            logger.error("Error loading more results:", error);
             this.#error = error instanceof Error ? error.message : String(error);
         } finally {
             this.#loading = false;

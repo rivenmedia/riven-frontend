@@ -1,5 +1,8 @@
 import { browser } from "$app/environment";
 import { PersistedState } from "runed";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("poster-cache");
 
 export interface RatingScore {
     name: string;
@@ -89,7 +92,7 @@ class PosterCacheStore {
                 keysToRemove.forEach((key) => localStorage.removeItem(key));
             }
         } catch (e) {
-            console.error("Failed to migrate old cache format:", e);
+            logger.error("Failed to migrate old cache format:", e);
         }
     }
 
@@ -159,7 +162,7 @@ class PosterCacheStore {
         } catch (e) {
             // Handle quota exceeded error
             if (e instanceof DOMException && e.name === "QuotaExceededError") {
-                console.warn("localStorage quota exceeded, clearing old cache entries...");
+                logger.warn("localStorage quota exceeded, clearing old cache entries...");
                 this.#pruneOldEntries();
 
                 // Retry after cleanup
@@ -169,10 +172,10 @@ class PosterCacheStore {
                         [key]: data
                     };
                 } catch (retryError) {
-                    console.error("Failed to store rating data even after cleanup:", retryError);
+                    logger.error("Failed to store rating data even after cleanup:", retryError);
                 }
             } else {
-                console.error("Failed to store rating data:", e);
+                logger.error("Failed to store rating data:", e);
             }
         }
     }
@@ -196,7 +199,7 @@ class PosterCacheStore {
         const prunedEntries = entries.slice(-entriesToKeep);
 
         this.#cache.current = Object.fromEntries(prunedEntries);
-        console.log(`Pruned ${entries.length - entriesToKeep} old cache entries`);
+        logger.info(`Pruned ${entries.length - entriesToKeep} old cache entries`);
     }
 
     clear(): void {
