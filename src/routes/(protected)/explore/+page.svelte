@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getContext, onMount, onDestroy } from "svelte";
+    import { getContext } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
@@ -7,16 +7,33 @@
     let { data } = $props();
 
     const searchStore: any = getContext("searchStore");
-    let loadMoreTrigger: HTMLDivElement;
-    let observer: IntersectionObserver | null = null;
+    let loadMoreTrigger = $state<HTMLDivElement | null>(null);
     let lastQuery = $state("");
 
-    function setupObserver() {
-        if (observer) {
-            observer.disconnect();
-        }
+    // Derived values from data
+    const currentQuery = $derived(data.form?.data?.query || "");
+    const currentType = $derived(data.form?.data?.type || "both");
 
-        observer = new IntersectionObserver(
+    // Handle query changes
+    $effect(() => {
+        if (currentQuery !== lastQuery) {
+            lastQuery = currentQuery;
+
+            if (currentQuery) {
+                searchStore.setSearch(currentQuery, data.parsed);
+                searchStore.setMediaType(currentType);
+                searchStore.searchDebounced();
+            } else {
+                searchStore.clear();
+            }
+        }
+    });
+
+    // Setup intersection observer for infinite scroll
+    $effect(() => {
+        if (!loadMoreTrigger) return;
+
+        const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && searchStore.hasMore && !searchStore.loading) {
                     searchStore.loadMore();
@@ -25,41 +42,12 @@
             { threshold: 0.1 }
         );
 
-        if (loadMoreTrigger) {
-            observer.observe(loadMoreTrigger);
-        }
-    }
-
-    onMount(() => {
-        setupObserver();
+        observer.observe(loadMoreTrigger);
 
         return () => {
-            if (observer) {
-                observer.disconnect();
-            }
-            // Cancel any pending search requests on unmount
+            observer.disconnect();
             searchStore.cancelPendingRequests();
         };
-    });
-
-    $effect(() => {
-        const currentQuery = data.form?.data?.query;
-
-        if (currentQuery && currentQuery !== lastQuery) {
-            lastQuery = currentQuery;
-            searchStore.setSearch(currentQuery, data.parsed);
-            searchStore.setMediaType(data.form?.data?.type || "both");
-            // Use debounced search to prevent rapid API calls
-            searchStore.searchDebounced();
-        }
-    });
-
-    $effect(() => {
-        const _ = searchStore.mediaType;
-
-        if (loadMoreTrigger) {
-            setupObserver();
-        }
     });
 </script>
 
