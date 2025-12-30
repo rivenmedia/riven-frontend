@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getContext, onMount } from "svelte";
+    import { getContext, onMount, onDestroy } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
@@ -37,6 +37,8 @@
             if (observer) {
                 observer.disconnect();
             }
+            // Cancel any pending search requests on unmount
+            searchStore.cancelPendingRequests();
         };
     });
 
@@ -47,7 +49,8 @@
             lastQuery = currentQuery;
             searchStore.setSearch(currentQuery, data.parsed);
             searchStore.setMediaType(data.form?.data?.type || "both");
-            searchStore.search();
+            // Use debounced search to prevent rapid API calls
+            searchStore.searchDebounced();
         }
     });
 

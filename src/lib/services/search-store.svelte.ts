@@ -21,6 +21,12 @@ export class SearchStore {
     #mediaType = $state<"movie" | "tv" | "both">("both");
     #warnings = $state<string[]>([]);
 
+    // For request cancellation
+    #abortController: AbortController | null = null;
+    // For debouncing
+    #debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    #debounceMs = 300; // 300ms debounce delay
+
     get searchQuery() {
         return this.#searchQuery;
     }
@@ -94,8 +100,54 @@ export class SearchStore {
         this.#tvResults = [];
     }
 
+    /**
+     * Cancel any pending search requests
+     */
+    cancelPendingRequests(): void {
+        if (this.#abortController) {
+            this.#abortController.abort();
+            this.#abortController = null;
+        }
+        if (this.#debounceTimer) {
+            clearTimeout(this.#debounceTimer);
+            this.#debounceTimer = null;
+        }
+    }
+
+    /**
+     * Debounced search - waits for user to stop typing before searching
+     * Automatically cancels previous pending requests
+     */
+    searchDebounced(): void {
+        if (!browser) return;
+
+        // Cancel any pending debounce timer
+        if (this.#debounceTimer) {
+            clearTimeout(this.#debounceTimer);
+        }
+
+        // Set loading state immediately for UI feedback
+        this.#loading = true;
+
+        // Debounce the actual search
+        this.#debounceTimer = setTimeout(() => {
+            this.#debounceTimer = null;
+            this.search();
+        }, this.#debounceMs);
+    }
+
+    /**
+     * Immediate search - cancels any pending requests and searches immediately
+     */
     async search(): Promise<void> {
         if (!browser) return;
+
+        // Cancel any previous pending requests
+        this.cancelPendingRequests();
+
+        // Create new abort controller for this search
+        this.#abortController = new AbortController();
+        const signal = this.#abortController.signal;
 
         try {
             this.#loading = true;
@@ -108,17 +160,25 @@ export class SearchStore {
 
             // Parallelize requests when searching both types
             if (this.#mediaType === "both") {
-                await Promise.all([this.fetchMovies(1), this.fetchTV(1)]);
+                await Promise.all([this.fetchMovies(1, signal), this.fetchTV(1, signal)]);
             } else if (this.#mediaType === "movie") {
-                await this.fetchMovies(1);
+                await this.fetchMovies(1, signal);
             } else {
-                await this.fetchTV(1);
+                await this.fetchTV(1, signal);
             }
         } catch (error) {
+            // Don't treat aborted requests as errors
+            if (error instanceof Error && error.name === "AbortError") {
+                logger.debug("Search request was cancelled");
+                return;
+            }
             logger.error("Error searching:", error);
             this.#error = error instanceof Error ? error.message : String(error);
         } finally {
-            this.#loading = false;
+            // Only clear loading if this controller wasn't aborted
+            if (!signal.aborted) {
+                this.#loading = false;
+            }
         }
     }
     private deduplicateItems(newItems: any[], existingItems: any[] = []): any[] {
@@ -134,11 +194,11 @@ export class SearchStore {
         return uniqueItems;
     }
 
-    private async fetchMovies(page: number): Promise<void> {
+    private async fetchMovies(page: number, signal?: AbortSignal): Promise<void> {
         if (!this.#parsedSearch) return;
 
         const queryString = buildTMDBQueryString(this.#parsedSearch, page);
-        const response = await fetch(`/api/tmdb/search/movie?${queryString}`);
+        const response = await fetch(`/api/tmdb/search/movie?${queryString}`, { signal });
 
         if (!response.ok) {
             throw new Error("Failed to fetch movie results");
@@ -162,12 +222,12 @@ export class SearchStore {
         this.#movieHasMore = result.page < result.total_pages;
     }
 
-    private async fetchTV(page: number): Promise<void> {
+    private async fetchTV(page: number, signal?: AbortSignal): Promise<void> {
         if (!this.#parsedSearch) return;
 
         // Use TVDB for TV shows - build query string with the utility
         const queryString = buildTVDBQueryString(this.#parsedSearch, page);
-        const response = await fetch(`/api/tvdb/search?${queryString}`);
+        const response = await fetch(`/api/tvdb/search?${queryString}`, { signal });
 
         if (!response.ok) {
             throw new Error("Failed to fetch TV results from TVDB");
@@ -266,6 +326,9 @@ export class SearchStore {
     }
 
     clear() {
+        // Cancel any pending requests
+        this.cancelPendingRequests();
+
         this.#searchQuery = "";
         this.#rawSearchString = "";
         this.#parsedSearch = null;
@@ -278,5 +341,6 @@ export class SearchStore {
         this.#totalResults = 0;
         this.#error = null;
         this.#warnings = [];
+        this.#loading = false;
     }
 }
