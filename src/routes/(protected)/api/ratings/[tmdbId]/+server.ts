@@ -93,19 +93,19 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
         const tmdbData =
             mediaType === "movie"
                 ? await providers.tmdb.GET("/3/movie/{movie_id}", {
-                    params: {
-                        path: { movie_id: Number(tmdbId) },
-                        query: { append_to_response: "external_ids" }
-                    },
-                    fetch: customFetch
-                })
+                      params: {
+                          path: { movie_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  })
                 : await providers.tmdb.GET("/3/tv/{series_id}", {
-                    params: {
-                        path: { series_id: Number(tmdbId) },
-                        query: { append_to_response: "external_ids" }
-                    },
-                    fetch: customFetch
-                });
+                      params: {
+                          path: { series_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  });
 
         if (tmdbData.data) {
             const vote_average = tmdbData.data.vote_average;
@@ -193,7 +193,8 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                             headers: {
                                 "Content-Type": "application/json",
                                 Accept: "application/json",
-                                "x-algolia-agent": "Algolia for JavaScript (4.14.3); Browser (lite)",
+                                "x-algolia-agent":
+                                    "Algolia for JavaScript (4.14.3); Browser (lite)",
                                 "x-algolia-api-key": "175588f6e5f8319b27702e4cc4013561",
                                 "x-algolia-application-id": "79FRDP12PN"
                             },
