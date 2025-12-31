@@ -7,7 +7,6 @@
 
     let { data }: { data: PageData } = $props();
 
-    const nowPlayingStore = new MediaListStore<BaseListItem>("nowPlaying", "/api/tmdb/now-playing");
     const trendingMoviesStore = new MediaListStore<BaseListItem>(
         "trendingMovies",
         "/api/tmdb/movie",
@@ -28,7 +27,7 @@
     <title>Home - Riven</title>
 </svelte:head>
 
-<TmdbNowPlaying data={nowPlayingStore.items} />
+<TmdbNowPlaying data={data.nowPlaying} />
 
 {#snippet listHeading(title: string)}
     <h2 class="text-muted-foreground mb-4 max-w-max text-sm font-semibold md:text-base lg:text-lg">
