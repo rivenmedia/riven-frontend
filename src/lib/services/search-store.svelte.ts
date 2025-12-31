@@ -71,13 +71,12 @@ export class SearchStore {
     }
 
     async setMediaType(type: "movie" | "tv" | "both") {
-
         if (this.mediaType === type) return;
         this.mediaType = type;
 
         if (!this.parsedSearch) return;
 
-        // Simplified Smart Fetch: 
+        // Simplified Smart Fetch:
         // If we switched to a type and have NO results for it, fetch.
         const needMovies = (type === "movie" || type === "both") && this.movieResults.length === 0;
         const needTV = (type === "tv" || type === "both") && this.tvResults.length === 0;
@@ -126,7 +125,6 @@ export class SearchStore {
 
         // Avoid re-searching if the query hasn't changed
 
-
         this.setSearch(newQuery, parsed!);
         this.searchDebounced();
     }
@@ -173,8 +171,6 @@ export class SearchStore {
             clearTimeout(this.debounceTimer);
         }
 
-        this.loading = true;
-
         this.debounceTimer = setTimeout(() => {
             this.debounceTimer = null;
             this.search();
@@ -218,7 +214,6 @@ export class SearchStore {
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
-
                 return;
             }
             logger.error("Error searching:", error);

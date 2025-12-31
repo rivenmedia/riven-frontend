@@ -123,17 +123,10 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
 
     const searchMode = url.searchParams.get("searchMode") || "discover";
-    // logger.info(`Searching ${type} with mode: ${searchMode}`);
 
     try {
         const { queryParams, clientFilters } = parseFilters(url.searchParams);
-
         const endpoint = getEndpoint(type, searchMode);
-
-        // Log query only for search mode to catch issues
-        // if (searchMode !== "discover") {
-        //    logger.debug("Search params:", queryParams);
-        // }
 
         const apiResult = await providers.tmdb.GET(endpoint as any, {
             params: { query: queryParams as any },
@@ -147,7 +140,10 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
         const rawResults = (apiResult.data?.results as unknown as TMDBListItem[]) || [];
         const filteredResults = applyServerFilters(rawResults, clientFilters);
-        const transformedResults = transformTMDBList(filteredResults, type === "tv" ? "tv" : undefined);
+        const transformedResults = transformTMDBList(
+            filteredResults,
+            type === "tv" ? "tv" : undefined
+        );
 
         return json({
             results: transformedResults,
@@ -155,7 +151,6 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             total_pages: apiResult.data?.total_pages || 1,
             total_results: apiResult.data?.total_results || 0
         });
-
     } catch (err) {
         logger.error("Error searching/discovering media:", err);
         error(500, "Failed to search/discover media");
@@ -204,14 +199,21 @@ function parseFilters(searchParams: URLSearchParams) {
         } else {
             // Query Params
             if (
-                ["year", "page", "with_networks", "with_release_type"].some(k => key.includes(k)) ||
+                ["year", "page", "with_networks", "with_release_type"].some((k) =>
+                    key.includes(k)
+                ) ||
                 key.includes("vote_") ||
                 key.includes("runtime")
             ) {
                 const n = parseNum(value);
                 if (n !== undefined) queryParams[key] = n;
             } else if (
-                ["include_adult", "include_video", "include_null_first_air_dates", "screened_theatrically"].includes(key)
+                [
+                    "include_adult",
+                    "include_video",
+                    "include_null_first_air_dates",
+                    "screened_theatrically"
+                ].includes(key)
             ) {
                 queryParams[key] = value === "true" || value === "1";
             } else {

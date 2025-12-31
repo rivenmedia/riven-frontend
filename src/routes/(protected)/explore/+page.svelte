@@ -5,8 +5,6 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { SearchStore } from "$lib/services/search-store.svelte";
 
-    import { untrack } from "svelte";
-
     let { data } = $props();
 
     const searchStore = getContext<SearchStore>("searchStore");
