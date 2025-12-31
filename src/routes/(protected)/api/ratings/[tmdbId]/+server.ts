@@ -255,7 +255,8 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                             headers: {
                                 "Content-Type": "application/json",
                                 Accept: "application/json"
-                            }
+                            },
+                            signal: AbortSignal.timeout(5000)
                         }
                     );
 
@@ -273,7 +274,11 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                         }
                     }
                 } catch (e) {
-                    logger.error("[ratings] Radarr IMDB proxy failed:", e);
+                    if (e instanceof Error && e.name === "TimeoutError") {
+                        logger.error("[ratings] Radarr IMDB proxy timed out");
+                    } else {
+                        logger.error("[ratings] Radarr IMDB proxy failed:", e);
+                    }
                 }
             })()
         );
@@ -309,7 +314,8 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                                     params: `filters=${filters}&hitsPerPage=20`
                                 }
                             ]
-                        })
+                        }),
+                        signal: AbortSignal.timeout(5000)
                     });
 
                     if (rtResponse.ok) {
@@ -365,7 +371,11 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                         }
                     }
                 } catch (e) {
-                    logger.error("[ratings] Rotten Tomatoes fetch failed:", e);
+                    if (e instanceof Error && e.name === "TimeoutError") {
+                        logger.error("[ratings] Rotten Tomatoes fetch timed out");
+                    } else {
+                        logger.error("[ratings] Rotten Tomatoes fetch failed:", e);
+                    }
                 }
             })()
         );
