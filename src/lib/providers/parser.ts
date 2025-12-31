@@ -361,23 +361,39 @@ const TVDB_GENRE_MAP: Record<string, number> = {
     "War & Politics": 10768
 };
 
-export function transformTVDBList(items: any[] | null): TMDBTransformedListItem[] {
+interface TVDBSearchItem {
+    tvdb_id?: number;
+    id?: number;
+    type?: string;
+    name?: string;
+    translations?: { eng?: string };
+    image_url?: string;
+    year?: string | number;
+    first_air_time?: string;
+    overview?: string;
+    genres?: (string | { name: string })[];
+}
+
+export function transformTVDBList(items: TVDBSearchItem[] | null): TMDBTransformedListItem[] {
     return (
         items?.reduce((acc, item) => {
             if (item.type !== "series") return acc;
+
+            const id = item.tvdb_id ?? item.id;
+            if (!id || id <= 0) return acc;
 
             // Map genres to IDs (handle both string[] from search and object[] from filter)
             const genreIds: number[] = [];
             if (item.genres) {
                 for (const g of item.genres) {
                     const name = typeof g === "string" ? g : g.name;
-                    const id = TVDB_GENRE_MAP[name];
-                    if (typeof id === "number" && id > 0) genreIds.push(id);
+                    const genreId = TVDB_GENRE_MAP[name];
+                    if (typeof genreId === "number" && genreId > 0) genreIds.push(genreId);
                 }
             }
 
             acc.push({
-                id: item.tvdb_id || item.id, // item.id is used in filter endpoint
+                id,
                 title: item.translations?.eng || item.name || "Unknown",
                 poster_path: buildTVDBImage(item.image_url ?? null),
                 media_type: "tv",

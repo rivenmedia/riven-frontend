@@ -13,7 +13,10 @@
 
     const SidebarStore: any = getContext("sidebarStore");
 
-    const isMac = browser && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    const platform = browser
+        ? ((navigator.userAgentData?.platform ?? navigator.platform) || "").toUpperCase()
+        : "";
+    const isMac = platform.includes("MAC");
     const modifierKey = isMac ? "⌘" : "^";
 
     let searchQuery = $state("");
