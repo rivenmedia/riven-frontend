@@ -10,6 +10,7 @@
 
     import { afterNavigate, onNavigate, beforeNavigate } from "$app/navigation";
     import Sidebar from "$lib/components/sidebar.svelte";
+    import { Separator } from "$lib/components/ui/separator/index.js";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
     import NProgress from "nprogress";
@@ -27,13 +28,12 @@
     onNavigate((navigation) => {
         if (!document.startViewTransition) return;
 
-        // Start View Transition without blocking SvelteKit navigation
-        // The callback updates the DOM when navigation completes
-        document.startViewTransition(async () => {
-            await navigation.complete;
+        return new Promise((resolve) => {
+            document.startViewTransition(async () => {
+                resolve();
+                await navigation.complete;
+            });
         });
-
-        // Don't return a promise - let SvelteKit proceed with navigation
     });
 
     NProgress.configure({
