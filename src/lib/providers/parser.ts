@@ -340,6 +340,8 @@ const TVDB_GENRE_MAP: Record<string, number> = {
     Drama: 18,
     Family: 10751,
     Fantasy: 14,
+    History: 36,
+    Horror: 27,
     Music: 10402,
     Mystery: 9648,
     Romance: 10749,
@@ -377,7 +379,7 @@ export function transformTVDBList(items: any[] | null): TMDBTransformedListItem[
             acc.push({
                 id: item.tvdb_id || item.id, // item.id is used in filter endpoint
                 title: item.translations?.eng || item.name || "Unknown",
-                poster_path: item.image_url || null,
+                poster_path: buildTVDBImage(item.image_url ?? null),
                 media_type: "tv",
                 year: item.year || (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
                 vote_average: null,

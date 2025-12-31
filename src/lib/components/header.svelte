@@ -2,7 +2,7 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { getContext } from "svelte";
+    import { getContext, onDestroy } from "svelte";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
@@ -15,6 +15,7 @@
     let searchQuery = $state("");
     let inputFocused = $state(false);
     let inputRef = $state<HTMLInputElement | null>(null);
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const isExplorePage = $derived($page.url.pathname === "/explore");
     const urlQuery = $derived($page.url.searchParams.get("query") || "");
@@ -28,12 +29,20 @@
 
     function handleInput(e: Event) {
         searchQuery = (e.target as HTMLInputElement).value;
-        const query = searchQuery.trim();
-        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
-            keepFocus: true,
-            noScroll: true
-        });
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = searchQuery.trim();
+            goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+                keepFocus: true,
+                noScroll: true,
+                replaceState: true
+            });
+        }, 300);
     }
+
+    onDestroy(() => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+    });
 
     function onKeydown(e: KeyboardEvent) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -63,7 +72,20 @@
                     </InputGroup.Addon>
                 </InputGroup.Root>
 
-                <Button variant="outline" size="icon" aria-label="Search">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    aria-label="Search"
+                    onclick={() => {
+                        const query = searchQuery.trim();
+                        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+                            keepFocus: true,
+                            noScroll: true,
+                            replaceState: true
+                        });
+                        inputRef?.focus();
+                    }}>
                     <Search />
                 </Button>
             </ButtonGroup.Root>
