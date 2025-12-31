@@ -37,10 +37,11 @@
     function navigateToSearch() {
         if (debounceTimer) clearTimeout(debounceTimer);
         const query = searchQuery.trim();
+        const currentlyExplore = $page.url.pathname === "/explore";
         goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: true,
             noScroll: true,
-            replaceState: true
+            replaceState: currentlyExplore
         });
     }
 

@@ -29,10 +29,14 @@
         if (!document.startViewTransition) return;
 
         return new Promise((resolve) => {
-            document.startViewTransition(async () => {
+            const transition = document.startViewTransition(async () => {
                 resolve();
                 await navigation.complete;
             });
+
+            // Handle potential timeouts/aborts to prevent unhandled rejections
+            transition.updateCallbackDone.catch(() => {});
+            transition.finished.catch(() => {});
         });
     });
 
