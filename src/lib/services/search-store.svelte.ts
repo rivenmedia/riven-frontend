@@ -1,288 +1,231 @@
 import { browser } from "$app/environment";
 import type { ParsedSearchQuery } from "$lib/search-parser";
-import { buildTMDBSearchParams, buildTVDBSearchParams } from "$lib/utils/query-builder";
+
 import { createScopedLogger } from "$lib/logger";
-import { searchMovies, searchTV, type SearchResult } from "$lib/services/search.remote";
 import type { TMDBTransformedListItem } from "$lib/providers/parser";
 
 const logger = createScopedLogger("search");
 
-export interface SearchFilters {
-    dateFrom: string | null; // ISO date string YYYY-MM-DD
-    dateTo: string | null; // ISO date string YYYY-MM-DD
-    genres: number[];
-    language: string | null;
+// Redefine SearchResult here to avoid importing server code
+export interface SearchResult {
+    results: TMDBTransformedListItem[];
+    page: number;
+    total_pages: number;
+    total_results: number;
 }
 
-const DEFAULT_FILTERS: SearchFilters = {
-    dateFrom: null,
-    dateTo: null,
-    genres: [],
-    language: null
-};
-
 export class SearchStore {
-    #searchQuery = $state<string>("");
-    #rawSearchString = $state<string>("");
-    #parsedSearch = $state<ParsedSearchQuery | null>(null);
-    #movieResults = $state<TMDBTransformedListItem[]>([]);
-    #tvResults = $state<TMDBTransformedListItem[]>([]);
-    #loading = $state<boolean>(false);
-    #error = $state<string | null>(null);
-    #moviePage = $state<number>(1);
-    #tvPage = $state<number>(1);
-    #totalResults = $state<number>(0);
-    #movieHasMore = $state<boolean>(true);
-    #tvHasMore = $state<boolean>(true);
-    #mediaType = $state<"movie" | "tv" | "both">("both");
-    #warnings = $state<string[]>([]);
-    #filters = $state<SearchFilters>({ ...DEFAULT_FILTERS });
+    searchQuery = $state<string>("");
+    rawSearchString = $state<string>("");
+    parsedSearch = $state<ParsedSearchQuery | null>(null);
+    movieResults = $state<TMDBTransformedListItem[]>([]);
+    tvResults = $state<TMDBTransformedListItem[]>([]);
+    loading = $state<boolean>(false);
+    error = $state<string | null>(null);
+    moviePage = $state<number>(1);
+    tvPage = $state<number>(1);
+    totalResultsMovie = $state<number>(0);
+    totalResultsTV = $state<number>(0);
+    movieHasMore = $state<boolean>(true);
+    tvHasMore = $state<boolean>(true);
+    mediaType = $state<"movie" | "tv" | "both">("both");
+    warnings = $state<string[]>([]);
 
     // For request cancellation
-    #abortController: AbortController | null = null;
+    abortController: AbortController | null = null;
     // For debouncing
-    #debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    #debounceMs = 300; // 300ms debounce delay
+    debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    debounceMs = 300; // 300ms debounce delay
 
-    get searchQuery() {
-        return this.#searchQuery;
-    }
-
-    get rawSearchString() {
-        return this.#rawSearchString;
-    }
-
-    get parsedSearch() {
-        return this.#parsedSearch;
-    }
-
-    get warnings() {
-        return this.#warnings;
-    }
-
-    get filters() {
-        return this.#filters;
-    }
-
-    private applyFilters(items: TMDBTransformedListItem[]): TMDBTransformedListItem[] {
-        return items.filter((item) => {
-            // Date filter - use release_date or first_air_date for full date comparison
-            const itemDate = item.release_date || item.first_air_date;
-            if (itemDate) {
-                if (this.#filters.dateFrom && itemDate < this.#filters.dateFrom) {
-                    return false;
-                }
-                if (this.#filters.dateTo && itemDate > this.#filters.dateTo) {
-                    return false;
-                }
-            } else if (this.#filters.dateFrom || this.#filters.dateTo) {
-                // If we have date filters but item has no date, filter it out
-                return false;
-            }
-
-            // Genre filter - require matching genre
-            if (this.#filters.genres.length > 0) {
-                if (!item.genre_ids || item.genre_ids.length === 0) {
-                    return false;
-                }
-                const hasMatchingGenre = this.#filters.genres.some((g) =>
-                    item.genre_ids?.includes(g)
-                );
-                if (!hasMatchingGenre) {
-                    return false;
-                }
-            }
-
-            // Language filter - only apply if item has language data
-            if (this.#filters.language && item.original_language) {
-                if (item.original_language !== this.#filters.language) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-    }
-
+    // Results are exactly what the API returns.
     get results() {
-        let items: TMDBTransformedListItem[];
-        if (this.#mediaType === "both") {
-            items = [...this.#movieResults, ...this.#tvResults];
-        } else {
-            items = this.#mediaType === "movie" ? this.#movieResults : this.#tvResults;
+        if (this.mediaType === "both") {
+            // Sort merged results by popularity
+            return [...this.movieResults, ...this.tvResults].sort(
+                (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)
+            );
         }
-        return this.applyFilters(items);
+        // Force new array reference to ensure reactivity
+        return this.mediaType === "movie" ? [...this.movieResults] : [...this.tvResults];
     }
 
     get unfilteredResultsCount() {
-        if (this.#mediaType === "both") {
-            return this.#movieResults.length + this.#tvResults.length;
+        if (this.mediaType === "both") {
+            return this.movieResults.length + this.tvResults.length;
         }
-        return this.#mediaType === "movie" ? this.#movieResults.length : this.#tvResults.length;
-    }
-
-    get movieResults() {
-        return this.#movieResults;
-    }
-
-    get tvResults() {
-        return this.#tvResults;
-    }
-
-    get loading() {
-        return this.#loading;
-    }
-
-    get error() {
-        return this.#error;
+        return this.mediaType === "movie" ? this.movieResults.length : this.tvResults.length;
     }
 
     get totalResults() {
-        return this.#totalResults;
+        if (this.mediaType === "both") {
+            return this.totalResultsMovie + this.totalResultsTV;
+        }
+        return this.mediaType === "movie" ? this.totalResultsMovie : this.totalResultsTV;
     }
 
     get hasMore() {
-        if (this.#mediaType === "both") {
-            return this.#movieHasMore || this.#tvHasMore;
+        if (this.mediaType === "both") {
+            return this.movieHasMore || this.tvHasMore;
         }
-        return this.#mediaType === "movie" ? this.#movieHasMore : this.#tvHasMore;
+        return this.mediaType === "movie" ? this.movieHasMore : this.tvHasMore;
     }
 
-    get mediaType() {
-        return this.#mediaType;
+    async setMediaType(type: "movie" | "tv" | "both") {
+
+        if (this.mediaType === type) return;
+        this.mediaType = type;
+
+        if (!this.parsedSearch) return;
+
+        // Simplified Smart Fetch: 
+        // If we switched to a type and have NO results for it, fetch.
+        const needMovies = (type === "movie" || type === "both") && this.movieResults.length === 0;
+        const needTV = (type === "tv" || type === "both") && this.tvResults.length === 0;
+
+        if (needMovies || needTV) {
+            await this.fetchMissingMedia(needMovies, needTV);
+        }
     }
 
-    setMediaType(type: "movie" | "tv" | "both") {
-        if (this.#mediaType === type) return;
-        this.#mediaType = type;
+    private async fetchMissingMedia(needMovies: boolean, needTV: boolean) {
+        this.cancelPendingRequests();
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
+
+        try {
+            this.loading = true;
+            this.error = null;
+
+            const promises: Promise<void>[] = [];
+            if (needMovies) promises.push(this.fetchMedia("movie", 1, signal));
+            if (needTV) promises.push(this.fetchMedia("tv", 1, signal));
+
+            await Promise.all(promises);
+        } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") return;
+            logger.error("Error fetching missing media:", error);
+            this.error = error instanceof Error ? error.message : String(error);
+        } finally {
+            if (!signal.aborted) {
+                this.loading = false;
+            }
+        }
     }
 
-    setDateRange(from: string | null, to: string | null) {
-        this.#filters = { ...this.#filters, dateFrom: from, dateTo: to };
-    }
+    /**
+     * Syncs the store with a new parsed search query.
+     * Handles diffing and triggering search/clear automatically.
+     */
+    syncQuery(parsed: ParsedSearchQuery | null) {
+        const newQuery = parsed?.query || "";
 
-    setGenres(genres: number[]) {
-        this.#filters = { ...this.#filters, genres };
-    }
+        if (!newQuery) {
+            this.clear();
+            return;
+        }
 
-    toggleGenre(genreId: number) {
-        const genres = this.#filters.genres.includes(genreId)
-            ? this.#filters.genres.filter((g) => g !== genreId)
-            : [...this.#filters.genres, genreId];
-        this.#filters = { ...this.#filters, genres };
-    }
+        // Avoid re-searching if the query hasn't changed
 
-    setLanguage(language: string | null) {
-        this.#filters = { ...this.#filters, language };
-    }
 
-    resetFilters() {
-        this.#filters = { ...DEFAULT_FILTERS };
-    }
-
-    get hasActiveFilters() {
-        return (
-            this.#filters.dateFrom !== null ||
-            this.#filters.dateTo !== null ||
-            this.#filters.genres.length > 0 ||
-            this.#filters.language !== null
-        );
+        this.setSearch(newQuery, parsed!);
+        this.searchDebounced();
     }
 
     setSearch(rawString: string, parsed: ParsedSearchQuery) {
-        this.#rawSearchString = rawString;
-        this.#searchQuery = parsed.query;
-        this.#parsedSearch = parsed;
-        this.#warnings = parsed.warnings;
-        this.#moviePage = 1;
-        this.#tvPage = 1;
-        this.#movieHasMore = true;
-        this.#tvHasMore = true;
-        this.#movieResults = [];
-        this.#tvResults = [];
+        this.rawSearchString = rawString;
+        this.searchQuery = parsed.query;
+        this.parsedSearch = parsed;
+        this.warnings = parsed.warnings;
+
+        // Reset state for new search
+        this.moviePage = 1;
+        this.tvPage = 1;
+        this.movieHasMore = true;
+        this.tvHasMore = true;
+        this.movieResults = [];
+        this.tvResults = [];
+        this.totalResultsMovie = 0;
+        this.totalResultsTV = 0;
     }
 
     /**
      * Cancel any pending search requests
      */
     cancelPendingRequests(): void {
-        if (this.#abortController) {
-            this.#abortController.abort();
-            this.#abortController = null;
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
         }
-        if (this.#debounceTimer) {
-            clearTimeout(this.#debounceTimer);
-            this.#debounceTimer = null;
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = null;
         }
+        this.loading = false;
     }
 
     /**
      * Debounced search - waits for user to stop typing before searching
-     * Automatically cancels previous pending requests
      */
     searchDebounced(): void {
         if (!browser) return;
 
-        // Cancel any pending debounce timer
-        if (this.#debounceTimer) {
-            clearTimeout(this.#debounceTimer);
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
         }
 
-        // Set loading state immediately for UI feedback
-        this.#loading = true;
+        this.loading = true;
 
-        // Debounce the actual search
-        this.#debounceTimer = setTimeout(() => {
-            this.#debounceTimer = null;
+        this.debounceTimer = setTimeout(() => {
+            this.debounceTimer = null;
             this.search();
-        }, this.#debounceMs);
+        }, this.debounceMs);
     }
 
     /**
-     * Immediate search - cancels any pending requests and searches immediately
+     * Immediate search
      */
     async search(): Promise<void> {
         if (!browser) return;
 
-        // Cancel any previous pending requests
         this.cancelPendingRequests();
 
-        // Create new abort controller for this search
-        this.#abortController = new AbortController();
-        const signal = this.#abortController.signal;
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
 
         try {
-            this.#loading = true;
-            this.#error = null;
-            this.#movieResults = [];
-            this.#tvResults = [];
-            this.#totalResults = 0; // Reset total results
-            this.#moviePage = 1;
-            this.#tvPage = 1;
+            this.loading = true;
+            this.error = null;
+            this.moviePage = 1;
+            this.tvPage = 1;
 
-            // Parallelize requests when searching both types
-            if (this.#mediaType === "both") {
+            if (this.mediaType === "both") {
+                this.movieResults = [];
+                this.tvResults = [];
+                this.totalResultsMovie = 0;
+                this.totalResultsTV = 0;
                 await Promise.all([
                     this.fetchMedia("movie", 1, signal),
                     this.fetchMedia("tv", 1, signal)
                 ]);
-            } else if (this.#mediaType === "movie") {
+            } else if (this.mediaType === "movie") {
+                this.movieResults = [];
+                this.totalResultsMovie = 0;
                 await this.fetchMedia("movie", 1, signal);
             } else {
+                this.tvResults = [];
+                this.totalResultsTV = 0;
                 await this.fetchMedia("tv", 1, signal);
             }
         } catch (error) {
-            // Don't treat aborted requests as errors
             if (error instanceof Error && error.name === "AbortError") {
-                logger.debug("Search request was cancelled");
+
                 return;
             }
             logger.error("Error searching:", error);
-            this.#error = error instanceof Error ? error.message : String(error);
+            this.error = error instanceof Error ? error.message : String(error);
         } finally {
-            // Only clear loading if this controller wasn't aborted
             if (!signal.aborted) {
-                this.#loading = false;
+                this.loading = false;
             }
         }
     }
@@ -308,19 +251,33 @@ export class SearchStore {
         page: number,
         signal?: AbortSignal
     ): Promise<void> {
-        if (!this.#parsedSearch) return;
+        if (!this.parsedSearch) return;
 
         let result: SearchResult;
 
-        if (type === "movie") {
-            const params = buildTMDBSearchParams(this.#parsedSearch, page);
-            result = await searchMovies(params);
-        } else {
-            const params = buildTVDBSearchParams(this.#parsedSearch, page);
-            result = await searchTV(params);
+        const params = {
+            ...this.parsedSearch.tmdbParams,
+            page,
+            searchMode: this.parsedSearch.searchMode
+        };
+
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.append(key, String(value));
+            }
+        });
+
+        const endpoint = `/api/tmdb/search/${type}?${searchParams.toString()}`;
+
+        const response = await fetch(endpoint, { signal });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
         }
 
-        // Check if aborted
+        result = await response.json();
+
         if (signal?.aborted) return;
 
         const items = (result.results || []) as TMDBTransformedListItem[];
@@ -328,93 +285,110 @@ export class SearchStore {
         if (page === 1) {
             const uniqueItems = this.deduplicateItems(items);
             if (type === "movie") {
-                this.#movieResults = uniqueItems;
+                this.movieResults = uniqueItems;
             } else {
-                this.#tvResults = uniqueItems;
+                this.tvResults = uniqueItems;
             }
 
-            if (this.#mediaType === type || this.#mediaType === "both") {
-                // For initial load, accumulating totalResults might be tricky if we want exact count from API
-                // But sticking to previous logic:
-                this.#totalResults += result.total_results || 0;
+            if (this.mediaType === type || this.mediaType === "both") {
+                if (type === "movie") {
+                    this.totalResultsMovie = result.total_results || 0;
+                } else {
+                    this.totalResultsTV = result.total_results || 0;
+                }
             }
         } else {
-            const currentResults = type === "movie" ? this.#movieResults : this.#tvResults;
+            const currentResults = type === "movie" ? this.movieResults : this.tvResults;
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
-                this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
+                this.movieResults = [...this.movieResults, ...uniqueNewItems];
             } else {
-                this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
+                this.tvResults = [...this.tvResults, ...uniqueNewItems];
             }
         }
 
         if (type === "movie") {
-            this.#movieHasMore = result.page < result.total_pages;
+            this.movieHasMore = result.page < result.total_pages;
         } else {
-            this.#tvHasMore = result.page < result.total_pages;
+            this.tvHasMore = result.page < result.total_pages;
         }
     }
 
     private async loadMoreMedia(type: "movie" | "tv"): Promise<void> {
-        if (!this.#parsedSearch) return;
+        if (!this.parsedSearch) return;
 
-        const hasMore = type === "movie" ? this.#movieHasMore : this.#tvHasMore;
+        const hasMore = type === "movie" ? this.movieHasMore : this.tvHasMore;
         if (!hasMore) return;
 
-        if (type === "movie") this.#moviePage += 1;
-        else this.#tvPage += 1;
+        if (type === "movie") this.moviePage += 1;
+        else this.tvPage += 1;
 
-        const page = type === "movie" ? this.#moviePage : this.#tvPage;
+        const page = type === "movie" ? this.moviePage : this.tvPage;
 
         try {
             let result: SearchResult;
-            if (type === "movie") {
-                const params = buildTMDBSearchParams(this.#parsedSearch, page);
-                result = await searchMovies(params);
-            } else {
-                const params = buildTVDBSearchParams(this.#parsedSearch, page);
-                result = await searchTV(params);
+
+            const params = {
+                ...this.parsedSearch.tmdbParams,
+                page,
+                searchMode: this.parsedSearch.searchMode
+            };
+
+            const searchParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    searchParams.append(key, String(value));
+                }
+            });
+
+            const endpoint = `/api/tmdb/search/${type}?${searchParams.toString()}`;
+
+            const response = await fetch(endpoint);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
             }
+
+            result = await response.json();
 
             const newItems = (result.results || []) as TMDBTransformedListItem[];
 
             if (newItems.length > 0) {
-                const currentResults = type === "movie" ? this.#movieResults : this.#tvResults;
+                const currentResults = type === "movie" ? this.movieResults : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {
-                    this.#movieResults = [...this.#movieResults, ...uniqueNewItems];
+                    this.movieResults = [...this.movieResults, ...uniqueNewItems];
                 } else {
-                    this.#tvResults = [...this.#tvResults, ...uniqueNewItems];
+                    this.tvResults = [...this.tvResults, ...uniqueNewItems];
                 }
             }
 
             if (type === "movie") {
-                this.#movieHasMore = result.page < result.total_pages;
+                this.movieHasMore = result.page < result.total_pages;
             } else {
-                this.#tvHasMore = result.page < result.total_pages;
+                this.tvHasMore = result.page < result.total_pages;
             }
         } catch (err) {
-            if (type === "movie") this.#moviePage -= 1;
-            else this.#tvPage -= 1;
+            if (type === "movie") this.moviePage -= 1;
+            else this.tvPage -= 1;
             throw err;
         }
     }
 
     async loadMore(): Promise<void> {
-        if (!browser || this.#loading || !this.hasMore || !this.#parsedSearch) return;
+        if (!browser || this.loading || !this.hasMore || !this.parsedSearch) return;
 
         try {
-            this.#loading = true;
-            this.#error = null;
+            this.loading = true;
+            this.error = null;
 
             const shouldLoadMovies =
-                (this.#mediaType === "both" || this.#mediaType === "movie") && this.#movieHasMore;
+                (this.mediaType === "both" || this.mediaType === "movie") && this.movieHasMore;
             const shouldLoadTV =
-                (this.#mediaType === "both" || this.#mediaType === "tv") && this.#tvHasMore;
+                (this.mediaType === "both" || this.mediaType === "tv") && this.tvHasMore;
 
-            // Parallelize requests when loading both types
             if (shouldLoadMovies && shouldLoadTV) {
                 await Promise.all([this.loadMoreMedia("movie"), this.loadMoreMedia("tv")]);
             } else if (shouldLoadMovies) {
@@ -424,28 +398,26 @@ export class SearchStore {
             }
         } catch (error) {
             logger.error("Error loading more results:", error);
-            this.#error = error instanceof Error ? error.message : String(error);
+            this.error = error instanceof Error ? error.message : String(error);
         } finally {
-            this.#loading = false;
+            this.loading = false;
         }
     }
 
     clear() {
-        // Cancel any pending requests
         this.cancelPendingRequests();
 
-        this.#searchQuery = "";
-        this.#rawSearchString = "";
-        this.#parsedSearch = null;
-        this.#movieResults = [];
-        this.#tvResults = [];
-        this.#moviePage = 1;
-        this.#tvPage = 1;
-        this.#movieHasMore = true;
-        this.#tvHasMore = true;
-        this.#totalResults = 0;
-        this.#error = null;
-        this.#warnings = [];
-        this.#loading = false;
+        this.searchQuery = "";
+        this.rawSearchString = "";
+        this.parsedSearch = null;
+        this.movieResults = [];
+        this.tvResults = [];
+        this.moviePage = 1;
+        this.tvPage = 1;
+        this.movieHasMore = true;
+        this.tvHasMore = true;
+        this.error = null;
+        this.warnings = [];
+        this.loading = false;
     }
 }

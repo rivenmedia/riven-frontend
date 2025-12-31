@@ -23,8 +23,8 @@
     let mediaURL = $derived.by(() => {
         if (!data.id) return "javascript:void(0)";
 
-        if (indexer === "tmdb" && type === "movie") {
-            return `/details/media/${data.id}/movie`;
+        if (indexer === "tmdb" && (type === "movie" || type === "tv")) {
+            return `/details/media/${data.id}/${type}`;
         } else if (indexer === "tvdb" && type === "tv") {
             return `/details/media/${data.id}/tv`;
         } else {

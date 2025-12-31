@@ -272,6 +272,7 @@ export interface TMDBTransformedListItem {
     year: string | number;
     vote_average: number | null;
     vote_count: number | null;
+    popularity?: number;
     indexer: "tmdb" | "tvdb";
     original_language?: string;
     overview?: string;
@@ -317,6 +318,7 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
                       : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
+            popularity: item.popularity,
             indexer: "tmdb" as const,
             original_language: item.original_language,
             overview: item.overview,

@@ -4,29 +4,19 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { SearchStore } from "$lib/services/search-store.svelte";
-    import { Previous } from "runed";
+
+    import { untrack } from "svelte";
 
     let { data } = $props();
 
     const searchStore = getContext<SearchStore>("searchStore");
     let loadMoreTrigger = $state<HTMLDivElement | null>(null);
 
-    // Derived values from data
-    const currentQuery = $derived(data.form?.data?.query || "");
-    const currentType = $derived(data.form?.data?.type || "both");
-    const previousQuery = new Previous(() => currentQuery, "");
-
     // Handle query changes
     $effect(() => {
-        if (currentQuery !== previousQuery.current) {
-            if (currentQuery) {
-                searchStore.setSearch(currentQuery, data.parsed);
-                searchStore.setMediaType(currentType);
-                searchStore.searchDebounced();
-            } else {
-                searchStore.clear();
-            }
-        }
+        // Sync the store with the search query from the URL.
+        // The store handles diffing internally to prevent redundant searches.
+        searchStore.syncQuery(data.parsed);
     });
 
     // Setup intersection observer for infinite scroll
@@ -130,7 +120,7 @@
         </div>
     {:else if Array.isArray(searchStore.results) && searchStore.results.length > 0}
         <div class="flex flex-wrap items-center gap-4">
-            {#each searchStore.results as item (item.id)}
+            {#each searchStore.results as item (`${item.media_type}-${item.id}`)}
                 <ListItem data={item} indexer={item.indexer} type={item.media_type} />
             {/each}
             {#if searchStore.loading}
