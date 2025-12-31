@@ -372,7 +372,7 @@ export function transformTVDBList(items: any[] | null): TMDBTransformedListItem[
                 for (const g of item.genres) {
                     const name = typeof g === "string" ? g : g.name;
                     const id = TVDB_GENRE_MAP[name];
-                    if (id > 0) genreIds.push(id);
+                    if (typeof id === "number" && id > 0) genreIds.push(id);
                 }
             }
 

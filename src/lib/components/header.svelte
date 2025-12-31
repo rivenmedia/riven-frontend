@@ -9,8 +9,12 @@
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
+    import { browser } from "$app/environment";
 
     const SidebarStore: any = getContext("sidebarStore");
+
+    const isMac = browser && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    const modifierKey = isMac ? "⌘" : "^";
 
     let searchQuery = $state("");
     let inputFocused = $state(false);
@@ -68,7 +72,7 @@
                         onblur={() => (inputFocused = false)}
                         autocomplete="off" />
                     <InputGroup.Addon align="inline-end">
-                        <Kbd.Root>^K</Kbd.Root>
+                        <Kbd.Root>{modifierKey}K</Kbd.Root>
                     </InputGroup.Addon>
                 </InputGroup.Root>
 
