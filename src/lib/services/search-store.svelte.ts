@@ -7,12 +7,26 @@ import type { TMDBTransformedListItem } from "$lib/providers/parser";
 
 const logger = createScopedLogger("search");
 
+export interface SearchFilters {
+    dateFrom: string | null; // ISO date string YYYY-MM-DD
+    dateTo: string | null; // ISO date string YYYY-MM-DD
+    genres: number[];
+    language: string | null;
+}
+
+const DEFAULT_FILTERS: SearchFilters = {
+    dateFrom: null,
+    dateTo: null,
+    genres: [],
+    language: null
+};
+
 export class SearchStore {
     #searchQuery = $state<string>("");
     #rawSearchString = $state<string>("");
     #parsedSearch = $state<ParsedSearchQuery | null>(null);
-    #movieResults = $state<any[]>([]);
-    #tvResults = $state<any[]>([]);
+    #movieResults = $state<TMDBTransformedListItem[]>([]);
+    #tvResults = $state<TMDBTransformedListItem[]>([]);
     #loading = $state<boolean>(false);
     #error = $state<string | null>(null);
     #moviePage = $state<number>(1);
@@ -22,6 +36,7 @@ export class SearchStore {
     #tvHasMore = $state<boolean>(true);
     #mediaType = $state<"movie" | "tv" | "both">("both");
     #warnings = $state<string[]>([]);
+    #filters = $state<SearchFilters>({ ...DEFAULT_FILTERS });
 
     // For request cancellation
     #abortController: AbortController | null = null;
@@ -45,11 +60,65 @@ export class SearchStore {
         return this.#warnings;
     }
 
+    get filters() {
+        return this.#filters;
+    }
+
+    private applyFilters(items: TMDBTransformedListItem[]): TMDBTransformedListItem[] {
+        return items.filter((item) => {
+            // Date filter - use release_date or first_air_date for full date comparison
+            const itemDate = item.release_date || item.first_air_date;
+            if (itemDate) {
+                if (this.#filters.dateFrom && itemDate < this.#filters.dateFrom) {
+                    return false;
+                }
+                if (this.#filters.dateTo && itemDate > this.#filters.dateTo) {
+                    return false;
+                }
+            } else if (this.#filters.dateFrom || this.#filters.dateTo) {
+                // If we have date filters but item has no date, filter it out
+                return false;
+            }
+
+            // Genre filter - require matching genre
+            if (this.#filters.genres.length > 0) {
+                if (!item.genre_ids || item.genre_ids.length === 0) {
+                    return false;
+                }
+                const hasMatchingGenre = this.#filters.genres.some((g) =>
+                    item.genre_ids?.includes(g)
+                );
+                if (!hasMatchingGenre) {
+                    return false;
+                }
+            }
+
+            // Language filter - only apply if item has language data
+            if (this.#filters.language && item.original_language) {
+                if (item.original_language !== this.#filters.language) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
     get results() {
+        let items: TMDBTransformedListItem[];
         if (this.#mediaType === "both") {
-            return [...this.#movieResults, ...this.#tvResults];
+            items = [...this.#movieResults, ...this.#tvResults];
+        } else {
+            items = this.#mediaType === "movie" ? this.#movieResults : this.#tvResults;
         }
-        return this.#mediaType === "movie" ? this.#movieResults : this.#tvResults;
+        return this.applyFilters(items);
+    }
+
+    get unfilteredResultsCount() {
+        if (this.#mediaType === "both") {
+            return this.#movieResults.length + this.#tvResults.length;
+        }
+        return this.#mediaType === "movie" ? this.#movieResults.length : this.#tvResults.length;
     }
 
     get movieResults() {
@@ -86,7 +155,38 @@ export class SearchStore {
     setMediaType(type: "movie" | "tv" | "both") {
         if (this.#mediaType === type) return;
         this.#mediaType = type;
-        // Don't reset pages or results - just filter what we show
+    }
+
+    setDateRange(from: string | null, to: string | null) {
+        this.#filters = { ...this.#filters, dateFrom: from, dateTo: to };
+    }
+
+    setGenres(genres: number[]) {
+        this.#filters = { ...this.#filters, genres };
+    }
+
+    toggleGenre(genreId: number) {
+        const genres = this.#filters.genres.includes(genreId)
+            ? this.#filters.genres.filter((g) => g !== genreId)
+            : [...this.#filters.genres, genreId];
+        this.#filters = { ...this.#filters, genres };
+    }
+
+    setLanguage(language: string | null) {
+        this.#filters = { ...this.#filters, language };
+    }
+
+    resetFilters() {
+        this.#filters = { ...DEFAULT_FILTERS };
+    }
+
+    get hasActiveFilters() {
+        return (
+            this.#filters.dateFrom !== null ||
+            this.#filters.dateTo !== null ||
+            this.#filters.genres.length > 0 ||
+            this.#filters.language !== null
+        );
     }
 
     setSearch(rawString: string, parsed: ParsedSearchQuery) {
@@ -162,7 +262,10 @@ export class SearchStore {
 
             // Parallelize requests when searching both types
             if (this.#mediaType === "both") {
-                await Promise.all([this.fetchMedia("movie", 1, signal), this.fetchMedia("tv", 1, signal)]);
+                await Promise.all([
+                    this.fetchMedia("movie", 1, signal),
+                    this.fetchMedia("tv", 1, signal)
+                ]);
             } else if (this.#mediaType === "movie") {
                 await this.fetchMedia("movie", 1, signal);
             } else {
@@ -184,7 +287,10 @@ export class SearchStore {
         }
     }
 
-    private deduplicateItems(newItems: TMDBTransformedListItem[], existingItems: TMDBTransformedListItem[] = []): TMDBTransformedListItem[] {
+    private deduplicateItems(
+        newItems: TMDBTransformedListItem[],
+        existingItems: TMDBTransformedListItem[] = []
+    ): TMDBTransformedListItem[] {
         const seenIds = new Set(existingItems.map((i) => i.id));
         const uniqueItems: TMDBTransformedListItem[] = [];
 
@@ -197,7 +303,11 @@ export class SearchStore {
         return uniqueItems;
     }
 
-    private async fetchMedia(type: "movie" | "tv", page: number, signal?: AbortSignal): Promise<void> {
+    private async fetchMedia(
+        type: "movie" | "tv",
+        page: number,
+        signal?: AbortSignal
+    ): Promise<void> {
         if (!this.#parsedSearch) return;
 
         let result: SearchResult;
@@ -285,7 +395,6 @@ export class SearchStore {
             } else {
                 this.#tvHasMore = result.page < result.total_pages;
             }
-
         } catch (err) {
             if (type === "movie") this.#moviePage -= 1;
             else this.#tvPage -= 1;

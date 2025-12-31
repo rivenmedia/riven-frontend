@@ -1,6 +1,11 @@
 import { query, getRequestEvent } from "$app/server";
 import providers from "$lib/providers";
-import { transformTMDBList, transformTVDBList, type TMDBListItem, type TMDBTransformedListItem } from "$lib/providers/parser";
+import {
+    transformTMDBList,
+    transformTVDBList,
+    type TMDBListItem,
+    type TMDBTransformedListItem
+} from "$lib/providers/parser";
 import * as dateUtils from "$lib/utils/date";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
@@ -71,13 +76,20 @@ function applyServerFilters(
 
     // Pre-calculate filter values outside the loop
     const withGenres = filters.with_genres ? getParsedGenres(String(filters.with_genres)) : null;
-    const withGenresSeparator = withGenres && String(filters.with_genres).includes("|") ? "OR" : "AND";
-    const withoutGenres = filters.without_genres ? getParsedGenres(String(filters.without_genres)) : null;
+    const withGenresSeparator =
+        withGenres && String(filters.with_genres).includes("|") ? "OR" : "AND";
+    const withoutGenres = filters.without_genres
+        ? getParsedGenres(String(filters.without_genres))
+        : null;
 
-    const voteAvgGte = filters["vote_average.gte"] !== undefined ? Number(filters["vote_average.gte"]) : null;
-    const voteAvgLte = filters["vote_average.lte"] !== undefined ? Number(filters["vote_average.lte"]) : null;
-    const voteCountGte = filters["vote_count.gte"] !== undefined ? Number(filters["vote_count.gte"]) : null;
-    const voteCountLte = filters["vote_count.lte"] !== undefined ? Number(filters["vote_count.lte"]) : null;
+    const voteAvgGte =
+        filters["vote_average.gte"] !== undefined ? Number(filters["vote_average.gte"]) : null;
+    const voteAvgLte =
+        filters["vote_average.lte"] !== undefined ? Number(filters["vote_average.lte"]) : null;
+    const voteCountGte =
+        filters["vote_count.gte"] !== undefined ? Number(filters["vote_count.gte"]) : null;
+    const voteCountLte =
+        filters["vote_count.lte"] !== undefined ? Number(filters["vote_count.lte"]) : null;
 
     const relDateGte = filters["release_date.gte"] || filters["primary_release_date.gte"];
     const relDateLte = filters["release_date.lte"] || filters["primary_release_date.lte"];
@@ -286,12 +298,8 @@ export const searchTV = query("unchecked", async (params: SearchParams): Promise
 
         const rawData = searchResult.data?.data || [];
 
-        // Strategy 3: Hybrid Enrichment
-        // If searching by text AND filtering by genre, standard search lacks genre data.
-        // We must enrich the top results with full details.
-        if (params.query && (clientFilters.with_genres || clientFilters.without_genres)) {
-            await enrichTVDBResults(rawData, tvdbToken, customFetch);
-        }
+        // Always enrich TVDB results with genre data for client-side filtering
+        await enrichTVDBResults(rawData, tvdbToken, customFetch);
 
         const transformedResults = transformTVDBList(rawData);
         const filteredResults = applyServerFilters(transformedResults, clientFilters);
@@ -349,23 +357,25 @@ const TMDB_TO_TVDB_GENRE: Record<number, number> = {
 async function enrichTVDBResults(items: any[], token: string, fetchImpl: any) {
     const itemsToEnrich = items.slice(0, 10);
 
-    await Promise.all(itemsToEnrich.map(async (item) => {
-        const id = item.tvdb_id || item.id;
-        if (!id) return;
+    await Promise.all(
+        itemsToEnrich.map(async (item) => {
+            const id = item.tvdb_id || item.id;
+            if (!id) return;
 
-        try {
-            const details = await providers.tvdb.GET(`/series/{id}/extended`, {
-                params: { path: { id } },
-                headers: { Authorization: `Bearer ${token}` },
-                fetch: fetchImpl
-            });
+            try {
+                const details = await providers.tvdb.GET(`/series/{id}/extended`, {
+                    params: { path: { id } },
+                    headers: { Authorization: `Bearer ${token}` },
+                    fetch: fetchImpl
+                });
 
-            const data = (details.data as any)?.data;
-            if (data?.genres) {
-                item.genres = data.genres;
+                const data = (details.data as any)?.data;
+                if (data?.genres) {
+                    item.genres = data.genres;
+                }
+            } catch (err) {
+                // Fail silently to prevent partial failures from blocking results
             }
-        } catch (err) {
-            // Fail silently to prevent partial failures from blocking results
-        }
-    }));
+        })
+    );
 }
