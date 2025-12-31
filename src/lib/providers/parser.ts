@@ -385,8 +385,8 @@ export function transformTVDBList(items: any[] | null): TMDBTransformedListItem[
                 vote_average: null,
                 vote_count: null,
                 genre_ids: genreIds,
-                overview: item.overview || undefined,
-                first_air_date: item.first_air_time || undefined,
+                overview: item.overview ?? undefined,
+                first_air_date: item.first_air_time ?? undefined,
                 indexer: "tvdb"
             });
             return acc;

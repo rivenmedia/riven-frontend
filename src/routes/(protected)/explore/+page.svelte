@@ -4,22 +4,21 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { SearchStore } from "$lib/services/search-store.svelte";
+    import { Previous } from "runed";
 
     let { data } = $props();
 
     const searchStore = getContext<SearchStore>("searchStore");
     let loadMoreTrigger = $state<HTMLDivElement | null>(null);
-    let lastQuery = $state("");
 
     // Derived values from data
     const currentQuery = $derived(data.form?.data?.query || "");
     const currentType = $derived(data.form?.data?.type || "both");
+    const previousQuery = new Previous(() => currentQuery, "");
 
     // Handle query changes
     $effect(() => {
-        if (currentQuery !== lastQuery) {
-            lastQuery = currentQuery;
-
+        if (currentQuery !== previousQuery.current) {
             if (currentQuery) {
                 searchStore.setSearch(currentQuery, data.parsed);
                 searchStore.setMediaType(currentType);

@@ -8,6 +8,9 @@ import type {
 import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("media-details");
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
@@ -126,7 +129,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         const { data: details, error: detailsError } = tmdbResult;
 
         if (detailsError) {
-            console.error("TMDB movie details fetch failed:", detailsError);
+            logger.error("TMDB movie details fetch failed:", detailsError);
             error(503, "Unable to connect to TMDB. Please try again later.");
         }
 
@@ -169,7 +172,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         const { data: details, error: detailsError } = tvdbResult;
 
         if (detailsError) {
-            console.error("TVDB show details fetch failed:", detailsError);
+            logger.error("TVDB show details fetch failed:", detailsError);
             error(503, "Unable to connect to TVDB. Please try again later.");
         }
 

@@ -31,17 +31,20 @@
         }
     });
 
+    function navigateToSearch() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        const query = searchQuery.trim();
+        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+            keepFocus: true,
+            noScroll: true,
+            replaceState: true
+        });
+    }
+
     function handleInput(e: Event) {
         searchQuery = (e.target as HTMLInputElement).value;
         if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            const query = searchQuery.trim();
-            goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
-                keepFocus: true,
-                noScroll: true,
-                replaceState: true
-            });
-        }, 300);
+        debounceTimer = setTimeout(navigateToSearch, 300);
     }
 
     onDestroy(() => {
@@ -82,12 +85,7 @@
                     type="button"
                     aria-label="Search"
                     onclick={() => {
-                        const query = searchQuery.trim();
-                        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
-                            keepFocus: true,
-                            noScroll: true,
-                            replaceState: true
-                        });
+                        navigateToSearch();
                         inputRef?.focus();
                     }}>
                     <Search />

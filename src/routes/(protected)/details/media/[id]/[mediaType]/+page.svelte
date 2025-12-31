@@ -88,6 +88,7 @@
     let ratingsData = $state<{
         scores: Array<{ name: string; image?: string; score: string; url: string }>;
     } | null>(null);
+    let ratingsController: AbortController | null = null;
 
     $effect(() => {
         if (!browser) return;
@@ -95,15 +96,29 @@
         const type = mediaType;
         if (!id) return;
 
+        // Abort any in-flight request
+        ratingsController?.abort();
+        const controller = new AbortController();
+        ratingsController = controller;
+
         ratingsData = null;
-        fetch(`/api/ratings/${id}?type=${type}`)
+        fetch(`/api/ratings/${id}?type=${type}`, { signal: controller.signal })
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
-                ratingsData = d;
+                if (!controller.signal.aborted) {
+                    ratingsData = d;
+                }
             })
-            .catch(() => {
-                /* Ratings failed to load - silently ignore */
+            .catch((e) => {
+                // Ignore abort errors, silently ignore other failures
+                if (e.name !== "AbortError") {
+                    /* Ratings failed to load */
+                }
             });
+
+        return () => {
+            controller.abort();
+        };
     });
 </script>
 

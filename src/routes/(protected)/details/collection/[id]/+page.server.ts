@@ -18,9 +18,6 @@ export const load = (async ({ fetch, params }) => {
             params: {
                 path: {
                     collection_id: Number(id)
-                },
-                query: {
-                    append_to_response: "images"
                 }
             },
             fetch: customFetch
