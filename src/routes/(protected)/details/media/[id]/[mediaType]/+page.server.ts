@@ -9,7 +9,7 @@ import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
-import { resolveTmdbToTvdb } from "$lib/services/resolver";
+import { resolveId } from "$lib/services/resolver";
 
 const logger = createScopedLogger("media-details");
 
@@ -76,7 +76,6 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
         return { traktSlug: null, traktRecs: null };
     }
 }
-
 
 export const load = (async ({ fetch, params, cookies, locals }) => {
     const { id, mediaType } = params;
@@ -152,15 +151,16 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         } else if (mediaType === "tv") {
             const tvdbToken = cookies.get("tvdb_cookie") || "";
 
-            let tvdbId: number;
-            try {
-                // Resolve TMDB ID to TVDB ID
-                tvdbId = await resolveTmdbToTvdb(id, tvdbToken, customFetch);
-            } catch (err) {
-                logger.error("Failed to resolve TMDB ID to TVDB ID:", err);
-                // Fallback to ID if resolution fails completely
-                tvdbId = Number(id);
-            }
+            // Resolve TMDB ID to TVDB ID
+            const resolved = await resolveId({
+                from: "tmdb",
+                to: "tvdb",
+                id: Number(id),
+                mediaType: "tv",
+                tvdbToken,
+                customFetch
+            });
+            const tvdbId = Number(resolved.id);
 
             // Fetch Riven data based on TVDB ID
             const rivenPromise = providers.riven
@@ -199,7 +199,10 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             const { data: details, error: detailsError } = tvdbResult;
 
             if (detailsError) {
-                logger.error(`TVDB show details fetch failed for ID ${tvdbId} (Original: ${id}):`, detailsError);
+                logger.error(
+                    `TVDB show details fetch failed for ID ${tvdbId} (Original: ${id}):`,
+                    detailsError
+                );
                 error(503, "Unable to connect to TVDB. Please try again later.");
             }
 
@@ -216,9 +219,8 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                 languagesToCheck.includes(details.data.originalLanguage)
             ) {
                 try {
-                    const { data: engEpisodesData, error: engEpisodesError } = await providers.tvdb.GET(
-                        "/series/{id}/episodes/{season-type}/{lang}",
-                        {
+                    const { data: engEpisodesData, error: engEpisodesError } =
+                        await providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
                             params: {
                                 path: {
                                     id: tvdbId,
@@ -233,8 +235,7 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                                 Authorization: `Bearer ${tvdbToken}`
                             },
                             fetch: customFetch
-                        }
-                    );
+                        });
 
                     if (
                         !engEpisodesError &&
@@ -254,7 +255,9 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
 
             const parsedDetails = providers.parser.parseTVDBShowDetails(
                 // Type assertion needed: TVDB extended response differs from TVDBBaseItem in generated types
-                details.data as unknown as Parameters<typeof providers.parser.parseTVDBShowDetails>[0],
+                details.data as unknown as Parameters<
+                    typeof providers.parser.parseTVDBShowDetails
+                >[0],
                 traktResult.traktRecs
             );
 
@@ -270,12 +273,10 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         }
     } catch (err) {
         // Re-throw SvelteKit errors (like 400, 503) so they render the error page
-        if (err && typeof err === 'object' && 'status' in err && 'body' in err) {
+        if (err && typeof err === "object" && "status" in err && "body" in err) {
             throw err;
         }
         logger.error("Unexpected error loading media details:", err);
         throw error(500, "Internal Server Error loading media details");
     }
 }) satisfies PageServerLoad;
-
-

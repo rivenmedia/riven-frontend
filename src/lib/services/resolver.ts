@@ -1,66 +1,210 @@
 import providers from "$lib/providers";
 import { createScopedLogger } from "$lib/logger";
 
-const logger = createScopedLogger("tmdb-resolver");
+const logger = createScopedLogger("id-resolver");
 
-export async function resolveTmdbToTvdb(
-    id: number | string,
-    tvdbToken: string,
-    customFetch: typeof fetch
-): Promise<number> {
-    const tmdbId = Number(id);
-    let tvdbId = tmdbId;
-    let resolved = false;
+export type Indexer = "tmdb" | "tvdb" | "imdb" | "anilist" | "riven";
+export type MediaType = "movie" | "tv";
 
-    // Method 1: Ask TMDB for the TVDB ID (Best/Fastest)
-    try {
-        const tmdbExternalIds = await providers.tmdb.GET("/3/tv/{series_id}/external_ids", {
-            params: { path: { series_id: tmdbId } },
-            fetch: customFetch
-        });
-        if (tmdbExternalIds.data && tmdbExternalIds.data.tvdb_id) {
-            tvdbId = tmdbExternalIds.data.tvdb_id;
-            resolved = true;
-        }
-    } catch (e) {
-        logger.warn(`Failed to resolve TMDB ID ${id} via TMDB external_ids:`, e);
+export interface ResolveOptions {
+    from: Indexer;
+    to: Indexer;
+    id: number | string;
+    mediaType: MediaType;
+    tvdbToken?: string;
+    customFetch: typeof fetch;
+    rivenBaseUrl?: string;
+    rivenApiKey?: string;
+}
+
+export interface ResolveResult {
+    id: number | string;
+    resolved: boolean;
+}
+
+type Resolver = (options: ResolveOptions) => Promise<ResolveResult>;
+
+// Resolver lookup table - maps "from->to" to resolver function
+const resolvers: Record<string, Resolver> = {
+    "tmdb->tvdb": tmdbToTvdb,
+    "tmdb->imdb": tmdbToImdb,
+    "anilist->tvdb": (opts) => anilistToExternal(opts, "tvdb"),
+    "anilist->tmdb": (opts) => anilistToExternal(opts, "tmdb"),
+    "riven->tvdb": (opts) => rivenToExternal(opts, "tvdb"),
+    "riven->tmdb": (opts) => rivenToExternal(opts, "tmdb")
+};
+
+/**
+ * Universal ID resolver that converts between different indexer ID systems.
+ */
+export async function resolveId(options: ResolveOptions): Promise<ResolveResult> {
+    const { from, to, id } = options;
+
+    if (from === to) {
+        return { id, resolved: true };
     }
 
-    // Method 2: Ask TVDB for the show via TMDB ID (Backup)
-    if (!resolved) {
+    const resolver = resolvers[`${from}->${to}`];
+    if (!resolver) {
+        logger.warn(`Unsupported conversion: ${from}->${to}`);
+        return { id, resolved: false };
+    }
+
+    return resolver(options);
+}
+
+/**
+ * Fetch TMDB external IDs (shared helper for tmdb->tvdb and tmdb->imdb)
+ */
+async function getTmdbExternalIds(tmdbId: number, mediaType: MediaType, customFetch: typeof fetch) {
+    const endpoint =
+        mediaType === "movie"
+            ? "/3/movie/{movie_id}/external_ids"
+            : "/3/tv/{series_id}/external_ids";
+    const params =
+        mediaType === "movie" ? { path: { movie_id: tmdbId } } : { path: { series_id: tmdbId } };
+
+    return providers.tmdb.GET(endpoint as any, { params: params as any, fetch: customFetch });
+}
+
+/**
+ * TMDB -> TVDB (TV shows only)
+ */
+async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
+    const { id, mediaType, customFetch, tvdbToken } = options;
+    const tmdbId = Number(id);
+
+    if (mediaType === "movie") {
+        logger.warn("TMDB->TVDB conversion only supported for TV shows");
+        return { id: tmdbId, resolved: false };
+    }
+
+    // Primary: TMDB external_ids
+    try {
+        const { data } = await getTmdbExternalIds(tmdbId, mediaType, customFetch);
+        if (data?.tvdb_id) {
+            return { id: data.tvdb_id, resolved: true };
+        }
+    } catch (e) {
+        logger.warn(`TMDB external_ids failed for ${id}:`, e);
+    }
+
+    // Fallback: TVDB remote_id search
+    if (tvdbToken) {
         try {
-            const searchRes = await providers.tvdb.GET("/search", {
-                params: { query: { remote_id: id } as any }, // 'remote_id' param support depends on client
+            const { data } = await providers.tvdb.GET("/search", {
+                params: { query: { remote_id: id } as any },
                 headers: { Authorization: `Bearer ${tvdbToken}` },
                 fetch: customFetch
             });
 
-            if (searchRes.data && searchRes.data.data && searchRes.data.data.length > 0) {
-                const match = searchRes.data.data[0];
-                // Prefer tvdb_id, fallback to id
-                if (match.tvdb_id) {
-                    tvdbId = Number(match.tvdb_id);
-                    resolved = true;
-                    logger.info(`Resolved TMDB ID ${id} to TVDB ID ${tvdbId} via TVDB remote_id search`);
-                } else if (match.id) {
-                    // Sometimes 'id' is the TVDB ID string/number
-                    tvdbId = Number(match.id);
-                    resolved = true;
-                    logger.info(
-                        `Resolved TMDB ID ${id} to TVDB ID ${tvdbId} via TVDB remote_id search (id field)`
-                    );
-                }
+            const match = data?.data?.[0];
+            const resolvedId = match?.tvdb_id ?? match?.id;
+            if (resolvedId) {
+                logger.info(`Resolved TMDB ${id} -> TVDB ${resolvedId} via remote_id search`);
+                return { id: Number(resolvedId), resolved: true };
             }
         } catch (e) {
-            logger.warn(`Failed to resolve TMDB ID ${id} via TVDB remote_id search:`, e);
+            logger.warn(`TVDB remote_id search failed for ${id}:`, e);
         }
     }
 
-    if (!resolved) {
-        logger.warn(
-            `Could not resolve TMDB ID ${id} to TVDB ID. Attempting to use as-is (Legacy/Fallback).`
-        );
+    logger.warn(`Could not resolve TMDB ${id} to TVDB`);
+    return { id: tmdbId, resolved: false };
+}
+
+/**
+ * TMDB -> IMDB
+ */
+async function tmdbToImdb(options: ResolveOptions): Promise<ResolveResult> {
+    const { id, mediaType, customFetch } = options;
+    const tmdbId = Number(id);
+
+    try {
+        const { data } = await getTmdbExternalIds(tmdbId, mediaType, customFetch);
+        if (data?.imdb_id) {
+            return { id: data.imdb_id, resolved: true };
+        }
+    } catch (e) {
+        logger.warn(`Failed to resolve TMDB ${id} to IMDB:`, e);
     }
 
-    return tvdbId;
+    return { id: tmdbId, resolved: false };
+}
+
+/**
+ * AniList -> TVDB/TMDB via ani.zip API
+ */
+async function anilistToExternal(
+    options: ResolveOptions,
+    to: "tvdb" | "tmdb"
+): Promise<ResolveResult> {
+    const { id, customFetch } = options;
+
+    try {
+        const response = await customFetch(`https://api.ani.zip/v1/mappings?anilist_id=${id}`, {
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (!response.ok) {
+            logger.warn(`AniList mappings fetch failed for ${id}`);
+            return { id, resolved: false };
+        }
+
+        const data = await response.json();
+        const resolvedId = to === "tvdb" ? data.thetvdb_id : data.themoviedb_id;
+
+        if (resolvedId) {
+            return { id: resolvedId, resolved: true };
+        }
+    } catch (e) {
+        logger.warn(`Failed to resolve AniList ${id}:`, e);
+    }
+
+    return { id, resolved: false };
+}
+
+/**
+ * Riven -> TVDB/TMDB
+ */
+async function rivenToExternal(
+    options: ResolveOptions,
+    to: "tvdb" | "tmdb"
+): Promise<ResolveResult> {
+    const { id, mediaType, customFetch, rivenBaseUrl, rivenApiKey } = options;
+
+    if (!rivenBaseUrl || !rivenApiKey) {
+        logger.warn("Riven credentials not provided");
+        return { id, resolved: false };
+    }
+
+    try {
+        const { data, error } = await providers.riven.GET("/api/v1/items/{id}", {
+            params: {
+                path: { id: String(id) },
+                query: { media_type: mediaType }
+            },
+            baseUrl: rivenBaseUrl,
+            headers: { "x-api-key": rivenApiKey },
+            fetch: customFetch
+        });
+
+        if (error) {
+            return { id, resolved: false };
+        }
+
+        const resolvedId = (to === "tvdb" ? data?.tvdb_id : data?.tmdb_id) as
+            | string
+            | number
+            | null
+            | undefined;
+
+        if (resolvedId != null) {
+            return { id: resolvedId, resolved: true };
+        }
+    } catch (e) {
+        logger.warn(`Failed to resolve Riven ${id}:`, e);
+    }
+
+    return { id, resolved: false };
 }
