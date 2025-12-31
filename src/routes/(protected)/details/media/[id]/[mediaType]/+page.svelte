@@ -237,7 +237,7 @@
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type}
-                                externalId={data.mediaDetails?.details?.id?.toString()}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 seasons={data.mediaDetails?.type === "tv" &&
                                 data.mediaDetails?.details?.seasons
                                     ? data.mediaDetails.details.seasons.map((s) => ({
@@ -312,7 +312,7 @@
                                     ids={rivenId ? [rivenId.toString()] : []}
                                     mediaType={data.mediaDetails?.type}
                                     buttonLabel="Request More"
-                                    externalId={data.mediaDetails?.details?.id?.toString()}
+                                    externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                     seasons={data.mediaDetails?.details?.seasons
                                         ? data.mediaDetails.details.seasons.map((s) => ({
                                               id: s.id,

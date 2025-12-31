@@ -69,8 +69,9 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
             traktSlug,
             traktRecs: !traktRecsError && traktRecsData ? traktRecsData : null
         };
-    } catch {
+    } catch (err) {
         // Return empty data if Trakt fails - don't block the page load
+        logger.error(`Trakt fetch failed for ${mediaType} id=${mediaId}:`, err);
         return { traktSlug: null, traktRecs: null };
     }
 }
