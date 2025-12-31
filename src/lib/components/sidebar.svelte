@@ -122,7 +122,7 @@
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-pointer">
                         {#if user.image}
-                            <Avatar.Image src={user.image} alt={user.username} />
+                            <Avatar.Image src={user.image} alt={user.name} />
                         {/if}
                         <Avatar.Fallback class="bg-primary text-primary-foreground">
                             {getInitials(user.name)}

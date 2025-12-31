@@ -124,6 +124,9 @@ export class SearchStore {
         }
 
         // Avoid re-searching if the query hasn't changed
+        if (this.searchQuery === newQuery) {
+            return;
+        }
 
         this.setSearch(newQuery, parsed!);
         this.searchDebounced();
@@ -241,6 +244,44 @@ export class SearchStore {
         return uniqueItems;
     }
 
+    /**
+     * Build the search endpoint URL for a given type and page
+     */
+    private buildSearchUrl(type: "movie" | "tv", page: number): string {
+        const params = {
+            ...this.parsedSearch!.tmdbParams,
+            page,
+            searchMode: this.parsedSearch!.searchMode
+        };
+
+        const searchParams = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+            if (value !== undefined && value !== null) {
+                searchParams.append(key, String(value));
+            }
+        }
+
+        return `/api/tmdb/search/${type}?${searchParams.toString()}`;
+    }
+
+    /**
+     * Fetch search results from the API
+     */
+    private async fetchSearchResults(
+        type: "movie" | "tv",
+        page: number,
+        signal?: AbortSignal
+    ): Promise<SearchResult> {
+        const endpoint = this.buildSearchUrl(type, page);
+        const response = await fetch(endpoint, { signal });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
     private async fetchMedia(
         type: "movie" | "tv",
         page: number,
@@ -248,30 +289,7 @@ export class SearchStore {
     ): Promise<void> {
         if (!this.parsedSearch) return;
 
-        let result: SearchResult;
-
-        const params = {
-            ...this.parsedSearch.tmdbParams,
-            page,
-            searchMode: this.parsedSearch.searchMode
-        };
-
-        const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                searchParams.append(key, String(value));
-            }
-        });
-
-        const endpoint = `/api/tmdb/search/${type}?${searchParams.toString()}`;
-
-        const response = await fetch(endpoint, { signal });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
-        }
-
-        result = await response.json();
+        const result = await this.fetchSearchResults(type, page, signal);
 
         if (signal?.aborted) return;
 
@@ -310,7 +328,7 @@ export class SearchStore {
         }
     }
 
-    private async loadMoreMedia(type: "movie" | "tv"): Promise<void> {
+    private async loadMoreMedia(type: "movie" | "tv", signal?: AbortSignal): Promise<void> {
         if (!this.parsedSearch) return;
 
         const hasMore = type === "movie" ? this.movieHasMore : this.tvHasMore;
@@ -322,30 +340,9 @@ export class SearchStore {
         const page = type === "movie" ? this.moviePage : this.tvPage;
 
         try {
-            let result: SearchResult;
+            const result = await this.fetchSearchResults(type, page, signal);
 
-            const params = {
-                ...this.parsedSearch.tmdbParams,
-                page,
-                searchMode: this.parsedSearch.searchMode
-            };
-
-            const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    searchParams.append(key, String(value));
-                }
-            });
-
-            const endpoint = `/api/tmdb/search/${type}?${searchParams.toString()}`;
-
-            const response = await fetch(endpoint);
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
-            }
-
-            result = await response.json();
+            if (signal?.aborted) return;
 
             const newItems = (result.results || []) as TMDBTransformedListItem[];
 
@@ -375,6 +372,12 @@ export class SearchStore {
     async loadMore(): Promise<void> {
         if (!browser || this.loading || !this.hasMore || !this.parsedSearch) return;
 
+        // Cancel any pending requests
+        this.abortController?.abort();
+        const controller = new AbortController();
+        this.abortController = controller;
+        const signal = controller.signal;
+
         try {
             this.loading = true;
             this.error = null;
@@ -385,17 +388,23 @@ export class SearchStore {
                 (this.mediaType === "both" || this.mediaType === "tv") && this.tvHasMore;
 
             if (shouldLoadMovies && shouldLoadTV) {
-                await Promise.all([this.loadMoreMedia("movie"), this.loadMoreMedia("tv")]);
+                await Promise.all([
+                    this.loadMoreMedia("movie", signal),
+                    this.loadMoreMedia("tv", signal)
+                ]);
             } else if (shouldLoadMovies) {
-                await this.loadMoreMedia("movie");
+                await this.loadMoreMedia("movie", signal);
             } else if (shouldLoadTV) {
-                await this.loadMoreMedia("tv");
+                await this.loadMoreMedia("tv", signal);
             }
         } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") return;
             logger.error("Error loading more results:", error);
             this.error = error instanceof Error ? error.message : String(error);
         } finally {
-            this.loading = false;
+            if (!signal.aborted) {
+                this.loading = false;
+            }
         }
     }
 

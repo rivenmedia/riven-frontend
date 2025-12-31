@@ -2,22 +2,26 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { getContext, onDestroy } from "svelte";
+    import { getContext, onDestroy, onMount } from "svelte";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
-    import { browser } from "$app/environment";
 
     const SidebarStore: any = getContext("sidebarStore");
 
-    const platform = browser
-        ? ((navigator.userAgentData?.platform ?? navigator.platform) || "").toUpperCase()
-        : "";
-    const isMac = platform.includes("MAC");
-    const modifierKey = isMac ? "⌘" : "^";
+    // Detect modifier key client-side only to avoid hydration mismatch
+    let modifierKey = $state<string | null>(null);
+
+    onMount(() => {
+        const platform = (
+            (navigator.userAgentData?.platform ?? navigator.platform) ||
+            ""
+        ).toUpperCase();
+        modifierKey = platform.includes("MAC") ? "⌘" : "^";
+    });
 
     let searchQuery = $state("");
     let inputFocused = $state(false);
@@ -78,9 +82,11 @@
                         onfocus={() => (inputFocused = true)}
                         onblur={() => (inputFocused = false)}
                         autocomplete="off" />
-                    <InputGroup.Addon align="inline-end">
-                        <Kbd.Root>{modifierKey}K</Kbd.Root>
-                    </InputGroup.Addon>
+                    {#if modifierKey}
+                        <InputGroup.Addon align="inline-end">
+                            <Kbd.Root>{modifierKey}K</Kbd.Root>
+                        </InputGroup.Addon>
+                    {/if}
                 </InputGroup.Root>
 
                 <Button

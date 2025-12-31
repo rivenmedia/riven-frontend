@@ -3,7 +3,8 @@ import providers from "$lib/providers";
 import type {
     TMDBMovieDetailsExtended,
     ParsedMovieDetails,
-    ParsedShowDetails
+    ParsedShowDetails,
+    TVDBBaseItem
 } from "$lib/providers/parser";
 import type { RivenMediaItem } from "$lib/types/riven";
 import { error } from "@sveltejs/kit";
@@ -12,6 +13,24 @@ import { createScopedLogger } from "$lib/logger";
 import { resolveId } from "$lib/services/resolver";
 
 const logger = createScopedLogger("media-details");
+
+/**
+ * Validates that a TVDB API response contains required fields for parsing.
+ * Throws if validation fails, otherwise returns the typed value.
+ */
+function assertTVDBShowData(data: unknown): TVDBBaseItem {
+    if (!data || typeof data !== "object") {
+        throw new Error("Invalid TVDB response: data is not an object");
+    }
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.id !== "number") {
+        throw new Error("Invalid TVDB response: missing or invalid 'id' field");
+    }
+    if (typeof obj.name !== "string") {
+        throw new Error("Invalid TVDB response: missing or invalid 'name' field");
+    }
+    return data as TVDBBaseItem;
+}
 
 export type MediaDetails =
     | { type: "movie"; details: ParsedMovieDetails }
@@ -90,27 +109,20 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
             error(400, "Invalid ID");
         }
 
-        // Fetch Riven data in parallel with other requests (non-blocking)
-        const rivenPromise = providers.riven
-            .GET("/api/v1/items/{id}", {
-                params: {
-                    path: {
-                        id: id
-                    },
-                    query: {
-                        media_type: mediaType,
-                        extended: true
-                    }
-                },
-                baseUrl: locals.backendUrl,
-                headers: {
-                    "x-api-key": locals.apiKey
-                },
-                fetch: fetch
-            })
-            .catch(() => null);
-
         if (mediaType === "movie") {
+            // Fetch Riven data in parallel with other requests (non-blocking)
+            const rivenPromise = providers.riven
+                .GET("/api/v1/items/{id}", {
+                    params: {
+                        path: { id },
+                        query: { media_type: mediaType, extended: true }
+                    },
+                    baseUrl: locals.backendUrl,
+                    headers: { "x-api-key": locals.apiKey },
+                    fetch
+                })
+                .catch(() => null);
+
             // Fetch TMDB details and Trakt data in parallel
             const [tmdbResult, traktResult, rivenData] = await Promise.all([
                 providers.tmdb.GET(`/3/movie/{movie_id}`, {
@@ -160,6 +172,12 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                 tvdbToken,
                 customFetch
             });
+
+            if (!resolved.resolved) {
+                logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`);
+                error(502, "Unable to resolve TV show ID. Please try again later.");
+            }
+
             const tvdbId = Number(resolved.id);
 
             // Fetch Riven data based on TVDB ID
@@ -253,11 +271,9 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
                 }
             }
 
+            const validatedData = assertTVDBShowData(details.data);
             const parsedDetails = providers.parser.parseTVDBShowDetails(
-                // Type assertion needed: TVDB extended response differs from TVDBBaseItem in generated types
-                details.data as unknown as Parameters<
-                    typeof providers.parser.parseTVDBShowDetails
-                >[0],
+                validatedData,
                 traktResult.traktRecs
             );
 

@@ -88,6 +88,7 @@
     let ratingsData = $state<{
         scores: Array<{ name: string; image?: string; score: string; url: string }>;
     } | null>(null);
+    let ratingsLoading = $state(false);
     let ratingsController: AbortController | null = null;
 
     $effect(() => {
@@ -101,15 +102,19 @@
         const controller = new AbortController();
         ratingsController = controller;
 
-        ratingsData = null;
+        ratingsLoading = true;
         fetch(`/api/ratings/${id}?type=${type}`, { signal: controller.signal })
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
                 if (!controller.signal.aborted) {
                     ratingsData = d;
+                    ratingsLoading = false;
                 }
             })
             .catch((e) => {
+                if (!controller.signal.aborted) {
+                    ratingsLoading = false;
+                }
                 // Ignore abort errors, silently ignore other failures
                 if (e.name !== "AbortError") {
                     /* Ratings failed to load */
@@ -455,7 +460,16 @@
                         </div>
                     {/if}
 
-                    {#if ratingsData?.scores && ratingsData.scores.length > 0}
+                    {#if ratingsLoading && !ratingsData}
+                        <div class="mb-3 flex flex-wrap items-center gap-3">
+                            {#each [1, 2, 3] as i (i)}
+                                <div class="flex items-center gap-1.5">
+                                    <div class="h-5 w-5 animate-pulse rounded bg-white/20"></div>
+                                    <div class="h-4 w-10 animate-pulse rounded bg-white/20"></div>
+                                </div>
+                            {/each}
+                        </div>
+                    {:else if ratingsData?.scores && ratingsData.scores.length > 0}
                         <div class="mb-3 flex flex-wrap items-center gap-3">
                             {#each ratingsData.scores as score (score.name)}
                                 <a

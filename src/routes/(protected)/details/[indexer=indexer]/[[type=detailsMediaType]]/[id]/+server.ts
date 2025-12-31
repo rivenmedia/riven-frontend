@@ -1,5 +1,5 @@
 import type { RequestHandler } from "./$types";
-import { error, redirect, json } from "@sveltejs/kit";
+import { error, json, redirect } from "@sveltejs/kit";
 import { resolveId, type Indexer, type MediaType } from "$lib/services/resolver";
 import { createCustomFetch } from "$lib/custom-fetch";
 
@@ -115,5 +115,5 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
             throw error(400, "Invalid media type for riven");
     }
 
-    return json({ indexer, type, id });
+    throw error(400, `Unsupported indexer: ${indexer}`);
 };

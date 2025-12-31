@@ -54,17 +54,23 @@ export async function resolveId(options: ResolveOptions): Promise<ResolveResult>
 }
 
 /**
- * Fetch TMDB external IDs (shared helper for tmdb->tvdb and tmdb->imdb)
+ * Fetch TMDB TV external IDs (includes tvdb_id)
  */
-async function getTmdbExternalIds(tmdbId: number, mediaType: MediaType, customFetch: typeof fetch) {
-    const endpoint =
-        mediaType === "movie"
-            ? "/3/movie/{movie_id}/external_ids"
-            : "/3/tv/{series_id}/external_ids";
-    const params =
-        mediaType === "movie" ? { path: { movie_id: tmdbId } } : { path: { series_id: tmdbId } };
+async function getTvExternalIds(tmdbId: number, customFetch: typeof fetch) {
+    return providers.tmdb.GET("/3/tv/{series_id}/external_ids", {
+        params: { path: { series_id: tmdbId } },
+        fetch: customFetch
+    });
+}
 
-    return providers.tmdb.GET(endpoint as any, { params: params as any, fetch: customFetch });
+/**
+ * Fetch TMDB movie external IDs (includes imdb_id)
+ */
+async function getMovieExternalIds(tmdbId: number, customFetch: typeof fetch) {
+    return providers.tmdb.GET("/3/movie/{movie_id}/external_ids", {
+        params: { path: { movie_id: tmdbId } },
+        fetch: customFetch
+    });
 }
 
 /**
@@ -81,7 +87,7 @@ async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
 
     // Primary: TMDB external_ids
     try {
-        const { data } = await getTmdbExternalIds(tmdbId, mediaType, customFetch);
+        const { data } = await getTvExternalIds(tmdbId, customFetch);
         if (data?.tvdb_id) {
             return { id: data.tvdb_id, resolved: true };
         }
@@ -121,7 +127,10 @@ async function tmdbToImdb(options: ResolveOptions): Promise<ResolveResult> {
     const tmdbId = Number(id);
 
     try {
-        const { data } = await getTmdbExternalIds(tmdbId, mediaType, customFetch);
+        const { data } =
+            mediaType === "movie"
+                ? await getMovieExternalIds(tmdbId, customFetch)
+                : await getTvExternalIds(tmdbId, customFetch);
         if (data?.imdb_id) {
             return { id: data.imdb_id, resolved: true };
         }
@@ -141,10 +150,15 @@ async function anilistToExternal(
 ): Promise<ResolveResult> {
     const { id, customFetch } = options;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
         const response = await customFetch(`https://api.ani.zip/v1/mappings?anilist_id=${id}`, {
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             logger.warn(`AniList mappings fetch failed for ${id}`);
@@ -158,7 +172,12 @@ async function anilistToExternal(
             return { id: resolvedId, resolved: true };
         }
     } catch (e) {
-        logger.warn(`Failed to resolve AniList ${id}:`, e);
+        clearTimeout(timeoutId);
+        if (e instanceof Error && e.name === "AbortError") {
+            logger.warn(`AniList mappings request timed out for ${id}`);
+        } else {
+            logger.warn(`Failed to resolve AniList ${id}:`, e);
+        }
     }
 
     return { id, resolved: false };

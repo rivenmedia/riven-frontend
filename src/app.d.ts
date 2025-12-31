@@ -12,14 +12,19 @@ declare global {
     }
 
     // Navigator User-Agent Client Hints API
+    interface NavigatorUABrandVersion {
+        readonly brand: string;
+        readonly version: string;
+    }
+
     interface NavigatorUAData {
-        platform: string;
-        mobile: boolean;
-        brands: { brand: string; version: string }[];
+        readonly platform: string;
+        readonly mobile: boolean;
+        readonly brands: ReadonlyArray<NavigatorUABrandVersion>;
     }
 
     interface Navigator {
-        userAgentData?: NavigatorUAData;
+        readonly userAgentData?: NavigatorUAData;
     }
 }
 
