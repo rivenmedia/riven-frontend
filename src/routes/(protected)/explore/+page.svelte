@@ -3,10 +3,11 @@
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import { SearchStore } from "$lib/services/search-store.svelte";
 
     let { data } = $props();
 
-    const searchStore: any = getContext("searchStore");
+    const searchStore = getContext<SearchStore>("searchStore");
     let loadMoreTrigger = $state<HTMLDivElement | null>(null);
     let lastQuery = $state("");
 
