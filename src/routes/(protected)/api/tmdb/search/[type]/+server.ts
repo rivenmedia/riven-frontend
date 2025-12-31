@@ -53,26 +53,26 @@ function applyServerFilters(items: TMDBListItem[], filters: ClientFilters): TMDB
 
         // Vote average filtering
         if (filters["vote_average.gte"] !== undefined) {
-            if (!item.vote_average || item.vote_average < filters["vote_average.gte"]) {
+            if (item.vote_average == null || item.vote_average < filters["vote_average.gte"]) {
                 return false;
             }
         }
 
         if (filters["vote_average.lte"] !== undefined) {
-            if (!item.vote_average || item.vote_average > filters["vote_average.lte"]) {
+            if (item.vote_average == null || item.vote_average > filters["vote_average.lte"]) {
                 return false;
             }
         }
 
         // Vote count filtering
         if (filters["vote_count.gte"] !== undefined) {
-            if (!item.vote_count || item.vote_count < filters["vote_count.gte"]) {
+            if (item.vote_count == null || item.vote_count < filters["vote_count.gte"]) {
                 return false;
             }
         }
 
         if (filters["vote_count.lte"] !== undefined) {
-            if (!item.vote_count || item.vote_count > filters["vote_count.lte"]) {
+            if (item.vote_count == null || item.vote_count > filters["vote_count.lte"]) {
                 return false;
             }
         }

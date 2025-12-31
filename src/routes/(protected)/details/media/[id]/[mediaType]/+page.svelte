@@ -79,7 +79,7 @@
     // For TV shows, use TMDB ID from external_ids for ratings lookup; for movies, use the direct ID
     let ratingsId = $derived(
         data.mediaDetails?.type === "tv"
-            ? (data.mediaDetails?.details?.external_ids?.["themoviedb.com"] ?? null)
+            ? (data.mediaDetails?.details?.external_ids?.id ?? null)
             : data.mediaDetails?.details?.id
     );
     let mediaType = $derived(data.mediaDetails?.type);
