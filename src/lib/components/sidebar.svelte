@@ -6,7 +6,7 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Drawer from "$lib/components/ui/drawer/index.js";
     import { Separator } from "$lib/components/ui/separator/index.js";
-    import { cn } from "$lib/utils";
+    import { cn, getInitials } from "$lib/utils";
     import CalendarDays from "@lucide/svelte/icons/calendar-days";
     import FileClock from "@lucide/svelte/icons/file-clock";
     import Home from "@lucide/svelte/icons/home";
@@ -73,10 +73,12 @@
             <Tooltip>
                 {#snippet trigger()}
                     <Avatar.Root class="cursor-pointer">
-                        <Avatar.Image
-                            src={user.image || "https://i.pravatar.cc/200"}
-                            alt={user.name} />
-                        <Avatar.Fallback>CN</Avatar.Fallback>
+                        {#if user.image}
+                            <Avatar.Image src={user.image} alt={user.name} />
+                        {/if}
+                        <Avatar.Fallback class="bg-primary text-primary-foreground">
+                            {getInitials(user.name)}
+                        </Avatar.Fallback>
                     </Avatar.Root>
                 {/snippet}
                 {#snippet content()}
@@ -104,8 +106,9 @@
             </Button>
         {:else}
             <Avatar.Root class="cursor-pointer">
-                <Avatar.Image src="https://i.pravatar.cc/200" alt="@guest" />
-                <Avatar.Fallback>G</Avatar.Fallback>
+                <Avatar.Fallback class="bg-primary text-primary-foreground">
+                    {getInitials("Guest")}
+                </Avatar.Fallback>
             </Avatar.Root>
         {/if}
     </div>
@@ -117,11 +120,13 @@
         <Drawer.Header class="flex flex-row items-center justify-between">
             {#if user}
                 <div class="flex items-center gap-2">
-                    <Avatar.Root class="cursor-poiter">
-                        <Avatar.Image
-                            src={user.image || "https://i.pravatar.cc/200"}
-                            alt={user.username} />
-                        <Avatar.Fallback>CN</Avatar.Fallback>
+                    <Avatar.Root class="cursor-pointer">
+                        {#if user.image}
+                            <Avatar.Image src={user.image} alt={user.username} />
+                        {/if}
+                        <Avatar.Fallback class="bg-primary text-primary-foreground">
+                            {getInitials(user.name)}
+                        </Avatar.Fallback>
                     </Avatar.Root>
                     <p class="font-medium">
                         {user.username}
@@ -152,8 +157,9 @@
             {:else}
                 <div class="flex items-center gap-2">
                     <Avatar.Root class="cursor-pointer">
-                        <Avatar.Image src="https://i.pravatar.cc/200" alt="@guest" />
-                        <Avatar.Fallback>G</Avatar.Fallback>
+                        <Avatar.Fallback class="bg-primary text-primary-foreground">
+                            {getInitials("Guest")}
+                        </Avatar.Fallback>
                     </Avatar.Root>
                     <p class="font-medium">Guest</p>
                 </div>
