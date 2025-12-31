@@ -324,7 +324,7 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
             genre_ids: item.genre_ids,
             release_date: item.release_date,
             first_air_date: item.first_air_date,
-            original_title: item.original_title
+            original_title: item.original_title ?? item.original_name
         })) || ([] as TMDBTransformedListItem[])
     );
 }
