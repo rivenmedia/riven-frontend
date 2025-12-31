@@ -10,6 +10,17 @@ declare global {
             apiKey: string;
         }
     }
+
+    // Navigator User-Agent Client Hints API
+    interface NavigatorUAData {
+        platform: string;
+        mobile: boolean;
+        brands: { brand: string; version: string }[];
+    }
+
+    interface Navigator {
+        userAgentData?: NavigatorUAData;
+    }
 }
 
 export {};
