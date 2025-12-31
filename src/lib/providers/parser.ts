@@ -340,8 +340,6 @@ const TVDB_GENRE_MAP: Record<string, number> = {
     Drama: 18,
     Family: 10751,
     Fantasy: 14,
-    History: 36,
-    Horror: 27,
     Music: 10402,
     Mystery: 9648,
     Romance: 10749,
@@ -358,7 +356,7 @@ const TVDB_GENRE_MAP: Record<string, number> = {
     Kids: 10762,
     Talk: 10767,
     Soap: 10766,
-    Politics: 10768
+    "War & Politics": 10768
 };
 
 export function transformTVDBList(items: any[] | null): TMDBTransformedListItem[] {
