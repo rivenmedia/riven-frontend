@@ -43,36 +43,34 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
         // Call the appropriate typed endpoint
         const fetchResults = async () => {
-            if (type === "movie" && isSearch) {
-                return providers.tmdb.GET("/3/search/movie", {
-                    params: { query: parsed.searchMovieQuery },
-                    fetch: customFetch
-                });
-            }
-            if (type === "movie" && !isSearch) {
-                return providers.tmdb.GET("/3/discover/movie", {
-                    params: { query: parsed.discoverMovieQuery },
-                    fetch: customFetch
-                });
-            }
-            if (type === "tv" && isSearch) {
-                return providers.tmdb.GET("/3/search/tv", {
-                    params: { query: parsed.searchTVQuery },
-                    fetch: customFetch
-                });
-            }
-            // type === "tv" && !isSearch
-            const query = { ...parsed.discoverTVQuery };
-            if (typeof query.sort_by === "string" && query.sort_by.includes("primary_release_date")) {
-                // TMDB uses 'first_air_date' for TV shows, not 'primary_release_date'
-                query.sort_by = query.sort_by.replace(
-                    "primary_release_date",
-                    "first_air_date"
-                ) as typeof query.sort_by;
+            const routeKey = `${type}-${isSearch ? "search" : "discover"}` as const;
+
+            const ROUTE_MAP = {
+                "movie-search": { endpoint: "/3/search/movie", queryKey: "searchMovieQuery" },
+                "movie-discover": { endpoint: "/3/discover/movie", queryKey: "discoverMovieQuery" },
+                "tv-search": { endpoint: "/3/search/tv", queryKey: "searchTVQuery" },
+                "tv-discover": { endpoint: "/3/discover/tv", queryKey: "discoverTVQuery" }
+            } as const;
+
+            const route = ROUTE_MAP[routeKey as keyof typeof ROUTE_MAP];
+            const query = { ...parsed[route.queryKey] };
+
+            if (routeKey === "tv-discover") {
+                const q = query as DiscoverTVQuery;
+                if (typeof q.sort_by === "string" && q.sort_by.includes("primary_release_date")) {
+                    // TMDB uses 'first_air_date' for TV shows, not 'primary_release_date'
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (query as any).sort_by = q.sort_by.replace(
+                        "primary_release_date",
+                        "first_air_date"
+                    );
+                }
             }
 
-            return providers.tmdb.GET("/3/discover/tv", {
-                params: { query },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return providers.tmdb.GET(route.endpoint as any, {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                params: { query: query as any },
                 fetch: customFetch
             });
         };
@@ -113,8 +111,6 @@ const BOOLEAN_KEYS = new Set([
     "include_null_first_air_dates",
     "screened_theatrically"
 ]);
-
-// Keys that ONLY work with /discover endpoints (not supported by /search)
 
 
 const NUMERIC_KEYS = new Set([
