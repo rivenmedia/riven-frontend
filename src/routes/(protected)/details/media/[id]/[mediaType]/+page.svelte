@@ -91,7 +91,7 @@
         if (!browser) return;
         const id = ratingsId;
         const type = mediaType;
-        if (!id) {
+        if (!id || !type) {
             ratingsLoading = false;
             ratingsData = null;
             return;
