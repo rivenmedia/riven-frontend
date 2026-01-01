@@ -45,9 +45,8 @@ export class SearchStore {
 
     // For request cancellation
     abortController: AbortController | null = null;
-    // For debouncing
-    debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    debounceMs = 300; // 300ms debounce delay
+
+    // Results are exactly what the API returns.
 
     // Results are exactly what the API returns.
     get results() {
@@ -141,7 +140,7 @@ export class SearchStore {
         }
 
         this.setSearch(newQuery, parsed!);
-        this.searchDebounced();
+        this.search();
     }
 
     setSearch(rawString: string, parsed: ParsedSearchQuery) {
@@ -169,27 +168,7 @@ export class SearchStore {
             this.abortController.abort();
             this.abortController = null;
         }
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = null;
-        }
         this.loading = false;
-    }
-
-    /**
-     * Debounced search - waits for user to stop typing before searching
-     */
-    searchDebounced(): void {
-        if (!browser) return;
-
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-        }
-
-        this.debounceTimer = setTimeout(() => {
-            this.debounceTimer = null;
-            this.search();
-        }, this.debounceMs);
     }
 
     /**
