@@ -3,6 +3,9 @@ import { redirect } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("home");
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
     if (!locals.user || !locals.session) redirect(302, "/auth/login");
@@ -17,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
             nowPlaying: transformTMDBList((data?.results as unknown as TMDBListItem[]) ?? [])
         };
     } catch (err) {
-        console.error("Error fetching now playing data:", err);
+        logger.error("Error fetching now playing data:", err);
         return { nowPlaying: [] };
     }
 };
