@@ -462,6 +462,8 @@ export class SearchStore {
         this.warnings = [];
         this.loading = false;
         this.filterParams = {};
+        this.totalResultsMovie = 0;
+        this.totalResultsTV = 0;
     }
 
     /**

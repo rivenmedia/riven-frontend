@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getContext } from "svelte";
+    import { getContext, onDestroy } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
@@ -9,6 +9,10 @@
 
     const searchStore = getContext<SearchStore>("searchStore");
     let loadMoreTrigger = $state<HTMLDivElement | null>(null);
+
+    onDestroy(() => {
+        searchStore.clear();
+    });
 
     // Handle query changes from URL
     $effect(() => {
@@ -43,10 +47,6 @@
             searchStore.loadMore();
         }
     });
-
-    function handleMediaTypeChange(type: "movie" | "tv" | "both") {
-        searchStore.setMediaType(type);
-    }
 
     let showEmptyState = $derived(
         !searchStore.rawSearchString && Object.keys(searchStore.filterParams).length === 0
@@ -86,19 +86,19 @@
                 <Button
                     variant={searchStore.mediaType === "both" ? "secondary" : "ghost"}
                     size="sm"
-                    onclick={() => handleMediaTypeChange("both")}>
+                    onclick={() => searchStore.setMediaType("both")}>
                     All
                 </Button>
                 <Button
                     variant={searchStore.mediaType === "movie" ? "secondary" : "ghost"}
                     size="sm"
-                    onclick={() => handleMediaTypeChange("movie")}>
+                    onclick={() => searchStore.setMediaType("movie")}>
                     Movies
                 </Button>
                 <Button
                     variant={searchStore.mediaType === "tv" ? "secondary" : "ghost"}
                     size="sm"
-                    onclick={() => handleMediaTypeChange("tv")}>
+                    onclick={() => searchStore.setMediaType("tv")}>
                     TV Shows
                 </Button>
             </div>
