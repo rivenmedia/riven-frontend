@@ -24,7 +24,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
         if (!response.ok) {
             const body = await response.text();
-            console.error(`Failed to fetch library items: ${response.status} ${response.statusText}`, body);
+            console.error(
+                `Failed to fetch library items: ${response.status} ${response.statusText}`,
+                body
+            );
             throw error(500, `Failed to fetch data from backend: ${response.statusText}`);
         }
 
@@ -52,7 +55,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                 indexer,
                 title: item.title,
                 poster_path: item.poster_path
-                    ? (hasAbsolutePoster ? item.poster_path : `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`)
+                    ? hasAbsolutePoster
+                        ? item.poster_path
+                        : `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
                     : null,
                 media_type: item.type === "show" ? "tv" : item.type,
                 year: item.year || (item.aired_at ? new Date(item.aired_at).getFullYear() : "N/A"),
@@ -66,7 +71,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             total_pages: data.total_pages,
             total_results: data.total_items
         });
-
     } catch (err) {
         console.error("Error fetching library items:", err);
         const message = err instanceof Error ? err.message : String(err);

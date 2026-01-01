@@ -3,7 +3,6 @@
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Select from "$lib/components/ui/select/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { Input } from "$lib/components/ui/input/index.js";
     import { Slider } from "$lib/components/ui/slider/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Toggle } from "$lib/components/ui/toggle/index.js";
@@ -14,11 +13,12 @@
         TV_GENRES,
         CONTENT_RATINGS,
         LANGUAGE_OPTIONS,
-        SORT_OPTIONS
+        RUNTIME_CONFIG,
+        VOTE_AVERAGE_CONFIG,
+        VOTE_COUNT_CONFIG
     } from "$lib/services/filter-store.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
     import FilterIcon from "@lucide/svelte/icons/filter";
-    import XIcon from "@lucide/svelte/icons/x";
     import DatePicker from "$lib/components/date-picker.svelte";
 
     interface Props {
@@ -65,9 +65,9 @@
 
     function handleClear() {
         filterStore.reset();
-        runtimeRange = [0, 400];
-        voteAverageRange = [0, 10];
-        voteCountRange = [0, 1000];
+        runtimeRange = [RUNTIME_CONFIG.min, RUNTIME_CONFIG.max];
+        voteAverageRange = [VOTE_AVERAGE_CONFIG.min, VOTE_AVERAGE_CONFIG.max];
+        voteCountRange = [VOTE_COUNT_CONFIG.min, VOTE_COUNT_CONFIG.max];
     }
 </script>
 
@@ -193,7 +193,7 @@
                         {runtimeRange[0]}-{runtimeRange[1]} min
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={runtimeRange} min={0} max={400} step={10} />
+                <Slider type="multiple" bind:value={runtimeRange} {...RUNTIME_CONFIG} />
             </div>
 
             <Separator />
@@ -206,7 +206,7 @@
                         {voteAverageRange[0]}-{voteAverageRange[1]}
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={voteAverageRange} min={0} max={10} step={0.5} />
+                <Slider type="multiple" bind:value={voteAverageRange} {...VOTE_AVERAGE_CONFIG} />
             </div>
 
             <Separator />
@@ -219,7 +219,7 @@
                         {voteCountRange[0]}-{voteCountRange[1]}
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={voteCountRange} min={0} max={1000} step={50} />
+                <Slider type="multiple" bind:value={voteCountRange} {...VOTE_COUNT_CONFIG} />
             </div>
 
             <Separator />

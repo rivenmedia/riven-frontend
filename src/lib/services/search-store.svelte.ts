@@ -322,7 +322,12 @@ export class SearchStore {
         signal?: AbortSignal
     ): Promise<void> {
         // Allow fetch if we have either a parsed search, filter params, or if empty search is allowed
-        if (!this.parsedSearch && Object.keys(this.filterParams).length === 0 && !this.allowEmptySearch) return;
+        if (
+            !this.parsedSearch &&
+            Object.keys(this.filterParams).length === 0 &&
+            !this.allowEmptySearch
+        )
+            return;
 
         const result = await this.fetchSearchResults(type, page, signal);
 
@@ -365,7 +370,12 @@ export class SearchStore {
 
     private async loadMoreMedia(type: "movie" | "tv", signal?: AbortSignal): Promise<void> {
         // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
-        if (!this.parsedSearch && Object.keys(this.filterParams).length === 0 && !this.allowEmptySearch) return;
+        if (
+            !this.parsedSearch &&
+            Object.keys(this.filterParams).length === 0 &&
+            !this.allowEmptySearch
+        )
+            return;
 
         const hasMore = type === "movie" ? this.movieHasMore : this.tvHasMore;
         if (!hasMore) return;
@@ -407,7 +417,8 @@ export class SearchStore {
 
     async loadMore(): Promise<void> {
         // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
-        const hasSearchOrFilters = this.parsedSearch || Object.keys(this.filterParams).length > 0 || this.allowEmptySearch;
+        const hasSearchOrFilters =
+            this.parsedSearch || Object.keys(this.filterParams).length > 0 || this.allowEmptySearch;
         if (!browser || this.loading || !this.hasMore || !hasSearchOrFilters) return;
 
         // Cancel any pending requests

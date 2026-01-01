@@ -172,7 +172,7 @@ async function anilistToExternal(
 
     try {
         const response = await customFetch(`https://api.ani.zip/v1/mappings?anilist_id=${id}`, {
-            headers: { "Accept": "application/json" },
+            headers: { Accept: "application/json" },
             signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -193,7 +193,9 @@ async function anilistToExternal(
             return { id: resolvedId, resolved: true };
         }
 
-        logger.warn(`AniList resolution returned data but no ID found for ${to}. Keys: ${Object.keys(data)}`);
+        logger.warn(
+            `AniList resolution returned data but no ID found for ${to}. Keys: ${Object.keys(data)}`
+        );
     } catch (e) {
         clearTimeout(timeoutId);
         if (e instanceof Error && e.name === "AbortError") {

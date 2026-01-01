@@ -70,6 +70,11 @@ export const SORT_OPTIONS = [
     { value: "revenue.desc", label: "Highest Revenue" }
 ] as const;
 
+// Slider configuration defaults
+export const RUNTIME_CONFIG = { min: 0, max: 400, step: 10 } as const;
+export const VOTE_AVERAGE_CONFIG = { min: 0, max: 10, step: 0.5 } as const;
+export const VOTE_COUNT_CONFIG = { min: 0, max: 1000, step: 50 } as const;
+
 /**
  * Filter store using Svelte 5 runes
  */
@@ -88,16 +93,16 @@ export class FilterStore {
     certifications = $state<ContentRating[]>([]);
 
     // Runtime (minutes)
-    runtimeMin = $state(0);
-    runtimeMax = $state(400);
+    runtimeMin = $state(RUNTIME_CONFIG.min);
+    runtimeMax = $state(RUNTIME_CONFIG.max);
 
     // Vote average (0-10)
-    voteAverageMin = $state(0);
-    voteAverageMax = $state(10);
+    voteAverageMin = $state(VOTE_AVERAGE_CONFIG.min);
+    voteAverageMax = $state(VOTE_AVERAGE_CONFIG.max);
 
     // Vote count
-    voteCountMin = $state(0);
-    voteCountMax = $state(1000);
+    voteCountMin = $state(VOTE_COUNT_CONFIG.min);
+    voteCountMax = $state(VOTE_COUNT_CONFIG.max);
 
     // Sort
     sortBy = $state("popularity.desc");
@@ -112,12 +117,12 @@ export class FilterStore {
             this.withGenres.length > 0 ||
             this.withOriginalLanguage !== "" ||
             this.certifications.length > 0 ||
-            this.runtimeMin !== 0 ||
-            this.runtimeMax !== 400 ||
-            this.voteAverageMin !== 0 ||
-            this.voteAverageMax !== 10 ||
-            this.voteCountMin !== 0 ||
-            this.voteCountMax !== 1000 ||
+            this.runtimeMin !== RUNTIME_CONFIG.min ||
+            this.runtimeMax !== RUNTIME_CONFIG.max ||
+            this.voteAverageMin !== VOTE_AVERAGE_CONFIG.min ||
+            this.voteAverageMax !== VOTE_AVERAGE_CONFIG.max ||
+            this.voteCountMin !== VOTE_COUNT_CONFIG.min ||
+            this.voteCountMax !== VOTE_COUNT_CONFIG.max ||
             this.sortBy !== "popularity.desc"
         );
     }
@@ -128,9 +133,18 @@ export class FilterStore {
         if (this.withGenres.length > 0) count++;
         if (this.withOriginalLanguage) count++;
         if (this.certifications.length > 0) count++;
-        if (this.runtimeMin !== 0 || this.runtimeMax !== 400) count++;
-        if (this.voteAverageMin !== 0 || this.voteAverageMax !== 10) count++;
-        if (this.voteCountMin !== 0 || this.voteCountMax !== 1000) count++;
+        if (this.runtimeMin !== RUNTIME_CONFIG.min || this.runtimeMax !== RUNTIME_CONFIG.max)
+            count++;
+        if (
+            this.voteAverageMin !== VOTE_AVERAGE_CONFIG.min ||
+            this.voteAverageMax !== VOTE_AVERAGE_CONFIG.max
+        )
+            count++;
+        if (
+            this.voteCountMin !== VOTE_COUNT_CONFIG.min ||
+            this.voteCountMax !== VOTE_COUNT_CONFIG.max
+        )
+            count++;
         if (this.sortBy !== "popularity.desc") count++;
         return count;
     }
@@ -169,16 +183,18 @@ export class FilterStore {
         }
 
         // Runtime
-        if (this.runtimeMin > 0) params["with_runtime.gte"] = this.runtimeMin;
-        if (this.runtimeMax < 400) params["with_runtime.lte"] = this.runtimeMax;
+        if (this.runtimeMin > RUNTIME_CONFIG.min) params["with_runtime.gte"] = this.runtimeMin;
+        if (this.runtimeMax < RUNTIME_CONFIG.max) params["with_runtime.lte"] = this.runtimeMax;
 
         // Vote average
-        if (this.voteAverageMin > 0) params["vote_average.gte"] = this.voteAverageMin;
-        if (this.voteAverageMax < 10) params["vote_average.lte"] = this.voteAverageMax;
+        if (this.voteAverageMin > VOTE_AVERAGE_CONFIG.min)
+            params["vote_average.gte"] = this.voteAverageMin;
+        if (this.voteAverageMax < VOTE_AVERAGE_CONFIG.max)
+            params["vote_average.lte"] = this.voteAverageMax;
 
         // Vote count
-        if (this.voteCountMin > 0) params["vote_count.gte"] = this.voteCountMin;
-        if (this.voteCountMax < 1000) params["vote_count.lte"] = this.voteCountMax;
+        if (this.voteCountMin > VOTE_COUNT_CONFIG.min) params["vote_count.gte"] = this.voteCountMin;
+        if (this.voteCountMax < VOTE_COUNT_CONFIG.max) params["vote_count.lte"] = this.voteCountMax;
 
         // Sort
         if (this.sortBy !== "popularity.desc") params.sort_by = this.sortBy;
@@ -210,12 +226,12 @@ export class FilterStore {
         this.withGenres = [];
         this.withOriginalLanguage = "";
         this.certifications = [];
-        this.runtimeMin = 0;
-        this.runtimeMax = 400;
-        this.voteAverageMin = 0;
-        this.voteAverageMax = 10;
-        this.voteCountMin = 0;
-        this.voteCountMax = 1000;
+        this.runtimeMin = RUNTIME_CONFIG.min;
+        this.runtimeMax = RUNTIME_CONFIG.max;
+        this.voteAverageMin = VOTE_AVERAGE_CONFIG.min;
+        this.voteAverageMax = VOTE_AVERAGE_CONFIG.max;
+        this.voteCountMin = VOTE_COUNT_CONFIG.min;
+        this.voteCountMax = VOTE_COUNT_CONFIG.max;
         this.sortBy = "popularity.desc";
     }
 

@@ -39,7 +39,6 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
     try {
         const parsed = parseParams(url.searchParams);
-        logger.debug("Parsed params:", parsed.discoverMovieQuery);
 
         // Call the appropriate typed endpoint
         const fetchResults = async () => {
@@ -54,6 +53,8 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
             const route = ROUTE_MAP[routeKey as keyof typeof ROUTE_MAP];
             const query = { ...parsed[route.queryKey] };
+
+            logger.debug(`Route: ${routeKey}, endpoint: ${route.endpoint}, query:`, query);
 
             if (routeKey === "tv-discover") {
                 const q = query as DiscoverTVQuery;
@@ -112,7 +113,6 @@ const BOOLEAN_KEYS = new Set([
     "screened_theatrically"
 ]);
 
-
 const NUMERIC_KEYS = new Set([
     "year",
     "page",
@@ -137,8 +137,11 @@ function parseParams(searchParams: URLSearchParams): ParsedParams {
         if (BOOLEAN_KEYS.has(key)) {
             queryObj[key] = value === "true" || value === "1";
         } else if (NUMERIC_KEYS.has(key)) {
-            const n = Number(value);
-            if (!isNaN(n)) queryObj[key] = n;
+            const trimmed = value.trim();
+            if (trimmed !== "") {
+                const n = Number(trimmed);
+                if (!isNaN(n)) queryObj[key] = n;
+            }
         } else {
             queryObj[key] = value;
         }
