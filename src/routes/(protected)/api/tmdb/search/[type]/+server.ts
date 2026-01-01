@@ -248,8 +248,9 @@ function parseFilters(searchParams: URLSearchParams): ParsedFilters {
     const searchTVQuery: Record<string, unknown> = {};
     const discoverTVQuery: Record<string, unknown> = {};
 
-    const parseNum = (v: string): number | undefined => {
-        const n = Number(v);
+    const parseNum = (v: string | null | undefined): number | undefined => {
+        if (v == null || v.trim() === "") return undefined;
+        const n = Number(v.trim());
         return isNaN(n) ? undefined : n;
     };
 
@@ -286,6 +287,9 @@ function parseFilters(searchParams: URLSearchParams): ParsedFilters {
         discoverTVQuery[key] = parsedValue;
     }
 
+    // Type assertions: values come from parsed URL params (runtime-untyped).
+    // We assert to expected query shapes for downstream typing; runtime validation
+    // is not performed here. Add schema validation (e.g., zod) if strict safety is required.
     return {
         searchMovieQuery: searchMovieQuery as SearchMovieQuery,
         discoverMovieQuery: discoverMovieQuery as DiscoverMovieQuery,
