@@ -189,10 +189,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
 
         const rawResults = (data?.results as TMDBListItem[]) || [];
         const filteredResults = applyServerFilters(rawResults, clientFilters);
-        const transformedResults = transformTMDBList(
-            filteredResults,
-            type === "tv" ? "tv" : undefined
-        );
+        const transformedResults = transformTMDBList(filteredResults, type);
 
         return json({
             results: transformedResults,
