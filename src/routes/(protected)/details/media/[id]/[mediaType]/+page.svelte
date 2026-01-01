@@ -76,12 +76,15 @@
 
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
-    // For TV shows, use TMDB ID from external_ids for ratings lookup; for movies, use the direct ID
-    let ratingsId = $derived(
-        data.mediaDetails?.type === "tv"
-            ? (data.mediaDetails?.details?.external_ids?.id ?? null)
-            : data.mediaDetails?.details?.id
-    );
+    // For TV shows, use TMDB ID from external_ids (sourced from TVDB remoteIds); for movies, use the direct ID
+    // TVDB stores TMDB ID under various keys depending on sourceName normalization
+    let ratingsId = $derived.by(() => {
+        if (data.mediaDetails?.type === "tv") {
+            const ids = data.mediaDetails?.details?.external_ids;
+            return ids?.["themoviedb.com"] ?? ids?.["themoviedb"] ?? ids?.["tmdb"] ?? null;
+        }
+        return data.mediaDetails?.details?.id;
+    });
     let mediaType = $derived(data.mediaDetails?.type);
 
     // Ratings data fetched client-side only

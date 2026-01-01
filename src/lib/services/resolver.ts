@@ -87,31 +87,48 @@ async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
 
     // Primary: TMDB external_ids
     try {
-        const { data } = await getTvExternalIds(tmdbId, customFetch);
-        if (data?.tvdb_id) {
+        const { data, error } = await getTvExternalIds(tmdbId, customFetch);
+        if (!error && data?.tvdb_id) {
             return { id: data.tvdb_id, resolved: true };
         }
     } catch (e) {
         logger.warn(`TMDB external_ids failed for ${id}:`, e);
     }
 
-    // Fallback: TVDB remote_id search
+    // Fallback: TVDB search by remote ID (TMDB ID)
     if (tvdbToken) {
         try {
-            const { data } = await providers.tvdb.GET("/search", {
-                params: { query: { remote_id: id } as any },
+            const { data, error } = await providers.tvdb.GET("/search/remoteid/{remoteId}", {
+                params: { path: { remoteId: String(id) } },
                 headers: { Authorization: `Bearer ${tvdbToken}` },
                 fetch: customFetch
             });
 
-            const match = data?.data?.[0];
-            const resolvedId = match?.tvdb_id ?? match?.id;
-            if (resolvedId) {
-                logger.info(`Resolved TMDB ${id} -> TVDB ${resolvedId} via remote_id search`);
-                return { id: Number(resolvedId), resolved: true };
+            if (!error) {
+                // Find a series result (ignore movies - we only resolve TV shows)
+                const match = data?.data?.find((r) => r.series)?.series;
+                if (match?.id) {
+                    return { id: Number(match.id), resolved: true };
+                }
             }
         } catch (e) {
             logger.warn(`TVDB remote_id search failed for ${id}:`, e);
+        }
+
+        // Final fallback: Check if TMDB ID exists as a TVDB series ID directly
+        // (sometimes IDs match between systems)
+        try {
+            const { data, error } = await providers.tvdb.GET("/series/{id}", {
+                params: { path: { id: tmdbId } },
+                headers: { Authorization: `Bearer ${tvdbToken}` },
+                fetch: customFetch
+            });
+
+            if (!error && data?.data?.id) {
+                return { id: Number(data.data.id), resolved: true };
+            }
+        } catch (e) {
+            // Series doesn't exist with this ID, that's fine
         }
     }
 
@@ -161,7 +178,6 @@ async function anilistToExternal(
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-            logger.warn(`AniList mappings fetch failed for ${id}`);
             return { id, resolved: false };
         }
 

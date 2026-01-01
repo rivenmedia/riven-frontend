@@ -433,12 +433,12 @@ function transformTraktRecommendations(
         const isShowType = item.type === "show" || item.show;
 
         const mediaType = isMovieType ? "movie" : isShowType ? "tv" : isMovie ? "movie" : "tv";
-        const indexer: "tmdb" | "tvdb" = mediaType === "movie" ? "tmdb" : "tvdb";
 
+        // Always use TMDB IDs for consistent routing (matches search behavior)
         const id =
             mediaType === "movie"
                 ? item.ids?.tmdb || item.movie?.ids?.tmdb || 0
-                : item.ids?.tvdb || item.show?.ids?.tvdb || 0;
+                : item.ids?.tmdb || item.show?.ids?.tmdb || 0;
 
         if (id <= 0) continue;
 
@@ -453,7 +453,7 @@ function transformTraktRecommendations(
                 year: item.year || item.movie?.year || item.show?.year || "N/A",
                 vote_average: null,
                 vote_count: null,
-                indexer
+                indexer: "tmdb"
             });
         }
     }
