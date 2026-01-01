@@ -1,3 +1,4 @@
+<script lang="ts">
     import { getContext } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -11,7 +12,9 @@
 
     // Handle query changes from URL
     $effect(() => {
-        searchStore.syncQuery(data.parsed);
+        if (data.parsed) {
+            searchStore.syncQuery(data.parsed);
+        }
     });
 
     // Setup infinite scroll
