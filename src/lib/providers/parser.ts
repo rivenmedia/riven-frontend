@@ -1041,17 +1041,33 @@ export function parseTVDBShowDetails(
             profile_path: buildTVDBImage(character.personImgURL || character.image)
         }));
 
+    // Map TVDB sourceName to normalized keys
+    const sourceNameMap: Record<string, string> = {
+        "themoviedb.com": "tmdb",
+        themoviedb: "tmdb",
+        tmdb: "tmdb",
+        "imdb.com": "imdb",
+        imdb: "imdb",
+        "official website": "official",
+        twitter: "twitter",
+        instagram: "instagram",
+        facebook: "facebook",
+        reddit: "reddit",
+        wikidata: "wikidata",
+        fansite: "fansite"
+    };
     const external_ids = (data.remoteIds ?? []).reduce<Record<string, string>>((acc, remote) => {
         if (!remote.id) return acc;
         if (remote.sourceName) {
-            const key = remote.sourceName.toLowerCase().replace(/[\s-]+/g, "_");
+            const key =
+                sourceNameMap[remote.sourceName.toLowerCase()] ?? remote.sourceName.toLowerCase();
             acc[key] = remote.id;
         } else {
             acc[`source_${remote.type}`] = remote.id;
         }
         return acc;
     }, {});
-    const imdb_id = external_ids.imdb ?? external_ids.imdb_com ?? null;
+    const imdb_id = external_ids.imdb ?? null;
 
     const networks: ParsedNetwork[] = [];
     if (data.originalNetwork) {
