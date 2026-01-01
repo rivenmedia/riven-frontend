@@ -51,7 +51,7 @@
     });
 
     function applyFilters() {
-        const params = filterStore.buildParams();
+        const params = filterStore.buildParams("tv");
         searchStore.setFilters(params, true);
     }
 

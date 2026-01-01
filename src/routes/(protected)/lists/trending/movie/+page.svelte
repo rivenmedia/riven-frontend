@@ -51,7 +51,7 @@
     });
 
     function applyFilters() {
-        const params = filterStore.buildParams();
+        const params = filterStore.buildParams("movie");
         searchStore.setFilters(params, true);
     }
 

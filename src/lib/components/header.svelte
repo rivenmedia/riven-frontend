@@ -9,8 +9,9 @@
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
+    import type { createSidebarStore } from "$lib/stores/global.svelte";
 
-    const SidebarStore: any = getContext("sidebarStore");
+    const SidebarStore = getContext<createSidebarStore>("sidebarStore");
 
     // Detect modifier key client-side only to avoid hydration mismatch
     let modifierKey = $state<string | null>(null);
@@ -23,24 +24,14 @@
         modifierKey = platform.includes("MAC") ? "⌘" : "^";
     });
 
-    let searchQuery = $state("");
-    let inputFocused = $state(false);
+    // Removed local searchQuery state and its effect sync
     let inputRef = $state<HTMLInputElement | null>(null);
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const isExplorePage = $derived($page.url.pathname === "/explore");
-    const urlQuery = $derived($page.url.searchParams.get("query") || "");
-
-    // Sync search query with URL when not typing
-    $effect(() => {
-        if (isExplorePage && !inputFocused) {
-            searchQuery = urlQuery;
-        }
-    });
-
     function navigateToSearch() {
         if (debounceTimer) clearTimeout(debounceTimer);
-        const query = searchQuery.trim();
+        // Read directly from the input element via ref
+        const query = inputRef?.value.trim() || "";
         const currentlyExplore = $page.url.pathname === "/explore";
         goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: true,
@@ -49,8 +40,7 @@
         });
     }
 
-    function handleInput(e: Event) {
-        searchQuery = (e.target as HTMLInputElement).value;
+    function handleInput() {
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(navigateToSearch, 300);
     }
@@ -77,7 +67,7 @@
                         bind:ref={inputRef}
                         name="query"
                         placeholder="Search..."
-                        value={searchQuery}
+                        value={$page.url.searchParams.get("query") || ""}
                         oninput={handleInput}
                         onkeydown={(e) => {
                             if (e.key === "Enter") {
@@ -85,8 +75,6 @@
                                 navigateToSearch();
                             }
                         }}
-                        onfocus={() => (inputFocused = true)}
-                        onblur={() => (inputFocused = false)}
                         autocomplete="off" />
                     {#if modifierKey}
                         <InputGroup.Addon align="inline-end">

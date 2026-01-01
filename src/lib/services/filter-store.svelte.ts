@@ -155,7 +155,7 @@ export class FilterStore {
      * Build TMDB API parameters - includes both movie and TV date params
      * so the server can use the appropriate ones per media type
      */
-    buildParams(): FilterParams {
+    buildParams(mediaType?: "movie" | "tv"): FilterParams {
         const params: FilterParams = {};
 
         // Date filters - include both variants, server will use appropriate one
@@ -199,7 +199,13 @@ export class FilterStore {
         if (this.voteCountMax < VOTE_COUNT_CONFIG.max) params["vote_count.lte"] = this.voteCountMax;
 
         // Sort
-        if (this.sortBy !== "popularity.desc") params.sort_by = this.sortBy;
+        if (this.sortBy !== "popularity.desc") {
+            let sortValue = this.sortBy;
+            if (mediaType === "tv" && sortValue.includes("primary_release_date")) {
+                sortValue = sortValue.replace("primary_release_date", "first_air_date");
+            }
+            params.sort_by = sortValue;
+        }
 
         return params;
     }
