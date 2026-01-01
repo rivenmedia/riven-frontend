@@ -60,7 +60,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                 indexer = "tvdb";
             } else {
                 // Fallback to internal Riven ID when no external ID exists
-                id = typeof item.id === "string" ? parseInt(item.id, 10) || item.id : item.id;
+                if (typeof item.id === "string") {
+                    const parsed = parseInt(item.id, 10);
+                    id = Number.isNaN(parsed) ? item.id : parsed;
+                } else {
+                    id = item.id;
+                }
                 indexer = "riven";
             }
 

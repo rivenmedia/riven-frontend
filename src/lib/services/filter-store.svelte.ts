@@ -1,3 +1,5 @@
+import type { FilterParams } from "./search-store.svelte";
+
 /**
  * Genre definitions for movies and TV shows
  */
@@ -153,8 +155,8 @@ export class FilterStore {
      * Build TMDB API parameters - includes both movie and TV date params
      * so the server can use the appropriate ones per media type
      */
-    buildParams(): Record<string, string | number> {
-        const params: Record<string, string | number> = {};
+    buildParams(): FilterParams {
+        const params: FilterParams = {};
 
         // Date filters - include both variants, server will use appropriate one
         if (this.releaseDateFrom) {

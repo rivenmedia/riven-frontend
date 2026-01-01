@@ -14,9 +14,31 @@ export interface SearchResult {
     total_results: number;
 }
 
-// Filter parameters that can be applied to searches
+// Filter parameters that can be applied to TMDB searches
 export interface FilterParams {
-    [key: string]: string | number | boolean;
+    // Date filters
+    "primary_release_date.gte"?: string;
+    "primary_release_date.lte"?: string;
+    "first_air_date.gte"?: string;
+    "first_air_date.lte"?: string;
+    // Genre filter
+    with_genres?: string;
+    // Language filter
+    with_original_language?: string;
+    // Certification filters (movies only)
+    certification_country?: string;
+    certification?: string;
+    // Runtime filters
+    "with_runtime.gte"?: number;
+    "with_runtime.lte"?: number;
+    // Vote average filters
+    "vote_average.gte"?: number;
+    "vote_average.lte"?: number;
+    // Vote count filters
+    "vote_count.gte"?: number;
+    "vote_count.lte"?: number;
+    // Sort
+    sort_by?: string;
 }
 
 export class SearchStore {
