@@ -12,7 +12,7 @@
     import { Input } from "$lib/components/ui/input/index.js";
     import { cn } from "$lib/utils.js";
 
-    let { value = $bindable(), placeholder = "YYYY-MM-DD" } = $props();
+    let { value = $bindable(""), placeholder = "YYYY-MM-DD" } = $props();
 
     let internalValue = $state<DateValue | undefined>(undefined);
 
@@ -76,11 +76,13 @@
 <div class={cn("flex w-full items-center gap-2")}>
     <div class="relative flex-1">
         <!-- Ghost text for "YYYY-MM-DD" mask -->
-        {#if value.length < 10}
+        <!-- Ghost text for "YYYY-MM-DD" mask -->
+        {#if (value?.length ?? 0) < 10}
             <div
                 class="pointer-events-none absolute inset-0 flex items-center px-3 font-mono text-sm tracking-normal">
-                <span class="opacity-0">{value}</span>
-                <span class="text-muted-foreground/50">{"YYYY-MM-DD".slice(value.length)}</span>
+                <span class="opacity-0">{value ?? ""}</span>
+                <span class="text-muted-foreground/50"
+                    >{"YYYY-MM-DD".slice(value?.length ?? 0)}</span>
             </div>
         {/if}
         <Input

@@ -39,11 +39,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             let indexer = "tmdb";
 
             if (item.tmdb_id) {
-                id = parseInt(item.tmdb_id);
+                id = parseInt(item.tmdb_id, 10);
                 indexer = "tmdb";
             } else if (item.tvdb_id) {
                 // If only TVDB ID exists (e.g. anime/some shows), use TVDB indexer
-                id = parseInt(item.tvdb_id);
+                id = parseInt(item.tvdb_id, 10);
                 indexer = "tvdb";
             }
 
@@ -69,6 +69,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
     } catch (err) {
         console.error("Error fetching library items:", err);
-        throw error(500, "Failed to fetch library items");
+        const message = err instanceof Error ? err.message : String(err);
+        throw error(500, `Failed to fetch library items: ${message}`);
     }
 };

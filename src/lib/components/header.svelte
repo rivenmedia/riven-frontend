@@ -81,6 +81,7 @@
                         oninput={handleInput}
                         onkeydown={(e) => {
                             if (e.key === "Enter") {
+                                e.preventDefault();
                                 navigateToSearch();
                             }
                         }}
