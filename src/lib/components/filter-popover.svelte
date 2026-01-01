@@ -36,9 +36,7 @@
             ? TV_GENRES
             : searchStore.mediaType === "movie"
               ? MOVIE_GENRES
-              : [...MOVIE_GENRES, ...TV_GENRES].filter(
-                    (genre, index, self) => self.findIndex((g) => g.id === genre.id) === index
-                )
+              : Array.from(new Map([...MOVIE_GENRES, ...TV_GENRES].map((g) => [g.id, g])).values())
     );
 
     // Slider states
