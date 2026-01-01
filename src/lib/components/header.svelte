@@ -79,6 +79,11 @@
                         placeholder="Search..."
                         value={searchQuery}
                         oninput={handleInput}
+                        onkeydown={(e) => {
+                            if (e.key === "Enter") {
+                                navigateToSearch();
+                            }
+                        }}
                         onfocus={() => (inputFocused = true)}
                         onblur={() => (inputFocused = false)}
                         autocomplete="off" />
