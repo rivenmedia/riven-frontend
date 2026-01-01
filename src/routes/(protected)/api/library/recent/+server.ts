@@ -1,6 +1,17 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
+interface BackendItem {
+    id: string | number;
+    tmdb_id?: string;
+    tvdb_id?: string;
+    title: string;
+    poster_path?: string;
+    type: string;
+    year?: number;
+    aired_at?: string;
+}
+
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
 export const GET: RequestHandler = async ({ locals, url }) => {
@@ -34,20 +45,23 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         const data = await response.json();
 
         // Transform items to match BaseListItem structure expected by frontend
-        const items = (data.items || []).map((item: any) => {
+        const items = (data.items || []).map((item: BackendItem) => {
             const hasAbsolutePoster = item.poster_path?.startsWith("http");
 
             // Determine correct ID and Indexer
-            let id = item.id;
-            let indexer = "tmdb";
+            let id: string | number;
+            let indexer: string;
 
             if (item.tmdb_id) {
                 id = parseInt(item.tmdb_id, 10);
                 indexer = "tmdb";
             } else if (item.tvdb_id) {
-                // If only TVDB ID exists (e.g. anime/some shows), use TVDB indexer
                 id = parseInt(item.tvdb_id, 10);
                 indexer = "tvdb";
+            } else {
+                // Fallback to internal Riven ID when no external ID exists
+                id = typeof item.id === "string" ? parseInt(item.id, 10) || item.id : item.id;
+                indexer = "riven";
             }
 
             return {

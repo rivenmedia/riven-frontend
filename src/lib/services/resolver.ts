@@ -3,6 +3,14 @@ import { createScopedLogger } from "$lib/logger";
 
 const logger = createScopedLogger("id-resolver");
 
+/** Safely extracts a string or number field from an unknown object */
+function extractId(data: unknown, field: string): string | number | null {
+    if (data == null || typeof data !== "object") return null;
+    const value = (data as Record<string, unknown>)[field];
+    if (typeof value === "string" || typeof value === "number") return value;
+    return null;
+}
+
 export type Indexer = "tmdb" | "tvdb" | "imdb" | "anilist" | "riven";
 export type MediaType = "movie" | "tv";
 
@@ -237,11 +245,7 @@ async function rivenToExternal(
             return { id, resolved: false };
         }
 
-        const resolvedId = (to === "tvdb" ? data?.tvdb_id : data?.tmdb_id) as
-            | string
-            | number
-            | null
-            | undefined;
+        const resolvedId = extractId(data, to === "tvdb" ? "tvdb_id" : "tmdb_id");
 
         if (resolvedId != null) {
             return { id: resolvedId, resolved: true };

@@ -39,24 +39,24 @@
               : Array.from(new Map([...MOVIE_GENRES, ...TV_GENRES].map((g) => [g.id, g])).values())
     );
 
-    // Slider states
-    let runtimeRange = $state([filterStore.runtimeMin, filterStore.runtimeMax]);
-    let voteAverageRange = $state([filterStore.voteAverageMin, filterStore.voteAverageMax]);
-    let voteCountRange = $state([filterStore.voteCountMin, filterStore.voteCountMax]);
+    // Slider states - derived from store for two-way sync
+    let runtimeRange = $derived([filterStore.runtimeMin, filterStore.runtimeMax]);
+    let voteAverageRange = $derived([filterStore.voteAverageMin, filterStore.voteAverageMax]);
+    let voteCountRange = $derived([filterStore.voteCountMin, filterStore.voteCountMax]);
 
-    // Sync sliders to store
-    $effect(() => {
-        filterStore.runtimeMin = runtimeRange[0];
-        filterStore.runtimeMax = runtimeRange[1];
-    });
-    $effect(() => {
-        filterStore.voteAverageMin = voteAverageRange[0];
-        filterStore.voteAverageMax = voteAverageRange[1];
-    });
-    $effect(() => {
-        filterStore.voteCountMin = voteCountRange[0];
-        filterStore.voteCountMax = voteCountRange[1];
-    });
+    // Handlers to update store when sliders change
+    function onRuntimeChange(value: number[]) {
+        filterStore.runtimeMin = value[0];
+        filterStore.runtimeMax = value[1];
+    }
+    function onVoteAverageChange(value: number[]) {
+        filterStore.voteAverageMin = value[0];
+        filterStore.voteAverageMax = value[1];
+    }
+    function onVoteCountChange(value: number[]) {
+        filterStore.voteCountMin = value[0];
+        filterStore.voteCountMax = value[1];
+    }
 
     function handleApply() {
         filterStore.isOpen = false;
@@ -65,9 +65,6 @@
 
     function handleClear() {
         filterStore.reset();
-        runtimeRange = [RUNTIME_CONFIG.min, RUNTIME_CONFIG.max];
-        voteAverageRange = [VOTE_AVERAGE_CONFIG.min, VOTE_AVERAGE_CONFIG.max];
-        voteCountRange = [VOTE_COUNT_CONFIG.min, VOTE_COUNT_CONFIG.max];
     }
 </script>
 
@@ -164,7 +161,7 @@
             </div>
 
             <!-- Content Rating (Movies only) -->
-            {#if searchStore.mediaType !== "tv"}
+            {#if searchStore.mediaType === "movie"}
                 <Separator />
                 <div class="space-y-2">
                     <span class="text-sm font-medium">Content Rating</span>
@@ -193,7 +190,11 @@
                         {runtimeRange[0]}-{runtimeRange[1]} min
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={runtimeRange} {...RUNTIME_CONFIG} />
+                <Slider
+                    type="multiple"
+                    value={runtimeRange}
+                    onValueChange={onRuntimeChange}
+                    {...RUNTIME_CONFIG} />
             </div>
 
             <Separator />
@@ -206,7 +207,11 @@
                         {voteAverageRange[0]}-{voteAverageRange[1]}
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={voteAverageRange} {...VOTE_AVERAGE_CONFIG} />
+                <Slider
+                    type="multiple"
+                    value={voteAverageRange}
+                    onValueChange={onVoteAverageChange}
+                    {...VOTE_AVERAGE_CONFIG} />
             </div>
 
             <Separator />
@@ -219,7 +224,11 @@
                         {voteCountRange[0]}-{voteCountRange[1]}
                     </span>
                 </div>
-                <Slider type="multiple" bind:value={voteCountRange} {...VOTE_COUNT_CONFIG} />
+                <Slider
+                    type="multiple"
+                    value={voteCountRange}
+                    onValueChange={onVoteCountChange}
+                    {...VOTE_COUNT_CONFIG} />
             </div>
 
             <Separator />

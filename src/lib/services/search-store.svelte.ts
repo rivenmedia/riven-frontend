@@ -422,10 +422,9 @@ export class SearchStore {
         if (!browser || this.loading || !this.hasMore || !hasSearchOrFilters) return;
 
         // Cancel any pending requests
-        this.abortController?.abort();
-        const controller = new AbortController();
-        this.abortController = controller;
-        const signal = controller.signal;
+        this.cancelPendingRequests();
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
 
         try {
             this.loading = true;
