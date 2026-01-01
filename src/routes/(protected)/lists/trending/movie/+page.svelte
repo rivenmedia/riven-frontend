@@ -148,7 +148,9 @@
     {:else}
         <div class="flex flex-col items-center justify-center gap-2 py-16">
             <p class="text-muted-foreground">No movies found</p>
-            <Button variant="outline" size="sm" onclick={clearFilters}>Clear Filters</Button>
+            {#if filterStore.hasActiveFilters}
+                <Button variant="outline" size="sm" onclick={clearFilters}>Clear Filters</Button>
+            {/if}
         </div>
     {/if}
     <div bind:this={loadMoreTrigger}></div>
