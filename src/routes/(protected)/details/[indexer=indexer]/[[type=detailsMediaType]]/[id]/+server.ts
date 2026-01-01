@@ -71,8 +71,8 @@ export const GET: RequestHandler = async ({ params, fetch, locals }) => {
 
             if (isTV) {
                 return resolveAndRedirect(
-                    { from: "anilist", to: "tvdb", id: id!, mediaType: "tv", customFetch },
-                    "No TVDB ID found for this anime"
+                    { from: "anilist", to: "tmdb", id: id!, mediaType: "tv", customFetch },
+                    "No TMDB ID found for this anime"
                 );
             }
             if (isMovie) {

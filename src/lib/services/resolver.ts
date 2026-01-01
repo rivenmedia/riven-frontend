@@ -172,7 +172,7 @@ async function anilistToExternal(
 
     try {
         const response = await customFetch(`https://api.ani.zip/v1/mappings?anilist_id=${id}`, {
-            headers: { "Content-Type": "application/json" },
+            headers: { "Accept": "application/json" },
             signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -182,11 +182,18 @@ async function anilistToExternal(
         }
 
         const data = await response.json();
-        const resolvedId = to === "tvdb" ? data.thetvdb_id : data.themoviedb_id;
+
+        // Handle both flat (v1) and potentially nested structures or other variations
+        // Some users report issues that suggest the structure might vary or be proxied
+        const resolvedId =
+            (to === "tvdb" ? data.thetvdb_id : data.themoviedb_id) ??
+            (to === "tvdb" ? data.mappings?.thetvdb_id : data.mappings?.themoviedb_id);
 
         if (resolvedId) {
             return { id: resolvedId, resolved: true };
         }
+
+        logger.warn(`AniList resolution returned data but no ID found for ${to}. Keys: ${Object.keys(data)}`);
     } catch (e) {
         clearTimeout(timeoutId);
         if (e instanceof Error && e.name === "AbortError") {
