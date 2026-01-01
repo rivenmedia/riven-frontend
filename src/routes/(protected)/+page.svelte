@@ -11,8 +11,13 @@
     let trendingMoviesStore = $state<MediaListStore<BaseListItem> | null>(null);
     let trendingShowsStore = $state<MediaListStore<BaseListItem> | null>(null);
     let anilistTrendingStore = $state<MediaListStore<BaseListItem> | null>(null);
+    let recentlyAddedStore = $state<MediaListStore<BaseListItem> | null>(null);
 
     onMount(() => {
+        recentlyAddedStore = new MediaListStore<BaseListItem>(
+            "recentlyAdded",
+            "/api/library/recent"
+        );
         trendingMoviesStore = new MediaListStore<BaseListItem>(
             "trendingMovies",
             "/api/tmdb/movie",
@@ -43,6 +48,13 @@
 {/snippet}
 
 <div class="flex flex-col gap-12 p-6 md:p-8 md:px-16">
+    {#if recentlyAddedStore?.items.length}
+        <div class="flex flex-col">
+            {@render listHeading("Recently Added")}
+            <ListCarousel data={recentlyAddedStore.items} />
+        </div>
+    {/if}
+
     <div class="flex flex-col">
         <div class="flex items-center justify-between">
             {@render listHeading("Trending Movies")}

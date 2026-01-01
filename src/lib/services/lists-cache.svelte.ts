@@ -40,6 +40,8 @@ function extractItems<T>(data: unknown): T[] {
         const obj = data as Record<string, unknown>;
         if (Array.isArray(obj.results)) {
             items = obj.results;
+        } else if (Array.isArray(obj.items)) {
+            items = obj.items;
         } else if (obj.data && typeof obj.data === "object") {
             const pageData = obj.data as Record<string, unknown>;
             if (pageData.Page && typeof pageData.Page === "object") {

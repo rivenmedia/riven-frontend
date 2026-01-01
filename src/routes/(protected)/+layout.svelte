@@ -20,10 +20,12 @@
     import { setContext } from "svelte";
     import Header from "$lib/components/header.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
+    import { FilterStore } from "$lib/services/filter-store.svelte";
 
     let { data, children }: LayoutProps = $props();
 
     const searchStore = new SearchStore();
+    const filterStore = new FilterStore();
 
     onNavigate((navigation) => {
         if (!document.startViewTransition) return;
@@ -53,6 +55,7 @@
     setContext("sidebarStore", SidebarStore);
     setContext("ismobilestore", isMobileStore);
     setContext("searchStore", searchStore);
+    setContext("filterStore", filterStore);
 </script>
 
 <svelte:head>
