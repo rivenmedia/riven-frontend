@@ -44,7 +44,13 @@
         }
     });
 
-    let showEmptyState = $derived(!searchStore.rawSearchString);
+    function handleMediaTypeChange(type: "movie" | "tv" | "both") {
+        searchStore.setMediaType(type);
+    }
+
+    let showEmptyState = $derived(
+        !searchStore.rawSearchString && Object.keys(searchStore.filterParams).length === 0
+    );
     let hasResults = $derived(Array.isArray(searchStore.results) && searchStore.results.length > 0);
 </script>
 
@@ -54,25 +60,48 @@
 
 <div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold md:text-3xl">
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-col gap-1">
+                <h1 class="text-2xl font-bold md:text-3xl">
+                    {#if searchStore.rawSearchString}
+                        Search Results
+                    {:else}
+                        Explore
+                    {/if}
+                </h1>
                 {#if searchStore.rawSearchString}
-                    Search Results
-                {:else}
-                    Search
+                    <p class="text-muted-foreground text-sm">
+                        Searching: <span class="font-mono">{searchStore.rawSearchString}</span>
+                    </p>
                 {/if}
-            </h1>
-            {#if searchStore.rawSearchString}
-                <p class="text-muted-foreground text-sm">
-                    Searching: <span class="font-mono">{searchStore.rawSearchString}</span>
-                </p>
-            {/if}
-            {#if searchStore.totalResults > 0 && !searchStore.loading}
-                <p class="text-muted-foreground text-sm">
-                    {searchStore.totalResults} results
-                </p>
-            {/if}
+                {#if searchStore.totalResults > 0 && !searchStore.loading}
+                    <p class="text-muted-foreground text-sm">
+                        {searchStore.totalResults} results
+                    </p>
+                {/if}
+            </div>
+
+            <div class="flex items-center gap-2">
+                <Button
+                    variant={searchStore.mediaType === "both" ? "secondary" : "ghost"}
+                    size="sm"
+                    onclick={() => handleMediaTypeChange("both")}>
+                    All
+                </Button>
+                <Button
+                    variant={searchStore.mediaType === "movie" ? "secondary" : "ghost"}
+                    size="sm"
+                    onclick={() => handleMediaTypeChange("movie")}>
+                    Movies
+                </Button>
+                <Button
+                    variant={searchStore.mediaType === "tv" ? "secondary" : "ghost"}
+                    size="sm"
+                    onclick={() => handleMediaTypeChange("tv")}>
+                    TV Shows
+                </Button>
+            </div>
         </div>
     </div>
 
@@ -106,7 +135,6 @@
                 <ul class="list-disc space-y-1 pl-5 font-mono text-xs">
                     <li>inception</li>
                     <li>breaking bad</li>
-                    <li>y:2024 (search by year)</li>
                 </ul>
             </div>
         </div>
@@ -145,7 +173,7 @@
     {:else}
         <div class="flex flex-col items-center justify-center gap-2 py-16">
             <p class="text-muted-foreground">No results found</p>
-            <p class="text-muted-foreground text-sm">Try adjusting your search</p>
+            <p class="text-muted-foreground text-sm">Try adjusting your search or filters</p>
             <Button variant="outline" size="sm" onclick={() => searchStore.clear()} class="mt-2">
                 Clear Search
             </Button>
