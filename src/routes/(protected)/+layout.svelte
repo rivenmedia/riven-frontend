@@ -27,21 +27,6 @@
     const searchStore = new SearchStore();
     const filterStore = new FilterStore();
 
-    onNavigate((navigation) => {
-        if (!document.startViewTransition) return;
-
-        return new Promise((resolve) => {
-            const transition = document.startViewTransition(async () => {
-                resolve();
-                await navigation.complete;
-            });
-
-            // Handle potential timeouts/aborts to prevent unhandled rejections
-            transition.updateCallbackDone.catch(() => {});
-            transition.finished.catch(() => {});
-        });
-    });
-
     NProgress.configure({
         showSpinner: false
     });
