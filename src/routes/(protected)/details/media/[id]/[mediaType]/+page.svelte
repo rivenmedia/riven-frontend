@@ -1,5 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
+    import { page } from "$app/stores";
     import { type PageProps } from "./$types";
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
@@ -76,13 +77,8 @@
 
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
-    // For TV shows, use TMDB ID from external_ids; for movies, use the direct ID
-    let ratingsId = $derived.by(() => {
-        if (data.mediaDetails?.type === "tv") {
-            return data.mediaDetails?.details?.external_ids?.tmdb ?? null;
-        }
-        return data.mediaDetails?.details?.id;
-    });
+    // Use the TMDB ID from route params for ratings (works for both movies and TV shows)
+    let ratingsId = $derived(Number($page.params.id) || null);
     let mediaType = $derived(data.mediaDetails?.type);
 
     // Ratings data fetched client-side only
