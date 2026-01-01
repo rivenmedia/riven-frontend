@@ -14,6 +14,11 @@ export interface SearchResult {
     total_results: number;
 }
 
+// Filter parameters that can be applied to searches
+export interface FilterParams {
+    [key: string]: string | number | boolean;
+}
+
 export class SearchStore {
     searchQuery = $state<string>("");
     rawSearchString = $state<string>("");
@@ -30,6 +35,13 @@ export class SearchStore {
     tvHasMore = $state<boolean>(true);
     mediaType = $state<"movie" | "tv" | "both">("both");
     warnings = $state<string[]>([]);
+
+    // Additional filter parameters from the filter panel
+    filterParams = $state<FilterParams>({});
+
+    // If true, allows searching/fetching even without a query or filters
+    // Useful for discovery pages that verify "popular" by default
+    allowEmptySearch = $state<boolean>(false);
 
     // For request cancellation
     abortController: AbortController | null = null;
@@ -245,18 +257,61 @@ export class SearchStore {
     }
 
     /**
+     * Set filter parameters and optionally trigger a search
+     */
+    setFilters(params: FilterParams, triggerSearch = true): void {
+        this.filterParams = params;
+        logger.debug("setFilters called", {
+            params,
+            triggerSearch,
+            hasParsedSearch: !!this.parsedSearch
+        });
+        if (triggerSearch && (this.parsedSearch || Object.keys(params).length > 0)) {
+            // Reset results when applying new filters
+            this.movieResults = [];
+            this.tvResults = [];
+            this.moviePage = 1;
+            this.tvPage = 1;
+            this.movieHasMore = true;
+            this.tvHasMore = true;
+            this.search();
+        }
+    }
+
+    /**
+     * Clear filter parameters
+     */
+    clearFilters(): void {
+        this.filterParams = {};
+    }
+
+    /**
      * Build the search endpoint URL for a given type and page
      */
     private buildSearchUrl(type: "movie" | "tv", page: number): string {
+        // Merge parsed search params with filter params
+        // Filter params take precedence
+        const hasFilters = Object.keys(this.filterParams).length > 0;
+
+        // When filters are active, always use discover mode because
+        // TMDB's search endpoints don't support most filter params
+        const searchMode = hasFilters ? "discover" : this.parsedSearch?.searchMode || "discover";
+
         const params = {
-            ...this.parsedSearch!.tmdbParams,
+            ...(this.parsedSearch?.tmdbParams || {}),
+            ...this.filterParams,
             page,
-            searchMode: this.parsedSearch!.searchMode
+            searchMode
         };
+
+        // Remove 'query' param when using discover mode (it's not supported)
+        if (searchMode === "discover") {
+            delete params.query;
+        }
 
         const searchParams = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) {
-            if (value !== undefined && value !== null) {
+            if (value !== undefined && value !== null && value !== "") {
                 searchParams.append(key, String(value));
             }
         }
@@ -287,7 +342,8 @@ export class SearchStore {
         page: number,
         signal?: AbortSignal
     ): Promise<void> {
-        if (!this.parsedSearch) return;
+        // Allow fetch if we have either a parsed search, filter params, or if empty search is allowed
+        if (!this.parsedSearch && Object.keys(this.filterParams).length === 0 && !this.allowEmptySearch) return;
 
         const result = await this.fetchSearchResults(type, page, signal);
 
@@ -329,7 +385,8 @@ export class SearchStore {
     }
 
     private async loadMoreMedia(type: "movie" | "tv", signal?: AbortSignal): Promise<void> {
-        if (!this.parsedSearch) return;
+        // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
+        if (!this.parsedSearch && Object.keys(this.filterParams).length === 0 && !this.allowEmptySearch) return;
 
         const hasMore = type === "movie" ? this.movieHasMore : this.tvHasMore;
         if (!hasMore) return;
@@ -370,7 +427,9 @@ export class SearchStore {
     }
 
     async loadMore(): Promise<void> {
-        if (!browser || this.loading || !this.hasMore || !this.parsedSearch) return;
+        // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
+        const hasSearchOrFilters = this.parsedSearch || Object.keys(this.filterParams).length > 0 || this.allowEmptySearch;
+        if (!browser || this.loading || !this.hasMore || !hasSearchOrFilters) return;
 
         // Cancel any pending requests
         this.abortController?.abort();
@@ -423,5 +482,13 @@ export class SearchStore {
         this.error = null;
         this.warnings = [];
         this.loading = false;
+        this.filterParams = {};
+    }
+
+    /**
+     * Check if filters or search is active
+     */
+    get hasActiveSearch(): boolean {
+        return !!this.parsedSearch || Object.keys(this.filterParams).length > 0;
     }
 }

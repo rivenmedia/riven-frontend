@@ -14,123 +14,6 @@ type DiscoverMovieQuery = NonNullable<paths["/3/discover/movie"]["get"]["paramet
 type SearchTVQuery = paths["/3/search/tv"]["get"]["parameters"]["query"];
 type DiscoverTVQuery = NonNullable<paths["/3/discover/tv"]["get"]["parameters"]["query"]>;
 
-/**
- * Apply server-side filters to TMDB results
- */
-function applyServerFilters(items: TMDBListItem[], filters: ClientFilters): TMDBListItem[] {
-    if (!filters || Object.keys(filters).length === 0) {
-        return items;
-    }
-
-    return items.filter((item) => {
-        // Genre filtering
-        if (filters.with_genres) {
-            const requiredGenres = String(filters.with_genres)
-                .split(/[,|]/)
-                .map((g) => Number(g.trim()));
-            const separator = String(filters.with_genres).includes("|") ? "OR" : "AND";
-
-            if (separator === "AND") {
-                if (!requiredGenres.every((genreId) => item.genre_ids?.includes(genreId))) {
-                    return false;
-                }
-            } else {
-                if (!requiredGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-                    return false;
-                }
-            }
-        }
-
-        if (filters.without_genres) {
-            const excludedGenres = String(filters.without_genres)
-                .split(/[,|]/)
-                .map((g) => Number(g.trim()));
-
-            if (excludedGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-                return false;
-            }
-        }
-
-        // Vote average filtering
-        if (filters["vote_average.gte"] !== undefined) {
-            if (item.vote_average == null || item.vote_average < filters["vote_average.gte"]) {
-                return false;
-            }
-        }
-
-        if (filters["vote_average.lte"] !== undefined) {
-            if (item.vote_average == null || item.vote_average > filters["vote_average.lte"]) {
-                return false;
-            }
-        }
-
-        // Vote count filtering
-        if (filters["vote_count.gte"] !== undefined) {
-            if (item.vote_count == null || item.vote_count < filters["vote_count.gte"]) {
-                return false;
-            }
-        }
-
-        if (filters["vote_count.lte"] !== undefined) {
-            if (item.vote_count == null || item.vote_count > filters["vote_count.lte"]) {
-                return false;
-            }
-        }
-
-        // Date filtering
-        const dateField = item.release_date || item.first_air_date;
-        if (dateField) {
-            if (filters["release_date.gte"] || filters["primary_release_date.gte"]) {
-                const minDate = filters["release_date.gte"] || filters["primary_release_date.gte"];
-                if (dateField < String(minDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["release_date.lte"] || filters["primary_release_date.lte"]) {
-                const maxDate = filters["release_date.lte"] || filters["primary_release_date.lte"];
-                if (dateField > String(maxDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["air_date.gte"] || filters["first_air_date.gte"]) {
-                const minDate = filters["air_date.gte"] || filters["first_air_date.gte"];
-                if (dateField < String(minDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["air_date.lte"] || filters["first_air_date.lte"]) {
-                const maxDate = filters["air_date.lte"] || filters["first_air_date.lte"];
-                if (dateField > String(maxDate)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    });
-}
-
-// Client-side filter types
-interface ClientFilters {
-    with_genres?: string;
-    without_genres?: string;
-    "vote_average.gte"?: number;
-    "vote_average.lte"?: number;
-    "vote_count.gte"?: number;
-    "vote_count.lte"?: number;
-    "release_date.gte"?: string;
-    "release_date.lte"?: string;
-    "primary_release_date.gte"?: string;
-    "primary_release_date.lte"?: string;
-    "air_date.gte"?: string;
-    "air_date.lte"?: string;
-    "first_air_date.gte"?: string;
-    "first_air_date.lte"?: string;
-}
-
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
@@ -144,40 +27,54 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
 
     const searchMode = url.searchParams.get("searchMode") || "discover";
+
+    // Log incoming params for debugging
+    logger.debug(
+        `Search request: type=${type}, searchMode=${searchMode}, params=${url.searchParams.toString()}`
+    );
+
+    // Determine mode: if textual query is present (searchMode='search'|'hybrid'), use search endpoint.
+    // If only filters are present (searchMode='discover'), use discover endpoint.
     const isSearch = searchMode === "search" || searchMode === "hybrid";
 
     try {
-        const { clientFilters, ...parsed } = parseFilters(url.searchParams);
+        const parsed = parseParams(url.searchParams);
+        logger.debug("Parsed params:", parsed.discoverMovieQuery);
 
-        // Call the appropriate typed endpoint and extract results
+        // Call the appropriate typed endpoint
         const fetchResults = async () => {
             if (type === "movie" && isSearch) {
-                const res = await providers.tmdb.GET("/3/search/movie", {
+                return providers.tmdb.GET("/3/search/movie", {
                     params: { query: parsed.searchMovieQuery },
                     fetch: customFetch
                 });
-                return { data: res.data, error: res.error };
             }
             if (type === "movie" && !isSearch) {
-                const res = await providers.tmdb.GET("/3/discover/movie", {
+                return providers.tmdb.GET("/3/discover/movie", {
                     params: { query: parsed.discoverMovieQuery },
                     fetch: customFetch
                 });
-                return { data: res.data, error: res.error };
             }
             if (type === "tv" && isSearch) {
-                const res = await providers.tmdb.GET("/3/search/tv", {
+                return providers.tmdb.GET("/3/search/tv", {
                     params: { query: parsed.searchTVQuery },
                     fetch: customFetch
                 });
-                return { data: res.data, error: res.error };
             }
             // type === "tv" && !isSearch
-            const res = await providers.tmdb.GET("/3/discover/tv", {
-                params: { query: parsed.discoverTVQuery },
+            const query = { ...parsed.discoverTVQuery };
+            if (typeof query.sort_by === "string" && query.sort_by.includes("primary_release_date")) {
+                // TMDB uses 'first_air_date' for TV shows, not 'primary_release_date'
+                query.sort_by = query.sort_by.replace(
+                    "primary_release_date",
+                    "first_air_date"
+                ) as typeof query.sort_by;
+            }
+
+            return providers.tmdb.GET("/3/discover/tv", {
+                params: { query },
                 fetch: customFetch
             });
-            return { data: res.data, error: res.error };
         };
 
         const { data, error: apiError } = await fetchResults();
@@ -187,9 +84,9 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             error(500, `Failed to fetch ${type}s`);
         }
 
-        const rawResults = (data?.results as TMDBListItem[]) || [];
-        const filteredResults = applyServerFilters(rawResults, clientFilters);
-        const transformedResults = transformTMDBList(filteredResults, type);
+        const results = (data?.results as TMDBListItem[]) || [];
+
+        const transformedResults = transformTMDBList(results, type);
 
         return json({
             results: transformedResults,
@@ -203,22 +100,12 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     }
 };
 
-interface ParsedFilters {
+interface ParsedParams {
     searchMovieQuery: SearchMovieQuery;
     discoverMovieQuery: DiscoverMovieQuery;
     searchTVQuery: SearchTVQuery;
     discoverTVQuery: DiscoverTVQuery;
-    clientFilters: ClientFilters;
 }
-
-const CLIENT_FILTERABLE = new Set([
-    "with_genres",
-    "without_genres",
-    "vote_average.gte",
-    "vote_average.lte",
-    "vote_count.gte",
-    "vote_count.lte"
-]);
 
 const BOOLEAN_KEYS = new Set([
     "include_adult",
@@ -227,71 +114,45 @@ const BOOLEAN_KEYS = new Set([
     "screened_theatrically"
 ]);
 
-const NUMERIC_EXACT = new Set([
+// Keys that ONLY work with /discover endpoints (not supported by /search)
+
+
+const NUMERIC_KEYS = new Set([
     "year",
     "page",
     "with_networks",
     "with_release_type",
     "first_air_date_year",
-    "primary_release_year"
+    "primary_release_year",
+    "vote_average.gte",
+    "vote_average.lte",
+    "vote_count.gte",
+    "vote_count.lte",
+    "with_runtime.gte",
+    "with_runtime.lte"
 ]);
 
-function parseFilters(searchParams: URLSearchParams): ParsedFilters {
-    const clientFilters: ClientFilters = {};
-
-    // Build typed query objects for each endpoint type
-    const searchMovieQuery: Record<string, unknown> = {};
-    const discoverMovieQuery: Record<string, unknown> = {};
-    const searchTVQuery: Record<string, unknown> = {};
-    const discoverTVQuery: Record<string, unknown> = {};
-
-    const parseNum = (v: string | null | undefined): number | undefined => {
-        if (v == null || v.trim() === "") return undefined;
-        const n = Number(v.trim());
-        return isNaN(n) ? undefined : n;
-    };
+function parseParams(searchParams: URLSearchParams): ParsedParams {
+    const queryObj: Record<string, unknown> = {};
 
     for (const [key, value] of searchParams) {
-        if (key === "searchMode") continue;
-
-        if (CLIENT_FILTERABLE.has(key)) {
-            if (key.includes("vote_")) {
-                const n = parseNum(value);
-                if (n !== undefined) {
-                    (clientFilters as Record<string, unknown>)[key] = n;
-                }
-            } else {
-                (clientFilters as Record<string, unknown>)[key] = value;
-            }
-            continue;
-        }
-
-        // Determine the parsed value
-        let parsedValue: string | number | boolean = value;
+        if (key === "searchMode" || !value) continue;
 
         if (BOOLEAN_KEYS.has(key)) {
-            parsedValue = value === "true" || value === "1";
-        } else if (NUMERIC_EXACT.has(key) || key.includes("vote_") || key.includes("runtime")) {
-            const n = parseNum(value);
-            if (n === undefined) continue;
-            parsedValue = n;
+            queryObj[key] = value === "true" || value === "1";
+        } else if (NUMERIC_KEYS.has(key)) {
+            const n = Number(value);
+            if (!isNaN(n)) queryObj[key] = n;
+        } else {
+            queryObj[key] = value;
         }
-
-        // Add to all query objects - the TMDB client will ignore irrelevant params
-        searchMovieQuery[key] = parsedValue;
-        discoverMovieQuery[key] = parsedValue;
-        searchTVQuery[key] = parsedValue;
-        discoverTVQuery[key] = parsedValue;
     }
 
-    // Type assertions: values come from parsed URL params (runtime-untyped).
-    // We assert to expected query shapes for downstream typing; runtime validation
-    // is not performed here. Add schema validation (e.g., zod) if strict safety is required.
+    // All query objects share the same params - TMDB ignores irrelevant ones
     return {
-        searchMovieQuery: searchMovieQuery as SearchMovieQuery,
-        discoverMovieQuery: discoverMovieQuery as DiscoverMovieQuery,
-        searchTVQuery: searchTVQuery as SearchTVQuery,
-        discoverTVQuery: discoverTVQuery as DiscoverTVQuery,
-        clientFilters
+        searchMovieQuery: queryObj as SearchMovieQuery,
+        discoverMovieQuery: queryObj as DiscoverMovieQuery,
+        searchTVQuery: queryObj as SearchTVQuery,
+        discoverTVQuery: queryObj as DiscoverTVQuery
     };
 }
