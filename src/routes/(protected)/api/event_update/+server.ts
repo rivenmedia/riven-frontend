@@ -7,81 +7,81 @@ import { createScopedLogger } from "$lib/logger";
 const logger = createScopedLogger("event-update-api");
 
 export const POST: RequestHandler = async ({ locals }) => {
-	if (!locals.user || !locals.session) {
-		error(401, "Unauthorized");
-	}
+    if (!locals.user || !locals.session) {
+        error(401, "Unauthorized");
+    }
 
-	const backendUrl = env.BACKEND_URL;
-	if (!backendUrl) {
-		logger.error("Event update proxy: BACKEND_URL is not configured");
-		error(500, "Backend URL is not configured");
-	}
+    const backendUrl = env.BACKEND_URL;
+    if (!backendUrl) {
+        logger.error("Event update proxy: BACKEND_URL is not configured");
+        error(500, "Backend URL is not configured");
+    }
 
-	return produce(async function start({ emit, lock }) {
-		const abortController = new AbortController();
+    return produce(async function start({ emit, lock }) {
+        const abortController = new AbortController();
 
-		try {
-			const response = await fetch(`${backendUrl}/api/v1/stream/event_update`, {
-				method: "GET",
-				headers: {
-					"x-api-key": env.BACKEND_API_KEY || "",
-					Accept: "text/event-stream",
-					"Cache-Control": "no-cache"
-				},
-				signal: abortController.signal
-			});
+        try {
+            const response = await fetch(`${backendUrl}/api/v1/stream/event_update`, {
+                method: "GET",
+                headers: {
+                    "x-api-key": env.BACKEND_API_KEY || "",
+                    Accept: "text/event-stream",
+                    "Cache-Control": "no-cache"
+                },
+                signal: abortController.signal
+            });
 
-			if (!response.ok) {
-				logger.error(`Event update proxy: Backend error ${response.status}`);
-				lock.set(false);
-				return function stop() {
-					abortController.abort();
-				};
-			}
+            if (!response.ok) {
+                logger.error(`Event update proxy: Backend error ${response.status}`);
+                lock.set(false);
+                return function stop() {
+                    abortController.abort();
+                };
+            }
 
-			const reader = response.body?.getReader();
-			if (!reader) {
-				logger.error("Event update proxy: No response body");
-				lock.set(false);
-				return function stop() {
-					abortController.abort();
-				};
-			}
+            const reader = response.body?.getReader();
+            if (!reader) {
+                logger.error("Event update proxy: No response body");
+                lock.set(false);
+                return function stop() {
+                    abortController.abort();
+                };
+            }
 
-			const decoder = new TextDecoder();
-			let buffer = "";
+            const decoder = new TextDecoder();
+            let buffer = "";
 
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) break;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-				buffer += decoder.decode(value, { stream: true });
-				const lines = buffer.split("\n");
-				buffer = lines.pop() || "";
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
 
-				for (const line of lines) {
-					if (line.startsWith("data: ")) {
-						const data = line.slice(6);
-						const { error: emitError } = emit("event_update", data);
-						if (emitError) {
-							reader.cancel();
-							return function stop() {
-								abortController.abort();
-							};
-						}
-					}
-				}
-			}
-		} catch (e) {
-			if (!(e instanceof Error && e.name === "AbortError")) {
-				logger.error("Event update proxy: Connection error:", e);
-			}
-		} finally {
-			lock.set(false);
-		}
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const data = line.slice(6);
+                        const { error: emitError } = emit("event_update", data);
+                        if (emitError) {
+                            reader.cancel();
+                            return function stop() {
+                                abortController.abort();
+                            };
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            if (!(e instanceof Error && e.name === "AbortError")) {
+                logger.error("Event update proxy: Connection error:", e);
+            }
+        } finally {
+            lock.set(false);
+        }
 
-		return function stop() {
-			abortController.abort();
-		};
-	});
+        return function stop() {
+            abortController.abort();
+        };
+    });
 };

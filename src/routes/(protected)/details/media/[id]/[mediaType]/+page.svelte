@@ -353,8 +353,7 @@
                         itemId={data.riven?.id}
                         currentState={data.riven?.state}
                         externalId={$page.params.id}
-                        externalIdType={data.mediaDetails?.type === "movie" ? "tmdb" : "tvdb"}
-                    />
+                        externalIdType={data.mediaDetails?.type === "movie" ? "tmdb" : "tvdb"} />
 
                     {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
                         <p class="text-muted-foreground mb-2 text-sm">
