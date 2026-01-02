@@ -1,7 +1,7 @@
 <script lang="ts">
     import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
-    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
     import type { ScrapeSeasonRequest } from "$lib/types";
@@ -101,22 +101,22 @@
     }
 </script>
 
-<Dialog.Root bind:open>
-    <Dialog.Trigger>
+<AlertDialog.Root bind:open>
+    <AlertDialog.Trigger>
         {#snippet child({ props })}
             <Button {variant} {size} class={className} {...restProps} {...props}
                 >{buttonLabel}</Button>
         {/snippet}
-    </Dialog.Trigger>
-    <Dialog.Content class="max-w-2xl">
-        <Dialog.Header>
-            <Dialog.Title>
+    </AlertDialog.Trigger>
+    <AlertDialog.Content>
+        <AlertDialog.Header>
+            <AlertDialog.Title>
                 Requesting "{title ?? "Media Item"}"
-            </Dialog.Title>
-            <Dialog.Description>
+            </AlertDialog.Title>
+            <AlertDialog.Description>
                 This will send a request to Riven to add this media.
-            </Dialog.Description>
-        </Dialog.Header>
+            </AlertDialog.Description>
+        </AlertDialog.Header>
 
         {#if mediaType === "tv" && seasons.length > 0}
             <SeasonSelector {seasons} {open} bind:selectedSeasons class="my-4" />
@@ -126,16 +126,12 @@
             </div>
         {/if}
 
-        <Dialog.Footer>
-            <Dialog.Close>
-                <Button variant="outline">Cancel</Button>
-            </Dialog.Close>
-            <Button
+        <AlertDialog.Footer>
+            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Action
                 disabled={loading ||
                     (mediaType === "tv" && seasons.length > 0 && selectedSeasons.size === 0)}
-                onclick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                onclick={async () => {
                     loading = true;
                     await addMediaItem(ids, mediaType);
                     loading = false;
@@ -145,7 +141,7 @@
                     <Loader2 class="mr-1 inline-block animate-spin" />
                 {/if}
                 {mediaType === "tv" && seasons.length > 0 ? "Select Season(s)" : "Request"}
-            </Button>
-        </Dialog.Footer>
-    </Dialog.Content>
-</Dialog.Root>
+            </AlertDialog.Action>
+        </AlertDialog.Footer>
+    </AlertDialog.Content>
+</AlertDialog.Root>
