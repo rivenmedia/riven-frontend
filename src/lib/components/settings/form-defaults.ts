@@ -1,11 +1,22 @@
+import type { FormState } from "@sjsf/form";
+import type { components } from "$lib/providers/riven";
+
 export { translation } from "@sjsf/form/translations/en";
 
 export { resolver } from "@sjsf/form/resolvers/basic";
+
+export { buildSettingsUiSchema, getFieldGroupsForSection } from "./ui-schema";
+export type { FieldGroup } from "./ui-schema";
+export type AppSettings = components["schemas"]["AppModel"];
+export type SettingsFormState = FormState<AppSettings>;
+
 import "@sjsf/form/fields/extra/enum-include";
 import "@sjsf/form/fields/extra/multi-enum-include";
 import "@sjsf/form/fields/extra/unknown-native-file-include";
 
-export { theme } from "@sjsf/shadcn4-theme";
+import { theme as baseTheme } from "@sjsf/shadcn4-theme";
+import { extendByRecord } from "@sjsf/form/lib/resolver";
+import "@sjsf/shadcn4-theme/extra-widgets/switch-include";
 import "@sjsf/shadcn4-theme/extra-widgets/textarea-include";
 import "@sjsf/shadcn4-theme/extra-widgets/checkboxes-include";
 import "@sjsf/shadcn4-theme/extra-widgets/radio-include";
@@ -13,6 +24,13 @@ import "@sjsf/shadcn4-theme/extra-widgets/file-include";
 import "@sjsf/shadcn4-theme/extra-widgets/date-picker-include";
 // import "@sjsf-lab/shadcn-extras-theme/extra-widgets/password-include";
 // import "@sjsf-lab/shadcn-extras-theme/extra-widgets/tags-input-include";
+
+import { CustomRankWidget, NullableArrayWidget, NullablePrimitiveWidget } from "./widgets";
+export const theme = extendByRecord(baseTheme, {
+    customRankWidget: CustomRankWidget,
+    nullableArrayWidget: NullableArrayWidget,
+    nullablePrimitiveWidget: NullablePrimitiveWidget
+});
 
 export { createFormIdBuilder as idBuilder } from "@sjsf/sveltekit";
 

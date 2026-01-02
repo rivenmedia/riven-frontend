@@ -1,26 +1,47 @@
 <script lang="ts">
     import type { ActionData, PageData } from "./$types";
-    import { BasicForm } from "@sjsf/form";
     import { createMeta, setupSvelteKitForm } from "@sjsf/sveltekit/client";
-    import * as defaults from "$lib/components/settings/form-defaults";
-    import { setShadcnContext } from "$lib/components/shadcn-context";
+    import { setValue, type Schema } from "@sjsf/form";
+    import * as formDefaults from "$lib/components/settings/form-defaults";
+    import type { AppSettings, SettingsFormState } from "$lib/components/settings/form-defaults";
+    import { setSettingsFormContext } from "$lib/components/settings-form-context";
     import { toast } from "svelte-sonner";
     import { icons } from "@sjsf/lucide-icons";
-    setShadcnContext();
+    import { invalidateAll } from "$app/navigation";
+    import { tick } from "svelte";
+    import SettingsLayout from "$lib/components/settings/settings-layout.svelte";
+
+    setSettingsFormContext();
 
     let { data }: { data: PageData } = $props();
 
     const meta = createMeta<ActionData, PageData>().form;
 
-    // @ts-expect-error - Schema is provided by page data
-    const { form, request } = setupSvelteKitForm(meta, {
-        ...defaults,
+    // ignore warnings because Schema and UISchema are pre-built on the server - static after page load
+    // svelte-ignore state_referenced_locally
+    const schema = data.form.schema as Schema;
+    // svelte-ignore state_referenced_locally
+    const uiSchema = data.form.uiSchema;
+
+    // setupSvelteKitForm infers from meta, but the schema is dynamic from page data
+    // so we need to cast the form to the proper type for type-safe usage in components
+    const { form: formState } = setupSvelteKitForm(meta, {
+        ...formDefaults,
+        schema,
+        uiSchema,
         icons,
         delayedMs: 500,
         timeoutMs: 30000,
-        onSuccess: (result) => {
+        // Re-fetch settings after save to ensure UI reflects server state.
+        // Trade-off: extra network round-trip vs optimistic update (using submitted
+        // values directly). Re-fetching guarantees correctness if server transforms data.
+        onSuccess: async (result) => {
             if (result.type === "success") {
                 toast.success("Settings saved");
+                await invalidateAll();
+                await tick();
+                // Sync form state with refreshed page data
+                setValue(formState, data.form.initialValue as AppSettings);
             } else {
                 toast.error("Failed to save settings");
             }
@@ -29,12 +50,16 @@
             toast.error("Something went wrong while saving settings");
         }
     });
+
+    // Cast to SettingsFormState for type-safe component usage
+    // This is valid because we know the schema defines AppSettings
+    const form = formState as unknown as SettingsFormState;
 </script>
 
 <svelte:head>
     <title>Settings - Riven</title>
 </svelte:head>
 
-<div class="mt-14 h-full w-full p-6 md:p-8 md:px-16">
-    <BasicForm {form} method="POST"></BasicForm>
+<div class="mt-14 h-[calc(100vh-3.5rem)] w-full">
+    <SettingsLayout {form} schema={data.form.schema!} />
 </div>
