@@ -3,7 +3,17 @@
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
-    import type { ScrapeSeasonRequest } from "$lib/types";
+    import type {
+        ScrapeSeasonRequest,
+        Stream,
+        StartSessionResponse,
+        DebridFile,
+        Container,
+        ShowFileData,
+        FileMapping,
+        ParsedTitleData,
+        BatchSession
+    } from "$lib/types";
 
     type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
 
@@ -34,6 +44,7 @@
     import Volume2 from "@lucide/svelte/icons/volume-2";
     import Plus from "@lucide/svelte/icons/plus";
     import Trash2 from "@lucide/svelte/icons/trash-2";
+    import X from "@lucide/svelte/icons/x";
     import Magnet from "@lucide/svelte/icons/magnet";
     import Download from "@lucide/svelte/icons/download";
     import StreamItem from "./stream-item.svelte";
@@ -41,13 +52,6 @@
     import { createScopedLogger } from "$lib/logger";
 
     const logger = createScopedLogger("manual-scrape");
-
-    type Stream = components["schemas"]["Stream"];
-    type StartSessionResponse = components["schemas"]["StartSessionResponse"];
-    type DebridFile = components["schemas"]["DebridFile"];
-    type Container = components["schemas"]["Container"];
-    type ShowFileData = components["schemas"]["ShowFileData"];
-    type ParsedData = components["schemas"]["ParsedData"];
 
     interface Props {
         title: string | null | undefined;
@@ -78,27 +82,6 @@
         ...restProps
     }: Props = $props();
 
-    interface FileMapping {
-        file_id: string;
-        filename: string;
-        filesize: number;
-        season?: number;
-        episode?: number;
-        download_url?: string | null;
-    }
-
-    interface ParsedTitleData {
-        seasons?: number[];
-        episodes?: number[];
-        resolution?: string;
-        quality?: string;
-        hdr?: string[];
-        codec?: string;
-        audio?: string[];
-        languages?: string[];
-        complete?: boolean;
-    }
-
     interface FileSelection {
         file_id: number;
         filename: string;
@@ -106,16 +89,6 @@
     }
 
     type UpdateBody = DebridFile | ShowFileData;
-
-    interface BatchSession {
-        sessionId: string;
-        magnet: string;
-        stream: Stream;
-        sessionData: StartSessionResponse;
-        mappings: FileMapping[];
-        status: "pending" | "completed" | "error";
-        error?: string;
-    }
 
     let open = $state(false);
     let step = $state(1);
@@ -146,7 +119,7 @@
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
-    let disableFilesizeCheck = $state(false);
+    let disableBitrateCheck = $state(false);
 
     let customTitle = $state("");
     let customImdbId = $state("");
@@ -287,9 +260,8 @@
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
             }
 
-            if (disableFilesizeCheck) {
-                // @ts-ignore
-                queryParams.disable_filesize_check = true;
+            if (disableBitrateCheck) {
+                queryParams.disable_bitrate_check = true;
             }
 
             const { data, error: err } = await providers.riven.POST(
@@ -459,7 +431,8 @@
 
         try {
             const body: AutoScrapeRequest = {
-                media_type: mediaType
+                media_type: mediaType,
+                disable_bitrate_check: disableBitrateCheck
             };
 
             // Only include IDs if they have valid values
@@ -484,23 +457,23 @@
             const topLevelOptions: Record<string, string[]> = {};
 
             Object.entries(selectedOptions).forEach(([key, value]) => {
-                if (value.length > 0) {
-                    if (
-                        [
-                            "resolutions",
-                            "quality",
-                            "rips",
-                            "hdr",
-                            "audio",
-                            "extras",
-                            "trash"
-                        ].includes(key)
-                    ) {
-                        rankingOverrides[key] = value;
-                    } else {
-                        // @ts-ignore
-                        topLevelOptions[key] = value;
-                    }
+                if (
+                    [
+                        "resolutions",
+                        "quality",
+                        "rips",
+                        "hdr",
+                        "audio",
+                        "extras",
+                        "trash",
+                        "require",
+                        "exclude"
+                    ].includes(key)
+                ) {
+                    rankingOverrides[key] = value;
+                } else {
+                    // @ts-ignore
+                    topLevelOptions[key] = value;
                 }
             });
 
@@ -577,7 +550,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceDisableFilesizeCheck: boolean = false) {
+    async function startScrapeSession(magnet: string, forceDisableBitrateCheck: boolean = false) {
         loading = true;
         error = null;
 
@@ -587,9 +560,9 @@
                 magnet: magnet
             };
 
-            if (forceDisableFilesizeCheck || disableFilesizeCheck) {
+            if (forceDisableBitrateCheck || disableBitrateCheck) {
                 // @ts-ignore
-                queryParams.disable_filesize_check = true;
+                queryParams.disable_bitrate_check = true;
             }
 
             if (itemId) {
@@ -1235,7 +1208,8 @@
 
                     <Accordion.Root type="single" collapsible>
                         <Accordion.Item value="custom-params">
-                            <Accordion.Trigger>Custom Scrape Parameters</Accordion.Trigger>
+                            <Accordion.Trigger class="hover:no-underline"
+                                >Custom Scrape Parameters</Accordion.Trigger>
                             <Accordion.Content>
                                 <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2">
                                     <div class="flex flex-col gap-2">
@@ -1299,11 +1273,11 @@
                                 </Button>
 
                                 <div class="flex items-center space-x-2">
-                                    <Label for="disable-filesize-check" class="text-xs"
-                                        >Disable filesize check</Label>
+                                    <Label for="disable-bitrate-check" class="text-xs"
+                                        >Disable bitrate check</Label>
                                     <Switch
-                                        id="disable-filesize-check"
-                                        bind:checked={disableFilesizeCheck} />
+                                        id="disable-bitrate-check"
+                                        bind:checked={disableBitrateCheck} />
                                 </div>
 
                                 {#if selectedMagnets.size > 0}
@@ -1445,11 +1419,11 @@
                         <div class="flex items-center justify-between">
                             <Label>Quality Constraints</Label>
                             <div class="flex items-center space-x-2">
-                                <Label for="disable-filesize-check-auto" class="text-xs"
-                                    >Disable filesize check</Label>
+                                <Label for="disable-bitrate-check-auto" class="text-xs"
+                                    >Disable bitrate check</Label>
                                 <Switch
-                                    id="disable-filesize-check-auto"
-                                    bind:checked={disableFilesizeCheck} />
+                                    id="disable-bitrate-check-auto"
+                                    bind:checked={disableBitrateCheck} />
                             </div>
                         </div>
                         <p class="text-muted-foreground mb-2 text-xs">
@@ -1613,6 +1587,19 @@
                                                 {formatFileSize(mapping.filesize)}
                                             </p>
                                         </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            class="h-6 w-6 shrink-0"
+                                            onclick={() => {
+                                                selectedFilesMappings =
+                                                    selectedFilesMappings.filter(
+                                                        (_, i) => i !== idx
+                                                    );
+                                            }}>
+                                            <X
+                                                class="text-muted-foreground hover:text-foreground h-4 w-4" />
+                                        </Button>
                                     </div>
 
                                     {#if mediaType === "tv"}

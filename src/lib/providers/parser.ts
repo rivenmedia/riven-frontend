@@ -264,7 +264,7 @@ export interface TMDBMovieDetailsExtended extends TMDBMovieDetailsBase {
     release_dates: { results: { iso_3166_1: string; release_dates: TMDBReleaseDateItem[] }[] };
 }
 
-interface TMDBTransformedListItem {
+export interface TMDBTransformedListItem {
     id: number;
     title: string;
     poster_path: string | null;
@@ -272,7 +272,15 @@ interface TMDBTransformedListItem {
     year: string | number;
     vote_average: number | null;
     vote_count: number | null;
+    popularity?: number;
     indexer: "tmdb" | "tvdb";
+    original_language?: string;
+    overview?: string;
+    backdrop_path?: string | null;
+    genre_ids?: number[];
+    release_date?: string;
+    first_air_date?: string;
+    original_title?: string;
 }
 
 export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
@@ -310,8 +318,97 @@ export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | 
                       : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
-            indexer: "tmdb" as const
+            popularity: item.popularity,
+            indexer: "tmdb" as const,
+            original_language: item.original_language,
+            overview: item.overview,
+            backdrop_path: item.backdrop_path,
+            genre_ids: item.genre_ids,
+            release_date: item.release_date,
+            first_air_date: item.first_air_date,
+            original_title: item.original_title ?? item.original_name
         })) || ([] as TMDBTransformedListItem[])
+    );
+}
+
+// Map TVDB genre strings to TMDB Integer IDs
+const TVDB_GENRE_MAP: Record<string, number> = {
+    Action: 28,
+    Adventure: 12,
+    Animation: 16,
+    Comedy: 35,
+    Crime: 80,
+    Documentary: 99,
+    Drama: 18,
+    Family: 10751,
+    Fantasy: 14,
+    History: 36,
+    Horror: 27,
+    Music: 10402,
+    Mystery: 9648,
+    Romance: 10749,
+    "Science Fiction": 878,
+    "TV Movie": 10770,
+    Thriller: 53,
+    War: 10752,
+    Western: 37,
+    // TV Specific
+    "Action & Adventure": 10759,
+    "Sci-Fi & Fantasy": 10765,
+    Reality: 10764,
+    News: 10763,
+    Kids: 10762,
+    Talk: 10767,
+    Soap: 10766,
+    "War & Politics": 10768
+};
+
+interface TVDBSearchItem {
+    tvdb_id?: number;
+    id?: number;
+    type?: string;
+    name?: string;
+    translations?: { eng?: string };
+    image_url?: string;
+    year?: string | number;
+    first_air_time?: string;
+    overview?: string;
+    genres?: (string | { name: string })[];
+}
+
+export function transformTVDBList(items: TVDBSearchItem[] | null): TMDBTransformedListItem[] {
+    return (
+        items?.reduce((acc, item) => {
+            if (item.type !== "series") return acc;
+
+            const id = item.tvdb_id ?? item.id;
+            if (!id || id <= 0) return acc;
+
+            // Map genres to IDs (handle both string[] from search and object[] from filter)
+            const genreIds: number[] = [];
+            if (item.genres) {
+                for (const g of item.genres) {
+                    const name = typeof g === "string" ? g : g.name;
+                    const genreId = TVDB_GENRE_MAP[name];
+                    if (typeof genreId === "number" && genreId > 0) genreIds.push(genreId);
+                }
+            }
+
+            acc.push({
+                id,
+                title: item.translations?.eng || item.name || "Unknown",
+                poster_path: buildTVDBImage(item.image_url ?? null),
+                media_type: "tv",
+                year: item.year || (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
+                vote_average: null,
+                vote_count: null,
+                genre_ids: genreIds,
+                overview: item.overview ?? undefined,
+                first_air_date: item.first_air_time ?? undefined,
+                indexer: "tvdb"
+            });
+            return acc;
+        }, [] as TMDBTransformedListItem[]) || ([] as TMDBTransformedListItem[])
     );
 }
 
@@ -336,12 +433,12 @@ function transformTraktRecommendations(
         const isShowType = item.type === "show" || item.show;
 
         const mediaType = isMovieType ? "movie" : isShowType ? "tv" : isMovie ? "movie" : "tv";
-        const indexer: "tmdb" | "tvdb" = mediaType === "movie" ? "tmdb" : "tvdb";
 
+        // Always use TMDB IDs for consistent routing (matches search behavior)
         const id =
             mediaType === "movie"
                 ? item.ids?.tmdb || item.movie?.ids?.tmdb || 0
-                : item.ids?.tvdb || item.show?.ids?.tvdb || 0;
+                : item.ids?.tmdb || item.show?.ids?.tmdb || 0;
 
         if (id <= 0) continue;
 
@@ -356,7 +453,7 @@ function transformTraktRecommendations(
                 year: item.year || item.movie?.year || item.show?.year || "N/A",
                 vote_average: null,
                 vote_count: null,
-                indexer
+                indexer: "tmdb"
             });
         }
     }
@@ -944,17 +1041,33 @@ export function parseTVDBShowDetails(
             profile_path: buildTVDBImage(character.personImgURL || character.image)
         }));
 
+    // Map TVDB sourceName to normalized keys
+    const sourceNameMap: Record<string, string> = {
+        "themoviedb.com": "tmdb",
+        themoviedb: "tmdb",
+        tmdb: "tmdb",
+        "imdb.com": "imdb",
+        imdb: "imdb",
+        "official website": "official",
+        twitter: "twitter",
+        instagram: "instagram",
+        facebook: "facebook",
+        reddit: "reddit",
+        wikidata: "wikidata",
+        fansite: "fansite"
+    };
     const external_ids = (data.remoteIds ?? []).reduce<Record<string, string>>((acc, remote) => {
         if (!remote.id) return acc;
         if (remote.sourceName) {
-            const key = remote.sourceName.toLowerCase().replace(/[\s-]+/g, "_");
+            const key =
+                sourceNameMap[remote.sourceName.toLowerCase()] ?? remote.sourceName.toLowerCase();
             acc[key] = remote.id;
         } else {
             acc[`source_${remote.type}`] = remote.id;
         }
         return acc;
     }, {});
-    const imdb_id = external_ids.imdb ?? external_ids.imdb_com ?? null;
+    const imdb_id = external_ids.imdb ?? null;
 
     const networks: ParsedNetwork[] = [];
     if (data.originalNetwork) {

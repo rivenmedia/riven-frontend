@@ -850,18 +850,6 @@ export interface paths {
         /**
          * Match container files to item
          * @description Apply selected file attributes from a scraping session to the referenced media item(s).
-         *
-         *     Locate the media item referenced by the given scraping session, create or reuse a staging FilesystemEntry for the provided file data, attach the file as the item's active stream (or attach to matching episodes for TV items), persist the changes to the database, and enqueue post-processing events for affected items.
-         *
-         *     Parameters:
-         *         session_id (str): Identifier of the scraping session containing item and torrent context.
-         *         data (DebridFile | ShowFileData): File metadata for a single movie (`DebridFile`) or a mapping of seasons/episodes to file metadata (`ShowFileData`) for TV content.
-         *
-         *     Returns:
-         *         dict: A message indicating which item(s) were updated, including the item's log string.
-         *
-         *     Raises:
-         *         HTTPException: 404 if the session or target item cannot be found; 500 if the session lacks an associated item ID.
          */
         post: operations["manual_update_attributes"];
         delete?: never;
@@ -1313,6 +1301,12 @@ export interface components {
              */
             item_id?: number | null;
             /**
+             * Disable Bitrate Check
+             * @description Disable bitrate check for this scrape
+             * @default false
+             */
+            disable_bitrate_check: boolean;
+            /**
              * Tmdb Id
              * @description The TMDB ID of the media item
              */
@@ -1596,29 +1590,29 @@ export interface components {
              */
             video_extensions?: string[];
             /**
-             * Movie Filesize Mb Min
-             * @description Minimum file size in MB for movies
-             * @default 700
+             * Movie Bitrate Mbps Min
+             * @description Minimum bitrate in Mbps for movies (-1 for no limit)
+             * @default 1
              */
-            movie_filesize_mb_min: number;
+            movie_bitrate_mbps_min: number;
             /**
-             * Movie Filesize Mb Max
-             * @description Maximum file size in MB for movies (-1 for no limit)
+             * Movie Bitrate Mbps Max
+             * @description Maximum bitrate in Mbps for movies (-1 for no limit)
              * @default -1
              */
-            movie_filesize_mb_max: number;
+            movie_bitrate_mbps_max: number;
             /**
-             * Episode Filesize Mb Min
-             * @description Minimum file size in MB for episodes
-             * @default 100
+             * Episode Bitrate Mbps Min
+             * @description Minimum bitrate in Mbps for episodes (-1 for no limit)
+             * @default 1
              */
-            episode_filesize_mb_min: number;
+            episode_bitrate_mbps_min: number;
             /**
-             * Episode Filesize Mb Max
-             * @description Maximum file size in MB for episodes (-1 for no limit)
+             * Episode Bitrate Mbps Max
+             * @description Maximum bitrate in Mbps for episodes (-1 for no limit)
              * @default -1
              */
-            episode_filesize_mb_max: number;
+            episode_bitrate_mbps_max: number;
             /**
              * Proxy Url
              * @description Proxy URL for downloaders (optional)
@@ -5189,6 +5183,8 @@ export interface operations {
                 custom_title?: string | null;
                 /** @description Custom IMDB ID to use for scraping */
                 custom_imdb_id?: string | null;
+                /** @description JSON string of ranking overrides */
+                ranking_overrides?: string | null;
                 api_key?: string | null;
             };
             header?: never;
@@ -5301,8 +5297,8 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
-                /** @description Disable filesize check */
-                disable_filesize_check?: boolean;
+                /** @description Disable bitrate check */
+                disable_bitrate_check?: boolean;
                 api_key?: string | null;
             };
             header?: never;

@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { browser } from "$app/environment";
+    import { page } from "$app/stores";
     import { type PageProps } from "./$types";
     import Tooltip from "$lib/components/tooltip.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
@@ -65,12 +67,14 @@
         return externalMetaData[normalizedKey];
     }
 
-    let showTrailer = $state(
+    let showTrailerDefault = $derived(
         !data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer
     );
+    let showTrailerOverride = $state<boolean | null>(null);
+    let showTrailer = $derived(showTrailerOverride ?? showTrailerDefault);
 
     function toggleTrailer() {
-        showTrailer = !showTrailer;
+        showTrailerOverride = !showTrailer;
     }
 
     let showVideoPlayer = $state(false);
@@ -81,6 +85,47 @@
 
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+    // Use the TMDB ID from route params for ratings (works for both movies and TV shows)
+    let ratingsId = $derived(Number($page.params.id) || null);
+    let mediaType = $derived(data.mediaDetails?.type);
+
+    // Ratings data fetched client-side only
+    let ratingsData = $state<{
+        scores: Array<{ name: string; image?: string; score: string; url: string }>;
+    } | null>(null);
+    let ratingsLoading = $state(false);
+
+    $effect(() => {
+        if (!browser) return;
+        const id = ratingsId;
+        const type = mediaType;
+        if (!id || !type) {
+            ratingsLoading = false;
+            ratingsData = null;
+            return;
+        }
+
+        const controller = new AbortController();
+        ratingsLoading = true;
+
+        (async () => {
+            try {
+                const response = await fetch(`/api/ratings/${id}?type=${type}`, {
+                    signal: controller.signal
+                });
+                if (!controller.signal.aborted) {
+                    ratingsData = response.ok ? await response.json() : null;
+                    ratingsLoading = false;
+                }
+            } catch (e) {
+                if (!controller.signal.aborted) {
+                    ratingsLoading = false;
+                }
+            }
+        })();
+
+        return () => controller.abort();
+    });
 </script>
 
 <svelte:head>
@@ -197,6 +242,7 @@
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type}
+                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 seasons={data.mediaDetails?.type === "tv" &&
                                 data.mediaDetails?.details?.seasons
                                     ? data.mediaDetails.details.seasons.map((s) => ({
@@ -271,7 +317,7 @@
                                     ids={rivenId ? [rivenId.toString()] : []}
                                     mediaType={data.mediaDetails?.type}
                                     buttonLabel="Request More"
-                                    externalId={data.mediaDetails?.details?.id?.toString()}
+                                    externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                     seasons={data.mediaDetails?.details?.seasons
                                         ? data.mediaDetails.details.seasons.map((s) => ({
                                               id: s.id,
@@ -321,7 +367,11 @@
                             <Dialog.Root>
                                 <Dialog.Trigger>
                                     {#snippet child({ props })}
-                                        <Button variant="ghost" class="bg-white/10" {...props}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="bg-white/10"
+                                            {...props}>
                                             JSON
                                         </Button>
                                     {/snippet}
@@ -329,19 +379,8 @@
                                 <Dialog.Content class="w-full max-w-4xl!">
                                     <Dialog.Header>
                                         <Dialog.Title>Raw Riven Data</Dialog.Title>
-                                        <Button
-                                            variant="outline"
-                                            onclick={() => {
-                                                navigator.clipboard.writeText(
-                                                    JSON.stringify(data.riven, null, 2)
-                                                );
-                                                toast.success("Riven data copied to clipboard!");
-                                            }}>
-                                            Copy
-                                        </Button>
                                     </Dialog.Header>
-                                    <div
-                                        class="mt-4 max-h-100 overflow-auto rounded bg-zinc-800 p-2">
+                                    <div class="max-h-100 overflow-auto rounded bg-zinc-800 p-4">
                                         <pre
                                             class="text-sm break-all whitespace-pre-wrap">{JSON.stringify(
                                                 data.riven,
@@ -349,6 +388,16 @@
                                                 2
                                             )}</pre>
                                     </div>
+                                    <Button
+                                        variant="outline"
+                                        onclick={() => {
+                                            navigator.clipboard.writeText(
+                                                JSON.stringify(data.riven, null, 2)
+                                            );
+                                            toast.success("Riven data copied to clipboard!");
+                                        }}>
+                                        Copy
+                                    </Button>
                                 </Dialog.Content>
                             </Dialog.Root>
                         {/if}
@@ -405,9 +454,40 @@
                     {#if data.mediaDetails?.details.genres && data.mediaDetails?.details.genres.length > 0}
                         <div class="mb-3 flex flex-wrap gap-2">
                             {#each data.mediaDetails?.details.genres as genre (genre.id)}
-                                <Badge variant="outline" class="border-primary">
+                                <Badge
+                                    variant="outline"
+                                    class="border-primary h-5 rounded-md border-[1.5px] px-2.5 py-0 leading-none font-semibold">
                                     {genre.name}
                                 </Badge>
+                            {/each}
+                        </div>
+                    {/if}
+
+                    {#if ratingsLoading && !ratingsData}
+                        <div class="mb-3 flex flex-wrap items-center gap-3">
+                            {#each [1, 2, 3] as i (i)}
+                                <div class="flex items-center gap-1.5">
+                                    <div class="h-5 w-5 animate-pulse rounded bg-white/20"></div>
+                                    <div class="h-4 w-10 animate-pulse rounded bg-white/20"></div>
+                                </div>
+                            {/each}
+                        </div>
+                    {:else if ratingsData?.scores && ratingsData.scores.length > 0}
+                        <div class="mb-3 flex flex-wrap items-center gap-3">
+                            {#each ratingsData.scores as score (score.name)}
+                                <a
+                                    href={score.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-1.5 opacity-90 transition-opacity duration-200 ease-in-out hover:opacity-60">
+                                    {#if score.image}
+                                        <img
+                                            src="/rating-logos/{score.image}"
+                                            alt={score.name}
+                                            class="h-5 w-5 object-contain" />
+                                    {/if}
+                                    <span class="text-sm font-semibold">{score.score}</span>
+                                </a>
                             {/each}
                         </div>
                     {/if}

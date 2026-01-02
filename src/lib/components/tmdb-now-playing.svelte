@@ -20,7 +20,7 @@
     let progressInterval: number;
     let slideStartTime = $state(Date.now());
 
-    let { data } = $props();
+    let { data = [] } = $props();
 
     function setupProgressTracking() {
         if (api) {

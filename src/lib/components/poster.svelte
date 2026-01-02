@@ -2,7 +2,6 @@
     import { cn } from "$lib/utils";
     import Circle from "@lucide/svelte/icons/circle";
     import type { Snippet } from "svelte";
-    import RatingPoster from "./rating-poster.svelte";
 
     interface Props {
         id: number;
@@ -87,11 +86,5 @@
                 {mediaType} /> -->
         </div>
         {@render children?.()}
-    </div>
-
-    <div class="flex max-h-4 w-full items-end">
-        {#if useDynamicPoster}
-            <RatingPoster {id} {mediaType} {indexer} overlayOpacity={0.8} />
-        {/if}
     </div>
 </div>
