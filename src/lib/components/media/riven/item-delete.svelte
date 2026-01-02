@@ -37,7 +37,7 @@
 
         if (response.data) {
             invalidateAll();
-            toast.success("Media item deletion successfully!");
+            toast.success("Media item deleted successfully!");
         } else {
             logger.error("Error response:", response.error);
             toast.error("Failed to delete media item.");
