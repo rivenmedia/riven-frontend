@@ -140,7 +140,7 @@
                 {#if loading}
                     <Loader2 class="mr-1 inline-block animate-spin" />
                 {/if}
-                {mediaType === "tv" && seasons.length > 0 ? "Select Season(s)" : "Request"}
+                {mediaType === "tv" && seasons.length > 0 ? "Request Selected" : "Request"}
             </AlertDialog.Action>
         </AlertDialog.Footer>
     </AlertDialog.Content>
