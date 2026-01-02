@@ -40,16 +40,21 @@
     const subtitle = $derived(formValue?.post_processing?.subtitle);
 
     function toggleLogging(enabled: boolean) {
+        const currentLogging = formValue?.logging ?? {};
         setValue(form, {
-            logging: { ...logging, enabled }
+            ...formValue,
+            logging: { ...currentLogging, enabled }
         } as AppSettings);
     }
 
     function toggleSubtitle(enabled: boolean) {
+        const currentPostProcessing = formValue?.post_processing ?? {};
+        const currentSubtitle = currentPostProcessing.subtitle ?? {};
         setValue(form, {
+            ...formValue,
             post_processing: {
-                ...formValue?.post_processing,
-                subtitle: { ...subtitle, enabled }
+                ...currentPostProcessing,
+                subtitle: { ...currentSubtitle, enabled }
             }
         } as AppSettings);
     }

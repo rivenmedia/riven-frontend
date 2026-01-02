@@ -1,17 +1,16 @@
 <script lang="ts">
-    import { getFormContext } from "@sjsf/form";
+    import { getFormContext, getId } from "@sjsf/form";
     import type { WidgetCommonProps } from "@sjsf/form/fields/widgets";
-    import { FORM_ID_FROM_PATH } from "@sjsf/form/internals";
     import { Checkbox } from "$lib/components/ui/checkbox";
     import { Label } from "$lib/components/ui/label";
     import { formatKey } from "../schema-utils";
 
     type BooleanRecord = Record<string, boolean>;
 
-    let { config, handlers, value = $bindable() }: WidgetCommonProps<BooleanRecord> = $props();
+    let { config, handlers, value = $bindable({}) }: WidgetCommonProps<BooleanRecord> = $props();
 
-    const ctx = getFormContext();
-    const fieldId = $derived(ctx[FORM_ID_FROM_PATH](config.path));
+    const form = getFormContext();
+    const fieldId = $derived(getId(form, config.path));
 
     const keys = $derived.by(() => {
         const props = config.schema.properties as Record<string, unknown> | undefined;
@@ -36,7 +35,7 @@
         <div class="flex items-center space-x-2">
             <Checkbox
                 id={`${fieldId}-${key}`}
-                checked={value?.[key] ?? false}
+                checked={value[key] ?? false}
                 onCheckedChange={(checked) => updateKey(key, !!checked)} />
             <Label for={`${fieldId}-${key}`} class="cursor-pointer text-sm">
                 {getLabel(key)}

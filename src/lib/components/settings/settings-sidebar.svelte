@@ -2,14 +2,14 @@
     import { cn } from "$lib/utils";
     import { Button } from "$lib/components/ui/button";
     import { ScrollArea } from "$lib/components/ui/extras/scroll-area";
-    import { getErrors, type FormState } from "@sjsf/form";
+    import { getErrors } from "@sjsf/form";
     import { SETTINGS_SECTIONS, type SettingsSection } from "./settings-sections";
+    import type { SettingsFormState } from "./form-defaults";
     import CircleAlert from "@lucide/svelte/icons/circle-alert";
 
     interface Props {
         activeSection: string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form: FormState<any>;
+        form: SettingsFormState;
         onSectionChange: (sectionId: string) => void;
     }
 
@@ -18,7 +18,9 @@
     function sectionHasErrors(section: SettingsSection): boolean {
         const errors = getErrors(form);
         for (const [fieldPath] of errors) {
-            // fieldPath is an RPath (array), check if first element matches section path
+            // fieldPath is an RPath (array), skip empty paths
+            if (fieldPath.length === 0) continue;
+            // Check if first element matches section path
             const firstPathElement = fieldPath[0];
             for (const path of section.paths) {
                 if (firstPathElement === path) {

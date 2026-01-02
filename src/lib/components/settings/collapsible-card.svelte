@@ -56,12 +56,17 @@
             userExpandedState = null;
         }
     });
+
+    // Generate a unique id for the collapsible content panel
+    const contentId = `collapsible-content-${crypto.randomUUID().slice(0, 8)}`;
 </script>
 
 <Card.Root class="overflow-hidden">
     <div
         role="button"
         tabindex="0"
+        aria-expanded={expanded}
+        aria-controls={contentId}
         class="hover:bg-muted/50 flex w-full cursor-pointer items-center justify-between p-4 text-left transition-colors"
         onclick={() => setExpanded(!expanded)}
         onkeydown={(e) => {
@@ -90,6 +95,7 @@
     </div>
 
     <div
+        id={contentId}
         class="grid transition-[grid-template-rows] duration-200 ease-out"
         style="grid-template-rows: {expanded ? '1fr' : '0fr'}">
         <div class="overflow-hidden">

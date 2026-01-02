@@ -39,8 +39,8 @@
      */
     function getGridClass(fieldCount: number, layout?: "stack" | "grid"): string {
         if (layout === "stack" || fieldCount <= 2) return "";
-        const cols = Math.min(fieldCount, 4);
-        return `sm:grid-cols-2 ${lgGridCols[cols] || "lg:grid-cols-4"}`;
+        const cols = Math.min(fieldCount, 4) as 1 | 2 | 3 | 4;
+        return `sm:grid-cols-2 ${lgGridCols[cols]}`;
     }
 </script>
 

@@ -15,7 +15,7 @@ function devWarn(message: string, ...args: unknown[]): void {
  * Resolve a $ref pointer to its actual schema definition.
  * Handles JSON Schema $ref like "#/$defs/UpdatersModel".
  */
-function resolveRef(rootSchema: Schema, ref: string): Schema | undefined {
+export function resolveRef(rootSchema: Schema, ref: string): Schema | undefined {
     if (!ref.startsWith("#/")) {
         devWarn(`Unsupported $ref format: ${ref}`);
         return undefined;

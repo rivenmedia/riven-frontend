@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { getFormContext, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
-    import { FORM_ID_FROM_PATH } from "@sjsf/form/internals";
+    import { getFormContext, getId, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
     import { Switch } from "$lib/components/ui/switch";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
@@ -9,8 +8,8 @@
     // This component replaces anyOfField for nullable primitive types (anyOf: [type, null])
     let { config, value = $bindable() }: FieldCommonProps<SchemaValue> = $props();
 
-    const ctx = getFormContext();
-    const fieldId = $derived(ctx[FORM_ID_FROM_PATH](config.path));
+    const form = getFormContext();
+    const fieldId = $derived(getId(form, config.path));
 
     // Get field title and determine type from schema
     const fieldTitle = $derived(config.title || "Filter");
@@ -71,8 +70,11 @@
                 <Input
                     id={`${fieldId}-value`}
                     type="number"
-                    value={String(value ?? "")}
-                    onchange={(e) => updateValue(parseInt(e.currentTarget.value) || 0)}
+                    value={value ?? ""}
+                    onchange={(e) => {
+                        const result = Number.parseInt(e.currentTarget.value, 10);
+                        updateValue(Number.isNaN(result) ? 0 : result);
+                    }}
                     class="h-8 w-32" />
             {/if}
         </div>

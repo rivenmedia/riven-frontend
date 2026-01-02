@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { getFormContext, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
-    import { FORM_ID_FROM_PATH } from "@sjsf/form/internals";
+    import { dev } from "$app/environment";
+    import { getFormContext, getId, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
     import { Switch } from "$lib/components/ui/switch";
     import { Input } from "$lib/components/ui/input";
     import { Button } from "$lib/components/ui/button";
@@ -8,18 +8,45 @@
     import X from "@lucide/svelte/icons/x";
     import Plus from "@lucide/svelte/icons/plus";
 
-    // This component replaces anyOfField for nullable array types (anyOf: [array, null])
+    /**
+     * This widget handles nullable array types (anyOf: [array, null]).
+     * Currently only supports string[] arrays - items are rendered as text chips
+     * with a text input for adding new values.
+     */
     let { config, value = $bindable() }: FieldCommonProps<SchemaValue> = $props();
 
-    const ctx = getFormContext();
-    const fieldId = $derived(ctx[FORM_ID_FROM_PATH](config.path));
+    const form = getFormContext();
+    const fieldId = $derived(getId(form, config.path));
 
     // Get field title from config
     const fieldTitle = $derived(config.title || "Filter");
 
+    // Derive the array item type from schema (anyOf: [{ type: "array", items: { type: "..." } }, { type: "null" }])
+    const itemType = $derived.by(() => {
+        const anyOf = config.schema.anyOf;
+        if (!Array.isArray(anyOf)) return "string";
+        const arraySchema = anyOf.find(
+            (s) => typeof s === "object" && s !== null && s.type === "array"
+        );
+        if (!arraySchema || typeof arraySchema !== "object") return "string";
+        const items = (arraySchema as { items?: { type?: string } }).items;
+        return items?.type ?? "string";
+    });
+
+    // Warn in development if using unsupported item type
+    $effect(() => {
+        if (dev && itemType !== "string") {
+            console.warn(
+                `[nullable-array-widget] Unsupported item type "${itemType}" for field "${config.path.join(".")}". ` +
+                    `This widget only supports string arrays. Non-string items will be converted to strings.`
+            );
+        }
+    });
+
     // Derive enabled state from whether value is an array (not null)
     const isEnabled = $derived(Array.isArray(value));
-    const items = $derived(isEnabled ? (value as string[]) : []);
+    // Convert items to strings for display; this widget only properly supports string[]
+    const items = $derived(isEnabled ? (value as unknown[]).map((item) => String(item)) : []);
 
     let newItem = $state("");
 
@@ -67,12 +94,15 @@
                     {#each items as item, index (index)}
                         <div class="bg-muted flex items-center gap-1 rounded-md px-2 py-1 text-sm">
                             <span>{item}</span>
-                            <button
+                            <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon"
                                 onclick={() => removeItem(index)}
-                                class="text-muted-foreground hover:text-foreground ml-1">
+                                aria-label="Remove item"
+                                class="ml-1 h-4 w-4">
                                 <X class="h-3 w-3" />
-                            </button>
+                            </Button>
                         </div>
                     {/each}
                 </div>

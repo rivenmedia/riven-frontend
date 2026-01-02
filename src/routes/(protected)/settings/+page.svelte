@@ -8,7 +8,6 @@
     import { toast } from "svelte-sonner";
     import { icons } from "@sjsf/lucide-icons";
     import { invalidateAll } from "$app/navigation";
-    import { tick } from "svelte";
     import SettingsLayout from "$lib/components/settings/settings-layout.svelte";
 
     setSettingsFormContext();
@@ -22,6 +21,9 @@
     const schema = data.form.schema as Schema;
     // svelte-ignore state_referenced_locally
     const uiSchema = data.form.uiSchema;
+
+    // Track pending form resync after successful save
+    let pendingResync = $state(false);
 
     // setupSvelteKitForm infers from meta, but the schema is dynamic from page data
     // so we need to cast the form to the proper type for type-safe usage in components
@@ -38,16 +40,25 @@
         onSuccess: async (result) => {
             if (result.type === "success") {
                 toast.success("Settings saved");
+                pendingResync = true;
                 await invalidateAll();
-                await tick();
-                // Sync form state with refreshed page data
-                setValue(formState, data.form.initialValue as AppSettings);
+                // Data sync happens reactively in the $effect below
             } else {
                 toast.error("Failed to save settings");
             }
         },
         onFailure: () => {
             toast.error("Something went wrong while saving settings");
+        }
+    });
+
+    // Sync form state when data updates after a successful save
+    $effect(() => {
+        // Access data.form.initialValue to establish reactive dependency
+        const newValue = data.form.initialValue;
+        if (pendingResync && newValue) {
+            setValue(formState, newValue as AppSettings);
+            pendingResync = false;
         }
     });
 

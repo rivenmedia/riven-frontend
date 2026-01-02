@@ -58,8 +58,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 export const actions = {
     default: async ({ request, fetch, locals }) => {
-        const schema = await getSchema(locals.backendUrl, locals.apiKey, fetch);
-        if (!schema) {
+        let schema: Schema;
+        try {
+            schema = await getSchema(locals.backendUrl, locals.apiKey, fetch);
+        } catch {
             return fail(500, { error: "Failed to load settings schema" });
         }
         const handleForm = createFormHandler<AppSettings, true>({

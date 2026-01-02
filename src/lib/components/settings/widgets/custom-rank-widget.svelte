@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { getFormContext, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
-    import { FORM_ID_FROM_PATH } from "@sjsf/form/internals";
+    import { getFormContext, getId, type FieldCommonProps, type SchemaValue } from "@sjsf/form";
     import { Checkbox } from "$lib/components/ui/checkbox";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
@@ -15,8 +14,8 @@
     // This component replaces objectField for CustomRank objects
     let { config, value = $bindable() }: FieldCommonProps<SchemaValue> = $props();
 
-    const ctx = getFormContext();
-    const fieldId = $derived(ctx[FORM_ID_FROM_PATH](config.path));
+    const form = getFormContext();
+    const fieldId = $derived(getId(form, config.path));
 
     // Derive display name from the field key since schema uses $ref without per-field titles
     // (config.title is always "CustomRank" from the $ref definition)
@@ -56,8 +55,11 @@
         <Input
             id={`${fieldId}-rank`}
             type="number"
-            value={String(currentValue.rank)}
-            onchange={(e) => updateField("rank", parseInt(e.currentTarget.value) || 0)}
+            value={currentValue.rank}
+            onchange={(e) => {
+                const num = e.currentTarget.valueAsNumber;
+                updateField("rank", Number.isFinite(num) ? num : 0);
+            }}
             class="h-8 w-20" />
     </div>
 </div>

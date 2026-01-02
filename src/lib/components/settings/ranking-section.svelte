@@ -3,16 +3,13 @@
     import * as Card from "$lib/components/ui/card";
     import { getSchemaAtPath, formatKey } from "./schema-utils";
     import type { SettingsFormState } from "./form-defaults";
-    import type { SettingsSection } from "./settings-sections";
 
     interface Props {
         form: SettingsFormState;
         schema: Schema;
-        section: SettingsSection;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- props passed for interface consistency
-    let { form, schema, section: _section }: Props = $props();
+    let { form, schema }: Props = $props();
 
     type FieldPath = Parameters<typeof Field>[1]["path"];
 

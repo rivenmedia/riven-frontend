@@ -173,4 +173,32 @@ describe("formatKey", () => {
     it("handles already formatted strings", () => {
         expect(formatKey("Title Case")).toBe("Title Case");
     });
+
+    it("handles empty string", () => {
+        expect(formatKey("")).toBe("");
+    });
+
+    it("handles consecutive underscores", () => {
+        expect(formatKey("__foo__bar")).toBe("  Foo  Bar");
+    });
+
+    it("handles leading separator", () => {
+        expect(formatKey("_leading")).toBe(" Leading");
+    });
+
+    it("handles trailing separator", () => {
+        expect(formatKey("trailing_")).toBe("Trailing ");
+    });
+
+    it("handles mixed separators (hyphen and underscore)", () => {
+        expect(formatKey("snake-case_mixed")).toBe("Snake-Case Mixed");
+    });
+
+    it("handles strings with numbers", () => {
+        expect(formatKey("version2alpha")).toBe("Version2alpha");
+    });
+
+    it("handles multiple camel case boundaries", () => {
+        expect(formatKey("XMLHttpRequest")).toBe("XMLHttp Request");
+    });
 });

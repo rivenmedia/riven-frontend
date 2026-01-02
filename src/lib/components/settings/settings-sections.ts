@@ -9,6 +9,9 @@ import Bell from "@lucide/svelte/icons/bell";
 import Wrench from "@lucide/svelte/icons/wrench";
 import type { Component } from "svelte";
 
+/** Section ID for the general/root-level settings section */
+export const GENERAL_SECTION_ID = "general";
+
 /**
  * Settings section definition.
  * Services are discovered dynamically from the schema - any object property
@@ -29,7 +32,7 @@ export interface SettingsSection {
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
     {
-        id: "general",
+        id: GENERAL_SECTION_ID,
         label: "General",
         icon: Settings2,
         paths: [
@@ -74,7 +77,8 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
         icon: ListPlus,
         paths: ["content"],
         description: "Overseerr, Plex Watchlist, MDBList, Listrr, Trakt",
-        servicesPath: "content"
+        servicesPath: "content",
+        servicesLabel: "Content Sources"
     },
     {
         id: "scraping",
@@ -108,9 +112,14 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     }
 ];
 
+/** Pre-built map for O(1) section lookups by ID */
+const SETTINGS_SECTION_MAP = new Map<string, SettingsSection>(
+    SETTINGS_SECTIONS.map((s) => [s.id, s])
+);
+
 /**
  * Get a section by its ID.
  */
 export function getSectionById(id: string): SettingsSection | undefined {
-    return SETTINGS_SECTIONS.find((section) => section.id === id);
+    return SETTINGS_SECTION_MAP.get(id);
 }

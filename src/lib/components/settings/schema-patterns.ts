@@ -1,4 +1,5 @@
 import type { Schema } from "@sjsf/form";
+import { resolveRef } from "./schema-utils";
 
 /**
  * Schema pattern detection utilities.
@@ -60,8 +61,9 @@ export function findNullableFields(
     const root = rootSchema ?? schema;
     const results: NullableFieldInfo[] = [];
 
-    // Resolve $ref if present
-    const resolvedSchema = resolveSchemaRef(schema, root);
+    // Resolve $ref if present, falling back to original schema if resolution fails
+    const ref = schema.$ref as string | undefined;
+    const resolvedSchema = ref ? (resolveRef(root, ref) ?? schema) : schema;
 
     // Check if this schema itself is nullable
     if (isNullableArraySchema(resolvedSchema)) {
@@ -95,29 +97,6 @@ export function findNullableFields(
     }
 
     return results;
-}
-
-/**
- * Resolve a $ref in a schema to its actual definition.
- * Only handles local references starting with "#/".
- */
-function resolveSchemaRef(schema: Schema, rootSchema: Schema): Schema {
-    const ref = schema.$ref as string | undefined;
-    if (!ref || !ref.startsWith("#/")) {
-        return schema;
-    }
-
-    const pathParts = ref.slice(2).split("/"); // Remove "#/" and split
-    let current: unknown = rootSchema;
-
-    for (const part of pathParts) {
-        if (!current || typeof current !== "object") {
-            return schema; // Failed to resolve, return original
-        }
-        current = (current as Record<string, unknown>)[part];
-    }
-
-    return (current as Schema) ?? schema;
 }
 
 /**

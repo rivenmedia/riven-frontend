@@ -32,15 +32,24 @@
     const mobileQuery = browser ? new MediaQuery("(max-width: 768px)") : null;
     const isMobile = $derived(mobileQuery?.current ?? false);
 
-    // Get initial section from URL or default to first section
-    let activeSection = $state(page.url.searchParams.get("section") || SETTINGS_SECTIONS[0].id);
+    // Valid section IDs for validation
+    const validSectionIds = new Set(SETTINGS_SECTIONS.map((s) => s.id));
+    const defaultSectionId = SETTINGS_SECTIONS[0].id;
+
+    // Validate and get initial section from URL, falling back to default
+    function getValidSectionId(sectionId: string | null): string {
+        return sectionId && validSectionIds.has(sectionId) ? sectionId : defaultSectionId;
+    }
+
+    let activeSection = $state(getValidSectionId(page.url.searchParams.get("section")));
 
     function setActiveSection(sectionId: string) {
-        activeSection = sectionId;
+        const validId = getValidSectionId(sectionId);
+        activeSection = validId;
         // Update URL query param without full navigation
         if (browser) {
             const url = new URL(page.url);
-            url.searchParams.set("section", sectionId);
+            url.searchParams.set("section", validId);
             // eslint-disable-next-line svelte/no-navigation-without-resolve -- shallow update to current URL, not a route navigation
             replaceState(url, {});
         }

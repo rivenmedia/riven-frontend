@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Field, type Schema } from "@sjsf/form";
-    import type { SettingsSection } from "./settings-sections";
+    import { GENERAL_SECTION_ID, type SettingsSection } from "./settings-sections";
     import * as Card from "$lib/components/ui/card";
     import FieldGroups from "./field-groups.svelte";
     import ServicesSection from "./services-section.svelte";
@@ -49,7 +49,7 @@
     {:else if hasServicesPath}
         <!-- Generic services section (content, scraping, media_servers, downloaders) -->
         <ServicesSection {form} {schema} {section} />
-    {:else if section.id === "general"}
+    {:else if section.id === GENERAL_SECTION_ID}
         <!-- General section uses root-level field groups -->
         <FieldGroups {form} {schema} sectionPath="" />
     {:else}

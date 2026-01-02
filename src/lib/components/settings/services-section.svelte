@@ -4,7 +4,7 @@
     import FieldGroups from "./field-groups.svelte";
     import { createToggleHelpers } from "./toggle-helpers";
     import { getServiceFields, getServiceDescription, getServicesFromSchema } from "./schema-utils";
-    import type { SettingsFormState, AppSettings } from "./form-defaults";
+    import type { SettingsFormState } from "./form-defaults";
     import type { SettingsSection } from "./settings-sections";
 
     interface Props {
@@ -18,16 +18,15 @@
     // The schema path for this section's services
     const sectionPath = $derived(section.servicesPath ?? section.paths[0]);
 
-    const formValue = $derived(getValueSnapshot(form) as AppSettings);
-
     const services = $derived(
         section.servicesPath ? getServicesFromSchema(schema, section.servicesPath) : []
     );
 
+    // Create toggle helpers once per sectionPath change; getter fetches fresh form data internally
     const { getEnabled, setEnabled } = $derived(
         createToggleHelpers(
             () => form,
-            () => formValue as Record<string, unknown>,
+            () => getValueSnapshot(form) as Record<string, unknown>,
             sectionPath
         )
     );

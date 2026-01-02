@@ -123,12 +123,30 @@ describe("findNullableFields", () => {
 
         expect(fields).toHaveLength(2);
 
-        const genresField = fields.find((f) => f.path.includes("genres"));
+        // Verify complete path structure including all intermediate keys
+        const expectedGenresPath = [
+            "filesystem",
+            "library_profiles",
+            "additionalProperties",
+            "filter_rules",
+            "genres"
+        ];
+        const expectedMinYearPath = [
+            "filesystem",
+            "library_profiles",
+            "additionalProperties",
+            "filter_rules",
+            "min_year"
+        ];
+
+        const genresField = fields.find((f) => f.path.at(-1) === "genres");
         expect(genresField).toBeDefined();
+        expect(genresField?.path).toEqual(expectedGenresPath);
         expect(genresField?.widget).toBe("nullableArrayWidget");
 
-        const minYearField = fields.find((f) => f.path.includes("min_year"));
+        const minYearField = fields.find((f) => f.path.at(-1) === "min_year");
         expect(minYearField).toBeDefined();
+        expect(minYearField?.path).toEqual(expectedMinYearPath);
         expect(minYearField?.widget).toBe("nullablePrimitiveWidget");
     });
 

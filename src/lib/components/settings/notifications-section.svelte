@@ -39,6 +39,7 @@
     function setEnabled(enabled: boolean) {
         const currentNotifications = formValue?.notifications ?? {};
         setValue(form, {
+            ...formValue,
             notifications: {
                 ...currentNotifications,
                 enabled
@@ -54,9 +55,11 @@
             const index = current.indexOf(item);
             if (index > -1) current.splice(index, 1);
         }
+        const currentNotifications = formValue?.notifications ?? {};
         setValue(form, {
+            ...formValue,
             notifications: {
-                ...notifications,
+                ...currentNotifications,
                 on_item_type: current
             }
         } as AppSettings);
