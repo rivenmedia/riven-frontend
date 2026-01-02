@@ -72,12 +72,12 @@
                 </h1>
                 {#if searchStore.rawSearchString}
                     <p class="text-muted-foreground text-sm">
-                        Searching: <span class="font-mono">{searchStore.rawSearchString}</span>
+                        Searching for: <span class="font-mono">{searchStore.rawSearchString}</span>
                     </p>
                 {/if}
                 {#if searchStore.totalResults > 0 && !searchStore.loading}
                     <p class="text-muted-foreground text-sm">
-                        {searchStore.totalResults} results
+                        Found {searchStore.totalResults} results
                     </p>
                 {/if}
             </div>
