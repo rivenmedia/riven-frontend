@@ -360,7 +360,11 @@
                             <Dialog.Root>
                                 <Dialog.Trigger>
                                     {#snippet child({ props })}
-                                        <Button variant="ghost" class="bg-white/10" {...props}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="bg-white/10"
+                                            {...props}>
                                             JSON
                                         </Button>
                                     {/snippet}
@@ -368,19 +372,8 @@
                                 <Dialog.Content class="w-full max-w-4xl!">
                                     <Dialog.Header>
                                         <Dialog.Title>Raw Riven Data</Dialog.Title>
-                                        <Button
-                                            variant="outline"
-                                            onclick={() => {
-                                                navigator.clipboard.writeText(
-                                                    JSON.stringify(data.riven, null, 2)
-                                                );
-                                                toast.success("Riven data copied to clipboard!");
-                                            }}>
-                                            Copy
-                                        </Button>
                                     </Dialog.Header>
-                                    <div
-                                        class="mt-4 max-h-100 overflow-auto rounded bg-zinc-800 p-2">
+                                    <div class="max-h-100 overflow-auto rounded bg-zinc-800 p-4">
                                         <pre
                                             class="text-sm break-all whitespace-pre-wrap">{JSON.stringify(
                                                 data.riven,
@@ -388,6 +381,16 @@
                                                 2
                                             )}</pre>
                                     </div>
+                                    <Button
+                                        variant="outline"
+                                        onclick={() => {
+                                            navigator.clipboard.writeText(
+                                                JSON.stringify(data.riven, null, 2)
+                                            );
+                                            toast.success("Riven data copied to clipboard!");
+                                        }}>
+                                        Copy
+                                    </Button>
                                 </Dialog.Content>
                             </Dialog.Root>
                         {/if}
