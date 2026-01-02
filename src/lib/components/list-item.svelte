@@ -62,7 +62,11 @@
         <div class="flex items-center gap-0.5">
             <Tv class="text-muted-foreground size-3" />
             <p class="text-muted-foreground text-xs">
-                {data.media_type}
+                {data.media_type === "tv"
+                    ? "TV"
+                    : data.media_type === "movie"
+                      ? "Movie"
+                      : data.media_type}
             </p>
         </div>
     </div>
