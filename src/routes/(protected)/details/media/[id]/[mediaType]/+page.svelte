@@ -7,7 +7,9 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import X from "@lucide/svelte/icons/x";
     import Mountain from "@lucide/svelte/icons/mountain";
+    import Video from "@lucide/svelte/icons/video";
     import { cn } from "$lib/utils";
+    import VideoPlayer from "$lib/components/media/video-player.svelte";
     import ItemRequest from "$lib/components/media/riven/item-request.svelte";
     import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
@@ -71,6 +73,12 @@
         showTrailer = !showTrailer;
     }
 
+    let showVideoPlayer = $state(false);
+
+    function toggleVideoPlayer() {
+        showVideoPlayer = !showVideoPlayer;
+    }
+
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
 </script>
@@ -121,12 +129,11 @@
                         {#if data.riven && data.riven.state === "Completed"}
                             <Button
                                 variant="ghost"
-                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105">
-                                <img
-                                    alt="Plex Logo"
-                                    src="https://api.iconify.design/mdi:plex.svg"
-                                    class="h-5 w-5 invert" />
-                                <span class="hidden md:block">Plex</span>
+                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
+                                onclick={toggleVideoPlayer}
+                                aria-label="Play Video">
+                                <Video size={18} />
+                                <span class="hidden md:block">Play</span>
                             </Button>
                         {/if}
 
@@ -909,3 +916,18 @@
         </div>
     </div>
 </div>
+
+{#if data.riven && data.riven.state === "Completed"}
+    <Dialog.Root bind:open={showVideoPlayer}>
+        <Dialog.Content class="max-w-7xl">
+            <Dialog.Header>
+                <Dialog.Title>{data.mediaDetails?.details.title}</Dialog.Title>
+            </Dialog.Header>
+            <div class="mt-4 aspect-video w-full">
+                {#if showVideoPlayer && rivenId}
+                    <VideoPlayer itemId={rivenId} class="h-full w-full" />
+                {/if}
+            </div>
+        </Dialog.Content>
+    </Dialog.Root>
+{/if}
