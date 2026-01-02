@@ -7,6 +7,7 @@
     import type { ScrapeSeasonRequest } from "$lib/types";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
     import { createScopedLogger } from "$lib/logger";
+    import { invalidateAll } from "$app/navigation";
 
     const logger = createScopedLogger("item-request");
 
@@ -75,6 +76,8 @@
                     // adjust check based on actual response
                     toast.success("Media item requested successfully!");
                     open = false;
+                    // Refresh page data to get the new Riven item
+                    await invalidateAll();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
@@ -92,6 +95,8 @@
                 if (response.data) {
                     toast.success("Media item requested successfully!");
                     open = false;
+                    // Refresh page data to get the new Riven item
+                    await invalidateAll();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
