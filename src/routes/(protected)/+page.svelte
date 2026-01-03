@@ -16,7 +16,9 @@
     onMount(() => {
         recentlyAddedStore = new MediaListStore<BaseListItem>(
             "recentlyAdded",
-            "/api/library/recent"
+            "/api/library/recent",
+            null,
+            { noCache: true }
         );
         trendingMoviesStore = new MediaListStore<BaseListItem>(
             "trendingMovies",
