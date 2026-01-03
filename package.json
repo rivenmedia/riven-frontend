@@ -17,8 +17,7 @@
         "db:generate": "drizzle-kit generate",
         "db:pull": "tsx ./scripts/drizzle_pull.ts",
         "db:studio": "drizzle-kit studio",
-        "generate-api": "tsx ./scripts/generate_riven_api.ts",
-        "test": "vitest run"
+        "generate-api": "tsx ./scripts/generate_riven_api.ts"
     },
     "devDependencies": {
         "@eslint/compat": "^1.4.1",
@@ -74,8 +73,7 @@
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.51.0",
         "vaul-svelte": "1.0.0-next.7",
-        "vite": "^7.3.0",
-        "vitest": "^4.0.16"
+        "vite": "^7.3.0"
     },
     "dependencies": {
         "@better-auth/passkey": "^1.4.9",
