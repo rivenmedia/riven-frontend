@@ -1,15 +1,12 @@
 <script lang="ts">
-    import Poster from "$lib/components/poster.svelte";
-    import Calender from "@lucide/svelte/icons/calendar";
-    import Tv from "@lucide/svelte/icons/tv";
+    import MediaCard from "$lib/components/media/media-card.svelte";
 
     let {
         data = $bindable(),
         indexer = $bindable<string | undefined>(),
         type = $bindable<string | undefined>(),
         isSelectable = false,
-        selectStore = undefined,
-        useDynamicPoster = true
+        selectStore = undefined
     } = $props();
 
     if (indexer === "anilist" && !type) {
@@ -31,43 +28,29 @@
             return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
         }
     });
+
+    let mediaTypeLabel = $derived.by(() => {
+        if (data.media_type === "tv") return "TV";
+        if (data.media_type === "movie") return "Movie";
+        return data.media_type || "";
+    });
+
+    let subtitle = $derived.by(() => {
+        const parts = [];
+        if (mediaTypeLabel) parts.push(mediaTypeLabel);
+        if (data.year) parts.push(data.year);
+        return parts.join(" \u2022 ") || null;
+    });
 </script>
 
-<div class="flex w-36 flex-col md:w-40 lg:w-44">
-    <Poster
-        {isSelectable}
-        id={data.id}
-        {selectStore}
-        {indexer}
-        mediaType={type}
-        src={data.poster_path}
-        alt={data.title}
+<a
+    href={mediaURL}
+    class="group relative block opacity-80 transition-all duration-200 hover:opacity-100">
+    <MediaCard
         title={data.title}
-        riven_id={data.riven_id ?? undefined}
-        {mediaURL}
-        {useDynamicPoster} />
-    <a href={mediaURL} class="mt-2 block h-10 text-sm font-semibold hover:underline">
-        <p class="line-clamp-2">
-            {data.title}
-        </p>
-    </a>
-    <div class="mt-1.5 flex h-4 flex-wrap items-center justify-between">
-        <div class="flex items-center gap-0.5">
-            <Calender class="text-muted-foreground size-3" />
-            <p class="text-muted-foreground text-xs">
-                {data.year ?? "N/A"}
-            </p>
-        </div>
-
-        <div class="flex items-center gap-0.5">
-            <Tv class="text-muted-foreground size-3" />
-            <p class="text-muted-foreground text-xs">
-                {data.media_type === "tv"
-                    ? "TV"
-                    : data.media_type === "movie"
-                      ? "Movie"
-                      : data.media_type}
-            </p>
-        </div>
-    </div>
-</div>
+        {subtitle}
+        image={data.poster_path}
+        {isSelectable}
+        isSelected={isSelectable && selectStore?.has(data.riven_id)}
+        onSelectToggle={() => selectStore?.toggle(data.riven_id)} />
+</a>
