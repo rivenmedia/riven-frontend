@@ -71,16 +71,16 @@
             <section class="mt-8">
                 <h2 class="mb-4 text-lg font-bold drop-shadow-md">Movies in Collection</h2>
 
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div class="flex flex-wrap gap-4">
                     {#each data.collection.parts as movie (movie.id)}
-                        <MediaCard
+                        <a
                             href="/details/media/{movie.id}/movie"
-                            title={movie.title}
-                            posterPath={movie.poster_path}
-                            metadata={movie.year?.toString() ?? null}
-                            rating={movie.vote_average}
-                            overview={movie.overview}
-                            layout="horizontal" />
+                            class="group relative block opacity-80 transition-all duration-200 hover:opacity-100">
+                            <MediaCard
+                                title={movie.title}
+                                subtitle={movie.year?.toString() ?? null}
+                                image={movie.poster_path} />
+                        </a>
                     {/each}
                 </div>
             </section>

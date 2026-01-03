@@ -303,29 +303,29 @@
                 </div>
 
                 {#if selectedTab === "acting"}
-                    <div
-                        class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div class="flex flex-wrap gap-4">
                         {#each data.person.cast_credits as credit, i (credit.id + (credit.character ?? i.toString()))}
-                            <MediaCard
+                            <a
                                 href="/details/media/{credit.id}/{credit.media_type}"
-                                title={credit.title}
-                                posterPath={credit.poster_path}
-                                subtitle={credit.character ? `as ${credit.character}` : null}
-                                metadata={credit.year?.toString() ?? null}
-                                layout="vertical" />
+                                class="group relative block opacity-80 transition-all duration-200 hover:opacity-100">
+                                <MediaCard
+                                    title={credit.title}
+                                    subtitle={`${credit.character ? `as ${credit.character}` : ""}${credit.year ? ` • ${credit.year}` : ""}`}
+                                    image={credit.poster_path} />
+                            </a>
                         {/each}
                     </div>
                 {:else}
-                    <div
-                        class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div class="flex flex-wrap gap-4">
                         {#each data.person.crew_credits as credit, i (credit.id + (credit.job ?? i.toString()))}
-                            <MediaCard
+                            <a
                                 href="/details/media/{credit.id}/{credit.media_type}"
-                                title={credit.title}
-                                posterPath={credit.poster_path}
-                                subtitle={credit.job}
-                                metadata={credit.year?.toString() ?? null}
-                                layout="vertical" />
+                                class="group relative block opacity-80 transition-all duration-200 hover:opacity-100">
+                                <MediaCard
+                                    title={credit.title}
+                                    subtitle={`${credit.job ?? ""}${credit.year ? ` • ${credit.year}` : ""}`}
+                                    image={credit.poster_path} />
+                            </a>
                         {/each}
                     </div>
                 {/if}
