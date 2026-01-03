@@ -15,6 +15,12 @@
 
     let { activeSection, form, onSectionChange }: Props = $props();
 
+    /**
+     * Checks if a section has any validation errors.
+     * Compares form error paths against the section's configured paths.
+     * @param section - The section to check for errors
+     * @returns True if any field in the section has a validation error
+     */
     function sectionHasErrors(section: SettingsSection): boolean {
         const errors = getErrors(form);
         for (const [fieldPath] of errors) {

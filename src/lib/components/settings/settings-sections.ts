@@ -9,7 +9,10 @@ import Bell from "@lucide/svelte/icons/bell";
 import Wrench from "@lucide/svelte/icons/wrench";
 import type { Component } from "svelte";
 
-/** Section ID for the general/root-level settings section */
+/**
+ * Section ID for the general/root-level settings section.
+ * Used to identify the section that displays root-level form fields.
+ */
 export const GENERAL_SECTION_ID = "general";
 
 /**
@@ -18,11 +21,15 @@ export const GENERAL_SECTION_ID = "general";
  * with an "enabled" field is considered a toggleable service.
  */
 export interface SettingsSection {
+    /** Unique identifier for this section (used in URL query params) */
     id: string;
+    /** Human-readable label displayed in the sidebar and section header */
     label: string;
+    /** Lucide icon component to display alongside the label */
     icon: Component;
     /** Schema path(s) this section manages */
     paths: string[];
+    /** Brief description shown below the section header */
     description: string;
     /** Schema path to discover services from (objects with "enabled" field) */
     servicesPath?: string;
@@ -30,6 +37,10 @@ export interface SettingsSection {
     servicesLabel?: string;
 }
 
+/**
+ * All available settings sections in display order.
+ * Each section represents a tab/category in the settings UI.
+ */
 export const SETTINGS_SECTIONS: SettingsSection[] = [
     {
         id: GENERAL_SECTION_ID,
@@ -118,7 +129,9 @@ const SETTINGS_SECTION_MAP = new Map<string, SettingsSection>(
 );
 
 /**
- * Get a section by its ID.
+ * Get a section by its ID using O(1) map lookup.
+ * @param id - The section ID to look up
+ * @returns The matching SettingsSection, or undefined if not found
  */
 export function getSectionById(id: string): SettingsSection | undefined {
     return SETTINGS_SECTION_MAP.get(id);

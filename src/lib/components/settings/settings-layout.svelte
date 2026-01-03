@@ -32,18 +32,28 @@
     const mobileQuery = browser ? new MediaQuery("(max-width: 768px)") : null;
     const isMobile = $derived(mobileQuery?.current ?? false);
 
-    // Valid section IDs for validation
+    /** Set of valid section IDs for O(1) validation */
     const validSectionIds = new Set(SETTINGS_SECTIONS.map((s) => s.id));
+    /** Default section ID to use when an invalid or missing section is requested */
     const defaultSectionId = SETTINGS_SECTIONS[0].id;
 
-    // Validate and get initial section from URL, falling back to default
+    /**
+     * Validates a section ID and returns a valid one.
+     * @param sectionId - The section ID to validate (may be null from URL params)
+     * @returns A valid section ID, falling back to default if invalid
+     */
     function getValidSectionId(sectionId: string | null): string {
         return sectionId && validSectionIds.has(sectionId) ? sectionId : defaultSectionId;
     }
 
     let activeSection = $state(getValidSectionId(page.url.searchParams.get("section")));
 
-    function setActiveSection(sectionId: string) {
+    /**
+     * Sets the active section and updates the URL query parameter.
+     * Invalid section IDs are coerced to the default section.
+     * @param sectionId - The section ID to activate
+     */
+    function setActiveSection(sectionId: string): void {
         const validId = getValidSectionId(sectionId);
         activeSection = validId;
         // Update URL query param without full navigation

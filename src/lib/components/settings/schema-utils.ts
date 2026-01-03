@@ -4,6 +4,8 @@ import type { Schema } from "@sjsf/form";
 /**
  * Log a warning in development mode only.
  * Helps catch schema mismatches without affecting production.
+ * @param message - The warning message to log
+ * @param args - Additional arguments to pass to console.warn
  */
 function devWarn(message: string, ...args: unknown[]): void {
     if (dev) {
@@ -14,6 +16,9 @@ function devWarn(message: string, ...args: unknown[]): void {
 /**
  * Resolve a $ref pointer to its actual schema definition.
  * Handles JSON Schema $ref like "#/$defs/UpdatersModel".
+ * @param rootSchema - The root schema containing $defs
+ * @param ref - The $ref string to resolve (e.g., "#/$defs/UpdatersModel")
+ * @returns The resolved schema, or undefined if resolution fails
  */
 export function resolveRef(rootSchema: Schema, ref: string): Schema | undefined {
     if (!ref.startsWith("#/")) {
@@ -38,6 +43,9 @@ export function resolveRef(rootSchema: Schema, ref: string): Schema | undefined 
 /**
  * Get the resolved schema for a property, following $ref if present.
  * Merges description from the property with the referenced schema.
+ * @param rootSchema - The root schema containing $defs
+ * @param propSchema - The property schema that may contain a $ref
+ * @returns The resolved schema with merged description
  */
 function resolveProperty(rootSchema: Schema, propSchema: Schema): Schema {
     const ref = propSchema.$ref as string | undefined;
@@ -59,7 +67,13 @@ function resolveProperty(rootSchema: Schema, propSchema: Schema): Schema {
 
 /**
  * Get schema fragment at a dot-separated path, resolving $ref references.
- * e.g., getSchemaAtPath(schema, "updaters.plex") returns the plex service schema
+ * @param rootSchema - The root schema to traverse
+ * @param path - Dot-separated path to the desired schema fragment (e.g., "updaters.plex")
+ * @returns The schema at the given path, or undefined if not found
+ * @example
+ * ```ts
+ * const plexSchema = getSchemaAtPath(schema, "updaters.plex");
+ * ```
  */
 export function getSchemaAtPath(rootSchema: Schema, path: string): Schema | undefined {
     const parts = path.split(".");
@@ -97,7 +111,13 @@ export function getSchemaAtPath(rootSchema: Schema, path: string): Schema | unde
 
 /**
  * Format a snake_case or camelCase key into a human-readable title.
- * e.g., "real_debrid" -> "Real Debrid", "apiKey" -> "Api Key"
+ * @param key - The key to format (e.g., "real_debrid", "apiKey")
+ * @returns The formatted title (e.g., "Real Debrid", "Api Key")
+ * @example
+ * ```ts
+ * formatKey("real_debrid") // "Real Debrid"
+ * formatKey("apiKey") // "Api Key"
+ * ```
  */
 export function formatKey(key: string): string {
     return key
@@ -109,6 +129,9 @@ export function formatKey(key: string): string {
 /**
  * Get fields for a service from the schema, excluding the "enabled" field.
  * Used by section components to render service configuration fields.
+ * @param schema - The root schema
+ * @param servicePath - Dot-separated path to the service (e.g., "scraping.torrentio")
+ * @returns Array of field names, excluding "enabled"
  */
 export function getServiceFields(schema: Schema, servicePath: string): string[] {
     const serviceSchema = getSchemaAtPath(schema, servicePath);
@@ -120,6 +143,9 @@ export function getServiceFields(schema: Schema, servicePath: string): string[] 
 
 /**
  * Get the description for a service from the schema.
+ * @param schema - The root schema
+ * @param servicePath - Dot-separated path to the service (e.g., "scraping.torrentio")
+ * @returns The service description, or undefined if not found
  */
 export function getServiceDescription(schema: Schema, servicePath: string): string | undefined {
     const serviceSchema = getSchemaAtPath(schema, servicePath);
@@ -127,16 +153,21 @@ export function getServiceDescription(schema: Schema, servicePath: string): stri
 }
 
 /**
- * Service info returned by getServicesFromSchema
+ * Service info returned by getServicesFromSchema.
  */
 export interface ServiceInfo {
+    /** The property key of the service in the schema */
     key: string;
+    /** Human-readable title from schema or formatted key */
     title: string;
 }
 
 /**
  * Get all services from a section of the schema.
  * A "service" is an object property that has an "enabled" boolean field.
+ * @param schema - The root schema
+ * @param section - The section path to search for services (e.g., "scraping", "updaters")
+ * @returns Array of ServiceInfo objects for each discovered service
  */
 export function getServicesFromSchema(schema: Schema, section: string): ServiceInfo[] {
     const sectionSchema = getSchemaAtPath(schema, section);

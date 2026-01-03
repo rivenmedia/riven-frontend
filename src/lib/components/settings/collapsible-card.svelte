@@ -40,11 +40,20 @@
         userExpandedState ?? (hasToggle ? enabled : (defaultExpanded ?? true))
     );
 
-    function setExpanded(value: boolean) {
+    /**
+     * Sets the user's expanded state preference.
+     * @param value - Whether the card should be expanded
+     */
+    function setExpanded(value: boolean): void {
         userExpandedState = value;
     }
 
-    function handleToggle(checked: boolean) {
+    /**
+     * Handles the toggle switch change.
+     * Calls the onToggle callback and resets user expand state when enabling.
+     * @param checked - The new enabled state
+     */
+    function handleToggle(checked: boolean): void {
         onToggle?.(checked);
         // When enabling, reset user state so it follows enabled
         if (checked) userExpandedState = null;
