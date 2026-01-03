@@ -59,9 +59,11 @@
 <div
     class="bg-background relative grid h-screen w-screen grid-cols-1 overflow-hidden md:grid-cols-[auto_1fr]">
     <Sidebar user={data.user} />
-    <main class="grid grid-rows-[auto_1fr] overflow-hidden">
-        <Header />
-        <div class="size-full overflow-x-hidden overflow-y-auto">
+    <main class="relative overflow-hidden">
+        <div
+            class="size-full overflow-x-hidden overflow-y-scroll"
+            style="scrollbar-gutter: stable;">
+            <Header />
             {@render children?.()}
         </div>
     </main>

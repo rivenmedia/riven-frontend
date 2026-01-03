@@ -49,6 +49,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             const hasAbsolutePoster = item.poster_path?.startsWith("http");
 
             // Determine correct ID and Indexer
+            // Always prefer TMDB ID when available (needed for ratings API)
             let id: string | number;
             let indexer: string;
 

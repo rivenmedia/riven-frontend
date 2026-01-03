@@ -58,10 +58,10 @@
 </script>
 
 <header
-    class="absolute z-10 flex h-18 w-full items-center bg-transparent px-2 md:left-14 md:w-[calc(100%-3.5rem)] md:px-4">
-    <div class="flex w-full items-center justify-between gap-2">
+    class="pointer-events-none absolute top-0 left-0 z-50 flex h-14 w-full items-center bg-transparent px-2 md:px-4">
+    <div class="pointer-events-auto flex w-full items-center justify-between gap-2">
         <div class="w-full">
-            <ButtonGroup.Root class="bg-opacity-75 h-9 w-full backdrop-blur-sm">
+            <ButtonGroup.Root class="h-9 w-full rounded-lg bg-black/50 backdrop-blur-md">
                 <InputGroup.Root>
                     <InputGroup.Input
                         bind:ref={inputRef}

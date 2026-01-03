@@ -15,6 +15,8 @@
         BatchSession
     } from "$lib/types";
 
+    import type { Snippet } from "svelte";
+
     type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
 
     import { toast } from "svelte-sonner";
@@ -69,6 +71,7 @@
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
         seasons?: SeasonInfo[];
+        children?: Snippet;
     }
 
     let {
@@ -79,6 +82,7 @@
         variant = "ghost",
         size = "sm",
         seasons = [],
+        children,
         ...restProps
     }: Props = $props();
 

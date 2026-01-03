@@ -44,7 +44,7 @@
 <TmdbNowPlaying data={data.nowPlaying} />
 
 {#snippet listHeading(title: string)}
-    <h2 class="text-muted-foreground mb-4 max-w-max text-sm font-semibold md:text-base lg:text-lg">
+    <h2 class="mb-4 text-xl font-bold tracking-tight drop-shadow-md">
         {title}
     </h2>
 {/snippet}

@@ -2,7 +2,7 @@
     import { type PageProps } from "./$types";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import Mountain from "@lucide/svelte/icons/mountain";
-    import MediaCard from "$lib/components/media/media-card.svelte";
+    import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
 
     let { data }: PageProps = $props();
@@ -317,9 +317,10 @@
         <a
             href="/details/media/{credit.id}/{credit.media_type}"
             class="group relative block opacity-80 transition-all hover:opacity-100">
-            <MediaCard
+            <PortraitCard
                 title={credit.title}
-                subtitle={`${credit.character ? `as ${credit.character}` : (credit.job ?? "")}${credit.year ? ` • ${credit.year}` : ""}`}
+                subtitle={`${credit.character ? `as ${credit.character}` : (credit.job ?? "")}${credit.year ? ` • ${credit.year}` : ""}` ||
+                    null}
                 image={credit.poster_path} />
         </a>
     {/each}

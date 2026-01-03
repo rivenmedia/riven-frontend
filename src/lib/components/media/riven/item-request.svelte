@@ -7,6 +7,7 @@
     import type { ScrapeSeasonRequest } from "$lib/types";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
     import { createScopedLogger } from "$lib/logger";
+    import { type Snippet } from "svelte";
 
     const logger = createScopedLogger("item-request");
 
@@ -27,6 +28,7 @@
             | undefined;
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
+        children?: Snippet;
     }
     let {
         title,
@@ -38,6 +40,7 @@
         variant = "ghost",
         size = "sm",
         class: className = "",
+        children,
         ...restProps
     }: Props = $props();
 
@@ -105,8 +108,13 @@
 <AlertDialog.Root bind:open>
     <AlertDialog.Trigger>
         {#snippet child({ props })}
-            <Button {variant} {size} class={className} {...restProps} {...props}
-                >{buttonLabel}</Button>
+            <Button {variant} {size} class={className} {...restProps} {...props}>
+                {#if children}
+                    {@render children()}
+                {:else}
+                    {buttonLabel}
+                {/if}
+            </Button>
         {/snippet}
     </AlertDialog.Trigger>
     <AlertDialog.Content>
