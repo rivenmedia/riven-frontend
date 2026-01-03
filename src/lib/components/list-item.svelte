@@ -1,5 +1,7 @@
 <script lang="ts">
-    import MediaCard from "$lib/components/media/media-card.svelte";
+    import PortraitCard from "$lib/components/media/portrait-card.svelte";
+    import { Badge } from "$lib/components/ui/badge/index.js";
+    import { cn } from "$lib/utils";
 
     let {
         data = $bindable(),
@@ -32,12 +34,27 @@
 
 <a
     href={mediaURL}
-    class="group relative block opacity-80 transition-all duration-200 hover:opacity-100">
-    <MediaCard
+    class="group relative block w-36 opacity-80 transition-all duration-200 hover:opacity-100 md:w-44 lg:w-48">
+    <PortraitCard
         title={data.title}
         {subtitle}
         image={data.poster_path}
         {isSelectable}
+        selected={isSelectable && selectStore?.has(data.riven_id)}
         isSelected={isSelectable && selectStore?.has(data.riven_id)}
-        onSelectToggle={() => selectStore?.toggle(data.riven_id)} />
+        onSelectToggle={() => selectStore?.toggle(data.riven_id)}>
+        {#snippet topRight()}
+            {#if data.badge}
+                <Badge
+                    class={cn(
+                        "px-2 py-0.5 text-[10px] backdrop-blur-sm",
+                        data.badge.variant === "success"
+                            ? "bg-green-600/90 text-white"
+                            : data.badge.variant === "error"
+                              ? "bg-red-600/90 text-white"
+                              : "bg-yellow-600/90 text-white"
+                    )}>{data.badge.text}</Badge>
+            {/if}
+        {/snippet}
+    </PortraitCard>
 </a>

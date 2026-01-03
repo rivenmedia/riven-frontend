@@ -30,7 +30,7 @@
 {:else}
     <div class="flex gap-3 overflow-x-auto pb-2">
         {#each Array(2) as _, i}
-            <div class="w-40 flex-none sm:w-40 md:w-45">
+            <div class="w-36 flex-none md:w-44 lg:w-48">
                 <Skeleton class="aspect-2/3 w-full rounded-sm" />
                 <Skeleton class="mt-2 h-4 w-full" />
                 <div class="mt-1 flex items-center justify-between">
