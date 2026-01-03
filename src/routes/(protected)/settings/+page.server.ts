@@ -2,63 +2,89 @@ import type { Actions, PageServerLoad } from "./$types";
 import { error, fail } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import type { InitialFormData } from "@sjsf/sveltekit";
+import type { Schema, UiSchemaRoot } from "@sjsf/form";
 import { createFormHandler } from "@sjsf/sveltekit/server";
 import * as defaults from "$lib/components/settings/form-defaults";
+import type { AppSettings } from "$lib/components/settings/form-defaults";
+import { buildSettingsUiSchema } from "$lib/components/settings/form-defaults";
 
-const getSchema = async (baseUrl: string, apiKey: string, fetch: typeof globalThis.fetch) => {
-    const settingsSchema = await providers.riven.GET("/api/v1/settings/schema", {
+/**
+ * Loads the settings JSON Schema from the backend settings endpoint.
+ *
+ * @param baseUrl - Backend base URL used for the request
+ * @param apiKey - API key sent as the `x-api-key` header
+ * @param fetch - Fetch implementation to use for the HTTP request
+ * @returns The settings schema
+ * @throws Error if the response indicates an error or does not contain schema data
+ */
+async function getSchema(
+    baseUrl: string,
+    apiKey: string,
+    fetch: typeof globalThis.fetch
+): Promise<Schema> {
+    const response = await providers.riven.GET("/api/v1/settings/schema", {
         baseUrl,
-        headers: {
-            "x-api-key": apiKey
-        },
+        headers: { "x-api-key": apiKey },
         fetch
     });
-    if (settingsSchema.error) {
+
+    if (response.error || !response.data) {
         throw new Error("Failed to load settings schema");
     }
 
-    return settingsSchema.data;
-};
+    return response.data as Schema;
+}
+
+interface SettingsFormData extends InitialFormData {
+    uiSchema: UiSchemaRoot;
+}
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
-    const allSettings = await providers.riven.GET("/api/v1/settings/get/all", {
-        baseUrl: locals.backendUrl,
-        headers: {
-            "x-api-key": locals.apiKey
-        },
-        fetch: fetch
-    });
+    // Fetch settings JSON schema and settings
+    const [schema, allSettings] = await Promise.all([
+        getSchema(locals.backendUrl, locals.apiKey, fetch),
+        providers.riven.GET("/api/v1/settings/get/all", {
+            baseUrl: locals.backendUrl,
+            headers: { "x-api-key": locals.apiKey },
+            fetch
+        })
+    ]);
 
     if (allSettings.error) {
         error(500, "Failed to load settings");
     }
 
+    const uiSchema = buildSettingsUiSchema(schema);
+
     return {
         form: {
-            schema: await getSchema(locals.backendUrl, locals.apiKey, fetch),
+            schema,
+            uiSchema,
             initialValue: allSettings.data
-        } satisfies InitialFormData
+        } satisfies SettingsFormData
     };
 };
 
 export const actions = {
     default: async ({ request, fetch, locals }) => {
-        const handleForm = createFormHandler<any, true>({
+        let schema: Schema;
+        try {
+            schema = await getSchema(locals.backendUrl, locals.apiKey, fetch);
+        } catch {
+            return fail(500, { error: "Failed to load settings schema" });
+        }
+        const handleForm = createFormHandler<AppSettings, true>({
             ...defaults,
-            // @ts-expect-error - it's valid
-            schema: await getSchema(locals.backendUrl, locals.apiKey, fetch),
+            schema,
+            uiSchema: buildSettingsUiSchema(schema),
             sendData: true
         });
 
-        const [form, , invalid] = await handleForm(request.signal, await request.formData());
+        const [form] = await handleForm(request.signal, await request.formData());
         if (!form.isValid) {
             return fail(400, { form });
         }
 
-        // const res = await setAllSettings({
-        //     fetch: fetch,
-        //     body: form.data
-        // });
         const res = await providers.riven.POST("/api/v1/settings/set/all", {
             body: form.data,
             baseUrl: locals.backendUrl,
