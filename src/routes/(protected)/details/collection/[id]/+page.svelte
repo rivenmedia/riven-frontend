@@ -37,7 +37,7 @@
 
         <div class="md:px-8 lg:px-16">
             <div
-                class="border-border mt-6 flex flex-col rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
+                class="border-border/50 mt-6 flex flex-col rounded-xl border bg-black/40 px-6 py-6 shadow-lg backdrop-blur-md">
                 <div class="flex flex-row">
                     <img
                         alt={data.collection.name}

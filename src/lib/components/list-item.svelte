@@ -9,37 +9,24 @@
         selectStore = undefined
     } = $props();
 
-    if (indexer === "anilist" && !type) {
-        type = data.media_type;
-    }
-
-    if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") {
-        type = "tv";
-    }
+    // Normalize type for different indexers
+    if (indexer === "anilist" && !type) type = data.media_type;
+    if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") type = "tv";
 
     let mediaURL = $derived.by(() => {
         if (!data.id) return "javascript:void(0)";
-
-        if (indexer === "tmdb" && (type === "movie" || type === "tv")) {
+        if ((indexer === "tmdb" || indexer === "tvdb") && (type === "movie" || type === "tv")) {
             return `/details/media/${data.id}/${type}`;
-        } else if (indexer === "tvdb" && type === "tv") {
-            return `/details/media/${data.id}/tv`;
-        } else {
-            return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
         }
-    });
-
-    let mediaTypeLabel = $derived.by(() => {
-        if (data.media_type === "tv") return "TV";
-        if (data.media_type === "movie") return "Movie";
-        return data.media_type || "";
+        return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
     });
 
     let subtitle = $derived.by(() => {
         const parts = [];
-        if (mediaTypeLabel) parts.push(mediaTypeLabel);
+        if (data.media_type === "tv") parts.push("TV");
+        else if (data.media_type === "movie") parts.push("Movie");
         if (data.year) parts.push(data.year);
-        return parts.join(" \u2022 ") || null;
+        return parts.join(" • ") || null;
     });
 </script>
 
