@@ -21,6 +21,17 @@ export class LogStore {
     #connection: ReturnType<typeof source> | null = null;
     #unsubscribe: (() => void) | null = null;
 
+    #reconnectAttempts = $state<number>(0);
+    #maxReconnectAttempts = 5;
+
+    get reconnectAttempts() {
+        return this.#reconnectAttempts;
+    }
+
+    get maxReconnectAttempts() {
+        return this.#maxReconnectAttempts;
+    }
+
     get logs() {
         return this.#logs;
     }

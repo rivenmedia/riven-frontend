@@ -60,7 +60,8 @@
             ) {
                 const body: ScrapeSeasonRequest = {
                     tvdb_id: externalId,
-                    season_numbers: Array.from(selectedSeasons)
+                    season_numbers: Array.from(selectedSeasons),
+                    disable_bitrate_check: false
                 };
 
                 // HACK: Casting providers.riven to any because the endpoint might not be in the generated client
