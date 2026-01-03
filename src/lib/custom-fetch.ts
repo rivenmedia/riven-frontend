@@ -1,5 +1,5 @@
 import { createScopedLogger } from "$lib/logger";
-import { withRateLimit } from "$lib/rate-limiter";
+import { getRateLimiterForUrl, withRateLimit } from "$lib/rate-limiter";
 
 const logger = createScopedLogger("fetch");
 
@@ -162,8 +162,17 @@ export function createCustomFetch(
                         if (attempt < retryConfig.maxAttempts) {
                             logger.warn(
                                 `Request to ${url} failed with status ${response.status}. ` +
-                                    `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                                `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
                             );
+                            if (response.status === 429) {
+                                const limiter = getRateLimiterForUrl(url);
+                                if (limiter) {
+                                    // Make sure we pause GLOBAL execution for this domain
+                                    // delay is already calculated from Retry-After or backoff
+                                    limiter.pauseUntil(Date.now() + delay);
+                                }
+                            }
+
                             await sleep(delay);
                         }
                     } catch (error) {
@@ -176,7 +185,7 @@ export function createCustomFetch(
                             );
                             logger.warn(
                                 `Request to ${url} failed with error: ${lastError.message}. ` +
-                                    `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                                `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
                             );
                             await sleep(delay);
                         }
@@ -186,7 +195,7 @@ export function createCustomFetch(
                 if (lastResponse) {
                     logger.error(
                         `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
-                            `with status ${lastResponse.status}`
+                        `with status ${lastResponse.status}`
                     );
                     return lastResponse;
                 }
@@ -194,7 +203,7 @@ export function createCustomFetch(
                 if (lastError) {
                     logger.error(
                         `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
-                            `with error: ${lastError.message}`
+                        `with error: ${lastError.message}`
                     );
                     throw lastError;
                 }
