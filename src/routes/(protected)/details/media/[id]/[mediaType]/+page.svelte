@@ -139,11 +139,11 @@
     title: string
 )}
     <section class="mt-6">
-        <h2 class="mb-4 text-xl font-bold tracking-tight drop-shadow-md">{title}</h2>
+        <h2 class="mb-3 text-xl font-bold tracking-tight drop-shadow-md">{title}</h2>
         <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
-            <Carousel.Content class="-ml-4 py-4 pr-4">
+            <Carousel.Content class="-ml-3">
                 {#each items as item (item.id)}
-                    <Carousel.Item class="basis-auto pl-4">
+                    <Carousel.Item class="basis-auto pl-3">
                         <a
                             href="/details/media/{item.id}/{item.media_type}"
                             class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
@@ -471,8 +471,8 @@
             {#if data.mediaDetails?.type === "movie"}
                 {@const movieDetails = data.mediaDetails.details}
                 {#if movieDetails.collection}
-                    <section class="mt-8 md:mt-12">
-                        <h2 class="mb-3 text-lg font-bold drop-shadow-md">Collection</h2>
+                    <section class="mt-6 md:mt-8">
+                        <h2 class="mb-2 text-lg font-bold drop-shadow-md">Collection</h2>
                         <CollectionSheet
                             collectionId={movieDetails.collection.id}
                             collectionName={movieDetails.collection.name}>
@@ -485,7 +485,7 @@
                                     </div>
                                     <img
                                         alt={movieDetails.collection.name}
-                                        class="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-105 md:h-44"
+                                        class="h-24 w-full object-cover transition-transform duration-500 group-hover:scale-105 md:h-36"
                                         src={movieDetails.collection.backdrop_path}
                                         loading="lazy" />
                                     <div
@@ -514,7 +514,7 @@
 
             {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.seasons}
                 <section class="mt-6">
-                    <h2 class="mb-3 text-lg font-bold drop-shadow-md">Seasons</h2>
+                    <h2 class="mb-2 text-lg font-bold drop-shadow-md">Seasons</h2>
                     <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
                         <Carousel.Content>
                             {#each data.mediaDetails?.details.seasons as season (season.id)}
@@ -553,7 +553,7 @@
 
             {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.episodes}
                 <section class="mt-6">
-                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
+                    <h2 class="mb-2 text-lg font-bold drop-shadow-md">Episodes</h2>
                     <div
                         class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
                         {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
@@ -627,166 +627,101 @@
                                                 {@const meta = rivenEpisode.media_metadata}
                                                 {@const fs = rivenEpisode.filesystem_entry}
                                                 {@const video = meta?.video}
-                                                <div class="flex flex-1 flex-col">
-                                                    {#if meta?.original_filename || fs?.original_filename || meta?.filename}
-                                                        <div class="mb-3 space-y-2 text-xs">
-                                                            {#if meta?.original_filename || fs?.original_filename}<p
-                                                                    class="text-primary font-semibold">
-                                                                    Original Filename
-                                                                </p>
-                                                                <p
-                                                                    class="text-muted-foreground break-all">
-                                                                    {meta?.original_filename ||
-                                                                        fs?.original_filename}
-                                                                </p>{/if}
-                                                            {#if meta?.filename}<p
-                                                                    class="text-primary font-semibold">
-                                                                    Current Filename
-                                                                </p>
-                                                                <p
-                                                                    class="text-muted-foreground break-all">
-                                                                    {meta.filename}
-                                                                </p>{/if}
+                                                <div class="flex flex-1 flex-col gap-3 text-xs">
+                                                    <!-- Filenames -->
+                                                    {#if meta?.original_filename || fs?.original_filename}
+                                                        <div>
+                                                            <p class="text-primary font-semibold">
+                                                                Original Filename
+                                                            </p>
+                                                            <p
+                                                                class="text-muted-foreground break-all">
+                                                                {meta?.original_filename ||
+                                                                    fs?.original_filename}
+                                                            </p>
                                                         </div>
                                                     {/if}
-                                                    <div
-                                                        class="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-                                                        {#if video}
-                                                            <div class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Video</span>
-                                                                {#if video.resolution_width && video.resolution_height}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{video.resolution_width}x{video.resolution_height}</Badge
-                                                                    >{/if}
-                                                                {#if video.codec}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{video.codec}</Badge
-                                                                    >{/if}
-                                                                {#if video.bit_depth}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{video.bit_depth}-bit</Badge
-                                                                    >{/if}
-                                                                {#if video.hdr_type}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{video.hdr_type}</Badge
-                                                                    >{/if}
-                                                                {#if video.frame_rate}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{video.frame_rate} FPS</Badge
-                                                                    >{/if}
-                                                            </div>
-                                                        {/if}
-                                                        {#if meta?.bitrate}<div
-                                                                class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Bitrate</span
-                                                                ><Badge
+                                                    {#if meta?.filename}
+                                                        <div>
+                                                            <p class="text-primary font-semibold">
+                                                                Current Filename
+                                                            </p>
+                                                            <p
+                                                                class="text-muted-foreground break-all">
+                                                                {meta.filename}
+                                                            </p>
+                                                        </div>
+                                                    {/if}
+
+                                                    <!-- Video -->
+                                                    {#if video}
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-primary font-semibold"
+                                                                >Video</span>
+                                                            {#if video.resolution_width && video.resolution_height}<Badge
                                                                     variant="outline"
                                                                     class="text-xs"
-                                                                    >{Math.round(
-                                                                        meta.bitrate / 1000000
-                                                                    )} Mbps</Badge>
-                                                            </div>{/if}
-                                                        {#if meta?.audio_tracks?.length}<div
-                                                                class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Audio</span
-                                                                >{#each meta.audio_tracks.slice(0, 2) as a}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{a.codec}{a.channels
-                                                                            ? ` ${a.channels}ch`
-                                                                            : ""}{a.language
-                                                                            ? ` (${a.language.toUpperCase()})`
-                                                                            : ""}</Badge
-                                                                    >{/each}{#if meta.audio_tracks.length > 2}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >+{meta.audio_tracks
-                                                                            .length - 2}</Badge
-                                                                    >{/if}
-                                                            </div>{/if}
-                                                        {#if meta?.subtitle_tracks?.length}<div
-                                                                class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Subtitles</span
-                                                                >{#each meta.subtitle_tracks.slice(0, 3) as s}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{formatSubtitleCodec(
-                                                                            s.codec || ""
-                                                                        )}{s.language
-                                                                            ? ` (${s.language.toUpperCase()})`
-                                                                            : ""}</Badge
-                                                                    >{/each}{#if meta.subtitle_tracks.length > 3}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >+{meta.subtitle_tracks
-                                                                            .length - 3}</Badge
-                                                                    >{/if}
-                                                            </div>{/if}
-                                                        {#if meta?.quality_source || meta?.container_format?.length || meta?.is_remux || meta?.is_proper || meta?.is_repack}
-                                                            <div class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Source</span>
-                                                                {#if meta?.quality_source}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{meta.quality_source}</Badge
-                                                                    >{/if}
-                                                                {#each meta?.container_format ?? [] as c}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >{c.toUpperCase()}</Badge
-                                                                    >{/each}
-                                                                {#if meta?.is_remux}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs">REMUX</Badge
-                                                                    >{/if}
-                                                                {#if meta?.is_proper}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >PROPER</Badge
-                                                                    >{/if}
-                                                                {#if meta?.is_repack}<Badge
-                                                                        variant="outline"
-                                                                        class="text-xs"
-                                                                        >REPACK</Badge
-                                                                    >{/if}
-                                                            </div>
-                                                        {/if}
-                                                        {#if fs?.file_size}<div
-                                                                class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Size</span
-                                                                ><span class="text-muted-foreground"
-                                                                    >{formatSize(
-                                                                        fs.file_size
-                                                                    )}</span>
-                                                            </div>{/if}
-                                                        {#if meta?.duration}<div
-                                                                class="flex items-center gap-1.5">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Duration</span
-                                                                ><span class="text-muted-foreground"
-                                                                    >{formatDuration(
-                                                                        meta.duration
-                                                                    )}</span>
-                                                            </div>{/if}
-                                                    </div>
+                                                                    >{video.resolution_width}x{video.resolution_height}</Badge
+                                                                >{/if}
+                                                            {#if video.codec}<Badge
+                                                                    variant="outline"
+                                                                    class="text-xs"
+                                                                    >{video.codec}</Badge
+                                                                >{/if}
+                                                            {#if video.hdr_type}<Badge
+                                                                    variant="outline"
+                                                                    class="text-xs"
+                                                                    >{video.hdr_type}</Badge
+                                                                >{/if}
+                                                        </div>
+                                                    {/if}
+
+                                                    <!-- Audio - Show ALL tracks -->
+                                                    {#if meta?.audio_tracks?.length}
+                                                        <div
+                                                            class="flex flex-wrap items-center gap-2">
+                                                            <span class="text-primary font-semibold"
+                                                                >Audio</span>
+                                                            {#each meta.audio_tracks as track}
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    class="text-xs"
+                                                                    >{track.codec}{track.channels
+                                                                        ? track.channels === 8
+                                                                            ? " 7.1"
+                                                                            : track.channels === 6
+                                                                              ? " 5.1"
+                                                                              : ` ${track.channels}ch`
+                                                                        : ""}{track.language
+                                                                        ? ` (${track.language.toUpperCase()})`
+                                                                        : ""}</Badge>
+                                                            {/each}
+                                                        </div>
+                                                    {/if}
+
+                                                    <!-- Source -->
+                                                    {#if meta?.quality_source}
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-primary font-semibold"
+                                                                >Source</span>
+                                                            <Badge variant="outline" class="text-xs"
+                                                                >{meta.quality_source}</Badge>
+                                                            {#if meta?.is_remux}<Badge
+                                                                    variant="outline"
+                                                                    class="text-xs">REMUX</Badge
+                                                                >{/if}
+                                                        </div>
+                                                    {/if}
+
+                                                    <!-- Size -->
+                                                    {#if fs?.file_size}
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-primary font-semibold"
+                                                                >Size</span>
+                                                            <span class="text-muted-foreground"
+                                                                >{formatSize(fs.file_size)}</span>
+                                                        </div>
+                                                    {/if}
                                                 </div>
                                             {/if}
                                         </div>
@@ -800,8 +735,8 @@
 
             <!-- Cast -->
             {#if data.mediaDetails?.details.cast?.length}
-                <section class="mt-8">
-                    <h2 class="mb-4 text-xl font-bold tracking-tight drop-shadow-md">Cast</h2>
+                <section class="mt-6">
+                    <h2 class="mb-3 text-xl font-bold tracking-tight drop-shadow-md">Cast</h2>
                     <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
                         <Carousel.Content class="-ml-3">
                             {#each data.mediaDetails.details.cast as member (member.id)}
@@ -822,292 +757,225 @@
                 </section>
             {/if}
 
+            <!-- Details Section - Side by Side -->
             <section class="mt-6">
-                <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Details</h2>
-                <div class="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-3 lg:grid-cols-4">
-                    {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Budget
-                            </p>
-                            <p class="text-sm font-semibold">
-                                {formatCurrency(data.mediaDetails.details.budget)}
-                            </p>
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.revenue}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Revenue
-                            </p>
-                            <p class="text-sm font-semibold">
-                                {formatCurrency(data.mediaDetails.details.revenue)}
-                            </p>
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.details.homepage}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Homepage
-                            </p>
-                            <a
-                                href={data.mediaDetails.details.homepage}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-primary text-sm font-semibold hover:underline"
-                                >Visit Website</a>
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.details.origin_country?.length}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Origin Country
-                            </p>
-                            <p class="text-sm font-semibold">
-                                {data.mediaDetails.details.origin_country.join(", ")}
-                            </p>
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.type === "movie" && (data.mediaDetails.details as any).collection}
-                        {@const collection = (data.mediaDetails.details as any).collection}
-                        <CollectionSheet
-                            collectionId={collection.id}
-                            collectionName={collection.name}>
-                            {#snippet trigger({ props })}
-                                <button
-                                    class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex w-full flex-col gap-1 rounded-lg border p-4 text-left backdrop-blur-md transition-colors"
-                                    {...props}>
-                                    <p class="text-muted-foreground text-xs font-medium uppercase">
-                                        Collection
-                                    </p>
-                                    <p class="line-clamp-1 text-sm font-semibold">
-                                        {collection.name}
-                                    </p>
-                                </button>
-                            {/snippet}
-                        </CollectionSheet>
-                    {/if}
-                    {#if data.mediaDetails?.details.production_companies?.length}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Production
-                            </p>
-                            {#if data.mediaDetails?.type === "movie"}
-                                <div class="flex flex-wrap gap-2">
-                                    {#each data.mediaDetails.details.production_companies as company (company.id)}
-                                        <Tooltip>
-                                            {#snippet trigger()}<img
-                                                    alt={company.name}
-                                                    class="h-6 w-auto rounded object-contain opacity-80 hover:scale-105 hover:opacity-100"
-                                                    src={company.logo_path ||
-                                                        "https://i.pravatar.cc/200"}
-                                                    loading="lazy" />{/snippet}
-                                            {#snippet content()}<p class="text-sm font-medium">
-                                                    {company.name}
-                                                </p>{/snippet}
-                                        </Tooltip>
-                                    {/each}
+                <div class="flex flex-col gap-6 md:flex-row md:gap-16">
+                    <!-- More Details Column -->
+                    <div>
+                        <h2 class="mb-2 text-lg font-bold drop-shadow-md">More Details</h2>
+                        <div class="flex flex-col gap-3 text-xs">
+                            <!-- Budget (movies only) -->
+                            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
+                                <div class="flex items-center gap-2">
+                                    <span class="text-primary font-semibold">Budget</span>
+                                    <span class="text-muted-foreground"
+                                        >{formatCurrency(data.mediaDetails.details.budget)}</span>
                                 </div>
-                            {:else}<p class="text-sm font-semibold">
-                                    {data.mediaDetails?.details.production_companies
-                                        .map((c) => c.name)
-                                        .join(", ")}
-                                </p>{/if}
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.details.spoken_languages?.length}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Languages
-                            </p>
-                            <p class="text-sm font-semibold">
-                                {data.mediaDetails.details.spoken_languages
-                                    .map((l) => l.english_name)
-                                    .join(", ")}
-                            </p>
-                        </div>
-                    {/if}
-                    {#if data.mediaDetails?.details.external_ids}
-                        <div
-                            class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                External Links
-                            </p>
-                            <div class="flex flex-wrap gap-2">
-                                {#each Object.entries(data.mediaDetails.details.external_ids) as [key, value]}
-                                    {#if value && getExternal(key)}<a
-                                            href="{getExternal(key).url}{value}"
+                            {/if}
+
+                            <!-- Revenue (movies only) -->
+                            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.revenue}
+                                <div class="flex items-center gap-2">
+                                    <span class="text-primary font-semibold">Revenue</span>
+                                    <span class="text-muted-foreground"
+                                        >{formatCurrency(data.mediaDetails.details.revenue)}</span>
+                                </div>
+                            {/if}
+
+                            <!-- Origin -->
+                            {#if data.mediaDetails?.details.origin_country?.length}
+                                <div class="flex items-center gap-2">
+                                    <span class="text-primary font-semibold">Origin</span>
+                                    <span class="text-muted-foreground"
+                                        >{data.mediaDetails.details.origin_country.join(
+                                            ", "
+                                        )}</span>
+                                </div>
+                            {/if}
+
+                            <!-- Languages -->
+                            {#if data.mediaDetails?.details.spoken_languages?.length}
+                                <div class="flex items-center gap-2">
+                                    <span class="text-primary font-semibold">Languages</span>
+                                    <span class="text-muted-foreground"
+                                        >{data.mediaDetails.details.spoken_languages
+                                            .map((l) => l.english_name)
+                                            .join(", ")}</span>
+                                </div>
+                            {/if}
+
+                            <!-- Production Companies -->
+                            {#if data.mediaDetails?.details.production_companies?.length}
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-primary font-semibold text-nowrap"
+                                        >Production</span>
+                                    <span class="text-muted-foreground line-clamp-1"
+                                        >{data.mediaDetails.details.production_companies
+                                            .map((c) => c.name)
+                                            .join(", ")}</span>
+                                </div>
+                            {/if}
+
+                            <!-- External Links -->
+                            {#if data.mediaDetails?.details.homepage || data.mediaDetails?.details.imdb_id || data.mediaDetails?.details.external_ids}
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-primary font-semibold">Links</span>
+                                    {#if data.mediaDetails?.details.homepage}
+                                        <a
+                                            href={data.mediaDetails.details.homepage}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="text-primary text-sm font-semibold hover:underline"
-                                            >{getExternal(key).name}</a
-                                        >{/if}
-                                {/each}
-                            </div>
+                                            class="text-muted-foreground transition-colors hover:text-white"
+                                            >Website</a>
+                                    {/if}
+                                    {#if data.mediaDetails?.details.imdb_id}
+                                        <a
+                                            href="https://www.imdb.com/title/{data.mediaDetails
+                                                .details.imdb_id}/parentalguide/"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-muted-foreground transition-colors hover:text-white"
+                                            >Parental Guide</a>
+                                    {/if}
+                                    {#if data.mediaDetails?.details.external_ids}
+                                        {@const validLinks = Object.entries(
+                                            data.mediaDetails.details.external_ids
+                                        ).filter(([key, value]) => value && getExternal(key))}
+                                        {#each validLinks as [key, value]}
+                                            <a
+                                                href="{getExternal(key).url}{value}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-muted-foreground transition-colors hover:text-white"
+                                                >{getExternal(key).name}</a>
+                                        {/each}
+                                    {/if}
+                                </div>
+                            {/if}
                         </div>
-                    {/if}
-                    {#if data.mediaDetails?.details.imdb_id}
-                        <div
-                            class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Parental Guide
-                            </p>
-                            <a
-                                href="https://www.imdb.com/title/{data.mediaDetails.details
-                                    .imdb_id}/parentalguide/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-primary text-sm font-semibold hover:underline"
-                                >IMDB Parental Guide</a>
+                    </div>
+
+                    <!-- File Information Column (movies only) -->
+                    {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
+                        {@const meta = data.riven.media_metadata}
+                        {@const fs = data.riven.filesystem_entry}
+                        {@const video = meta?.video}
+                        <div>
+                            <h2 class="mb-2 text-lg font-bold drop-shadow-md">File Information</h2>
+                            <div class="flex flex-col gap-3 text-xs">
+                                <!-- Filename -->
+                                {#if meta?.original_filename || fs?.original_filename}
+                                    <div>
+                                        <p class="text-primary font-semibold">Original Filename</p>
+                                        <p class="text-muted-foreground break-all">
+                                            {meta?.original_filename || fs?.original_filename}
+                                        </p>
+                                    </div>
+                                {/if}
+
+                                <!-- Video -->
+                                {#if video}
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-primary font-semibold">Video</span>
+                                        {#if video.resolution_width && video.resolution_height}<Badge
+                                                variant="outline"
+                                                class="text-xs"
+                                                >{video.resolution_width}x{video.resolution_height}</Badge
+                                            >{/if}
+                                        {#if video.codec}<Badge variant="outline" class="text-xs"
+                                                >{video.codec}</Badge
+                                            >{/if}
+                                        {#if video.bit_depth}<Badge
+                                                variant="outline"
+                                                class="text-xs">{video.bit_depth}-bit</Badge
+                                            >{/if}
+                                        {#if video.hdr_type}<Badge variant="outline" class="text-xs"
+                                                >{video.hdr_type}</Badge
+                                            >{/if}
+                                        {#if video.frame_rate}<Badge
+                                                variant="outline"
+                                                class="text-xs">{video.frame_rate} FPS</Badge
+                                            >{/if}
+                                    </div>
+                                {/if}
+
+                                <!-- Audio - Show ALL tracks -->
+                                {#if meta?.audio_tracks?.length}
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-primary font-semibold">Audio</span>
+                                        {#each meta.audio_tracks as track}
+                                            <Badge variant="outline" class="text-xs"
+                                                >{track.codec}{track.channels
+                                                    ? track.channels === 8
+                                                        ? " 7.1"
+                                                        : track.channels === 6
+                                                          ? " 5.1"
+                                                          : ` ${track.channels}ch`
+                                                    : ""}{track.language
+                                                    ? ` (${track.language.toUpperCase()})`
+                                                    : ""}</Badge>
+                                        {/each}
+                                    </div>
+                                {/if}
+
+                                <!-- Subtitles - Show ALL tracks -->
+                                {#if meta?.subtitle_tracks?.length}
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-primary font-semibold">Subtitles</span>
+                                        {#each meta.subtitle_tracks as track}
+                                            <Badge variant="outline" class="text-xs"
+                                                >{track.language
+                                                    ? track.language.toUpperCase()
+                                                    : "Unknown"}</Badge>
+                                        {/each}
+                                    </div>
+                                {/if}
+
+                                <!-- Source -->
+                                {#if meta?.quality_source}
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-primary font-semibold">Source</span>
+                                        <Badge variant="outline" class="text-xs"
+                                            >{meta.quality_source}</Badge>
+                                        {#if meta?.is_remux}<Badge variant="outline" class="text-xs"
+                                                >REMUX</Badge
+                                            >{/if}
+                                        {#if meta?.is_proper}<Badge
+                                                variant="outline"
+                                                class="text-xs">PROPER</Badge
+                                            >{/if}
+                                        {#if meta?.is_repack}<Badge
+                                                variant="outline"
+                                                class="text-xs">REPACK</Badge
+                                            >{/if}
+                                    </div>
+                                {/if}
+
+                                <!-- Size & Bitrate -->
+                                {#if fs?.file_size || meta?.bitrate}
+                                    <div class="flex items-center gap-4">
+                                        {#if fs?.file_size}
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-primary font-semibold">Size</span>
+                                                <span class="text-muted-foreground"
+                                                    >{formatSize(fs.file_size)}</span>
+                                            </div>
+                                        {/if}
+                                        {#if meta?.bitrate}
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-primary font-semibold"
+                                                    >Bitrate</span>
+                                                <span class="text-muted-foreground"
+                                                    >{Math.round(meta.bitrate / 1000000)} Mbps</span>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            </div>
                         </div>
                     {/if}
                 </div>
             </section>
-
-            {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
-                {@const meta = data.riven.media_metadata}
-                {@const fs = data.riven.filesystem_entry}
-                {@const video = meta?.video}
-                <section class="mt-6">
-                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">File Information</h2>
-                    <div class="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-3 lg:grid-cols-4">
-                        {#if meta?.original_filename || fs?.original_filename}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    Original Filename
-                                </p>
-                                <p class="text-sm font-semibold break-all">
-                                    {meta?.original_filename || fs?.original_filename}
-                                </p>
-                            </div>
-                        {/if}
-                        {#if meta?.filename}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    Current Filename
-                                </p>
-                                <p class="text-sm font-semibold break-all">{meta.filename}</p>
-                            </div>
-                        {/if}
-                        <div
-                            class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">Video</p>
-                            <div class="flex flex-wrap gap-1.5">
-                                {#if video?.resolution_width && video?.resolution_height}<Badge
-                                        variant="outline"
-                                        class="text-xs"
-                                        >{video.resolution_width}x{video.resolution_height}</Badge
-                                    >{/if}
-                                {#if video?.codec}<Badge variant="outline" class="text-xs"
-                                        >{video.codec.toUpperCase()}</Badge
-                                    >{/if}
-                                {#if video?.bit_depth}<Badge variant="outline" class="text-xs"
-                                        >{video.bit_depth}-bit</Badge
-                                    >{/if}
-                                {#if video?.hdr_type}<Badge variant="outline" class="text-xs"
-                                        >{video.hdr_type}</Badge
-                                    >{/if}
-                                {#if meta?.bitrate}<Badge variant="outline" class="text-xs"
-                                        >{Math.round(meta.bitrate / 1000000)} Mbps</Badge
-                                    >{/if}
-                                {#if video?.frame_rate}<Badge variant="outline" class="text-xs"
-                                        >{video.frame_rate} FPS</Badge
-                                    >{/if}
-                            </div>
-                        </div>
-                        {#if meta?.audio_tracks?.length}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    Audio
-                                </p>
-                                <div class="flex flex-wrap gap-1.5">
-                                    {#each meta.audio_tracks as a}<Badge
-                                            variant="outline"
-                                            class="text-xs"
-                                            >{a.codec}{a.channels
-                                                ? a.channels === 8
-                                                    ? " 7.1"
-                                                    : a.channels === 6
-                                                      ? " 5.1"
-                                                      : ` ${a.channels}ch`
-                                                : ""}{a.language
-                                                ? ` (${a.language.toUpperCase()})`
-                                                : ""}</Badge
-                                        >{/each}
-                                </div>
-                            </div>
-                        {/if}
-                        {#if meta?.subtitle_tracks?.length}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    Subtitles
-                                </p>
-                                <div class="flex flex-wrap gap-1.5">
-                                    {#each meta.subtitle_tracks as s}<Badge
-                                            variant="outline"
-                                            class="text-xs"
-                                            >{formatSubtitleCodec(s.codec || "")}{s.language
-                                                ? ` (${s.language.toUpperCase()})`
-                                                : ""}</Badge
-                                        >{/each}
-                                </div>
-                            </div>
-                        {/if}
-                        <div
-                            class="bg-muted/20 hover:bg-muted/30 flex flex-col gap-1 rounded-lg p-4">
-                            <p class="text-muted-foreground text-xs font-medium uppercase">
-                                Source
-                            </p>
-                            <div class="flex flex-wrap gap-1.5">
-                                {#if meta?.quality_source}<Badge variant="outline" class="text-xs"
-                                        >{meta.quality_source}</Badge
-                                    >{/if}
-                                {#each meta?.container_format ?? [] as c}<Badge
-                                        variant="outline"
-                                        class="text-xs">{c.toUpperCase()}</Badge
-                                    >{/each}
-                                {#if meta?.is_remux}<Badge variant="outline" class="text-xs"
-                                        >REMUX</Badge
-                                    >{/if}
-                                {#if meta?.is_proper}<Badge variant="outline" class="text-xs"
-                                        >PROPER</Badge
-                                    >{/if}
-                                {#if meta?.is_repack}<Badge variant="outline" class="text-xs"
-                                        >REPACK</Badge
-                                    >{/if}
-                            </div>
-                        </div>
-                        {#if fs?.file_size}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    File Size
-                                </p>
-                                <p class="text-sm font-semibold">{formatSize(fs.file_size)}</p>
-                            </div>
-                        {/if}
-                        {#if meta?.duration}
-                            <div
-                                class="border-border/10 bg-card/40 hover:border-border/20 hover:bg-card/60 flex flex-col gap-1 rounded-lg border p-4 backdrop-blur-md">
-                                <p class="text-muted-foreground text-xs font-medium uppercase">
-                                    Duration
-                                </p>
-                                <p class="text-sm font-semibold">{formatDuration(meta.duration)}</p>
-                            </div>
-                        {/if}
-                    </div>
-                </section>
-            {/if}
 
             {#if data.mediaDetails?.details.recommendations?.length}{@render mediaCarousel(
                     data.mediaDetails.details.recommendations,
