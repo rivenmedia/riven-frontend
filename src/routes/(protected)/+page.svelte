@@ -3,7 +3,9 @@
     import type { PageData } from "./$types";
     import TmdbNowPlaying from "$lib/components/tmdb-now-playing.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
+    import AnimatedToggle from "$lib/components/animated-toggle.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
+    import { cn } from "$lib/utils.js";
     import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
 
     let { data }: { data: PageData } = $props();
@@ -44,72 +46,66 @@
 <TmdbNowPlaying data={data.nowPlaying} />
 
 {#snippet listHeading(title: string)}
-    <h2 class="mb-4 text-xl font-bold tracking-tight drop-shadow-md">
+    <h2 class="text-xl font-bold tracking-tight drop-shadow-md">
         {title}
     </h2>
 {/snippet}
 
-<div class="flex flex-col gap-12 p-6 md:p-8 md:px-16">
+<div class="flex flex-col gap-8 p-6 md:p-8 md:px-16">
     {#if recentlyAddedStore?.items.length}
-        <div class="flex flex-col">
+        <div class="flex flex-col gap-3">
             {@render listHeading("Recently Added")}
             <ListCarousel data={recentlyAddedStore.items} />
         </div>
     {/if}
 
     <div class="flex flex-col">
-        <div class="flex items-center justify-between">
+        <div class="mb-3 flex items-center justify-between">
             {@render listHeading("Trending Movies")}
-            <div class="flex gap-2">
+            <div class="flex items-center gap-2">
+                <AnimatedToggle
+                    options={[
+                        { label: "Today", value: "day" },
+                        { label: "This Week", value: "week" }
+                    ]}
+                    value={trendingMoviesStore?.timeWindow ?? "day"}
+                    onchange={(v) => trendingMoviesStore?.changeTimeWindow(v as "day" | "week")} />
                 <Button
-                    variant={trendingMoviesStore?.timeWindow === "day" ? "secondary" : "outline"}
-                    size="sm"
-                    class="px-3 py-1 text-xs"
-                    onclick={() => trendingMoviesStore?.changeTimeWindow("day")}>
-                    Today
-                </Button>
-                <Button
-                    variant={trendingMoviesStore?.timeWindow === "week" ? "secondary" : "outline"}
-                    size="sm"
-                    class="px-3 py-1 text-xs"
-                    onclick={() => trendingMoviesStore?.changeTimeWindow("week")}>
-                    This Week
-                </Button>
-                <Button class="text-xs" variant="link" href="/lists/trending/movie"
-                    >View All</Button>
+                    class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                    variant="ghost"
+                    href="/lists/trending/movie">View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingMoviesStore?.items ?? []} />
     </div>
 
     <div class="flex flex-col">
-        <div class="flex items-center justify-between">
+        <div class="mb-3 flex items-center justify-between">
             {@render listHeading("Trending TV Shows")}
-            <div class="flex gap-2">
+            <div class="flex items-center gap-2">
+                <AnimatedToggle
+                    options={[
+                        { label: "Today", value: "day" },
+                        { label: "This Week", value: "week" }
+                    ]}
+                    value={trendingShowsStore?.timeWindow ?? "day"}
+                    onchange={(v) => trendingShowsStore?.changeTimeWindow(v as "day" | "week")} />
                 <Button
-                    variant={trendingShowsStore?.timeWindow === "day" ? "secondary" : "outline"}
-                    size="sm"
-                    class="px-3 py-1 text-xs"
-                    onclick={() => trendingShowsStore?.changeTimeWindow("day")}>
-                    Today
-                </Button>
-                <Button
-                    variant={trendingShowsStore?.timeWindow === "week" ? "secondary" : "outline"}
-                    size="sm"
-                    class="px-3 py-1 text-xs"
-                    onclick={() => trendingShowsStore?.changeTimeWindow("week")}>
-                    This Week
-                </Button>
-                <Button class="text-xs" variant="link" href="/lists/trending/tv">View All</Button>
+                    class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                    variant="ghost"
+                    href="/lists/trending/tv">View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingShowsStore?.items ?? []} />
     </div>
 
     <div class="flex flex-col">
-        <div class="flex items-center justify-between">
+        <div class="mb-3 flex items-center justify-between">
             {@render listHeading("Trending Anime")}
-            <Button class="text-xs" variant="link" href="/lists/trending/anime">View All</Button>
+            <Button
+                class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                variant="ghost"
+                href="/lists/trending/anime">View All</Button>
         </div>
         <ListCarousel data={anilistTrendingStore?.items ?? []} indexer="anilist" />
     </div>
