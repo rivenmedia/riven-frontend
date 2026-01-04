@@ -179,7 +179,7 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-md">
+            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-full border px-3 py-1.5 backdrop-blur-md md:px-5 md:py-2.5">
             <span class="text-foreground/80 text-xs font-medium"
                 >{currentIndex + 1}/{data.length}</span>
 

@@ -8,6 +8,7 @@
     import { toast } from "svelte-sonner";
     import providers from "$lib/providers";
     import { createScopedLogger } from "$lib/logger";
+    import { isMobileStore } from "$lib/stores/global.svelte";
 
     import { type Snippet } from "svelte";
 
@@ -133,7 +134,10 @@
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {#each collectionData.parts ?? [] as part (part.id)}
-                        <a href="/details/media/{part.id}/movie" class="block">
+                        <a
+                            href="/details/media/{part.id}/movie"
+                            class="block"
+                            onclick={() => isMobileStore.isMobile && (open = false)}>
                             <LandscapeCard
                                 title={part.title}
                                 image={part.backdrop_path}
