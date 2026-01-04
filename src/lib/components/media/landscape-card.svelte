@@ -100,9 +100,9 @@
                 style="mask-image: linear-gradient(to bottom, transparent 20%, black 80%);">
             </div>
 
-            <div class="relative z-10 flex flex-col gap-1.5 p-4">
+            <div class="relative z-10 flex flex-col gap-1.5 p-3 md:p-4">
                 <h3
-                    class="text-foreground relative z-20 line-clamp-1 text-lg font-extrabold drop-shadow-md">
+                    class="text-foreground relative z-20 line-clamp-1 text-base font-extrabold drop-shadow-md md:text-lg">
                     {#if episodeNumber}
                         <span class="text-primary mr-2 drop-shadow-md">{episodeNumber}.</span>
                     {/if}

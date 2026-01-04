@@ -131,7 +131,7 @@
                     </h3>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {#each collectionData.parts ?? [] as part (part.id)}
                         <a href="/details/media/{part.id}/movie" class="block">
                             <LandscapeCard

@@ -209,11 +209,10 @@
                                     loading="lazy" />
                             {:else}<div></div>{/if}
 
-                            <div class="flex gap-2">
+                            <div class="flex gap-4">
                                 {#if data.riven?.state === "Completed"}
                                     <Button
                                         variant="secondary"
-                                        size="sm"
                                         class="bg-[#e5a00d] font-bold text-black shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-[#cc8e00]">
                                         <img
                                             alt="Plex"
@@ -224,7 +223,6 @@
                                 {#if data.mediaDetails?.details.trailer}
                                     <Button
                                         variant="secondary"
-                                        size="sm"
                                         class="bg-muted/40 text-foreground hover:bg-muted/60 font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105"
                                         onclick={() => (showTrailerOverride = !showTrailer)}>
                                         <Play size={16} class="mr-2 fill-current" />Trailer
@@ -254,7 +252,7 @@
         {/if}
 
         <!-- Rest of content with padding -->
-        <div class="px-4 md:px-8 lg:px-12">
+        <div class="px-4 pb-6 md:px-8 md:pb-8 lg:px-12">
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-[auto_1fr] lg:gap-6">
                 <!-- Poster Column -->
                 <div class="hidden lg:mx-0 lg:block">
@@ -483,20 +481,21 @@
                             {#snippet trigger({ props })}
                                 <button
                                     {...props}
-                                    class="group relative block w-full overflow-hidden rounded-xl text-left shadow-lg transition-all duration-300">
-                                    <div
-                                        class="border-border/50 group-hover:border-border pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-300">
+                                    class="group border-border/50 relative block min-h-[6rem] w-full overflow-hidden rounded-xl border text-left shadow-lg transition-all duration-300 md:min-h-[9rem]">
+                                    <!-- Background Layer -->
+                                    <div class="absolute inset-0">
+                                        <img
+                                            alt={movieDetails.collection.name}
+                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            src={movieDetails.collection.backdrop_path}
+                                            loading="lazy" />
+                                        <div
+                                            class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
+                                        </div>
                                     </div>
-                                    <img
-                                        alt={movieDetails.collection.name}
-                                        class="h-24 w-full object-cover transition-transform duration-500 group-hover:scale-105 md:h-36"
-                                        src={movieDetails.collection.backdrop_path}
-                                        loading="lazy" />
-                                    <div
-                                        class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
-                                    </div>
-                                    <div
-                                        class="absolute inset-0 flex flex-col justify-center p-5 md:p-8">
+
+                                    <!-- Content Layer -->
+                                    <div class="relative flex flex-col justify-center p-4 md:p-8">
                                         <span
                                             class="text-primary mb-1 text-[10px] font-bold tracking-widest uppercase"
                                             >Collection</span>

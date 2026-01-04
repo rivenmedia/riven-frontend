@@ -60,17 +60,17 @@
 
                         <!-- Gradient Overlay -->
                         <div
-                            class="from-background via-background/90 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent">
+                            class="from-background via-background/90 pointer-events-none absolute top-0 -right-4 bottom-0 left-4 bg-gradient-to-t to-transparent">
                         </div>
 
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute inset-0 z-10 flex flex-col justify-end px-16 py-8 md:px-20 md:py-12">
+                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-20 md:px-16 md:py-12">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
-                                        class="reveal-1 text-3xl leading-tight font-semibold tracking-tight whitespace-nowrap drop-shadow-2xl md:text-4xl">
+                                        class="reveal-1 line-clamp-2 text-2xl leading-tight font-semibold tracking-tight drop-shadow-2xl md:text-4xl">
                                         {item.title || "Untitled"}
                                     </h1>
 
@@ -145,7 +145,7 @@
 
         <!-- Navigation Arrows -->
         <button
-            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 left-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110"
+            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 left-4 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
             onclick={() => api?.scrollPrev()}
             aria-label="Previous slide">
             <svg
@@ -161,7 +161,7 @@
             </svg>
         </button>
         <button
-            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 right-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110"
+            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 right-4 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
             onclick={() => api?.scrollNext()}
             aria-label="Next slide">
             <svg
@@ -179,7 +179,7 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-md lg:flex">
+            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-md">
             <span class="text-foreground/80 text-xs font-medium"
                 >{currentIndex + 1}/{data.length}</span>
 
