@@ -267,16 +267,16 @@
                 </div>
 
                 <!-- Content Column -->
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-5">
                     <!-- Title + Status Row -->
                     <div class="flex flex-wrap items-center gap-3">
                         <h1
-                            class="text-2xl font-black tracking-tight text-white drop-shadow-md sm:text-3xl lg:text-4xl">
+                            class="text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-4xl lg:text-5xl">
                             {data.mediaDetails?.details.title}
                         </h1>
                         {#if data.riven?.state}
                             <StatusBadge
-                                class="px-2.5 py-1 text-xs font-medium"
+                                class="px-3 py-1.5 text-sm font-medium"
                                 state={data.riven.state} />
                         {/if}
                     </div>
@@ -418,7 +418,7 @@
                     </div>
 
                     <!-- Metadata -->
-                    <div class="flex items-center gap-x-2 text-sm text-white/50">
+                    <div class="flex items-center gap-x-2.5 text-sm text-white/50">
                         {#each details as detail, i}
                             <span>{detail}</span>
                             {#if i < details.length - 1}<span class="text-white/20">•</span>{/if}
@@ -428,9 +428,9 @@
                     <!-- Genres -->
                     {#if data.mediaDetails?.details.genres?.length}
                         <div class="flex flex-wrap items-center gap-2">
-                            {#each data.mediaDetails?.details.genres.slice(0, 4) as genre (genre.id)}
+                            {#each data.mediaDetails?.details.genres as genre (genre.id)}
                                 <span
-                                    class="rounded-full border border-white/30 px-3 py-1 text-sm text-white/80"
+                                    class="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white/70"
                                     >{genre.name}</span>
                             {/each}
                         </div>
@@ -438,70 +438,33 @@
 
                     <!-- Ratings -->
                     {#if ratingsData?.scores?.length}
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-5">
                             {#each ratingsData.scores as score (score.name)}
                                 <a
                                     href={score.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-1.5 text-white/80 transition-colors hover:text-white">
+                                    class="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white">
                                     {#if score.image}<img
                                             src="/rating-logos/{score.image}"
                                             alt={score.name}
-                                            class="h-5 w-5 object-contain" />{/if}
-                                    <span class="text-sm font-semibold">{score.score}</span>
+                                            class="h-6 w-6 object-contain" />{/if}
+                                    <span class="text-base font-semibold">{score.score}</span>
                                 </a>
                             {/each}
                         </div>
                     {:else if ratingsLoading}
-                        <div class="flex gap-3">
+                        <div class="flex gap-4">
                             {#each [1, 2, 3] as _}
-                                <div class="h-5 w-12 animate-pulse rounded bg-white/10"></div>
+                                <div class="h-6 w-14 animate-pulse rounded bg-white/10"></div>
                             {/each}
                         </div>
                     {/if}
 
                     <!-- Description -->
-                    <p class="max-w-2xl text-sm leading-relaxed text-white/60">
+                    <p class="max-w-4xl text-base leading-relaxed text-white/60">
                         {data.mediaDetails?.details.overview}
                     </p>
-
-                    <!-- Top Cast -->
-                    {#if data.mediaDetails?.details.cast?.length}
-                        <div class="flex flex-col gap-2">
-                            <span class="text-xs font-medium tracking-wide text-white/50 uppercase"
-                                >Top Cast</span>
-                            <div class="flex flex-wrap gap-3">
-                                {#each data.mediaDetails?.details.cast.slice(0, 6) as cast (cast.id)}
-                                    <a
-                                        href="/details/person/{cast.id}"
-                                        class="group flex items-center gap-2 transition-colors hover:text-white">
-                                        <Tooltip>
-                                            {#snippet trigger()}
-                                                <div
-                                                    class="size-9 overflow-hidden rounded-full ring-2 ring-white/20 transition-all group-hover:ring-white/40 md:size-10">
-                                                    <img
-                                                        alt={cast.name}
-                                                        class="h-full w-full object-cover"
-                                                        src={cast.profile_path ||
-                                                            "https://i.pravatar.cc/200"}
-                                                        loading="lazy" />
-                                                </div>
-                                            {/snippet}
-                                            {#snippet content()}
-                                                <p class="text-sm font-medium">
-                                                    {cast.name} as {cast.character}
-                                                </p>
-                                            {/snippet}
-                                        </Tooltip>
-                                        <span
-                                            class="text-xs text-white/70 group-hover:text-white md:text-sm"
-                                            >{cast.name}</span>
-                                    </a>
-                                {/each}
-                            </div>
-                        </div>
-                    {/if}
                 </div>
             </div>
 
@@ -832,6 +795,30 @@
                             </Drawer.Root>
                         {/each}
                     </div>
+                </section>
+            {/if}
+
+            <!-- Cast -->
+            {#if data.mediaDetails?.details.cast?.length}
+                <section class="mt-8">
+                    <h2 class="mb-4 text-xl font-bold tracking-tight drop-shadow-md">Cast</h2>
+                    <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
+                        <Carousel.Content class="-ml-3">
+                            {#each data.mediaDetails.details.cast as member (member.id)}
+                                <Carousel.Item class="basis-auto pl-3">
+                                    <a
+                                        href="/details/person/{member.id}"
+                                        class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
+                                        <PortraitCard
+                                            title={member.name}
+                                            subtitle={member.character}
+                                            image={member.profile_path}
+                                            class="w-32 md:w-36 lg:w-40" />
+                                    </a>
+                                </Carousel.Item>
+                            {/each}
+                        </Carousel.Content>
+                    </Carousel.Root>
                 </section>
             {/if}
 
