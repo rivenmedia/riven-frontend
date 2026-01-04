@@ -14,11 +14,11 @@
             dragFree: true,
             slidesToScroll: "auto"
         }}
-        class="mt-1.5"
+        class="mt-0"
         setApi={(emblaApi) => (api = emblaApi)}>
-        <Carousel.Content>
+        <Carousel.Content class="-ml-3">
             {#each data as item (item.id)}
-                <Carousel.Item class="max-w-max">
+                <Carousel.Item class="max-w-max pl-3">
                     <ListItem
                         data={item}
                         indexer={indexer || item.indexer}
