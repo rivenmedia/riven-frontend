@@ -96,7 +96,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
     }
 }
 
-export const load = (async ({ fetch, params, cookies, locals }) => {
+export const load = (async ({ fetch, params, cookies, locals, url }) => {
     const { id, mediaType } = params;
     const customFetch = createCustomFetch(fetch);
 
@@ -163,22 +163,33 @@ export const load = (async ({ fetch, params, cookies, locals }) => {
         } else if (mediaType === "tv") {
             const tvdbToken = cookies.get("tvdb_cookie") || "";
 
-            // Resolve TMDB ID to TVDB ID
-            const resolved = await resolveId({
-                from: "tmdb",
-                to: "tvdb",
-                id: Number(id),
-                mediaType: "tv",
-                tvdbToken,
-                customFetch
-            });
+            // Check if the ID is already a TVDB ID (passed via query param from library)
+            const indexerParam = url.searchParams.get("indexer");
+            const isAlreadyTvdbId = indexerParam === "tvdb";
 
-            if (!resolved.resolved) {
-                logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`);
-                error(502, "Unable to resolve TV show ID. Please try again later.");
+            let tvdbId: number;
+
+            if (isAlreadyTvdbId) {
+                // ID is already a TVDB ID, no resolution needed
+                tvdbId = Number(id);
+            } else {
+                // Resolve TMDB ID to TVDB ID
+                const resolved = await resolveId({
+                    from: "tmdb",
+                    to: "tvdb",
+                    id: Number(id),
+                    mediaType: "tv",
+                    tvdbToken,
+                    customFetch
+                });
+
+                if (!resolved.resolved) {
+                    logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`);
+                    error(502, "Unable to resolve TV show ID. Please try again later.");
+                }
+
+                tvdbId = Number(resolved.id);
             }
-
-            const tvdbId = Number(resolved.id);
 
             // Fetch Riven data based on TVDB ID
             const rivenPromise = providers.riven

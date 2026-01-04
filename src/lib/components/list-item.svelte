@@ -18,7 +18,9 @@
     let mediaURL = $derived.by(() => {
         if (!data.id) return "javascript:void(0)";
         if ((indexer === "tmdb" || indexer === "tvdb") && (type === "movie" || type === "tv")) {
-            return `/details/media/${data.id}/${type}`;
+            // Include indexer as query param when it's tvdb so details page knows to skip resolution
+            const queryParam = indexer === "tvdb" ? "?indexer=tvdb" : "";
+            return `/details/media/${data.id}/${type}${queryParam}`;
         }
         return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
     });

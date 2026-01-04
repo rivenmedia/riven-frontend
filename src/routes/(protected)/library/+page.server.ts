@@ -15,34 +15,45 @@ function extractYear(airedAt: string | null): number | string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformItems(items: any[]) {
-    return items.map((item) => ({
-        id:
-            item.type === "movie"
-                ? item.tmdb_id
-                : item.type === "show"
-                  ? item.tvdb_id
-                  : item.type === "season"
-                    ? item.parent_ids.tvdb_id
-                    : item.type === "episode"
-                      ? item.parent_ids.tvdb_id
-                      : null,
-        title: item.title,
-        poster_path: item.poster_path,
-        media_type: item.type,
-        year: extractYear(item.aired_at),
-        indexer: item.type === "movie" ? "tmdb" : "tvdb",
-        type:
-            item.type === "movie"
-                ? "movie"
-                : item.type === "show"
-                  ? "show"
-                  : item.type === "season"
-                    ? "season"
-                    : item.type === "episode"
-                      ? "episode"
-                      : "unknown",
-        riven_id: item.id
-    }));
+    return items.map((item) => {
+        // Determine ID and indexer for navigation
+        // Movies use TMDB, Shows use TVDB (skip resolution)
+        let id: string | number | null = null;
+        let indexer: "tmdb" | "tvdb" = "tmdb";
+
+        if (item.type === "movie") {
+            id = item.tmdb_id;
+            indexer = "tmdb";
+        } else if (item.type === "show") {
+            // Shows use TVDB directly - skip TMDB->TVDB resolution
+            id = item.tvdb_id;
+            indexer = "tvdb";
+        } else if (item.type === "season" || item.type === "episode") {
+            // Seasons/episodes use parent's TVDB ID
+            id = item.parent_ids?.tvdb_id;
+            indexer = "tvdb";
+        }
+
+        return {
+            id,
+            title: item.title,
+            poster_path: item.poster_path,
+            media_type: item.type,
+            year: extractYear(item.aired_at),
+            indexer,
+            type:
+                item.type === "movie"
+                    ? "movie"
+                    : item.type === "show"
+                      ? "show"
+                      : item.type === "season"
+                        ? "season"
+                        : item.type === "episode"
+                          ? "episode"
+                          : "unknown",
+            riven_id: item.id
+        };
+    });
 }
 
 export const load: PageServerLoad = async (event) => {
