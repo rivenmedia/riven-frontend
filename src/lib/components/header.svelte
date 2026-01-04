@@ -97,7 +97,7 @@
             </ButtonGroup.Root>
         </div>
 
-        <div class="flex items-center">
+        <div class="flex items-center gap-1">
             <NotificationCenter />
 
             <Button

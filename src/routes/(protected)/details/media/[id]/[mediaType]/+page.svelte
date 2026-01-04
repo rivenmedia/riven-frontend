@@ -286,12 +286,16 @@
                         {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
                             <ItemRequest
                                 size="default"
-                                class="bg-primary hover:bg-primary/90 px-4 font-bold shadow-md"
+                                variant="outline"
+                                class="border-white/20 bg-white/10 px-4 font-medium text-white backdrop-blur-sm hover:bg-white/20"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                seasons={getSeasonData()} />
+                                seasons={getSeasonData()}>
+                                <Download class="mr-1.5 h-4 w-4" />
+                                Request
+                            </ItemRequest>
                             <ItemManualScrape
                                 size="default"
                                 variant="secondary"

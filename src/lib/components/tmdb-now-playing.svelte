@@ -7,206 +7,283 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
 
     let api = $state<CarouselAPI>();
+    const autoplayDelay = 5000;
     let autoplayPlugin = Autoplay({
-        delay: 5000,
+        delay: autoplayDelay,
         stopOnInteraction: false
     });
-    let currentProgress = $state(0);
+
     let currentIndex = $state(0);
-    let autoplayDelay = 5000;
-    let progressInterval: number;
-    let slideStartTime = $state(Date.now());
 
     let { data = [] } = $props();
 
-    function setupProgressTracking() {
-        if (api) {
-            api.on("select", () => {
-                currentProgress = 0;
-                slideStartTime = Date.now();
-                currentIndex = api!.selectedScrollSnap();
+    function setupCarouselEvents() {
+        if (!api) return;
 
-                // Reset the autoplay timer when manually switching slides
-                if (autoplayPlugin) {
-                    autoplayPlugin.reset();
-                }
-            });
+        api.on("select", () => {
+            currentIndex = api!.selectedScrollSnap();
+        });
 
-            if (progressInterval) clearInterval(progressInterval);
-
-            progressInterval = window.setInterval(() => {
-                const elapsed = Date.now() - slideStartTime;
-                currentProgress = Math.min((elapsed / autoplayDelay) * 100, 100);
-            }, 16);
-        }
+        currentIndex = api.selectedScrollSnap();
     }
 
     onMount(() => {
-        if (api) {
-            setupProgressTracking();
-        }
-    });
-
-    onDestroy(() => {
-        if (progressInterval) clearInterval(progressInterval);
+        if (api) setupCarouselEvents();
     });
 
     $effect(() => {
-        if (api) {
-            setupProgressTracking();
-        }
+        if (api) setupCarouselEvents();
     });
 </script>
 
 {#if Array.isArray(data) && data.length > 0}
-    <Carousel.Root
-        setApi={(emblaApi) => (api = emblaApi)}
-        plugins={[autoplayPlugin]}
-        opts={{ loop: true }}
-        class="relative">
-        <Carousel.Content>
-            {#each data as item (item.id)}
-                <Carousel.Item class="relative h-110 w-full">
-                    <img
-                        src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
-                        alt={item.title || item.original_title}
-                        class="w-full object-cover object-center select-none max-md:h-full"
-                        loading="lazy" />
-                    <div
-                        class="from-background via-background/60 absolute inset-0 z-1 flex bg-linear-to-t to-transparent select-none">
-                    </div>
+    <div class="relative overflow-hidden rounded-2xl border border-white/5 shadow-2xl">
+        <Carousel.Root
+            setApi={(emblaApi) => (api = emblaApi)}
+            plugins={[autoplayPlugin]}
+            opts={{ loop: true }}
+            class="relative">
+            <Carousel.Content>
+                {#each data as item, index (item.id)}
+                    {@const isTV = item.media_type === "tv"}
+                    {@const mediaType = isTV ? "tv" : "movie"}
+                    <Carousel.Item class="relative h-[420px] w-full">
+                        <!-- Backdrop Image -->
+                        <img
+                            src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
+                            alt={item.title}
+                            class="h-full w-full object-cover object-top select-none"
+                            loading="lazy" />
 
-                    <div class="absolute inset-0 z-2 mt-14 flex flex-col gap-4">
-                        <div class="flex h-full w-full flex-col justify-end gap-2 p-9 md:px-20">
-                            <div class="w-full max-w-2xl select-none">
-                                <h1
-                                    class="text-3xl leading-tight font-medium wrap-break-word drop-shadow-lg md:text-4xl">
-                                    {item.title || item.original_title}
-                                </h1>
-                                <div class="mt-2 flex items-center gap-1.5 select-none">
-                                    <p class="text-sm">Movie</p>
-
-                                    <span class="text-muted-foreground text-sm">•</span>
-
-                                    <span class="text-sm">
-                                        {getSeasonAndYear(item.release_date || item.first_air_date)}
-                                    </span>
-
-                                    <span class="text-muted-foreground text-sm">•</span>
-
-                                    <p class="text-sm">
-                                        {item.vote_average ? item.vote_average.toFixed(1) : "N/A"} / 10
-                                    </p>
-
-                                    <span class="text-muted-foreground text-sm">•</span>
-
-                                    <p class="text-sm">
-                                        {item.original_language.toUpperCase()}
-                                    </p>
-                                </div>
-                                <p class="text-muted-foreground mt-1 line-clamp-2 text-sm">
-                                    {item.overview || "No overview available."}
-                                </p>
-                                <div class="mt-1.5 flex flex-wrap items-center">
-                                    {#each item.genre_ids as genreId (genreId)}
-                                        {#if TMDB_GENRES[genreId]}
-                                            <Badge
-                                                variant="outline"
-                                                class="mt-2 mr-1 border-white/20 bg-white/10 backdrop-blur-sm transition-all duration-200 hover:bg-white/20">
-                                                {TMDB_GENRES[genreId]}
-                                            </Badge>
-                                        {/if}
-                                    {/each}
-                                </div>
-                            </div>
-                            <div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
-                                <Button
-                                    href="/watch/{item.id}"
-                                    class="bg-foreground text-background hover:bg-foreground/90 w-full px-8 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl md:w-auto"
-                                    >Request</Button>
-                                <Button
-                                    variant="link"
-                                    href="/details/media/{item.id}/movie"
-                                    class="w-full bg-white/5 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 md:w-auto"
-                                    >View Details</Button>
-                            </div>
+                        <!-- Gradient Overlay -->
+                        <div
+                            class="from-background via-background/90 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent">
                         </div>
-                    </div>
-                </Carousel.Item>
-            {/each}
-        </Carousel.Content>
 
-        <div class="absolute inset-y-0 left-2 z-10 flex items-center">
-            <Carousel.Previous
-                class="h-8 w-8 rounded-full border border-white/10 bg-black/50 p-1.5 opacity-75 backdrop-blur-md transition-all duration-200 hover:scale-110 hover:opacity-100" />
-        </div>
-        <div class="absolute inset-y-0 right-2 z-10 flex items-center">
-            <Carousel.Next
-                class="h-8 w-8 rounded-full border border-white/10 bg-black/50 p-1.5 opacity-75 backdrop-blur-md transition-all duration-200 hover:scale-110 hover:opacity-100" />
-        </div>
+                        <!-- Text Content with Netflix-style reveal -->
+                        {#key currentIndex === index ? currentIndex : -1}
+                            <div
+                                class="slide-content absolute inset-0 z-10 flex flex-col justify-end px-16 py-8 md:px-20 md:py-12">
+                                <div class="w-full max-w-2xl">
+                                    <!-- Title -->
+                                    <h1
+                                        class="reveal-1 text-3xl leading-tight font-semibold tracking-tight whitespace-nowrap drop-shadow-2xl md:text-4xl">
+                                        {item.title || "Untitled"}
+                                    </h1>
 
+                                    <!-- Metadata Row -->
+                                    <div
+                                        class="reveal-2 mt-3 flex flex-wrap items-center gap-2 text-sm text-white/80">
+                                        <span
+                                            class="rounded-md bg-white/15 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+                                            {isTV ? "TV Show" : "Movie"}
+                                        </span>
+                                        <span class="text-white/50">•</span>
+                                        <span
+                                            >{getSeasonAndYear(
+                                                item.release_date || item.first_air_date
+                                            )}</span>
+                                        <span class="text-white/50">•</span>
+                                        <span
+                                            >{item.vote_average
+                                                ? item.vote_average.toFixed(1)
+                                                : "N/A"}/10</span>
+                                        {#if item.original_language}
+                                            <span class="text-white/50">•</span>
+                                            <span class="uppercase">{item.original_language}</span>
+                                        {/if}
+                                    </div>
+
+                                    <!-- Overview -->
+                                    <p
+                                        class="reveal-3 mt-3 line-clamp-2 text-sm text-white/60 md:text-base">
+                                        {item.overview || "No overview available."}
+                                    </p>
+
+                                    <!-- Genres -->
+                                    {#if item.genre_ids?.length}
+                                        <div class="reveal-4 mt-4 flex flex-wrap gap-2">
+                                            {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
+                                                {#if TMDB_GENRES[genreId]}
+                                                    <Badge
+                                                        variant="outline"
+                                                        class="border-white/20 bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20">
+                                                        {TMDB_GENRES[genreId]}
+                                                    </Badge>
+                                                {/if}
+                                            {/each}
+                                        </div>
+                                    {/if}
+
+                                    <!-- Action Buttons -->
+                                    <div class="reveal-5 mt-6 flex flex-wrap gap-3">
+                                        <Button
+                                            href="/watch/{item.id}"
+                                            size="lg"
+                                            class="bg-white text-black shadow-xl transition-all duration-200 hover:scale-105 hover:bg-white/90">
+                                            Request
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            href="/details/media/{item.id}/{mediaType}"
+                                            class="border-white/20 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20">
+                                            View Details
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        {/key}
+                    </Carousel.Item>
+                {/each}
+            </Carousel.Content>
+        </Carousel.Root>
+
+        <!-- Navigation Arrows -->
+        <button
+            class="absolute top-1/2 left-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/80 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/60 hover:text-white"
+            onclick={() => api?.scrollPrev()}
+            aria-label="Previous slide">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="h-5 w-5">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <button
+            class="absolute top-1/2 right-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/80 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/60 hover:text-white"
+            onclick={() => api?.scrollNext()}
+            aria-label="Next slide">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="h-5 w-5">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+
+        <!-- Progress Indicator -->
         <div
-            class="absolute left-1/2 z-10 hidden w-full max-w-xs -translate-x-1/2 items-center justify-center gap-3 rounded-full border border-white/10 bg-black/20 px-4 py-2 backdrop-blur-md md:bottom-10 lg:flex">
-            <div class="text-xs font-medium whitespace-nowrap text-white/90">
-                {currentIndex + 1}/{data.length}
-            </div>
+            class="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/40 px-5 py-2.5 backdrop-blur-md lg:flex">
+            <span class="text-xs font-medium text-white/80">{currentIndex + 1}/{data.length}</span>
 
-            <div class="flex gap-1">
+            <div class="flex gap-1.5">
                 {#each data as _, i}
                     <button
-                        class="h-1.5 w-1.5 cursor-pointer rounded-full transition-all duration-200 {i ===
+                        class="h-2 w-2 cursor-pointer rounded-full transition-all duration-300 {i ===
                         currentIndex
-                            ? 'scale-125 bg-white'
-                            : 'bg-white/50 hover:bg-white/70'}"
+                            ? 'scale-110 bg-white'
+                            : 'bg-white/40 hover:bg-white/60'}"
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
                     </button>
                 {/each}
             </div>
 
-            <div class="h-1 w-24 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm">
-                <div
-                    class="h-full bg-white shadow-sm transition-all duration-100"
-                    style="width: {currentProgress}%">
-                </div>
+            <div class="h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
+                {#key currentIndex}
+                    <div class="progress-bar-fill h-full bg-white"></div>
+                {/key}
             </div>
         </div>
-    </Carousel.Root>
+    </div>
 {:else}
-    <div class="relative h-96 w-full">
-        <div class="absolute inset-0 animate-pulse bg-linear-to-t from-neutral-950 to-neutral-800">
+    <div class="relative h-[420px] w-full overflow-hidden rounded-2xl">
+        <div
+            class="absolute inset-0 animate-pulse bg-gradient-to-t from-neutral-950 to-neutral-800">
         </div>
 
-        <div class="absolute inset-0 z-2 flex flex-col gap-4">
-            <div class="flex h-full w-full flex-col justify-end gap-2 p-8 md:px-16">
-                <div class="w-full max-w-2xl">
-                    <Skeleton class="mb-2 h-9 w-3/4" />
-
-                    <div class="mt-2 flex items-center gap-4">
-                        <Skeleton class="h-4 w-12" />
-                        <Skeleton class="h-4 w-24" />
-                        <Skeleton class="h-4 w-16" />
-                        <Skeleton class="h-4 w-8" />
-                    </div>
-
-                    <Skeleton class="mt-3 mb-1 h-4 w-full" />
-                    <Skeleton class="mb-3 h-4 w-5/6" />
-
-                    <div class="mt-1.5 flex items-center gap-2">
-                        <Skeleton class="h-6 w-16 rounded-full" />
-                        <Skeleton class="h-6 w-20 rounded-full" />
-                        <Skeleton class="h-6 w-14 rounded-full" />
-                    </div>
-
-                    <div class="mt-4 flex flex-col items-center gap-2 md:flex-row">
-                        <Skeleton class="h-10 w-28" />
-                        <Skeleton class="h-10 w-28" />
-                    </div>
+        <div class="absolute inset-0 z-2 flex flex-col justify-end p-8 md:p-12">
+            <div class="w-full max-w-xl">
+                <Skeleton class="mb-3 h-12 w-3/4" />
+                <div class="flex items-center gap-3">
+                    <Skeleton class="h-5 w-16" />
+                    <Skeleton class="h-5 w-24" />
+                    <Skeleton class="h-5 w-12" />
+                </div>
+                <Skeleton class="mt-4 h-4 w-full" />
+                <Skeleton class="mt-2 h-4 w-4/5" />
+                <div class="mt-4 flex gap-2">
+                    <Skeleton class="h-7 w-20 rounded-full" />
+                    <Skeleton class="h-7 w-24 rounded-full" />
+                </div>
+                <div class="mt-6 flex gap-3">
+                    <Skeleton class="h-11 w-28" />
+                    <Skeleton class="h-11 w-32" />
                 </div>
             </div>
         </div>
     </div>
 {/if}
+
+<style>
+    /* Netflix-style staggered reveal animation */
+    @keyframes slide-reveal {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Progress bar animation - synced to autoplay delay */
+    @keyframes progress-fill {
+        from {
+            width: 0%;
+        }
+        to {
+            width: 100%;
+        }
+    }
+
+    .slide-content .reveal-1 {
+        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0.1s;
+        opacity: 0;
+    }
+
+    .slide-content .reveal-2 {
+        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0.2s;
+        opacity: 0;
+    }
+
+    .slide-content .reveal-3 {
+        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0.3s;
+        opacity: 0;
+    }
+
+    .slide-content .reveal-4 {
+        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0.4s;
+        opacity: 0;
+    }
+
+    .slide-content .reveal-5 {
+        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0.5s;
+        opacity: 0;
+    }
+
+    .progress-bar-fill {
+        animation: progress-fill 5s linear forwards;
+    }
+</style>
