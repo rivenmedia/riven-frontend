@@ -3,11 +3,20 @@ import { createScopedLogger } from "$lib/logger";
 
 const logger = createScopedLogger("id-resolver");
 
-/** Safely extracts a string or number field from an unknown object */
+/** Safely extracts a string or number field from an unknown object, checking both root and external_ids */
 function extractId(data: unknown, field: string): string | number | null {
     if (data == null || typeof data !== "object") return null;
-    const value = (data as Record<string, unknown>)[field];
-    if (typeof value === "string" || typeof value === "number") return value;
+    const record = data as Record<string, unknown>;
+
+    // Check direct field
+    if (record[field] != null) return record[field] as string | number;
+
+    // Check inside external_ids
+    if (record.external_ids && typeof record.external_ids === "object") {
+        const ext = record.external_ids as Record<string, unknown>;
+        if (ext[field] != null) return ext[field] as string | number;
+    }
+
     return null;
 }
 
@@ -23,6 +32,8 @@ export interface ResolveOptions {
     customFetch: typeof fetch;
     rivenBaseUrl?: string;
     rivenApiKey?: string;
+    /** Optional existing data (e.g. from a previous fetch) to avoid redundant requests */
+    data?: Record<string, unknown>;
 }
 
 export interface ResolveResult {
@@ -95,6 +106,13 @@ async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
 
     // Primary: TMDB external_ids
     try {
+        // Try to extract from existing data first
+        if (options.data) {
+            const foundId = extractId(options.data, "tvdb_id");
+            if (foundId != null) return { id: Number(foundId), resolved: true };
+        }
+
+        // Fetch if not found
         const { data, error } = await getTvExternalIds(tmdbId, customFetch);
         if (!error && data?.tvdb_id) {
             return { id: data.tvdb_id, resolved: true };
@@ -152,10 +170,17 @@ async function tmdbToImdb(options: ResolveOptions): Promise<ResolveResult> {
     const tmdbId = Number(id);
 
     try {
+        // Try to extract from existing data first
+        if (options.data) {
+            const foundId = extractId(options.data, "imdb_id");
+            if (foundId != null) return { id: String(foundId), resolved: true };
+        }
+
         const { data } =
             mediaType === "movie"
                 ? await getMovieExternalIds(tmdbId, customFetch)
                 : await getTvExternalIds(tmdbId, customFetch);
+
         if (data?.imdb_id) {
             return { id: data.imdb_id, resolved: true };
         }

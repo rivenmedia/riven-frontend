@@ -3,6 +3,7 @@ import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
+import { resolveId } from "$lib/services/resolver";
 import * as dateUtils from "$lib/utils/date";
 
 const logger = createScopedLogger("ratings");
@@ -233,9 +234,20 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
                 };
             }
 
-            // Get IMDB ID from external_ids (appended via append_to_response)
-            const externalIds = data.external_ids as { imdb_id?: string } | undefined;
-            imdbId = externalIds?.imdb_id || null;
+            // Get IMDB ID using the consolidated resolver
+            // Pass the already fetched data to avoid redundant API calls
+            const resolvedImdb = await resolveId({
+                from: "tmdb",
+                to: "imdb",
+                id: Number(tmdbId),
+                mediaType,
+                customFetch,
+                data: data
+            });
+
+            if (resolvedImdb.resolved) {
+                imdbId = String(resolvedImdb.id);
+            }
         }
     } catch (e) {
         logger.error("[ratings] TMDB fetch failed:", e);
