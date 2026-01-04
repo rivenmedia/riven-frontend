@@ -67,12 +67,12 @@
 
 <div
     class={cn(
-        "group relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl bg-white/5 shadow-md transition-[transform,shadow] duration-500 contain-content [content-visibility:auto] hover:scale-105 hover:shadow-xl",
+        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-md transition-[transform,shadow] duration-500 contain-content [content-visibility:auto] hover:scale-105 hover:shadow-xl",
         className
     )}>
     <!-- Inner Border Overlay -->
     <div
-        class="pointer-events-none absolute inset-0 z-50 rounded-xl border border-white/10 transition-colors duration-500 group-hover:border-white/20">
+        class="border-border/50 group-hover:border-border pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-500">
     </div>
 
     <div class="relative aspect-video w-full flex-grow overflow-hidden">
@@ -96,13 +96,13 @@
 
         <div class="absolute inset-0 flex flex-col justify-end">
             <div
-                class="absolute inset-0 bg-black/90 backdrop-blur-3xl"
+                class="bg-background/90 absolute inset-0 backdrop-blur-3xl"
                 style="mask-image: linear-gradient(to bottom, transparent 20%, black 80%);">
             </div>
 
             <div class="relative z-10 flex flex-col gap-1.5 p-4">
                 <h3
-                    class="relative z-20 line-clamp-1 text-lg font-extrabold text-white drop-shadow-md">
+                    class="text-foreground relative z-20 line-clamp-1 text-lg font-extrabold drop-shadow-md">
                     {#if episodeNumber}
                         <span class="text-primary mr-2 drop-shadow-md">{episodeNumber}.</span>
                     {/if}
@@ -115,12 +115,12 @@
                         {#if loading || (!ratingsData && !error && initialRating)}
                             {#if initialRating}
                                 <div
-                                    class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/80">
+                                    class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
                                     <Star size={12} class="fill-yellow-500 text-yellow-500" />
                                     {initialRating.toFixed(1)}
                                 </div>
                             {:else}
-                                <div class="h-5 w-12 animate-pulse rounded bg-white/10"></div>
+                                <div class="bg-muted h-5 w-12 animate-pulse rounded"></div>
                             {/if}
                         {:else if ratingsData?.scores?.length}
                             {#each ratingsData.scores as score (score.name)}
@@ -129,7 +129,7 @@
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onclick={(e) => e.stopPropagation()}
-                                    class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/80 transition-colors hover:bg-white/20">
+                                    class="border-border bg-muted/50 text-foreground/80 hover:bg-muted flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors">
                                     {#if score.image}
                                         <img
                                             src="/rating-logos/{score.image}"
@@ -141,7 +141,7 @@
                             {/each}
                         {:else if initialRating}
                             <div
-                                class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/80">
+                                class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
                                 <Star size={12} class="fill-yellow-500 text-yellow-500" />
                                 {initialRating.toFixed(1)}
                             </div>
@@ -151,7 +151,7 @@
 
                 {#if overview}
                     <div
-                        class="grid grid-rows-[0fr] text-sm text-white/80 opacity-0 transition-[grid-template-rows,opacity] duration-500 will-change-[grid-template-rows] group-hover:grid-rows-[1fr] group-hover:opacity-100">
+                        class="text-muted-foreground grid grid-rows-[0fr] text-sm opacity-0 transition-[grid-template-rows,opacity] duration-500 will-change-[grid-template-rows] group-hover:grid-rows-[1fr] group-hover:opacity-100">
                         <p class="line-clamp-3 overflow-hidden">
                             {overview}
                         </p>

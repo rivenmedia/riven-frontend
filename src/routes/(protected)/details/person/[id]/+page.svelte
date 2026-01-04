@@ -173,7 +173,7 @@
             {/if}
 
             <div
-                class="border-border/50 mt-6 flex flex-col rounded-xl border bg-black/40 px-6 py-6 shadow-lg backdrop-blur-md md:flex-row">
+                class="border-border/50 bg-background/60 mt-6 flex flex-col rounded-xl border px-6 py-6 shadow-lg backdrop-blur-md md:flex-row">
                 <div class="mb-6 flex justify-center md:mr-6 md:mb-0 md:justify-start">
                     {#if data.person.profile_path}
                         <img
@@ -183,7 +183,7 @@
                             loading="lazy" />
                     {:else}
                         <div
-                            class="flex h-64 w-48 items-center justify-center rounded-lg border border-white/10 bg-white/5 shadow-md backdrop-blur-md md:h-80 md:w-56 lg:h-96 lg:w-64">
+                            class="border-border bg-muted flex h-64 w-48 items-center justify-center rounded-lg border shadow-md backdrop-blur-md md:h-80 md:w-56 lg:h-96 lg:w-64">
                             <Mountain size={48} class="opacity-50" />
                         </div>
                     {/if}
@@ -215,7 +215,7 @@
                     <div class="mb-4 flex flex-col gap-2">
                         {#if data.person.birthday}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs font-semibold">Born</p>
+                                <p class="text-muted-foreground text-xs font-semibold">Born</p>
                                 <p class="text-sm">
                                     {formatDate(data.person.birthday)}{#if !data.person.deathday}
                                         (age {calculateAge(data.person.birthday)}){/if}
@@ -224,7 +224,7 @@
                         {/if}
                         {#if data.person.deathday}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs font-semibold">Died</p>
+                                <p class="text-muted-foreground text-xs font-semibold">Died</p>
                                 <p class="text-sm">
                                     {formatDate(data.person.deathday)} (age {calculateAge(
                                         data.person.birthday,
@@ -235,7 +235,7 @@
                         {/if}
                         {#if data.person.place_of_birth}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs font-semibold">
+                                <p class="text-muted-foreground text-xs font-semibold">
                                     Place of Birth
                                 </p>
                                 <p class="text-sm">{data.person.place_of_birth}</p>
@@ -243,7 +243,7 @@
                         {/if}
                         {#if data.person.also_known_as?.length}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs font-semibold">
+                                <p class="text-muted-foreground text-xs font-semibold">
                                     Also Known As
                                 </p>
                                 <p class="text-sm">{data.person.also_known_as.join(", ")}</p>
@@ -251,7 +251,7 @@
                         {/if}
                         {#if data.person.imdb_id}
                             <div class="flex flex-col gap-1">
-                                <p class="text-primary-foreground/70 text-xs font-semibold">
+                                <p class="text-muted-foreground text-xs font-semibold">
                                     External Links
                                 </p>
                                 <a
@@ -306,10 +306,10 @@
     credits: Array<{
         id: number;
         title: string;
-        character?: string;
-        job?: string;
+        character?: string | null;
+        job?: string | null;
         year?: number;
-        poster_path?: string;
+        poster_path?: string | null;
         media_type: string;
     }>
 )}
@@ -321,7 +321,7 @@
                 title={credit.title}
                 subtitle={`${credit.character ? `as ${credit.character}` : (credit.job ?? "")}${credit.year ? ` • ${credit.year}` : ""}` ||
                     null}
-                image={credit.poster_path} />
+                image={credit.poster_path ?? null} />
         </a>
     {/each}
 {/snippet}

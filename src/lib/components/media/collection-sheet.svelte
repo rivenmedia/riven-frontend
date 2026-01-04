@@ -116,9 +116,9 @@
                             src={collectionData.backdrop_path}
                             alt={collectionData.name}
                             class="h-full w-full object-cover" />
-                        <div class="absolute inset-0 bg-black/40"></div>
+                        <div class="bg-background/60 absolute inset-0"></div>
                         <div class="absolute right-4 bottom-4 left-4">
-                            <p class="line-clamp-3 text-sm font-medium text-white/90">
+                            <p class="text-foreground line-clamp-3 text-sm font-medium">
                                 {collectionData.overview}
                             </p>
                         </div>
@@ -144,7 +144,7 @@
                                 {#snippet meta()}
                                     {#if part.year}
                                         <span
-                                            class="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/80">
+                                            class="border-border bg-muted/50 text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
                                             {part.year}
                                         </span>
                                     {/if}
@@ -157,7 +157,7 @@
         </div>
 
         {#if collectionData?.parts?.length}
-            <Sheet.Footer class="border-t border-white/10 px-6 pt-4">
+            <Sheet.Footer class="border-border border-t px-6 pt-4">
                 <Button onclick={requestAll} disabled={requestLoading} class="w-full">
                     {#if requestLoading}
                         <Loader2 class="mr-2 size-4 animate-spin" />

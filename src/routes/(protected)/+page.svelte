@@ -71,7 +71,7 @@
                     value={trendingMoviesStore?.timeWindow ?? "day"}
                     onchange={(v) => trendingMoviesStore?.changeTimeWindow(v as "day" | "week")} />
                 <Button
-                    class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                    class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
                     variant="ghost"
                     href="/lists/trending/movie">View All</Button>
             </div>
@@ -91,7 +91,7 @@
                     value={trendingShowsStore?.timeWindow ?? "day"}
                     onchange={(v) => trendingShowsStore?.changeTimeWindow(v as "day" | "week")} />
                 <Button
-                    class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                    class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
                     variant="ghost"
                     href="/lists/trending/tv">View All</Button>
             </div>
@@ -103,7 +103,7 @@
         <div class="mb-3 flex items-center justify-between">
             {@render listHeading("Trending Anime")}
             <Button
-                class="text-muted-foreground h-9 w-20 rounded-full border border-white/5 bg-black/20 text-xs backdrop-blur-md hover:bg-white/10 hover:text-white"
+                class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
                 variant="ghost"
                 href="/lists/trending/anime">View All</Button>
         </div>

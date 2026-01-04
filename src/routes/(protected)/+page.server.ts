@@ -22,8 +22,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
         // Filter to only movies and TV shows with backdrops
         const filtered = (data?.results ?? []).filter(
             (item: any) =>
-                (item.media_type === "movie" || item.media_type === "tv") &&
-                item.backdrop_path
+                (item.media_type === "movie" || item.media_type === "tv") && item.backdrop_path
         );
 
         return {

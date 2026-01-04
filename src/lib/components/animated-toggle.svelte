@@ -52,14 +52,14 @@
 
 <div
     bind:this={container}
-    class="relative flex w-fit items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1 backdrop-blur-md">
+    class="border-border/50 bg-background/50 relative flex w-fit items-center gap-1 rounded-full border p-1 backdrop-blur-md">
     <!-- Layer 1: Inactive State (Base Layer) & Layout Driver -->
     {#each options as option, i}
         <div bind:this={elements[i]} class="relative z-0 flex flex-1 items-center justify-center">
             <Button
                 variant="ghost"
                 size="sm"
-                class="h-7 w-full rounded-full px-4 text-xs font-bold text-neutral-400 transition-colors hover:bg-transparent hover:text-white"
+                class="text-muted-foreground hover:text-foreground h-7 w-full rounded-full px-4 text-xs font-bold transition-colors hover:bg-transparent"
                 onclick={() => {
                     onchange(option.value);
                     updatePosition(option.value);
@@ -72,7 +72,7 @@
     <!-- Layer 2: Active State (Masked Overlay) -->
     <!-- The pill acts as a window into the "Active" world -->
     <div
-        class="pointer-events-none absolute top-1 bottom-1 left-0 z-10 overflow-hidden rounded-full bg-white shadow-lg"
+        class="bg-primary pointer-events-none absolute top-1 bottom-1 left-0 z-10 overflow-hidden rounded-full shadow-lg"
         style="transform: translateX({styles.current.x}px); width: {styles.current.w}px">
         <!-- Inner Container: Inverse translation to keep text static relative to parent -->
         <div
@@ -87,7 +87,7 @@
                         variant="ghost"
                         size="sm"
                         tabindex="-1"
-                        class="h-7 w-full rounded-full px-4 text-xs font-bold text-black hover:bg-transparent hover:text-black">
+                        class="text-primary-foreground hover:text-primary-foreground h-7 w-full rounded-full px-4 text-xs font-bold hover:bg-transparent">
                         {option.label}
                     </Button>
                 </div>

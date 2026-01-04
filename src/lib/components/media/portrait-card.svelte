@@ -31,10 +31,10 @@
     }: Props = $props();
 </script>
 
-<div
-    class={cn("relative aspect-[2/3] overflow-hidden rounded-lg bg-zinc-900 shadow-md", className)}>
+<div class={cn("bg-card relative aspect-[2/3] overflow-hidden rounded-lg shadow-md", className)}>
     <!-- Inner Border Overlay -->
-    <div class="pointer-events-none absolute inset-0 z-50 rounded-[inherit] border border-white/10">
+    <div
+        class="border-border/50 pointer-events-none absolute inset-0 z-50 rounded-[inherit] border">
     </div>
     {#if isSelectable}
         <button
@@ -43,9 +43,9 @@
                 e.stopPropagation();
                 onSelectToggle?.();
             }}
-            class="absolute top-2 left-2 z-20 flex size-4 items-center justify-center rounded-full border-2 border-white bg-black/50 hover:bg-black/70"
+            class="border-primary bg-background/60 hover:bg-background/80 absolute top-2 left-2 z-20 flex size-4 items-center justify-center rounded-full border-2"
             aria-label="Select item">
-            {#if isSelected}<Circle class="size-2 fill-white text-white" />{/if}
+            {#if isSelected}<Circle class="fill-primary text-primary size-2" />{/if}
         </button>
     {/if}
 
@@ -56,7 +56,7 @@
             src={image}
             loading="lazy" />
     {:else}
-        <div class="absolute inset-0 flex h-full w-full items-center justify-center bg-white/5">
+        <div class="bg-muted absolute inset-0 flex h-full w-full items-center justify-center">
             <Mountain size={24} class="opacity-50" />
         </div>
     {/if}
@@ -70,11 +70,13 @@
     {#if showContent}
         <div class="absolute inset-0 flex flex-col justify-end">
             <div
-                class="absolute inset-0 bg-black/90 backdrop-blur-md"
+                class="bg-background/90 absolute inset-0 backdrop-blur-md"
                 style="mask-image: linear-gradient(to bottom, transparent 40%, black 90%);">
             </div>
             <div class="relative z-10 p-3 text-center">
-                <p class="line-clamp-2 text-sm font-extrabold text-white drop-shadow-md">{title}</p>
+                <p class="text-foreground line-clamp-2 text-sm font-extrabold drop-shadow-md">
+                    {title}
+                </p>
                 {#if subtitle}<p class="text-muted-foreground mt-1 text-xs">{subtitle}</p>{/if}
             </div>
         </div>

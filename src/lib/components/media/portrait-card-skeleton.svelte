@@ -10,10 +10,7 @@
 </script>
 
 <div
-    class={cn(
-        "relative aspect-[2/3] overflow-hidden rounded-lg bg-zinc-900 shadow-md",
-        className
-    )}>
+    class={cn("relative aspect-[2/3] overflow-hidden rounded-lg bg-zinc-900 shadow-md", className)}>
     <!-- Inner Border Overlay (matches PortraitCard) -->
     <div class="pointer-events-none absolute inset-0 z-50 rounded-[inherit] border border-white/10">
     </div>

@@ -61,7 +61,7 @@
     class="pointer-events-none absolute top-0 left-0 z-50 flex h-14 w-full items-center bg-transparent px-2 md:px-4">
     <div class="pointer-events-auto flex w-full items-center justify-between gap-2">
         <div class="w-full">
-            <ButtonGroup.Root class="h-9 w-full rounded-lg bg-black/50 backdrop-blur-md">
+            <ButtonGroup.Root class="bg-background/60 h-9 w-full rounded-lg backdrop-blur-md">
                 <InputGroup.Root>
                     <InputGroup.Input
                         bind:ref={inputRef}
@@ -102,7 +102,7 @@
 
             <Button
                 variant="ghost"
-                class="size-10 rounded-md text-white hover:bg-white/10 md:hidden"
+                class="text-foreground hover:bg-muted size-10 rounded-md md:hidden"
                 onclick={() => SidebarStore.toggle()}>
                 <Menu class="size-5" />
             </Button>

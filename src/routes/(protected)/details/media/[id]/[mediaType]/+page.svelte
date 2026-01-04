@@ -244,7 +244,7 @@
                         <Button
                             variant="ghost"
                             size="icon"
-                            class="absolute top-4 right-4 z-20 bg-black/50 text-white hover:bg-black/70"
+                            class="bg-background/60 text-foreground hover:bg-background/80 absolute top-4 right-4 z-20"
                             onclick={() => (showTrailerOverride = false)}>
                             <div class="i-lucide-x h-6 w-6"></div>
                         </Button>
@@ -271,7 +271,7 @@
                     <!-- Title + Status Row -->
                     <div class="flex flex-wrap items-center gap-3">
                         <h1
-                            class="text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-4xl lg:text-5xl">
+                            class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-5xl">
                             {data.mediaDetails?.details.title}
                         </h1>
                         {#if data.riven?.state}
@@ -286,8 +286,8 @@
                         {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
                             <ItemRequest
                                 size="default"
-                                variant="outline"
-                                class="border-white/20 bg-white/10 px-4 font-medium text-white backdrop-blur-sm hover:bg-white/20"
+                                variant="secondary"
+                                class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-4"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}
                                 mediaType={data.mediaDetails?.type}
@@ -299,7 +299,7 @@
                             <ItemManualScrape
                                 size="default"
                                 variant="secondary"
-                                class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                 title={data.mediaDetails?.details?.title}
                                 itemId={null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
@@ -312,7 +312,7 @@
                             <ItemReset
                                 size="default"
                                 variant="secondary"
-                                class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}>
                                 <RotateCcw class="mr-1.5 h-4 w-4" />
@@ -321,7 +321,7 @@
                             <ItemRetry
                                 size="default"
                                 variant="secondary"
-                                class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}>
                                 <RefreshCw class="mr-1.5 h-4 w-4" />
@@ -332,7 +332,7 @@
                                 <ItemRequest
                                     size="default"
                                     variant="secondary"
-                                    class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                    class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
                                     ids={rivenId ? [rivenId.toString()] : []}
                                     mediaType={data.mediaDetails?.type}
@@ -346,7 +346,7 @@
                             <ItemManualScrape
                                 size="default"
                                 variant="secondary"
-                                class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                 title={data.mediaDetails?.details?.title}
                                 itemId={rivenId?.toString() ?? null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
@@ -360,7 +360,7 @@
                                 <ItemPause
                                     size="default"
                                     variant="secondary"
-                                    class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
                                     isPaused={data.riven.state === "Paused"}
                                     ids={rivenId ? [rivenId.toString()] : []}>
@@ -375,7 +375,7 @@
                             <ItemDelete
                                 size="default"
                                 variant="secondary"
-                                class="border border-red-500/30 bg-transparent px-4 text-red-400/80 hover:bg-red-500/10 hover:text-red-300"
+                                class="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive border bg-transparent px-4"
                                 title={data.mediaDetails?.details.title}
                                 ids={rivenId ? [rivenId.toString()] : []}>
                                 <Trash2 class="mr-1.5 h-4 w-4" />
@@ -388,7 +388,7 @@
                                         <Button
                                             variant="secondary"
                                             size="default"
-                                            class="border border-white/20 bg-transparent px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                             {...props}>
                                             <FileJson class="mr-1.5 h-4 w-4" />
                                             Raw Data
@@ -422,10 +422,10 @@
                     </div>
 
                     <!-- Metadata -->
-                    <div class="flex items-center gap-x-2.5 text-sm text-white/50">
+                    <div class="text-muted-foreground flex items-center gap-x-2.5 text-sm">
                         {#each details as detail, i}
                             <span>{detail}</span>
-                            {#if i < details.length - 1}<span class="text-white/20">•</span>{/if}
+                            {#if i < details.length - 1}<span class="text-border">•</span>{/if}
                         {/each}
                     </div>
 
@@ -434,7 +434,7 @@
                         <div class="flex flex-wrap items-center gap-2">
                             {#each data.mediaDetails?.details.genres as genre (genre.id)}
                                 <span
-                                    class="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white/70"
+                                    class="border-border bg-muted/50 text-muted-foreground rounded-full border px-3 py-1 text-sm"
                                     >{genre.name}</span>
                             {/each}
                         </div>
@@ -448,7 +448,7 @@
                                     href={score.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white">
+                                    class="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 transition-colors">
                                     {#if score.image}<img
                                             src="/rating-logos/{score.image}"
                                             alt={score.name}
@@ -460,13 +460,13 @@
                     {:else if ratingsLoading}
                         <div class="flex gap-4">
                             {#each [1, 2, 3] as _}
-                                <div class="h-6 w-14 animate-pulse rounded bg-white/10"></div>
+                                <div class="bg-muted h-6 w-14 animate-pulse rounded"></div>
                             {/each}
                         </div>
                     {/if}
 
                     <!-- Description -->
-                    <p class="max-w-4xl text-base leading-relaxed text-white/60">
+                    <p class="text-muted-foreground max-w-4xl text-base leading-relaxed">
                         {data.mediaDetails?.details.overview}
                     </p>
                 </div>
@@ -485,7 +485,7 @@
                                     {...props}
                                     class="group relative block w-full overflow-hidden rounded-xl text-left shadow-lg transition-all duration-300">
                                     <div
-                                        class="pointer-events-none absolute inset-0 z-50 rounded-xl border border-white/10 transition-colors duration-300 group-hover:border-white/30">
+                                        class="border-border/50 group-hover:border-border pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-300">
                                     </div>
                                     <img
                                         alt={movieDetails.collection.name}
@@ -493,7 +493,7 @@
                                         src={movieDetails.collection.backdrop_path}
                                         loading="lazy" />
                                     <div
-                                        class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent">
+                                        class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
                                     </div>
                                     <div
                                         class="absolute inset-0 flex flex-col justify-center p-5 md:p-8">
@@ -501,12 +501,12 @@
                                             class="text-primary mb-1 text-[10px] font-bold tracking-widest uppercase"
                                             >Collection</span>
                                         <span
-                                            class="text-xl font-black text-white drop-shadow-lg md:text-3xl"
+                                            class="text-foreground text-xl font-black drop-shadow-lg md:text-3xl"
                                             >{movieDetails.collection.name}</span>
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            class="mt-3 w-fit backdrop-blur-md"
+                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground mt-3 w-fit border bg-transparent backdrop-blur-md"
                                             >View Collection</Button>
                                     </div>
                                 </button>
@@ -829,7 +829,7 @@
                                             href={data.mediaDetails.details.homepage}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="text-muted-foreground transition-colors hover:text-white"
+                                            class="text-muted-foreground hover:text-foreground transition-colors"
                                             >Website</a>
                                     {/if}
                                     {#if data.mediaDetails?.details.imdb_id}
@@ -838,7 +838,7 @@
                                                 .details.imdb_id}/parentalguide/"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="text-muted-foreground transition-colors hover:text-white"
+                                            class="text-muted-foreground hover:text-foreground transition-colors"
                                             >Parental Guide</a>
                                     {/if}
                                     {#if data.mediaDetails?.details.external_ids}
@@ -850,7 +850,7 @@
                                                 href="{getExternal(key).url}{value}"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                class="text-muted-foreground transition-colors hover:text-white"
+                                                class="text-muted-foreground hover:text-foreground transition-colors"
                                                 >{getExternal(key).name}</a>
                                         {/each}
                                     {/if}

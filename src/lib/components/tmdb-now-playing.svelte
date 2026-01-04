@@ -40,7 +40,7 @@
 </script>
 
 {#if Array.isArray(data) && data.length > 0}
-    <div class="relative overflow-hidden rounded-2xl border border-white/5 shadow-2xl">
+    <div class="border-border/50 relative overflow-hidden rounded-2xl border shadow-2xl">
         <Carousel.Root
             setApi={(emblaApi) => (api = emblaApi)}
             plugins={[autoplayPlugin]}
@@ -76,30 +76,30 @@
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="reveal-2 mt-3 flex flex-wrap items-center gap-2 text-sm text-white/80">
+                                        class="reveal-2 text-foreground/80 mt-3 flex flex-wrap items-center gap-2 text-sm">
                                         <span
-                                            class="rounded-md bg-white/15 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+                                            class="bg-muted/50 rounded-md px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
                                             {isTV ? "TV Show" : "Movie"}
                                         </span>
-                                        <span class="text-white/50">•</span>
+                                        <span class="text-muted-foreground">•</span>
                                         <span
                                             >{getSeasonAndYear(
                                                 item.release_date || item.first_air_date
                                             )}</span>
-                                        <span class="text-white/50">•</span>
+                                        <span class="text-muted-foreground">•</span>
                                         <span
                                             >{item.vote_average
                                                 ? item.vote_average.toFixed(1)
                                                 : "N/A"}/10</span>
                                         {#if item.original_language}
-                                            <span class="text-white/50">•</span>
+                                            <span class="text-muted-foreground">•</span>
                                             <span class="uppercase">{item.original_language}</span>
                                         {/if}
                                     </div>
 
                                     <!-- Overview -->
                                     <p
-                                        class="reveal-3 mt-3 line-clamp-2 text-sm text-white/60 md:text-base">
+                                        class="reveal-3 text-muted-foreground mt-3 line-clamp-2 text-sm md:text-base">
                                         {item.overview || "No overview available."}
                                     </p>
 
@@ -110,7 +110,7 @@
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
                                                         variant="outline"
-                                                        class="border-white/20 bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20">
+                                                        class="border-border bg-background/50 text-foreground/90 hover:bg-background/70 backdrop-blur-sm">
                                                         {TMDB_GENRES[genreId]}
                                                     </Badge>
                                                 {/if}
@@ -122,15 +122,16 @@
                                     <div class="reveal-5 mt-6 flex flex-wrap gap-3">
                                         <Button
                                             href="/watch/{item.id}"
+                                            variant="secondary"
                                             size="lg"
-                                            class="bg-white text-black shadow-xl transition-all duration-200 hover:scale-105 hover:bg-white/90">
+                                            class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-6">
                                             Request
                                         </Button>
                                         <Button
-                                            variant="outline"
+                                            variant="secondary"
                                             size="lg"
                                             href="/details/media/{item.id}/{mediaType}"
-                                            class="border-white/20 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20">
+                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-6">
                                             View Details
                                         </Button>
                                     </div>
@@ -144,7 +145,7 @@
 
         <!-- Navigation Arrows -->
         <button
-            class="absolute top-1/2 left-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/80 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/60 hover:text-white"
+            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 left-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110"
             onclick={() => api?.scrollPrev()}
             aria-label="Previous slide">
             <svg
@@ -160,7 +161,7 @@
             </svg>
         </button>
         <button
-            class="absolute top-1/2 right-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/80 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/60 hover:text-white"
+            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 right-4 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110"
             onclick={() => api?.scrollNext()}
             aria-label="Next slide">
             <svg
@@ -178,34 +179,33 @@
 
         <!-- Progress Indicator -->
         <div
-            class="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/40 px-5 py-2.5 backdrop-blur-md lg:flex">
-            <span class="text-xs font-medium text-white/80">{currentIndex + 1}/{data.length}</span>
+            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2.5 backdrop-blur-md lg:flex">
+            <span class="text-foreground/80 text-xs font-medium"
+                >{currentIndex + 1}/{data.length}</span>
 
             <div class="flex gap-1.5">
                 {#each data as _, i}
                     <button
                         class="h-2 w-2 cursor-pointer rounded-full transition-all duration-300 {i ===
                         currentIndex
-                            ? 'scale-110 bg-white'
-                            : 'bg-white/40 hover:bg-white/60'}"
+                            ? 'bg-primary scale-110'
+                            : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'}"
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
                     </button>
                 {/each}
             </div>
 
-            <div class="h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
+            <div class="bg-muted h-1.5 w-20 overflow-hidden rounded-full">
                 {#key currentIndex}
-                    <div class="progress-bar-fill h-full bg-white"></div>
+                    <div class="progress-bar-fill bg-primary h-full"></div>
                 {/key}
             </div>
         </div>
     </div>
 {:else}
     <div class="relative h-[420px] w-full overflow-hidden rounded-2xl">
-        <div
-            class="absolute inset-0 animate-pulse bg-gradient-to-t from-neutral-950 to-neutral-800">
-        </div>
+        <div class="from-background to-muted absolute inset-0 animate-pulse bg-gradient-to-t"></div>
 
         <div class="absolute inset-0 z-2 flex flex-col justify-end p-8 md:p-12">
             <div class="w-full max-w-xl">
