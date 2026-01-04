@@ -1,7 +1,7 @@
 <script lang="ts">
     import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
-    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { onMount } from "svelte";
 
     const anilistTrendingStore = new MediaListStore<BaseListItem>(
@@ -50,13 +50,8 @@
             {/each}
             {#if anilistTrendingStore.loading}
                 {#each Array(6) as _, i (i)}
-                    <div class="w-full">
-                        <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                        <Skeleton class="mt-2 h-4 w-full" />
-                        <div class="mt-1 flex items-center justify-between">
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                        </div>
+                    <div class="w-36 md:w-44 lg:w-48">
+                        <PortraitCardSkeleton />
                     </div>
                 {/each}
             {/if}
@@ -64,13 +59,8 @@
     {:else}
         <div class="flex flex-wrap gap-4">
             {#each Array(12) as _, i (i)}
-                <div>
-                    <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                    <Skeleton class="mt-2 h-4 w-full" />
-                    <div class="mt-1 flex items-center justify-between">
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                    </div>
+                <div class="w-36 md:w-44 lg:w-48">
+                    <PortraitCardSkeleton />
                 </div>
             {/each}
         </div>

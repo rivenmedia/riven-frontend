@@ -2,7 +2,7 @@
     import { setContext } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { onMount } from "svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
     import { FilterStore, SORT_OPTIONS } from "$lib/services/filter-store.svelte";
@@ -121,13 +121,8 @@
             {/each}
             {#if searchStore.loading}
                 {#each Array(6) as _, i (i)}
-                    <div class="w-full">
-                        <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                        <Skeleton class="mt-2 h-4 w-full" />
-                        <div class="mt-1 flex items-center justify-between">
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                        </div>
+                    <div class="w-36 md:w-44 lg:w-48">
+                        <PortraitCardSkeleton />
                     </div>
                 {/each}
             {/if}
@@ -135,13 +130,8 @@
     {:else if searchStore.loading}
         <div class="flex flex-wrap gap-4">
             {#each Array(12) as _, i (i)}
-                <div>
-                    <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                    <Skeleton class="mt-2 h-4 w-full" />
-                    <div class="mt-1 flex items-center justify-between">
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                    </div>
+                <div class="w-36 md:w-44 lg:w-48">
+                    <PortraitCardSkeleton />
                 </div>
             {/each}
         </div>
