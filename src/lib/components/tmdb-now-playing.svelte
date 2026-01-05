@@ -8,6 +8,26 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
+    interface TMDBNowPlayingItem {
+        id: number;
+        media_type?: "movie" | "tv";
+        title?: string;
+        name?: string;
+        backdrop_path: string | null;
+        release_date?: string;
+        first_air_date?: string;
+        vote_average?: number;
+        original_language?: string;
+        overview?: string;
+        genre_ids?: number[];
+    }
+
+    interface Props {
+        data?: TMDBNowPlayingItem[];
+    }
+
+    let { data = [] }: Props = $props();
+
     let api = $state<CarouselAPI>();
     const autoplayDelay = 5000;
     let autoplayPlugin = Autoplay({
@@ -16,8 +36,6 @@
     });
 
     let currentIndex = $state(0);
-
-    let { data = [] } = $props();
 
     // Handle carousel API events with proper cleanup
     $effect(() => {
