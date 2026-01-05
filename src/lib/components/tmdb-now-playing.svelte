@@ -8,7 +8,7 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 
-    interface TMDBNowPlayingItem {
+    export interface TMDBNowPlayingItem {
         id: number;
         media_type?: "movie" | "tv";
         title?: string;
@@ -24,9 +24,11 @@
 
     interface Props {
         data?: TMDBNowPlayingItem[];
+        showRequestButton?: boolean;
+        alignment?: "left" | "center" | "right";
     }
 
-    let { data = [] }: Props = $props();
+    let { data = [], showRequestButton = true, alignment = "left" }: Props = $props();
 
     let api = $state<CarouselAPI>();
     const autoplayDelay = 5000;
@@ -86,7 +88,12 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-16 md:px-16">
+                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-16 md:px-16 {alignment ===
+                                'right'
+                                    ? 'items-end pr-12 text-right md:pr-24'
+                                    : alignment === 'center'
+                                      ? 'items-center text-center'
+                                      : 'items-start text-left'}">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
@@ -96,7 +103,12 @@
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="reveal-2 text-foreground/80 mt-3 flex flex-wrap items-center gap-2 text-sm">
+                                        class="reveal-2 text-foreground/80 mt-3 flex flex-wrap items-center gap-2 text-sm {alignment ===
+                                        'right'
+                                            ? 'justify-end'
+                                            : alignment === 'center'
+                                              ? 'justify-center'
+                                              : 'justify-start'}">
                                         <span
                                             class="bg-muted/50 rounded-md px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
                                             {isTV ? "TV Show" : "Movie"}
@@ -118,14 +130,22 @@
                                     </div>
 
                                     <!-- Overview -->
-                                    <p
-                                        class="reveal-3 text-muted-foreground mt-3 line-clamp-2 text-sm md:text-base">
-                                        {item.overview || "No overview available."}
-                                    </p>
+                                    {#if item.overview}
+                                        <p
+                                            class="reveal-3 text-muted-foreground mt-3 line-clamp-2 text-sm md:text-base">
+                                            {item.overview}
+                                        </p>
+                                    {/if}
 
                                     <!-- Genres -->
                                     {#if item.genre_ids?.length}
-                                        <div class="reveal-4 mt-4 flex flex-wrap gap-2">
+                                        <div
+                                            class="reveal-4 mt-4 flex flex-wrap gap-2 {alignment ===
+                                            'right'
+                                                ? 'justify-end'
+                                                : alignment === 'center'
+                                                  ? 'justify-center'
+                                                  : 'justify-start'}">
                                             {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
@@ -139,14 +159,22 @@
                                     {/if}
 
                                     <!-- Action Buttons -->
-                                    <div class="reveal-5 mt-6 flex flex-wrap gap-3">
-                                        <Button
-                                            href="/watch/{item.id}"
-                                            variant="secondary"
-                                            size="lg"
-                                            class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-6">
-                                            Request
-                                        </Button>
+                                    <div
+                                        class="reveal-5 mt-6 flex flex-wrap gap-3 {alignment ===
+                                        'right'
+                                            ? 'justify-end'
+                                            : alignment === 'center'
+                                              ? 'justify-center'
+                                              : 'justify-start'}">
+                                        {#if showRequestButton}
+                                            <Button
+                                                href="/watch/{item.id}"
+                                                variant="secondary"
+                                                size="lg"
+                                                class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-6">
+                                                Request
+                                            </Button>
+                                        {/if}
                                         <Button
                                             variant="secondary"
                                             size="lg"
@@ -163,39 +191,42 @@
             </Carousel.Content>
         </Carousel.Root>
 
-        <!-- Navigation Arrows -->
-        <button
-            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 left-4 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
-            onclick={() => api?.scrollPrev()}
-            aria-label="Previous slide">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="h-5 w-5">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
-        <button
-            class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground absolute top-1/2 right-4 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
-            onclick={() => api?.scrollNext()}
-            aria-label="Next slide">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="h-5 w-5">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-        </button>
+        <!-- Navigation Arrows (only align left/right correctly) -->
+        <div
+            class="pointer-events-none absolute inset-0 z-20 flex items-center justify-between px-4">
+            <button
+                class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground pointer-events-auto hidden h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                onclick={() => api?.scrollPrev()}
+                aria-label="Previous slide">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="h-5 w-5">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button
+                class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground pointer-events-auto hidden h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                onclick={() => api?.scrollNext()}
+                aria-label="Next slide">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="h-5 w-5">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
 
         <!-- Progress Indicator -->
         <div

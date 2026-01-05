@@ -1217,10 +1217,13 @@ export interface PersonCreditCast {
     original_title: string;
     character: string | null;
     poster_path: string | null;
+    backdrop_path: string | null;
     release_date: string | null;
     year: number | null;
     media_type: "movie" | "tv";
     vote_average: number | null;
+    vote_count: number | null;
+    popularity: number | null;
 }
 
 export interface PersonCreditCrew {
@@ -1230,10 +1233,13 @@ export interface PersonCreditCrew {
     job: string | null;
     department: string | null;
     poster_path: string | null;
+    backdrop_path: string | null;
     release_date: string | null;
     year: number | null;
     media_type: "movie" | "tv";
     vote_average: number | null;
+    vote_count: number | null;
+    popularity: number | null;
 }
 
 export interface PersonDetails {
@@ -1282,10 +1288,13 @@ function transformPersonCredit(credit: any) {
         title: credit.title || credit.name || credit.original_title || credit.original_name || "",
         original_title: credit.original_title || credit.original_name || "",
         poster_path: buildTMDBImage(credit.poster_path, "w500"),
+        backdrop_path: buildTMDBImage(credit.backdrop_path, "w1920"),
         release_date: releaseDate,
         year: dateUtils.getYearFromISO(releaseDate),
         media_type: (credit.media_type === "tv" ? "tv" : "movie") as "movie" | "tv",
-        vote_average: credit.vote_average ?? null
+        vote_average: credit.vote_average ?? null,
+        vote_count: credit.vote_count ?? null,
+        popularity: credit.popularity ?? null
     };
 }
 
