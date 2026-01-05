@@ -4,7 +4,7 @@
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
     import ArrowRight from "@lucide/svelte/icons/arrow-right";
-    import { cn } from "$lib/utils";
+    import { cn, deduplicateById } from "$lib/utils";
     import TmdbNowPlaying, {
         type TMDBNowPlayingItem
     } from "$lib/components/tmdb-now-playing.svelte";
@@ -41,17 +41,6 @@
             "confetti-fall-5"
         ] as const
     };
-
-    // Helper to deduplicate credits by ID
-    function deduplicateById<T extends { id: number }>(items: T[]): T[] {
-        const map = new Map<number, T>();
-        for (const item of items) {
-            if (!map.has(item.id)) {
-                map.set(item.id, item);
-            }
-        }
-        return Array.from(map.values());
-    }
 
     // Combine Cast and Crew for carousel
     const combinedCredits = [
@@ -292,9 +281,10 @@
 
                 <!-- Content Column -->
                 <div class="flex flex-col justify-end gap-5 pb-2">
-                    <!-- Mobile Portrait + Content Layout -->
-                    <div class="flex gap-4 lg:hidden">
-                        <div class="relative flex-shrink-0">
+                    <!-- Unified Content Wrapper -->
+                    <div class="flex gap-4 lg:block">
+                        <!-- Mobile Portrait (Hidden on Desktop) -->
+                        <div class="relative flex-shrink-0 lg:hidden">
                             <PortraitCard
                                 title={data.person.name}
                                 image={data.person.profile_path}
@@ -307,37 +297,26 @@
                                 </div>
                             {/if}
                         </div>
-                        <div class="min-w-0 flex-1 space-y-2">
+
+                        <!-- Info Content -->
+                        <div class="min-w-0 flex-1 space-y-2 lg:space-y-0">
                             <h1
-                                class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl">
+                                class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-7xl">
                                 {data.person.name}
                             </h1>
 
                             <!-- Metadata Pills -->
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 lg:mt-4">
                                 {@render metadataBadges()}
                             </div>
 
                             <!-- Also Known As -->
-                            {@render alsoKnownAs("text-xs font-semibold uppercase tracking-wide")}
-                        </div>
-                    </div>
-
-                    <!-- Desktop Title (hidden on mobile) -->
-                    <div class="hidden lg:block">
-                        <h1
-                            class="text-foreground text-4xl font-black tracking-tight drop-shadow-md sm:text-5xl lg:text-7xl">
-                            {data.person.name}
-                        </h1>
-
-                        <!-- Metadata Pills -->
-                        <div class="mt-4 flex flex-wrap items-center gap-2">
-                            {@render metadataBadges()}
-                        </div>
-
-                        <!-- Also Known As -->
-                        <div class="mt-3">
-                            {@render alsoKnownAs()}
+                            <div class="lg:mt-3">
+                                {@render alsoKnownAs(
+                                    "text-xs font-semibold uppercase tracking-wide lg:text-sm lg:normal-case lg:tracking-normal",
+                                    "hidden lg:inline"
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -443,11 +422,11 @@
     {/if}
 {/snippet}
 
-{#snippet alsoKnownAs(titleClass = "text-sm font-semibold")}
+{#snippet alsoKnownAs(titleClass = "text-sm font-semibold", colonClass = "")}
     {#if data.person.also_known_as.length > 0}
         <div class="space-y-1">
             <h3 class="text-muted-foreground {titleClass}">
-                Also known as{titleClass.includes("uppercase") ? "" : ":"}
+                Also known as<span class={colonClass}>:</span>
             </h3>
             <div class="flex flex-wrap gap-2">
                 {#each data.person.also_known_as as alias}

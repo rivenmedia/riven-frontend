@@ -62,6 +62,31 @@
             api?.off("select", onSelect);
         };
     });
+
+    function getAlignmentClasses(
+        align: "left" | "center" | "right",
+        type: "container" | "flex"
+    ): string {
+        if (type === "container") {
+            switch (align) {
+                case "right":
+                    return "items-end pr-8 text-right md:pr-24";
+                case "center":
+                    return "items-center text-center";
+                default:
+                    return "items-start text-left";
+            }
+        } else {
+            switch (align) {
+                case "right":
+                    return "justify-end";
+                case "center":
+                    return "justify-center";
+                default:
+                    return "justify-start";
+            }
+        }
+    }
 </script>
 
 {#if Array.isArray(data) && data.length > 0}
@@ -94,12 +119,10 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {alignment ===
-                                'right'
-                                    ? 'items-end pr-8 text-right md:pr-24'
-                                    : alignment === 'center'
-                                      ? 'items-center text-center'
-                                      : 'items-start text-left'}">
+                                class="slide-content absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
+                                    alignment,
+                                    'container'
+                                )}">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
@@ -109,12 +132,10 @@
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="reveal-2 text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {alignment ===
-                                        'right'
-                                            ? 'justify-end'
-                                            : alignment === 'center'
-                                              ? 'justify-center'
-                                              : 'justify-start'}">
+                                        class="reveal-2 text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {getAlignmentClasses(
+                                            alignment,
+                                            'flex'
+                                        )}">
                                         <span
                                             class="bg-muted/50 rounded-md px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
@@ -146,12 +167,10 @@
                                     <!-- Genres -->
                                     {#if item.genre_ids?.length}
                                         <div
-                                            class="reveal-4 mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {alignment ===
-                                            'right'
-                                                ? 'justify-end'
-                                                : alignment === 'center'
-                                                  ? 'justify-center'
-                                                  : 'justify-start'}">
+                                            class="reveal-4 mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {getAlignmentClasses(
+                                                alignment,
+                                                'flex'
+                                            )}">
                                             {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
@@ -166,12 +185,10 @@
 
                                     <!-- Action Buttons -->
                                     <div
-                                        class="reveal-5 mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {alignment ===
-                                        'right'
-                                            ? 'justify-end'
-                                            : alignment === 'center'
-                                              ? 'justify-center'
-                                              : 'justify-start'}">
+                                        class="reveal-5 mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {getAlignmentClasses(
+                                            alignment,
+                                            'flex'
+                                        )}">
                                         {#if showRequestButton}
                                             <Button
                                                 href="/watch/{item.id}"

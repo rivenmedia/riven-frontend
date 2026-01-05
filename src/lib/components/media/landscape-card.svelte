@@ -5,9 +5,7 @@
     import { cn } from "$lib/utils";
     import type { Snippet } from "svelte";
 
-    interface RatingsData {
-        scores: Array<{ name: string; image?: string; score: string; url: string }>;
-    }
+    import { getRatings, type RatingsData } from "$lib/stores/ratings";
 
     interface Props {
         title: string;
@@ -35,14 +33,21 @@
         episodeNumber
     }: Props = $props();
 
-    async function fetchRatings(id: number, type: string): Promise<RatingsData> {
-        const response = await fetch(`/api/ratings/${id}?type=${type}`);
-        if (!response.ok) throw new Error("Failed to fetch ratings");
-        return response.json();
-    }
+    let ratingsPromise = $state<Promise<RatingsData> | null>(null);
 
-    // Use $derived to create a reactive promise that updates when tmdbId or mediaType changes
-    const ratingsPromise = $derived(browser && tmdbId ? fetchRatings(tmdbId, mediaType) : null);
+    $effect(() => {
+        if (!browser || !tmdbId) {
+            ratingsPromise = null;
+            return;
+        }
+
+        const controller = new AbortController();
+        ratingsPromise = getRatings(tmdbId, mediaType, controller.signal);
+
+        return () => {
+            controller.abort();
+        };
+    });
 </script>
 
 {#snippet ratingBadge(rating: number)}
