@@ -5,24 +5,36 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import providers from "$lib/providers";
 import { superValidate } from "sveltekit-superforms";
 import * as dateUtils from "$lib/utils/date";
-// import { message, fail, setError } from "sveltekit-superforms";
 
 const VALID_ITEM_TYPES = ["movie", "show", "season", "episode"] as const;
 type ValidItemType = (typeof VALID_ITEM_TYPES)[number];
 type ItemType = ValidItemType | "unknown";
 
+interface RivenLibraryItem {
+    id: number;
+    type: string;
+    title: string;
+    tmdb_id?: string | null;
+    tvdb_id?: string | null;
+    parent_ids?: {
+        tmdb_id?: string | null;
+        tvdb_id?: string | null;
+    } | null;
+    poster_path?: string | null;
+    aired_at?: string | null;
+}
+
 function getItemType(type: string): ItemType {
     return VALID_ITEM_TYPES.includes(type as ValidItemType) ? (type as ValidItemType) : "unknown";
 }
 
-function extractYear(airedAt: string | null): number | string {
+function extractYear(airedAt: string | null | undefined): number | string {
     if (!airedAt) return "N/A";
     const year = dateUtils.getYearFromISO(airedAt);
     return year ?? "N/A";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function transformItems(items: any[]) {
+function transformItems(items: RivenLibraryItem[]) {
     return items
         .map((item) => {
             // Determine ID and indexer for navigation
@@ -88,7 +100,9 @@ export const load: PageServerLoad = async (event) => {
     }
 
     return {
-        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
+        items: itemsResponse.data
+            ? transformItems(itemsResponse.data.items as RivenLibraryItem[])
+            : [],
         page: itemsResponse.data ? itemsResponse.data.page : 1,
         totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
         limit: itemsResponse.data ? itemsResponse.data.limit : 20,

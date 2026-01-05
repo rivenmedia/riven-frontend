@@ -44,7 +44,9 @@
             setApi={(emblaApi) => (api = emblaApi)}
             plugins={[autoplayPlugin]}
             opts={{ loop: true }}
-            class="relative">
+            class="relative"
+            role="region"
+            aria-label="Now playing movies carousel">
             <Carousel.Content>
                 {#each data as item, index (item.id)}
                     {@const isTV = item.media_type === "tv"}

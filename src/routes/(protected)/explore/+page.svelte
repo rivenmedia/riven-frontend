@@ -4,6 +4,7 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
+    import AnimatedToggle from "$lib/components/animated-toggle.svelte";
 
     let { data } = $props();
 
@@ -62,46 +63,40 @@
     <!-- Header -->
     <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex flex-col gap-1">
-                <h1 class="text-2xl font-bold md:text-3xl">
+            <div class="flex flex-col gap-2">
+                <h1 class="text-foreground text-2xl font-black tracking-tight md:text-3xl">
                     {#if searchStore.rawSearchString}
                         Search Results
                     {:else}
                         Explore
                     {/if}
                 </h1>
-                {#if searchStore.rawSearchString}
-                    <p class="text-muted-foreground text-sm">
-                        Searching for: <span class="font-mono">{searchStore.rawSearchString}</span>
-                    </p>
-                {/if}
-                {#if searchStore.totalResults > 0 && !searchStore.loading}
-                    <p class="text-muted-foreground text-sm">
-                        Found {searchStore.totalResults} results
-                    </p>
-                {/if}
+                <div class="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
+                    {#if searchStore.rawSearchString}
+                        <span>Results for</span>
+                        <span
+                            class="bg-muted/50 border-border rounded-md border px-2 py-0.5 font-mono text-xs">
+                            {searchStore.rawSearchString}
+                        </span>
+                    {/if}
+                    {#if searchStore.totalResults > 0 && !searchStore.loading}
+                        {#if searchStore.rawSearchString}
+                            <span class="text-border">•</span>
+                        {/if}
+                        <span class="tabular-nums"
+                            >{searchStore.totalResults.toLocaleString()} results</span>
+                    {/if}
+                </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <Button
-                    variant={searchStore.mediaType === "both" ? "secondary" : "ghost"}
-                    size="sm"
-                    onclick={() => searchStore.setMediaType("both")}>
-                    All
-                </Button>
-                <Button
-                    variant={searchStore.mediaType === "movie" ? "secondary" : "ghost"}
-                    size="sm"
-                    onclick={() => searchStore.setMediaType("movie")}>
-                    Movies
-                </Button>
-                <Button
-                    variant={searchStore.mediaType === "tv" ? "secondary" : "ghost"}
-                    size="sm"
-                    onclick={() => searchStore.setMediaType("tv")}>
-                    TV Shows
-                </Button>
-            </div>
+            <AnimatedToggle
+                options={[
+                    { label: "All", value: "both" },
+                    { label: "Movies", value: "movie" },
+                    { label: "TV Shows", value: "tv" }
+                ]}
+                value={searchStore.mediaType}
+                onchange={(value) => searchStore.setMediaType(value as "both" | "movie" | "tv")} />
         </div>
     </div>
 
