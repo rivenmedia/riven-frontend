@@ -45,6 +45,14 @@
     const ratingsPromise = $derived(browser && tmdbId ? fetchRatings(tmdbId, mediaType) : null);
 </script>
 
+{#snippet ratingBadge(rating: number)}
+    <div
+        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
+        <Star size={12} class="fill-yellow-500 text-yellow-500" />
+        {rating.toFixed(1)}
+    </div>
+{/snippet}
+
 <div
     class={cn(
         "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-md transition-[transform,shadow] duration-500 contain-content [content-visibility:auto] hover:scale-105 hover:shadow-xl",
@@ -95,11 +103,7 @@
                         {#if ratingsPromise}
                             {#await ratingsPromise}
                                 {#if initialRating}
-                                    <div
-                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
-                                        {initialRating.toFixed(1)}
-                                    </div>
+                                    {@render ratingBadge(initialRating)}
                                 {:else}
                                     <div class="bg-muted h-5 w-12 animate-pulse rounded"></div>
                                 {/if}
@@ -122,27 +126,15 @@
                                         </a>
                                     {/each}
                                 {:else if initialRating}
-                                    <div
-                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
-                                        {initialRating.toFixed(1)}
-                                    </div>
+                                    {@render ratingBadge(initialRating)}
                                 {/if}
                             {:catch}
                                 {#if initialRating}
-                                    <div
-                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
-                                        {initialRating.toFixed(1)}
-                                    </div>
+                                    {@render ratingBadge(initialRating)}
                                 {/if}
                             {/await}
                         {:else if initialRating}
-                            <div
-                                class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                <Star size={12} class="fill-yellow-500 text-yellow-500" />
-                                {initialRating.toFixed(1)}
-                            </div>
+                            {@render ratingBadge(initialRating)}
                         {/if}
                     </div>
                 {/if}

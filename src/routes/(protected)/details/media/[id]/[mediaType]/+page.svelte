@@ -2,7 +2,6 @@
     import { browser } from "$app/environment";
     import { page } from "$app/stores";
     import { type PageProps } from "./$types";
-    import Tooltip from "$lib/components/tooltip.svelte";
     import * as Carousel from "$lib/components/ui/carousel/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";

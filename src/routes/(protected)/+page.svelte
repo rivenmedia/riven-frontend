@@ -36,8 +36,6 @@
             "/api/anilist/trending"
         );
 
-        // Cleanup: release store references on unmount
-        // This allows garbage collection and supports future dispose/unsubscribe methods
         return () => {
             recentlyAddedStore = null;
             trendingMoviesStore = null;

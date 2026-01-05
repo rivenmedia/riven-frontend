@@ -3,8 +3,6 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import LandscapeCard from "$lib/components/media/landscape-card.svelte";
     import Loader2 from "@lucide/svelte/icons/loader-2";
-    import Mountain from "@lucide/svelte/icons/mountain";
-    import Star from "@lucide/svelte/icons/star";
     import { toast } from "svelte-sonner";
     import providers from "$lib/providers";
     import { createScopedLogger } from "$lib/logger";
