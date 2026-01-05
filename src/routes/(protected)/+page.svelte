@@ -9,6 +9,9 @@
 
     let { data }: { data: PageData } = $props();
 
+    const viewAllButtonClass =
+        "text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md";
+
     let trendingMoviesStore = $state<MediaListStore<BaseListItem> | null>(null);
     let trendingShowsStore = $state<MediaListStore<BaseListItem> | null>(null);
     let anilistTrendingStore = $state<MediaListStore<BaseListItem> | null>(null);
@@ -76,10 +79,8 @@
                     ]}
                     value={trendingMoviesStore?.timeWindow ?? "day"}
                     onchange={(v) => trendingMoviesStore?.changeTimeWindow(v as "day" | "week")} />
-                <Button
-                    class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
-                    variant="ghost"
-                    href="/lists/trending/movie">View All</Button>
+                <Button class={viewAllButtonClass} variant="ghost" href="/lists/trending/movie"
+                    >View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingMoviesStore?.items ?? []} />
@@ -96,10 +97,8 @@
                     ]}
                     value={trendingShowsStore?.timeWindow ?? "day"}
                     onchange={(v) => trendingShowsStore?.changeTimeWindow(v as "day" | "week")} />
-                <Button
-                    class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
-                    variant="ghost"
-                    href="/lists/trending/tv">View All</Button>
+                <Button class={viewAllButtonClass} variant="ghost" href="/lists/trending/tv"
+                    >View All</Button>
             </div>
         </div>
         <ListCarousel data={trendingShowsStore?.items ?? []} />
@@ -108,10 +107,8 @@
     <div class="flex flex-col">
         <div class="mb-3 flex items-center justify-between">
             {@render listHeading("Trending Anime")}
-            <Button
-                class="text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md"
-                variant="ghost"
-                href="/lists/trending/anime">View All</Button>
+            <Button class={viewAllButtonClass} variant="ghost" href="/lists/trending/anime"
+                >View All</Button>
         </div>
         <ListCarousel data={anilistTrendingStore?.items ?? []} indexer="anilist" />
     </div>
