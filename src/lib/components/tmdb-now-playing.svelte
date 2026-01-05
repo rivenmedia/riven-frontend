@@ -68,7 +68,7 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-20 md:px-16 md:py-12">
+                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-16 md:px-16">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
@@ -181,7 +181,7 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-border bg-background/60 absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4 rounded-full border px-3 py-1.5 backdrop-blur-md md:px-5 md:py-2.5">
+            class="border-border bg-background/60 absolute bottom-2 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-full border px-4 py-2 backdrop-blur-md">
             <span class="text-foreground/80 text-xs font-medium"
                 >{currentIndex + 1}/{data.length}</span>
 
@@ -198,7 +198,7 @@
                 {/each}
             </div>
 
-            <div class="bg-muted h-1.5 w-20 overflow-hidden rounded-full">
+            <div class="bg-muted h-1.5 w-16 overflow-hidden rounded-full md:w-20">
                 {#key currentIndex}
                     <div class="progress-bar-fill bg-primary h-full"></div>
                 {/key}

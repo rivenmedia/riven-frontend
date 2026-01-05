@@ -209,23 +209,27 @@
                                     loading="lazy" />
                             {:else}<div></div>{/if}
 
-                            <div class="flex gap-4">
+                            <div class="flex gap-2 md:gap-4">
                                 {#if data.riven?.state === "Completed"}
                                     <Button
                                         variant="secondary"
-                                        class="bg-[#e5a00d] font-bold text-black shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-[#cc8e00]">
+                                        size="sm"
+                                        class="bg-[#e5a00d] px-3 text-xs font-bold text-black shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-[#cc8e00] md:px-4 md:text-sm">
                                         <img
                                             alt="Plex"
                                             src="https://api.iconify.design/mdi:plex.svg"
-                                            class="mr-2 h-4 w-4" />Plex
+                                            class="mr-1.5 h-4 w-4 md:mr-2" />Plex
                                     </Button>
                                 {/if}
                                 {#if data.mediaDetails?.details.trailer}
                                     <Button
                                         variant="secondary"
-                                        class="bg-muted/40 text-foreground hover:bg-muted/60 font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105"
+                                        size="sm"
+                                        class="bg-muted/40 text-foreground hover:bg-muted/60 px-3 text-xs font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 md:px-4 md:text-sm"
                                         onclick={() => (showTrailerOverride = !showTrailer)}>
-                                        <Play size={16} class="mr-2 fill-current" />Trailer
+                                        <Play
+                                            size={14}
+                                            class="mr-1.5 fill-current md:mr-2" />Trailer
                                     </Button>
                                 {/if}
                             </div>
