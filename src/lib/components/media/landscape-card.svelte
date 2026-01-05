@@ -55,7 +55,7 @@
 
 <div
     class={cn(
-        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-md transition-[transform,shadow] duration-500 contain-content [content-visibility:auto] hover:scale-105 hover:shadow-xl",
+        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-md transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-xl",
         className
     )}>
     <!-- Inner Border Overlay -->
@@ -84,8 +84,8 @@
 
         <div class="absolute inset-0 flex flex-col justify-end">
             <div
-                class="bg-background/90 absolute inset-0 backdrop-blur-3xl"
-                style="mask-image: linear-gradient(to bottom, transparent 20%, black 80%);">
+                class="bg-card/90 absolute -inset-px backdrop-blur-3xl"
+                style="-webkit-mask-image: radial-gradient(100% 150% at 0% 100%, black 0%, transparent 90%), linear-gradient(to bottom, transparent 30%, black 100%); mask-image: radial-gradient(100% 150% at 0% 100%, black 0%, transparent 90%), linear-gradient(to bottom, transparent 30%, black 100%);">
             </div>
 
             <div class="relative z-10 flex flex-col gap-1.5 p-3 md:p-4">
@@ -141,7 +141,7 @@
 
                 {#if overview}
                     <div
-                        class="text-muted-foreground grid grid-rows-[0fr] text-sm opacity-0 transition-[grid-template-rows,opacity] duration-500 will-change-[grid-template-rows] group-hover:grid-rows-[1fr] group-hover:opacity-100">
+                        class="text-muted-foreground grid grid-rows-[0fr] text-sm opacity-0 transition-all duration-500 ease-in-out group-hover:grid-rows-[1fr] group-hover:opacity-100">
                         <p class="line-clamp-3 overflow-hidden">
                             {overview}
                         </p>

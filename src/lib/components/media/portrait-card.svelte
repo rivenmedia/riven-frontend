@@ -52,7 +52,7 @@
     {#if image}
         <img
             alt={title}
-            class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
             src={image}
             loading="lazy" />
     {:else}
@@ -70,8 +70,8 @@
     {#if showContent}
         <div class="absolute inset-0 flex flex-col justify-end">
             <div
-                class="bg-background/90 absolute inset-0 backdrop-blur-md"
-                style="mask-image: linear-gradient(to bottom, transparent 40%, black 90%);">
+                class="bg-card/90 absolute -inset-px backdrop-blur-md"
+                style="-webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.9) 70%, black 100%); mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.9) 70%, black 100%);">
             </div>
             <div class="relative z-10 p-3 text-center">
                 <p class="text-foreground line-clamp-2 text-sm font-extrabold drop-shadow-md">
