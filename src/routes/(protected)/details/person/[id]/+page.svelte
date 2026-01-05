@@ -287,19 +287,41 @@
                     {/if}
                 </div>
 
-                <!-- Mobile Portrait -->
-                <div class="mx-auto block lg:hidden">
-                    <PortraitCard
-                        title={data.person.name}
-                        image={data.person.profile_path}
-                        class="group w-48 rounded-xl shadow-2xl transition-transform duration-500 hover:scale-105"
-                        showContent={false} />
-                </div>
-
                 <!-- Content Column -->
                 <div class="flex flex-col justify-end gap-5 pb-2">
-                    <!-- Title Row -->
-                    <div>
+                    <!-- Mobile Portrait + Content Layout -->
+                    <div class="flex gap-4 lg:hidden">
+                        <div class="relative flex-shrink-0">
+                            <PortraitCard
+                                title={data.person.name}
+                                image={data.person.profile_path}
+                                class="group w-28 rounded-lg shadow-xl sm:w-32"
+                                showContent={false} />
+                            {#if birthdayToday && !data.person.deathday}
+                                <div
+                                    class="bg-primary absolute -top-2 -right-2 z-20 animate-bounce rounded-full p-1.5 shadow-lg">
+                                    <span class="text-sm">🎂</span>
+                                </div>
+                            {/if}
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-3">
+                            <h1
+                                class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl">
+                                {data.person.name}
+                            </h1>
+
+                            <!-- Metadata Pills -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                {@render metadataBadges()}
+                            </div>
+
+                            <!-- Also Known As -->
+                            {@render alsoKnownAs("text-xs font-semibold uppercase tracking-wide")}
+                        </div>
+                    </div>
+
+                    <!-- Desktop Title (hidden on mobile) -->
+                    <div class="hidden lg:block">
                         <h1
                             class="text-foreground text-4xl font-black tracking-tight drop-shadow-md sm:text-5xl lg:text-7xl">
                             {data.person.name}
@@ -307,29 +329,12 @@
 
                         <!-- Metadata Pills -->
                         <div class="mt-4 flex flex-wrap items-center gap-2">
-                            {#if data.person.known_for_department}
-                                <Badge
-                                    variant="outline"
-                                    class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
-                                    {data.person.known_for_department}
-                                </Badge>
-                            {/if}
-                            {#if data.person.birthday}
-                                <Badge
-                                    variant="outline"
-                                    class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
-                                    {formatDate(data.person.birthday)}
-                                    {#if !data.person.deathday}
-                                        • {calculateAge(data.person.birthday)} y/o{/if}
-                                </Badge>
-                            {/if}
-                            {#if data.person.place_of_birth}
-                                <Badge
-                                    variant="outline"
-                                    class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
-                                    {data.person.place_of_birth}
-                                </Badge>
-                            {/if}
+                            {@render metadataBadges()}
+                        </div>
+
+                        <!-- Also Known As -->
+                        <div class="mt-3">
+                            {@render alsoKnownAs()}
                         </div>
                     </div>
 
@@ -403,4 +408,56 @@
                 class="w-full" />
         </a>
     {/each}
+{/snippet}
+
+{#snippet metadataBadges()}
+    {#if data.person.known_for_department}
+        <Badge
+            variant="outline"
+            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+            {data.person.known_for_department}
+        </Badge>
+    {/if}
+    {#if data.person.gender}
+        <Badge
+            variant="outline"
+            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+            {data.person.gender}
+        </Badge>
+    {/if}
+    {#if data.person.birthday}
+        <Badge
+            variant="outline"
+            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+            {formatDate(data.person.birthday)}
+            {#if !data.person.deathday}
+                • {calculateAge(data.person.birthday)} y/o{/if}
+        </Badge>
+    {/if}
+    {#if data.person.place_of_birth}
+        <Badge
+            variant="outline"
+            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+            {data.person.place_of_birth}
+        </Badge>
+    {/if}
+{/snippet}
+
+{#snippet alsoKnownAs(titleClass = "text-sm font-semibold")}
+    {#if data.person.also_known_as.length > 0}
+        <div class="space-y-2">
+            <h3 class="text-muted-foreground {titleClass}">
+                Also known as{titleClass.includes("uppercase") ? "" : ":"}
+            </h3>
+            <div class="flex flex-wrap gap-2">
+                {#each data.person.also_known_as as alias}
+                    <Badge
+                        variant="outline"
+                        class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+                        {alias}
+                    </Badge>
+                {/each}
+            </div>
+        </div>
+    {/if}
 {/snippet}
