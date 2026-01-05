@@ -213,7 +213,7 @@
                                     <Button
                                         variant="secondary"
                                         size="sm"
-                                        class="bg-[#e5a00d] px-3 text-xs font-bold text-black shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-[#cc8e00] md:px-4 md:text-sm">
+                                        class="bg-[#e5a00d] px-3 text-sm font-bold text-black shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-[#cc8e00] md:px-4 md:text-sm">
                                         <img
                                             alt="Plex"
                                             src="https://api.iconify.design/mdi:plex.svg"
@@ -224,7 +224,7 @@
                                     <Button
                                         variant="secondary"
                                         size="sm"
-                                        class="bg-muted/40 text-foreground hover:bg-muted/60 px-3 text-xs font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 md:px-4 md:text-sm"
+                                        class="bg-muted/40 text-foreground hover:bg-muted/60 px-3 text-sm font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 md:px-4 md:text-sm"
                                         onclick={() => (showTrailerOverride = !showTrailer)}>
                                         <Play
                                             size={14}
@@ -477,7 +477,7 @@
                 {@const movieDetails = data.mediaDetails.details}
                 {#if movieDetails.collection}
                     <section class="mt-6 md:mt-8">
-                        <h2 class="mb-2 text-lg font-bold drop-shadow-md">Collection</h2>
+                        <h2 class="mb-2 text-xl font-bold drop-shadow-md">Collection</h2>
                         <CollectionSheet
                             collectionId={movieDetails.collection.id}
                             collectionName={movieDetails.collection.name}>
@@ -500,16 +500,13 @@
                                     <!-- Content Layer -->
                                     <div class="relative flex flex-col justify-center p-4 md:p-8">
                                         <span
-                                            class="text-primary mb-1 text-[10px] font-bold tracking-widest uppercase"
-                                            >Collection</span>
-                                        <span
                                             class="text-foreground text-xl font-black drop-shadow-lg md:text-3xl"
                                             >{movieDetails.collection.name}</span>
                                         <Button
                                             variant="secondary"
                                             size="sm"
                                             class="border-border text-muted-foreground hover:bg-muted hover:text-foreground mt-3 w-fit border bg-transparent backdrop-blur-md"
-                                            >View Collection</Button>
+                                            >View</Button>
                                     </div>
                                 </button>
                             {/snippet}
@@ -584,11 +581,11 @@
                                         {/snippet}
                                         {#snippet meta()}
                                             <span
-                                                class="border-border/10 bg-muted/30 text-muted-foreground rounded-full border px-2 py-0.5 text-xs"
+                                                class="border-border/10 bg-muted/30 text-muted-foreground rounded-full border px-2 py-0.5 text-sm"
                                                 >{episode.aired}</span>
                                             {#if episode.runtime}
                                                 <span
-                                                    class="border-border/10 bg-muted/30 text-muted-foreground rounded-full border px-2 py-0.5 text-xs"
+                                                    class="border-border/10 bg-muted/30 text-muted-foreground rounded-full border px-2 py-0.5 text-sm"
                                                     >{episode.runtime} min</span>
                                             {/if}
                                         {/snippet}
@@ -605,14 +602,14 @@
                                                 ><span class="text-muted-foreground">•</span>
                                                 {#if episode.aired}<Badge
                                                         variant="outline"
-                                                        class="text-xs">{episode.aired}</Badge
+                                                        class="text-sm">{episode.aired}</Badge
                                                     >{/if}
                                                 {#if episode.runtime}<Badge
                                                         variant="outline"
-                                                        class="text-xs">{episode.runtime} min</Badge
+                                                        class="text-sm">{episode.runtime} min</Badge
                                                     >{/if}
                                                 {#if rivenEpisode}<StatusBadge
-                                                        class="text-xs"
+                                                        class="text-sm"
                                                         state={rivenEpisode.state} />{/if}
                                             </div>
                                             {#if episode.overview}<p
@@ -633,7 +630,7 @@
                                                 {@const meta = rivenEpisode.media_metadata}
                                                 {@const fs = rivenEpisode.filesystem_entry}
                                                 {@const video = meta?.video}
-                                                <div class="flex flex-1 flex-col gap-3 text-xs">
+                                                <div class="flex flex-1 flex-col gap-3 text-sm">
                                                     <!-- Filenames -->
                                                     {#if meta?.original_filename || fs?.original_filename}
                                                         <div>
@@ -666,17 +663,17 @@
                                                                 >Video</span>
                                                             {#if video.resolution_width && video.resolution_height}<Badge
                                                                     variant="outline"
-                                                                    class="text-xs"
+                                                                    class="text-sm"
                                                                     >{video.resolution_width}x{video.resolution_height}</Badge
                                                                 >{/if}
                                                             {#if video.codec}<Badge
                                                                     variant="outline"
-                                                                    class="text-xs"
+                                                                    class="text-sm"
                                                                     >{video.codec}</Badge
                                                                 >{/if}
                                                             {#if video.hdr_type}<Badge
                                                                     variant="outline"
-                                                                    class="text-xs"
+                                                                    class="text-sm"
                                                                     >{video.hdr_type}</Badge
                                                                 >{/if}
                                                         </div>
@@ -691,7 +688,7 @@
                                                             {#each meta.audio_tracks as track}
                                                                 <Badge
                                                                     variant="outline"
-                                                                    class="text-xs"
+                                                                    class="text-sm"
                                                                     >{track.codec}{track.channels
                                                                         ? track.channels === 8
                                                                             ? " 7.1"
@@ -710,11 +707,11 @@
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-primary font-semibold"
                                                                 >Source</span>
-                                                            <Badge variant="outline" class="text-xs"
+                                                            <Badge variant="outline" class="text-sm"
                                                                 >{meta.quality_source}</Badge>
                                                             {#if meta?.is_remux}<Badge
                                                                     variant="outline"
-                                                                    class="text-xs">REMUX</Badge
+                                                                    class="text-sm">REMUX</Badge
                                                                 >{/if}
                                                         </div>
                                                     {/if}
@@ -768,8 +765,8 @@
                 <div class="flex flex-col gap-6 md:flex-row md:gap-16">
                     <!-- More Details Column -->
                     <div>
-                        <h2 class="mb-2 text-lg font-bold drop-shadow-md">More Details</h2>
-                        <div class="flex flex-col gap-3 text-xs">
+                        <h2 class="mb-2 text-xl font-bold drop-shadow-md">More Details</h2>
+                        <div class="flex flex-col gap-3 text-base">
                             <!-- Budget (movies only) -->
                             {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
                                 <div class="flex items-center gap-2">
@@ -867,8 +864,8 @@
                         {@const fs = data.riven.filesystem_entry}
                         {@const video = meta?.video}
                         <div>
-                            <h2 class="mb-2 text-lg font-bold drop-shadow-md">File Information</h2>
-                            <div class="flex flex-col gap-3 text-xs">
+                            <h2 class="mb-2 text-xl font-bold drop-shadow-md">File Information</h2>
+                            <div class="flex flex-col gap-3 text-base">
                                 <!-- Filenames -->
                                 {#if meta?.original_filename || fs?.original_filename}
                                     <div>
@@ -893,22 +890,22 @@
                                         <span class="text-primary font-semibold">Video</span>
                                         {#if video.resolution_width && video.resolution_height}<Badge
                                                 variant="outline"
-                                                class="text-xs"
+                                                class="text-sm"
                                                 >{video.resolution_width}x{video.resolution_height}</Badge
                                             >{/if}
-                                        {#if video.codec}<Badge variant="outline" class="text-xs"
+                                        {#if video.codec}<Badge variant="outline" class="text-sm"
                                                 >{video.codec}</Badge
                                             >{/if}
                                         {#if video.bit_depth}<Badge
                                                 variant="outline"
-                                                class="text-xs">{video.bit_depth}-bit</Badge
+                                                class="text-sm">{video.bit_depth}-bit</Badge
                                             >{/if}
-                                        {#if video.hdr_type}<Badge variant="outline" class="text-xs"
+                                        {#if video.hdr_type}<Badge variant="outline" class="text-sm"
                                                 >{video.hdr_type}</Badge
                                             >{/if}
                                         {#if video.frame_rate}<Badge
                                                 variant="outline"
-                                                class="text-xs">{video.frame_rate} FPS</Badge
+                                                class="text-sm">{video.frame_rate} FPS</Badge
                                             >{/if}
                                     </div>
                                 {/if}
@@ -918,7 +915,7 @@
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-primary font-semibold">Audio</span>
                                         {#each meta.audio_tracks as track}
-                                            <Badge variant="outline" class="text-xs"
+                                            <Badge variant="outline" class="text-sm"
                                                 >{track.codec}{track.channels
                                                     ? track.channels === 8
                                                         ? " 7.1"
@@ -937,7 +934,7 @@
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-primary font-semibold">Subtitles</span>
                                         {#each meta.subtitle_tracks as track}
-                                            <Badge variant="outline" class="text-xs"
+                                            <Badge variant="outline" class="text-sm"
                                                 >{track.language
                                                     ? track.language.toUpperCase()
                                                     : "Unknown"}</Badge>
@@ -949,18 +946,18 @@
                                 {#if meta?.quality_source}
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-primary font-semibold">Source</span>
-                                        <Badge variant="outline" class="text-xs"
+                                        <Badge variant="outline" class="text-sm"
                                             >{meta.quality_source}</Badge>
-                                        {#if meta?.is_remux}<Badge variant="outline" class="text-xs"
+                                        {#if meta?.is_remux}<Badge variant="outline" class="text-sm"
                                                 >REMUX</Badge
                                             >{/if}
                                         {#if meta?.is_proper}<Badge
                                                 variant="outline"
-                                                class="text-xs">PROPER</Badge
+                                                class="text-sm">PROPER</Badge
                                             >{/if}
                                         {#if meta?.is_repack}<Badge
                                                 variant="outline"
-                                                class="text-xs">REPACK</Badge
+                                                class="text-sm">REPACK</Badge
                                             >{/if}
                                     </div>
                                 {/if}
