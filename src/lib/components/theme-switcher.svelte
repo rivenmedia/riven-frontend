@@ -18,7 +18,8 @@
         mochamousse: "Mocha Mousse",
         mono: "Mono",
         neobrutalism: "Neo Brutalism",
-        solardusk: "Solar Dusk"
+        solardusk: "Solar Dusk",
+        "t3-chat": "T3 Chat"
     };
 </script>
 
