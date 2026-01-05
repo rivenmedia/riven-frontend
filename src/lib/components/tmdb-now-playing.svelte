@@ -26,9 +26,15 @@
         data?: TMDBNowPlayingItem[];
         showRequestButton?: boolean;
         alignment?: "left" | "center" | "right";
+        heightClass?: string;
     }
 
-    let { data = [], showRequestButton = true, alignment = "left" }: Props = $props();
+    let {
+        data = [],
+        showRequestButton = true,
+        alignment = "left",
+        heightClass = "h-[420px]"
+    }: Props = $props();
 
     let api = $state<CarouselAPI>();
     const autoplayDelay = 5000;
@@ -72,7 +78,7 @@
                     {@const isTV = item.media_type === "tv"}
                     {@const mediaType = isTV ? "tv" : "movie"}
                     {@const displayTitle = item.title ?? item.name ?? "Untitled"}
-                    <Carousel.Item class="relative h-[420px] w-full">
+                    <Carousel.Item class="relative w-full {heightClass}">
                         <!-- Backdrop Image -->
                         <img
                             src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
@@ -82,35 +88,35 @@
 
                         <!-- Gradient Overlay -->
                         <div
-                            class="from-background via-background/90 pointer-events-none absolute top-0 -right-4 bottom-0 left-4 bg-gradient-to-t to-transparent">
+                            class="from-background via-background/90 pointer-events-none absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-t to-transparent lg:-right-4 lg:left-4">
                         </div>
 
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute top-0 -right-4 bottom-0 left-4 z-10 flex flex-col justify-end px-6 pt-8 pb-16 md:px-16 {alignment ===
+                                class="slide-content absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {alignment ===
                                 'right'
-                                    ? 'items-end pr-12 text-right md:pr-24'
+                                    ? 'items-end pr-8 text-right md:pr-24'
                                     : alignment === 'center'
                                       ? 'items-center text-center'
                                       : 'items-start text-left'}">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
-                                        class="reveal-1 line-clamp-2 text-2xl leading-tight font-semibold tracking-tight drop-shadow-2xl md:text-4xl">
+                                        class="reveal-1 line-clamp-2 text-xl font-semibold tracking-tight drop-shadow-2xl md:text-4xl md:leading-tight">
                                         {displayTitle}
                                     </h1>
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="reveal-2 text-foreground/80 mt-3 flex flex-wrap items-center gap-2 text-sm {alignment ===
+                                        class="reveal-2 text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {alignment ===
                                         'right'
                                             ? 'justify-end'
                                             : alignment === 'center'
                                               ? 'justify-center'
                                               : 'justify-start'}">
                                         <span
-                                            class="bg-muted/50 rounded-md px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+                                            class="bg-muted/50 rounded-md px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
                                         </span>
                                         <span class="text-muted-foreground">•</span>
@@ -132,7 +138,7 @@
                                     <!-- Overview -->
                                     {#if item.overview}
                                         <p
-                                            class="reveal-3 text-muted-foreground mt-3 line-clamp-2 text-sm md:text-base">
+                                            class="reveal-3 text-muted-foreground mt-1.5 line-clamp-2 text-xs md:mt-3 md:text-base">
                                             {item.overview}
                                         </p>
                                     {/if}
@@ -140,7 +146,7 @@
                                     <!-- Genres -->
                                     {#if item.genre_ids?.length}
                                         <div
-                                            class="reveal-4 mt-4 flex flex-wrap gap-2 {alignment ===
+                                            class="reveal-4 mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {alignment ===
                                             'right'
                                                 ? 'justify-end'
                                                 : alignment === 'center'
@@ -150,7 +156,7 @@
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
                                                         variant="outline"
-                                                        class="border-border bg-background/50 text-foreground/90 hover:bg-background/70 backdrop-blur-sm">
+                                                        class="border-border bg-background/50 text-foreground/90 hover:bg-background/70 text-[10px] backdrop-blur-sm md:text-xs">
                                                         {TMDB_GENRES[genreId]}
                                                     </Badge>
                                                 {/if}
@@ -160,7 +166,7 @@
 
                                     <!-- Action Buttons -->
                                     <div
-                                        class="reveal-5 mt-6 flex flex-wrap gap-3 {alignment ===
+                                        class="reveal-5 mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {alignment ===
                                         'right'
                                             ? 'justify-end'
                                             : alignment === 'center'
@@ -170,16 +176,16 @@
                                             <Button
                                                 href="/watch/{item.id}"
                                                 variant="secondary"
-                                                size="lg"
-                                                class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-6">
+                                                size="sm"
+                                                class="border-primary/50 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary border bg-transparent px-4 md:h-11 md:px-8 md:text-base">
                                                 Request
                                             </Button>
                                         {/if}
                                         <Button
                                             variant="secondary"
-                                            size="lg"
+                                            size="sm"
                                             href="/details/media/{item.id}/{mediaType}"
-                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-6">
+                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4 md:h-11 md:px-8 md:text-base">
                                             View Details
                                         </Button>
                                     </div>
@@ -255,7 +261,7 @@
         </div>
     </div>
 {:else}
-    <div class="relative h-[420px] w-full overflow-hidden rounded-2xl">
+    <div class="relative w-full overflow-hidden rounded-2xl {heightClass}">
         <div class="from-background to-muted absolute inset-0 animate-pulse bg-gradient-to-t"></div>
 
         <div class="absolute inset-0 z-2 flex flex-col justify-end p-8 md:p-12">

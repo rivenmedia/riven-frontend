@@ -399,7 +399,7 @@ export function transformTVDBList(items: TVDBSearchItem[] | null): TMDBTransform
                 title: item.translations?.eng || item.name || "Unknown",
                 poster_path: buildTVDBImage(item.image_url ?? null),
                 media_type: "tv",
-                year: item.year || (dateUtils.getYearFromISO(item.first_air_time) ?? "N/A"),
+                year: item.year ?? dateUtils.getYearFromISO(item.first_air_time) ?? "N/A",
                 vote_average: null,
                 vote_count: null,
                 genre_ids: genreIds,

@@ -10,7 +10,6 @@
     } from "$lib/components/tmdb-now-playing.svelte";
 
     let { data }: PageProps = $props();
-    let expandedBio = $state(false);
 
     const birthdayToday = isDayAndMonthToday(data.person.birthday);
 
@@ -260,7 +259,11 @@
         <!-- Hero Banner -->
         {#if carouselItems.length > 0}
             <div class="mb-6 px-2 md:mb-8 md:px-4">
-                <TmdbNowPlaying data={carouselItems} alignment="right" showRequestButton={false} />
+                <TmdbNowPlaying
+                    data={carouselItems}
+                    alignment="right"
+                    showRequestButton={false}
+                    heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
             </div>
         {/if}
 
@@ -272,7 +275,7 @@
             )}>
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr] lg:gap-8">
                 <!-- Portrait Column (Desktop) -->
-                <div class="hidden lg:mx-0 lg:block">
+                <div class="relative hidden lg:mx-0 lg:block">
                     <PortraitCard
                         title={data.person.name}
                         image={data.person.profile_path}
@@ -299,12 +302,12 @@
                                 showContent={false} />
                             {#if birthdayToday && !data.person.deathday}
                                 <div
-                                    class="bg-primary absolute -top-2 -right-2 z-20 animate-bounce rounded-full p-1.5 shadow-lg">
-                                    <span class="text-sm">🎂</span>
+                                    class="bg-primary absolute -top-2 -right-2 z-20 animate-bounce rounded-full p-2 shadow-lg">
+                                    <span class="text-lg">🎂</span>
                                 </div>
                             {/if}
                         </div>
-                        <div class="min-w-0 flex-1 space-y-3">
+                        <div class="min-w-0 flex-1 space-y-2">
                             <h1
                                 class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl">
                                 {data.person.name}
@@ -344,10 +347,7 @@
                             <h3 class="text-foreground text-lg font-bold">Biography</h3>
                             <div class="relative">
                                 <p
-                                    class={cn(
-                                        "text-muted-foreground text-base leading-relaxed transition-all duration-300",
-                                        !expandedBio && "line-clamp-4"
-                                    )}>
+                                    class="text-muted-foreground line-clamp-4 text-base leading-relaxed">
                                     {data.person.biography}
                                 </p>
                                 {#if data.person.biography.length > 300 && data.person.imdb_id}
@@ -445,7 +445,7 @@
 
 {#snippet alsoKnownAs(titleClass = "text-sm font-semibold")}
     {#if data.person.also_known_as.length > 0}
-        <div class="space-y-2">
+        <div class="space-y-1">
             <h3 class="text-muted-foreground {titleClass}">
                 Also known as{titleClass.includes("uppercase") ? "" : ":"}
             </h3>
