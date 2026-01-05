@@ -13,7 +13,7 @@ html[data-theme="darkmatter"] {
     --muted-foreground: oklch(0.6268 0 0);
     --accent: oklch(0.3211 0 0);
     --accent-foreground: oklch(0.8109 0 0);
-    --destructive: oklch(0.6591 0.153 22.1703);
+    --destructive: oklch(0.45 0.18 25);
     --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.252 0 0);
     --input: oklch(0.252 0 0);
