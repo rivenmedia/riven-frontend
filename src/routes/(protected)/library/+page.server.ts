@@ -7,6 +7,14 @@ import { superValidate } from "sveltekit-superforms";
 import * as dateUtils from "$lib/utils/date";
 // import { message, fail, setError } from "sveltekit-superforms";
 
+const VALID_ITEM_TYPES = ["movie", "show", "season", "episode"] as const;
+type ValidItemType = (typeof VALID_ITEM_TYPES)[number];
+type ItemType = ValidItemType | "unknown";
+
+function getItemType(type: string): ItemType {
+    return VALID_ITEM_TYPES.includes(type as ValidItemType) ? (type as ValidItemType) : "unknown";
+}
+
 function extractYear(airedAt: string | null): number | string {
     if (!airedAt) return "N/A";
     const year = dateUtils.getYearFromISO(airedAt);
@@ -15,45 +23,46 @@ function extractYear(airedAt: string | null): number | string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformItems(items: any[]) {
-    return items.map((item) => {
-        // Determine ID and indexer for navigation
-        // Movies use TMDB, Shows use TVDB (skip resolution)
-        let id: string | number | null = null;
-        let indexer: "tmdb" | "tvdb" = "tmdb";
+    return items
+        .map((item) => {
+            // Determine ID and indexer for navigation
+            // Movies use TMDB, Shows use TVDB (skip resolution)
+            let id: string | number | null = null;
+            let indexer: "tmdb" | "tvdb" = "tmdb";
 
-        if (item.type === "movie") {
-            id = item.tmdb_id;
-            indexer = "tmdb";
-        } else if (item.type === "show") {
-            // Shows use TVDB directly - skip TMDB->TVDB resolution
-            id = item.tvdb_id;
-            indexer = "tvdb";
-        } else if (item.type === "season" || item.type === "episode") {
-            // Seasons/episodes use parent's TVDB ID
-            id = item.parent_ids?.tvdb_id;
-            indexer = "tvdb";
-        }
+            if (item.type === "movie") {
+                id = item.tmdb_id ?? null;
+                indexer = "tmdb";
+            } else if (item.type === "show") {
+                // Shows use TVDB directly - skip TMDB->TVDB resolution
+                id = item.tvdb_id ?? null;
+                indexer = "tvdb";
+            } else if (item.type === "season" || item.type === "episode") {
+                // Seasons/episodes use parent's TVDB ID
+                id = item.parent_ids?.tvdb_id ?? null;
+                indexer = "tvdb";
+            }
 
-        return {
-            id,
-            title: item.title,
-            poster_path: item.poster_path,
-            media_type: item.type,
-            year: extractYear(item.aired_at),
-            indexer,
-            type:
-                item.type === "movie"
-                    ? "movie"
-                    : item.type === "show"
-                      ? "show"
-                      : item.type === "season"
-                        ? "season"
-                        : item.type === "episode"
-                          ? "episode"
-                          : "unknown",
-            riven_id: item.id
-        };
-    });
+            // Skip items without valid navigation IDs
+            if (id === null || id === undefined) {
+                console.warn(
+                    `Skipping item "${item.title}" (riven_id: ${item.id}, type: ${item.type}): missing required ID field`
+                );
+                return null;
+            }
+
+            return {
+                id,
+                title: item.title,
+                poster_path: item.poster_path,
+                media_type: item.type,
+                year: extractYear(item.aired_at),
+                indexer,
+                type: getItemType(item.type),
+                riven_id: item.id
+            };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 export const load: PageServerLoad = async (event) => {

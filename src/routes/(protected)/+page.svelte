@@ -5,7 +5,6 @@
     import ListCarousel from "$lib/components/list-carousel.svelte";
     import AnimatedToggle from "$lib/components/animated-toggle.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { cn } from "$lib/utils.js";
     import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
 
     let { data }: { data: PageData } = $props();

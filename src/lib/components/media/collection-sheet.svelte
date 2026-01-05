@@ -9,6 +9,7 @@
     import providers from "$lib/providers";
     import { createScopedLogger } from "$lib/logger";
     import { isMobileStore } from "$lib/stores/global.svelte";
+    import type { CollectionDetails } from "$lib/providers/parser";
 
     import { type Snippet } from "svelte";
 
@@ -25,7 +26,7 @@
     let open = $state(false);
     let loading = $state(false);
     let requestLoading = $state(false);
-    let collectionData = $state<any>(null); // Type this properly if possible
+    let collectionData = $state<CollectionDetails | null>(null);
     let error = $state<string | null>(null);
 
     async function fetchCollection() {
@@ -38,7 +39,7 @@
             const data = await res.json();
             collectionData = data.collection;
         } catch (e) {
-            console.error(e);
+            logger.error("Failed to fetch collection", e);
             error = "Failed to load collection details.";
         } finally {
             loading = false;
@@ -48,7 +49,7 @@
     async function requestAll() {
         if (!collectionData?.parts?.length) return;
         requestLoading = true;
-        const ids = collectionData.parts.map((p: any) => p.id?.toString()).filter(Boolean);
+        const ids = collectionData.parts.map((p) => p.id.toString());
 
         try {
             const response = await providers.riven.POST("/api/v1/items/add", {
@@ -144,7 +145,7 @@
                                 overview={part.overview}
                                 tmdbId={part.id}
                                 mediaType="movie"
-                                initialRating={part.vote_average}>
+                                initialRating={part.vote_average ?? undefined}>
                                 {#snippet meta()}
                                     {#if part.year}
                                         <span

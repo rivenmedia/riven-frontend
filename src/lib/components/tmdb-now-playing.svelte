@@ -7,7 +7,6 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
-    import { onMount } from "svelte";
 
     let api = $state<CarouselAPI>();
     const autoplayDelay = 5000;
@@ -20,22 +19,22 @@
 
     let { data = [] } = $props();
 
-    function setupCarouselEvents() {
+    // Handle carousel API events with proper cleanup
+    $effect(() => {
         if (!api) return;
 
-        api.on("select", () => {
+        const onSelect = () => {
             currentIndex = api!.selectedScrollSnap();
-        });
+        };
 
+        // Initialize current index and register event handler
         currentIndex = api.selectedScrollSnap();
-    }
+        api.on("select", onSelect);
 
-    onMount(() => {
-        if (api) setupCarouselEvents();
-    });
-
-    $effect(() => {
-        if (api) setupCarouselEvents();
+        // Cleanup: remove event handler when api changes or component unmounts
+        return () => {
+            api?.off("select", onSelect);
+        };
     });
 </script>
 
@@ -50,11 +49,12 @@
                 {#each data as item, index (item.id)}
                     {@const isTV = item.media_type === "tv"}
                     {@const mediaType = isTV ? "tv" : "movie"}
+                    {@const displayTitle = item.title ?? item.name ?? "Untitled"}
                     <Carousel.Item class="relative h-[420px] w-full">
                         <!-- Backdrop Image -->
                         <img
                             src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
-                            alt={item.title}
+                            alt={displayTitle}
                             class="h-full w-full object-cover object-top select-none"
                             loading="lazy" />
 
@@ -71,7 +71,7 @@
                                     <!-- Title -->
                                     <h1
                                         class="reveal-1 line-clamp-2 text-2xl leading-tight font-semibold tracking-tight drop-shadow-2xl md:text-4xl">
-                                        {item.title || "Untitled"}
+                                        {displayTitle}
                                     </h1>
 
                                     <!-- Metadata Row -->

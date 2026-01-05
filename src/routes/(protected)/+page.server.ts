@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
         );
 
         return {
-            nowPlaying: transformTMDBList((filtered as unknown as TMDBListItem[]) ?? [])
+            nowPlaying: transformTMDBList(filtered as TMDBListItem[])
         };
     } catch (err) {
         logger.error("Error fetching now playing data:", err);

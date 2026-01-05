@@ -204,28 +204,40 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 })
                 .catch(() => null);
 
-            // Fetch TVDB details, Trakt data (using TVDB ID), and Riven data in parallel
-            const [tvdbResult, traktResult, rivenData] = await Promise.all([
-                providers.tvdb.GET(`/series/{id}/extended`, {
-                    params: {
-                        path: {
-                            id: tvdbId
+            // Fetch TVDB details (episodes + translations separately), Trakt data, and Riven data in parallel
+            const [tvdbEpisodesResult, tvdbTranslationsResult, traktResult, rivenData] =
+                await Promise.all([
+                    providers.tvdb.GET(`/series/{id}/extended`, {
+                        params: {
+                            path: { id: tvdbId },
+                            query: { meta: "episodes" }
                         },
-                        query: {
-                            // @ts-expect-error schema says only one meta allowed but multiple are valid
-                            meta: "episodes,translations"
-                        }
-                    },
-                    headers: {
-                        Authorization: `Bearer ${tvdbToken}`
-                    },
-                    fetch: customFetch
-                }),
-                getTraktData(customFetch, String(tvdbId), false),
-                rivenPromise
-            ]);
+                        headers: { Authorization: `Bearer ${tvdbToken}` },
+                        fetch: customFetch
+                    }),
+                    providers.tvdb.GET(`/series/{id}/extended`, {
+                        params: {
+                            path: { id: tvdbId },
+                            query: { meta: "translations" }
+                        },
+                        headers: { Authorization: `Bearer ${tvdbToken}` },
+                        fetch: customFetch
+                    }),
+                    getTraktData(customFetch, String(tvdbId), false),
+                    rivenPromise
+                ]);
 
-            const { data: details, error: detailsError } = tvdbResult;
+            const { data: episodesData, error: episodesError } = tvdbEpisodesResult;
+            const { data: translationsData, error: translationsError } = tvdbTranslationsResult;
+
+            // Use episodes result as base, merge translations if available
+            const detailsError = episodesError || translationsError;
+            const details = episodesData;
+
+            // Merge translations into the details if both requests succeeded
+            if (details?.data && translationsData?.data?.translations) {
+                details.data.translations = translationsData.data.translations;
+            }
 
             if (detailsError) {
                 logger.error(

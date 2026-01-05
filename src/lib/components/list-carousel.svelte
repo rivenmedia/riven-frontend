@@ -29,7 +29,7 @@
     </Carousel.Root>
 {:else}
     <div class="mt-1.5 flex gap-3 overflow-x-auto pb-2">
-        {#each Array(6) as _, i}
+        {#each Array(6) as _, i (i)}
             <div class="w-36 flex-none md:w-44 lg:w-48">
                 <PortraitCardSkeleton />
             </div>

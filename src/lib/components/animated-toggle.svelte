@@ -16,7 +16,8 @@
     }>();
 
     let elements: HTMLElement[] = $state([]);
-    let container: HTMLElement;
+    let container = $state<HTMLElement | null>(null);
+    let containerWidth = $state(0);
 
     // Spring for position (x) and width (w)
     const springConfig = { stiffness: 0.15, damping: 0.6 };
@@ -33,6 +34,9 @@
                 const containerRect = container.getBoundingClientRect();
                 const itemRect = el.getBoundingClientRect();
                 const leftOffset = itemRect.left - containerRect.left;
+
+                // Cache container width to avoid reflows in template
+                containerWidth = containerRect.width;
 
                 styles.set({ x: leftOffset, w: itemRect.width }, { hard: immediate });
             }
@@ -79,14 +83,14 @@
             class="absolute top-0 left-0 flex h-full items-center gap-1"
             aria-hidden="true"
             style="transform: translateX({-styles.current
-                .x}px); width: {container?.getBoundingClientRect().width ?? 0}px; padding: 4px;">
+                .x}px); width: {containerWidth}px; padding: 4px;">
             <!-- padding-1 = 4px -->
             {#each options as option}
                 <div class="flex flex-1 items-center justify-center">
                     <Button
                         variant="ghost"
                         size="sm"
-                        tabindex="-1"
+                        tabindex={-1}
                         class="text-primary-foreground hover:text-primary-foreground h-7 w-full rounded-full px-4 text-xs font-bold hover:bg-transparent">
                         {option.label}
                     </Button>

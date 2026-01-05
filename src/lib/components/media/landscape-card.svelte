@@ -5,6 +5,10 @@
     import { cn } from "$lib/utils";
     import type { Snippet } from "svelte";
 
+    interface RatingsData {
+        scores: Array<{ name: string; image?: string; score: string; url: string }>;
+    }
+
     interface Props {
         title: string;
         image: string | null;
@@ -31,38 +35,14 @@
         episodeNumber
     }: Props = $props();
 
-    let ratingsData = $state<{
-        scores: Array<{ name: string; image?: string; score: string; url: string }>;
-    } | null>(null);
-    let loading = $state(false);
-    let error = $state(false);
+    async function fetchRatings(id: number, type: string): Promise<RatingsData> {
+        const response = await fetch(`/api/ratings/${id}?type=${type}`);
+        if (!response.ok) throw new Error("Failed to fetch ratings");
+        return response.json();
+    }
 
-    $effect(() => {
-        if (!browser || !tmdbId) return;
-
-        const controller = new AbortController();
-        loading = true;
-
-        fetch(`/api/ratings/${tmdbId}?type=${mediaType}`, { signal: controller.signal })
-            .then((r) => {
-                if (!r.ok) throw new Error("Failed to fetch ratings");
-                return r.json();
-            })
-            .then((d) => {
-                if (!controller.signal.aborted) {
-                    ratingsData = d;
-                    loading = false;
-                }
-            })
-            .catch((e) => {
-                if (!controller.signal.aborted) {
-                    error = true;
-                    loading = false;
-                }
-            });
-
-        return () => controller.abort();
-    });
+    // Use $derived to create a reactive promise that updates when tmdbId or mediaType changes
+    const ratingsPromise = $derived(browser && tmdbId ? fetchRatings(tmdbId, mediaType) : null);
 </script>
 
 <div
@@ -112,33 +92,51 @@
                 {#if meta}
                     <div class="relative z-20 flex flex-wrap items-center gap-2">
                         {@render meta()}
-                        {#if loading || (!ratingsData && !error && initialRating)}
-                            {#if initialRating}
-                                <div
-                                    class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                    <Star size={12} class="fill-yellow-500 text-yellow-500" />
-                                    {initialRating.toFixed(1)}
-                                </div>
-                            {:else}
-                                <div class="bg-muted h-5 w-12 animate-pulse rounded"></div>
-                            {/if}
-                        {:else if ratingsData?.scores?.length}
-                            {#each ratingsData.scores as score (score.name)}
-                                <a
-                                    href={score.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onclick={(e) => e.stopPropagation()}
-                                    class="border-border bg-muted/50 text-foreground/80 hover:bg-muted flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors">
-                                    {#if score.image}
-                                        <img
-                                            src="/rating-logos/{score.image}"
-                                            alt={score.name}
-                                            class="h-3 w-3 object-contain" />
-                                    {/if}
-                                    <span class="font-medium">{score.score}</span>
-                                </a>
-                            {/each}
+                        {#if ratingsPromise}
+                            {#await ratingsPromise}
+                                {#if initialRating}
+                                    <div
+                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
+                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
+                                        {initialRating.toFixed(1)}
+                                    </div>
+                                {:else}
+                                    <div class="bg-muted h-5 w-12 animate-pulse rounded"></div>
+                                {/if}
+                            {:then ratingsData}
+                                {#if ratingsData?.scores?.length}
+                                    {#each ratingsData.scores as score (score.name)}
+                                        <a
+                                            href={score.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onclick={(e) => e.stopPropagation()}
+                                            class="border-border bg-muted/50 text-foreground/80 hover:bg-muted flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors">
+                                            {#if score.image}
+                                                <img
+                                                    src="/rating-logos/{score.image}"
+                                                    alt={score.name}
+                                                    class="h-3 w-3 object-contain" />
+                                            {/if}
+                                            <span class="font-medium">{score.score}</span>
+                                        </a>
+                                    {/each}
+                                {:else if initialRating}
+                                    <div
+                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
+                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
+                                        {initialRating.toFixed(1)}
+                                    </div>
+                                {/if}
+                            {:catch}
+                                {#if initialRating}
+                                    <div
+                                        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
+                                        <Star size={12} class="fill-yellow-500 text-yellow-500" />
+                                        {initialRating.toFixed(1)}
+                                    </div>
+                                {/if}
+                            {/await}
                         {:else if initialRating}
                             <div
                                 class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">

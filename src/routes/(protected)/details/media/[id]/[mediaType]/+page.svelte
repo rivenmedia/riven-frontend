@@ -866,12 +866,20 @@
                         <div>
                             <h2 class="mb-2 text-lg font-bold drop-shadow-md">File Information</h2>
                             <div class="flex flex-col gap-3 text-xs">
-                                <!-- Filename -->
+                                <!-- Filenames -->
                                 {#if meta?.original_filename || fs?.original_filename}
                                     <div>
                                         <p class="text-primary font-semibold">Original Filename</p>
                                         <p class="text-muted-foreground break-all">
                                             {meta?.original_filename || fs?.original_filename}
+                                        </p>
+                                    </div>
+                                {/if}
+                                {#if meta?.filename}
+                                    <div>
+                                        <p class="text-primary font-semibold">Current Filename</p>
+                                        <p class="text-muted-foreground break-all">
+                                            {meta.filename}
                                         </p>
                                     </div>
                                 {/if}
