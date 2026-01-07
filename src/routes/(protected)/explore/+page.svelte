@@ -88,10 +88,15 @@
                 options={[
                     { label: "All", value: "both" },
                     { label: "Movies", value: "movie" },
-                    { label: "TV Shows", value: "tv" }
+                    { label: "TV Shows", value: "tv" },
+                    { label: "People", value: "person" },
+                    { label: "Studios", value: "company" }
                 ]}
                 value={searchStore.mediaType}
-                onchange={(value) => searchStore.setMediaType(value as "both" | "movie" | "tv")} />
+                onchange={(value) =>
+                    searchStore.setMediaType(
+                        value as "both" | "movie" | "tv" | "person" | "company"
+                    )} />
         </div>
     </div>
 

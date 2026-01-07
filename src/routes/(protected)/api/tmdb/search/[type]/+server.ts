@@ -13,6 +13,8 @@ type SearchMovieQuery = paths["/3/search/movie"]["get"]["parameters"]["query"];
 type DiscoverMovieQuery = NonNullable<paths["/3/discover/movie"]["get"]["parameters"]["query"]>;
 type SearchTVQuery = paths["/3/search/tv"]["get"]["parameters"]["query"];
 type DiscoverTVQuery = NonNullable<paths["/3/discover/tv"]["get"]["parameters"]["query"]>;
+type SearchPersonQuery = paths["/3/search/person"]["get"]["parameters"]["query"];
+type SearchCompanyQuery = paths["/3/search/company"]["get"]["parameters"]["query"];
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -22,8 +24,8 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     const { type } = params;
     const customFetch = createCustomFetch(fetch);
 
-    if (type !== "movie" && type !== "tv") {
-        error(400, "Invalid media type. Must be 'movie' or 'tv'");
+    if (type !== "movie" && type !== "tv" && type !== "person" && type !== "company") {
+        error(400, "Invalid media type. Must be 'movie', 'tv', 'person', or 'company'");
     }
 
     const searchMode = url.searchParams.get("searchMode") || "discover";
@@ -48,7 +50,13 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 "movie-search": { endpoint: "/3/search/movie", queryKey: "searchMovieQuery" },
                 "movie-discover": { endpoint: "/3/discover/movie", queryKey: "discoverMovieQuery" },
                 "tv-search": { endpoint: "/3/search/tv", queryKey: "searchTVQuery" },
-                "tv-discover": { endpoint: "/3/discover/tv", queryKey: "discoverTVQuery" }
+                "tv-discover": { endpoint: "/3/discover/tv", queryKey: "discoverTVQuery" },
+                "person-search": { endpoint: "/3/search/person", queryKey: "searchPersonQuery" },
+                // Person discover doesn't exist, fallback to search
+                "person-discover": { endpoint: "/3/search/person", queryKey: "searchPersonQuery" },
+                "company-search": { endpoint: "/3/search/company", queryKey: "searchCompanyQuery" },
+                // Company discover doesn't exist, fallback to search
+                "company-discover": { endpoint: "/3/search/company", queryKey: "searchCompanyQuery" }
             } as const;
 
             const route = ROUTE_MAP[routeKey as keyof typeof ROUTE_MAP];
@@ -104,6 +112,8 @@ interface ParsedParams {
     discoverMovieQuery: DiscoverMovieQuery;
     searchTVQuery: SearchTVQuery;
     discoverTVQuery: DiscoverTVQuery;
+    searchPersonQuery: SearchPersonQuery;
+    searchCompanyQuery: SearchCompanyQuery;
 }
 
 const BOOLEAN_KEYS = new Set([
@@ -152,6 +162,8 @@ function parseParams(searchParams: URLSearchParams): ParsedParams {
         searchMovieQuery: queryObj as SearchMovieQuery,
         discoverMovieQuery: queryObj as DiscoverMovieQuery,
         searchTVQuery: queryObj as SearchTVQuery,
-        discoverTVQuery: queryObj as DiscoverTVQuery
+        discoverTVQuery: queryObj as DiscoverTVQuery,
+        searchPersonQuery: queryObj as SearchPersonQuery,
+        searchCompanyQuery: queryObj as SearchCompanyQuery
     };
 }

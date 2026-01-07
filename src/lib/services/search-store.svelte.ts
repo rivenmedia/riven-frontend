@@ -47,15 +47,23 @@ export class SearchStore {
     parsedSearch = $state<ParsedSearchQuery | null>(null);
     movieResults = $state<TMDBTransformedListItem[]>([]);
     tvResults = $state<TMDBTransformedListItem[]>([]);
+    personResults = $state<TMDBTransformedListItem[]>([]);
+    companyResults = $state<TMDBTransformedListItem[]>([]);
     loading = $state<boolean>(false);
     error = $state<string | null>(null);
     moviePage = $state<number>(1);
     tvPage = $state<number>(1);
+    personPage = $state<number>(1);
+    companyPage = $state<number>(1);
     totalResultsMovie = $state<number>(0);
     totalResultsTV = $state<number>(0);
+    totalResultsPerson = $state<number>(0);
+    totalResultsCompany = $state<number>(0);
     movieHasMore = $state<boolean>(true);
     tvHasMore = $state<boolean>(true);
-    mediaType = $state<"movie" | "tv" | "both">("both");
+    personHasMore = $state<boolean>(true);
+    companyHasMore = $state<boolean>(true);
+    mediaType = $state<"movie" | "tv" | "person" | "company" | "both">("both");
     warnings = $state<string[]>([]);
 
     // Additional filter parameters from the filter panel
@@ -74,36 +82,57 @@ export class SearchStore {
     get results() {
         if (this.mediaType === "both") {
             // Sort merged results by popularity
-            return [...this.movieResults, ...this.tvResults].sort(
-                (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)
-            );
+            return [
+                ...this.movieResults,
+                ...this.tvResults,
+                ...this.personResults,
+                ...this.companyResults
+            ].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
         }
-        // Force new array reference to ensure reactivity
-        return this.mediaType === "movie" ? [...this.movieResults] : [...this.tvResults];
+        if (this.mediaType === "movie") return [...this.movieResults];
+        if (this.mediaType === "tv") return [...this.tvResults];
+        if (this.mediaType === "person") return [...this.personResults];
+        if (this.mediaType === "company") return [...this.companyResults];
+        return [];
     }
 
     get unfilteredResultsCount() {
         if (this.mediaType === "both") {
-            return this.movieResults.length + this.tvResults.length;
+            return (
+                this.movieResults.length +
+                this.tvResults.length +
+                this.personResults.length +
+                this.companyResults.length
+            );
         }
         return this.mediaType === "movie" ? this.movieResults.length : this.tvResults.length;
     }
 
     get totalResults() {
         if (this.mediaType === "both") {
-            return this.totalResultsMovie + this.totalResultsTV;
+            return (
+                this.totalResultsMovie +
+                this.totalResultsTV +
+                this.totalResultsPerson +
+                this.totalResultsCompany
+            );
         }
         return this.mediaType === "movie" ? this.totalResultsMovie : this.totalResultsTV;
     }
 
     get hasMore() {
         if (this.mediaType === "both") {
-            return this.movieHasMore || this.tvHasMore;
+            return (
+                this.movieHasMore ||
+                this.tvHasMore ||
+                this.personHasMore ||
+                this.companyHasMore
+            );
         }
         return this.mediaType === "movie" ? this.movieHasMore : this.tvHasMore;
     }
 
-    async setMediaType(type: "movie" | "tv" | "both") {
+    async setMediaType(type: "movie" | "tv" | "person" | "company" | "both") {
         if (this.mediaType === type) return;
         this.mediaType = type;
 
@@ -113,13 +142,15 @@ export class SearchStore {
         // If we switched to a type and have NO results for it, fetch.
         const needMovies = (type === "movie" || type === "both") && this.movieResults.length === 0;
         const needTV = (type === "tv" || type === "both") && this.tvResults.length === 0;
+        const needPerson = (type === "person" || type === "both") && this.personResults.length === 0;
+        const needCompany = (type === "company" || type === "both") && this.companyResults.length === 0;
 
-        if (needMovies || needTV) {
-            await this.fetchMissingMedia(needMovies, needTV);
+        if (needMovies || needTV || needPerson || needCompany) {
+            await this.fetchMissingMedia(needMovies, needTV, needPerson, needCompany);
         }
     }
 
-    private async fetchMissingMedia(needMovies: boolean, needTV: boolean) {
+    private async fetchMissingMedia(needMovies: boolean, needTV: boolean, needPerson: boolean = false, needCompany: boolean = false) {
         this.cancelPendingRequests();
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
@@ -131,6 +162,8 @@ export class SearchStore {
             const promises: Promise<void>[] = [];
             if (needMovies) promises.push(this.fetchMedia("movie", 1, signal));
             if (needTV) promises.push(this.fetchMedia("tv", 1, signal));
+            if (needPerson) promises.push(this.fetchMedia("person", 1, signal));
+            if (needCompany) promises.push(this.fetchMedia("company", 1, signal));
 
             await Promise.all(promises);
         } catch (error) {
@@ -213,20 +246,34 @@ export class SearchStore {
             if (this.mediaType === "both") {
                 this.movieResults = [];
                 this.tvResults = [];
+                this.personResults = [];
+                this.companyResults = [];
                 this.totalResultsMovie = 0;
                 this.totalResultsTV = 0;
+                this.totalResultsPerson = 0;
+                this.totalResultsCompany = 0;
                 await Promise.all([
                     this.fetchMedia("movie", 1, signal),
-                    this.fetchMedia("tv", 1, signal)
+                    this.fetchMedia("tv", 1, signal),
+                    this.fetchMedia("person", 1, signal),
+                    this.fetchMedia("company", 1, signal)
                 ]);
             } else if (this.mediaType === "movie") {
                 this.movieResults = [];
                 this.totalResultsMovie = 0;
                 await this.fetchMedia("movie", 1, signal);
-            } else {
+            } else if (this.mediaType === "tv") {
                 this.tvResults = [];
                 this.totalResultsTV = 0;
                 await this.fetchMedia("tv", 1, signal);
+            } else if (this.mediaType === "person") {
+                this.personResults = [];
+                this.totalResultsPerson = 0;
+                await this.fetchMedia("person", 1, signal);
+            } else if (this.mediaType === "company") {
+                this.companyResults = [];
+                this.totalResultsCompany = 0;
+                await this.fetchMedia("company", 1, signal);
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
@@ -289,7 +336,7 @@ export class SearchStore {
     /**
      * Build the search endpoint URL for a given type and page
      */
-    private buildSearchUrl(type: "movie" | "tv", page: number): string {
+    private buildSearchUrl(type: "movie" | "tv" | "person" | "company", page: number): string {
         // Merge parsed search params with filter params
         // Filter params take precedence
         const hasFilters = Object.keys(this.filterParams).length > 0;
@@ -339,7 +386,7 @@ export class SearchStore {
     }
 
     private async fetchMedia(
-        type: "movie" | "tv",
+        type: "movie" | "tv" | "person" | "company",
         page: number,
         signal?: AbortSignal
     ): Promise<void> {
@@ -351,7 +398,9 @@ export class SearchStore {
         )
             return;
 
-        const result = await this.fetchSearchResults(type, page, signal);
+        // Type cast for fetchSearchResults strict typing if needed, 
+        // effectively we support "movie" | "tv" | "person" | "company" now
+        const result = await this.fetchSearchResults(type as any, page, signal);
 
         if (signal?.aborted) return;
 
@@ -361,6 +410,10 @@ export class SearchStore {
             const uniqueItems = this.deduplicateItems(items);
             if (type === "movie") {
                 this.movieResults = uniqueItems;
+            } else if (type === "person") {
+                this.personResults = uniqueItems;
+            } else if (type === "company") {
+                this.companyResults = uniqueItems;
             } else {
                 this.tvResults = uniqueItems;
             }
@@ -368,16 +421,31 @@ export class SearchStore {
             if (this.mediaType === type || this.mediaType === "both") {
                 if (type === "movie") {
                     this.totalResultsMovie = result.total_results || 0;
+                } else if (type === "person") {
+                    this.totalResultsPerson = result.total_results || 0;
+                } else if (type === "company") {
+                    this.totalResultsCompany = result.total_results || 0;
                 } else {
                     this.totalResultsTV = result.total_results || 0;
                 }
             }
         } else {
-            const currentResults = type === "movie" ? this.movieResults : this.tvResults;
+            const currentResults =
+                type === "movie"
+                    ? this.movieResults
+                    : type === "person"
+                        ? this.personResults
+                        : type === "company"
+                            ? this.companyResults
+                            : this.tvResults; // This line was already correct.
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
                 this.movieResults = [...this.movieResults, ...uniqueNewItems];
+            } else if (type === "person") {
+                this.personResults = [...this.personResults, ...uniqueNewItems];
+            } else if (type === "company") {
+                this.companyResults = [...this.companyResults, ...uniqueNewItems];
             } else {
                 this.tvResults = [...this.tvResults, ...uniqueNewItems];
             }
@@ -385,12 +453,16 @@ export class SearchStore {
 
         if (type === "movie") {
             this.movieHasMore = result.page < result.total_pages;
+        } else if (type === "person") {
+            this.personHasMore = result.page < result.total_pages;
+        } else if (type === "company") {
+            this.companyHasMore = result.page < result.total_pages;
         } else {
             this.tvHasMore = result.page < result.total_pages;
         }
     }
 
-    private async loadMoreMedia(type: "movie" | "tv", signal?: AbortSignal): Promise<void> {
+    private async loadMoreMedia(type: "movie" | "tv" | "person" | "company", signal?: AbortSignal): Promise<void> {
         // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
         if (
             !this.parsedSearch &&
@@ -399,27 +471,52 @@ export class SearchStore {
         )
             return;
 
-        const hasMore = type === "movie" ? this.movieHasMore : this.tvHasMore;
+        let hasMore = false;
+        if (type === "movie") hasMore = this.movieHasMore;
+        else if (type === "person") hasMore = this.personHasMore;
+        else if (type === "company") hasMore = this.companyHasMore;
+        else hasMore = this.tvHasMore;
+
         if (!hasMore) return;
 
         if (type === "movie") this.moviePage += 1;
+        else if (type === "person") this.personPage += 1;
+        else if (type === "company") this.companyPage += 1;
         else this.tvPage += 1;
 
-        const page = type === "movie" ? this.moviePage : this.tvPage;
+        const page =
+            type === "movie"
+                ? this.moviePage
+                : type === "person"
+                    ? this.personPage
+                    : type === "company"
+                        ? this.companyPage
+                        : this.tvPage;
 
         try {
-            const result = await this.fetchSearchResults(type, page, signal);
+            const result = await this.fetchSearchResults(type as any, page, signal);
 
             if (signal?.aborted) return;
 
             const newItems = (result.results || []) as TMDBTransformedListItem[];
 
             if (newItems.length > 0) {
-                const currentResults = type === "movie" ? this.movieResults : this.tvResults;
+                const currentResults =
+                    type === "movie"
+                        ? this.movieResults
+                        : type === "person"
+                            ? this.personResults
+                            : type === "company"
+                                ? this.companyResults
+                                : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {
                     this.movieResults = [...this.movieResults, ...uniqueNewItems];
+                } else if (type === "person") {
+                    this.personResults = [...this.personResults, ...uniqueNewItems];
+                } else if (type === "company") {
+                    this.companyResults = [...this.companyResults, ...uniqueNewItems];
                 } else {
                     this.tvResults = [...this.tvResults, ...uniqueNewItems];
                 }
@@ -427,11 +524,17 @@ export class SearchStore {
 
             if (type === "movie") {
                 this.movieHasMore = result.page < result.total_pages;
+            } else if (type === "person") {
+                this.personHasMore = result.page < result.total_pages;
+            } else if (type === "company") {
+                this.companyHasMore = result.page < result.total_pages;
             } else {
                 this.tvHasMore = result.page < result.total_pages;
             }
         } catch (err) {
             if (type === "movie") this.moviePage -= 1;
+            else if (type === "person") this.personPage -= 1;
+            else if (type === "company") this.companyPage -= 1;
             else this.tvPage -= 1;
             throw err;
         }
@@ -456,16 +559,19 @@ export class SearchStore {
                 (this.mediaType === "both" || this.mediaType === "movie") && this.movieHasMore;
             const shouldLoadTV =
                 (this.mediaType === "both" || this.mediaType === "tv") && this.tvHasMore;
+            const shouldLoadPerson =
+                (this.mediaType === "both" || this.mediaType === "person") && this.personHasMore;
+            const shouldLoadCompany =
+                (this.mediaType === "both" || this.mediaType === "company") && this.companyHasMore;
 
-            if (shouldLoadMovies && shouldLoadTV) {
-                await Promise.all([
-                    this.loadMoreMedia("movie", signal),
-                    this.loadMoreMedia("tv", signal)
-                ]);
-            } else if (shouldLoadMovies) {
-                await this.loadMoreMedia("movie", signal);
-            } else if (shouldLoadTV) {
-                await this.loadMoreMedia("tv", signal);
+            const promises: Promise<void>[] = [];
+            if (shouldLoadMovies) promises.push(this.loadMoreMedia("movie", signal));
+            if (shouldLoadTV) promises.push(this.loadMoreMedia("tv", signal));
+            if (shouldLoadPerson) promises.push(this.loadMoreMedia("person", signal));
+            if (shouldLoadCompany) promises.push(this.loadMoreMedia("company", signal));
+
+            if (promises.length > 0) {
+                await Promise.all(promises);
             }
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") return;
@@ -486,6 +592,8 @@ export class SearchStore {
         this.parsedSearch = null;
         this.movieResults = [];
         this.tvResults = [];
+        this.personResults = [];
+        this.companyResults = [];
         this.moviePage = 1;
         this.tvPage = 1;
         this.movieHasMore = true;

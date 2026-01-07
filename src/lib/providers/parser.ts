@@ -123,7 +123,7 @@ export interface TMDBListItem {
     original_name?: string;
     overview: string;
     poster_path: string | null;
-    media_type: "movie" | "tv";
+    media_type: "movie" | "tv" | "person" | "company";
     original_language: string;
     genre_ids: number[];
     popularity: number;
@@ -133,6 +133,8 @@ export interface TMDBListItem {
     vote_average: number;
     vote_count: number;
     origin_country?: string[];
+    profile_path?: string | null;
+    logo_path?: string | null;
 }
 
 interface TMDBCollectionItem {
@@ -268,7 +270,7 @@ export interface TMDBTransformedListItem {
     id: number;
     title: string;
     poster_path: string | null;
-    media_type: string;
+    media_type: "movie" | "tv" | "person" | "company";
     year: string | number;
     vote_average: number | null;
     vote_count: number | null;
@@ -301,12 +303,18 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
     trakt_recommendations: TMDBTransformedListItem[];
 }
 
-export function transformTMDBList(items: TMDBListItem[] | null, type: "movie" | "tv" = "movie") {
+export function transformTMDBList(items: any[] | null, type: "movie" | "tv" | "person" | "company" = "movie") {
     return (
         items?.map((item) => ({
             id: item.id,
             title: item.title || item.name || item.original_title || item.original_name || "",
-            poster_path: item.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}` : null,
+            poster_path: item.poster_path
+                ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
+                : item.profile_path
+                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
+                    : (item as any).logo_path
+                        ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
+                        : null,
             media_type: item.media_type || type,
             year:
                 (item.media_type || type) === "movie"
@@ -1330,5 +1338,60 @@ export function parsePersonDetails(personData: any): PersonDetails {
         also_known_as: personData.also_known_as ?? [],
         cast_credits: castCredits,
         crew_credits: crewCredits
+    };
+}
+
+export function parseCompanyDetails(
+    companyData: any,
+    movies: TMDBTransformedListItem[],
+    shows: TMDBTransformedListItem[]
+): PersonDetails {
+    const castCredits: PersonCreditCast[] = [
+        ...movies.map((m) => ({
+            id: m.id,
+            title: m.title,
+            original_title: m.original_title || m.title,
+            character: "Production",
+            poster_path: m.poster_path,
+            backdrop_path: m.backdrop_path || null,
+            release_date: m.release_date || null,
+            year: m.year ? Number(m.year) : null,
+            media_type: "movie" as const,
+            vote_average: m.vote_average,
+            vote_count: m.vote_count,
+            popularity: m.popularity || 0
+        })),
+        ...shows.map((s) => ({
+            id: s.id,
+            title: s.title,
+            original_title: s.original_title || s.title,
+            character: "Production",
+            poster_path: s.poster_path,
+            backdrop_path: s.backdrop_path || null,
+            release_date: s.first_air_date || null,
+            year: s.year ? Number(s.year) : null,
+            media_type: "tv" as const,
+            vote_average: s.vote_average,
+            vote_count: s.vote_count,
+            popularity: s.popularity || 0
+        }))
+    ].sort(sortByReleaseDateDesc);
+
+    return {
+        id: companyData.id ?? 0,
+        name: companyData.name ?? "",
+        biography: companyData.description || `Headquarters: ${companyData.headquarters || "Unknown"}`,
+        birthday: null,
+        deathday: null,
+        place_of_birth: companyData.origin_country ?? null,
+        profile_path: buildTMDBImage(companyData.logo_path, "w500"),
+        known_for_department: "Production",
+        gender: null,
+        popularity: null,
+        homepage: companyData.homepage ?? null,
+        imdb_id: null,
+        also_known_as: [],
+        cast_credits: castCredits,
+        crew_credits: []
     };
 }
