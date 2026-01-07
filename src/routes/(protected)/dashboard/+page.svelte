@@ -1,4 +1,5 @@
 <script lang="ts">
+    import PageShell from "$lib/components/page-shell.svelte";
     import type { PageData } from "./$types";
     import { cn } from "$lib/utils";
     import * as Card from "$lib/components/ui/card/index.js";
@@ -78,7 +79,7 @@
     </Card.Root>
 {/snippet}
 
-<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
+<PageShell>
     <h1 class="mb-8 text-3xl font-bold tracking-tight">Media Library Statistics</h1>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -372,4 +373,4 @@
             </Card.Root>
         {/each}
     </section>
-</div>
+</PageShell>
