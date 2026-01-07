@@ -6,7 +6,6 @@
     import type {
         ScrapeSeasonRequest,
         Stream,
-        StartSessionResponse,
         DebridFile,
         Container,
         ShowFileData,
@@ -24,6 +23,7 @@
     import * as Alert from "$lib/components/ui/alert/index.js";
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
+    import * as Popover from "$lib/components/ui/popover/index.js";
     import { Switch } from "$lib/components/ui/switch/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -49,6 +49,10 @@
     import X from "@lucide/svelte/icons/x";
     import Magnet from "@lucide/svelte/icons/magnet";
     import Download from "@lucide/svelte/icons/download";
+    import Ghost from "@lucide/svelte/icons/ghost";
+    import Inbox from "@lucide/svelte/icons/inbox";
+    import FileQuestion from "@lucide/svelte/icons/file-question";
+    import ChevronDown from "@lucide/svelte/icons/chevron-down";
     import StreamItem from "./stream-item.svelte";
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
     import { createScopedLogger } from "$lib/logger";
@@ -59,7 +63,7 @@
         title: string | null | undefined;
         itemId?: string | null;
         externalId: string;
-        mediaType: "movie" | "tv";
+        mediaType: "tv" | "movie";
         variant?:
             | "ghost"
             | "default"
@@ -96,13 +100,71 @@
 
     let open = $state(false);
     let step = $state(1);
+    let tabValue = $state<"search" | "auto">("search");
     let loading = $state(false);
     let settingsLoading = $state(false);
     let error = $state<string | null>(null);
     let magnetLink = $state("");
     let streams = $state<{ magnet: string; stream: Stream }[]>([]);
-    let sessionId = $state<string | null>(null);
-    let sessionData = $state<StartSessionResponse | null>(null);
+    let currentSessionMagnet: string | null = null;
+
+    async function handleComplete() {
+        if (!currentSessionMagnet) return;
+
+        loading = true;
+        error = null;
+
+        try {
+            // Step 1: Select files (Stateless Download logic)
+            const container: Container = {};
+            selectedFilesMappings.forEach((mapping) => {
+                // @ts-ignore
+                container[mapping.file_id] = {
+                    file_id: parseInt(mapping.file_id),
+                    filename: mapping.filename,
+                    filesize: mapping.filesize,
+                    download_url: mapping.download_url ?? undefined
+                };
+            });
+
+            // Call simplified stateless endpoint
+            const { data: selectData, error: selectErr } = await providers.riven.POST(
+                "/api/v1/scrape/select_files",
+                {
+                    body: {
+                        magnet: currentSessionMagnet,
+                        items: container,
+                        item_id: itemId ? parseInt(itemId as string) : undefined,
+                        // For new items without a Riven ID, pass external IDs so backend can create/find item
+                        tmdb_id: !itemId && mediaType === "movie" ? externalId : undefined,
+                        tvdb_id: !itemId && mediaType === "tv" ? externalId : undefined,
+                        imdb_id: customImdbId || undefined,
+                        media_type: !itemId ? mediaType : undefined,
+                        max_bitrate_override: maxBitrateOverride
+                    }
+                }
+            );
+
+            if (!selectData) {
+                const errorMsg = (selectErr as any)?.message || "Failed to start download";
+                error = errorMsg;
+                toast.error(errorMsg);
+                return;
+            }
+
+            toast.success("Download started successfully!");
+            open = false;
+            resetFlow();
+            await invalidateAll();
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : "An error occurred";
+            error = errorMsg;
+            toast.error(errorMsg);
+        } finally {
+            loading = false;
+        }
+    }
+    let sessionData = $state<any | null>(null);
     let selectedFilesMappings = $state<FileMapping[]>([]);
     let rankingOptions = $state<Record<string, string[]>>({});
     let selectedOptions = $state<Record<string, string[]>>({
@@ -123,7 +185,7 @@
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
-    let disableBitrateCheck = $state(false);
+    let maxBitrateOverride = $state<number | null>(null);
 
     let customTitle = $state("");
     let customImdbId = $state("");
@@ -160,6 +222,9 @@
         trash: Trash2
     };
 
+    // Track which categories are expanded (all collapsed by default)
+    let expandedCategories = $state<Set<string>>(new Set());
+
     let filteredStreams = $derived.by(() => {
         let result = streams;
 
@@ -191,6 +256,43 @@
             if (activeTab === "episodes") return isEpisode;
             return true;
         });
+    });
+
+    // Stream counts for TV tabs
+    let streamCounts = $derived.by(() => {
+        const baseStreams = searchQuery
+            ? streams.filter(({ stream }) =>
+                  stream.raw_title.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+            : streams;
+
+        let showPacks = 0,
+            seasonPacks = 0,
+            episodes = 0;
+
+        for (const { stream } of baseStreams) {
+            const data = stream.parsed_data as ParsedTitleData;
+            const seasons = data.seasons || [];
+            const episodeList = data.episodes || [];
+            const isComplete = data.complete === true;
+
+            const isShowPack = seasons.length > 1;
+            const isSeasonPack =
+                seasons.length === 1 &&
+                (isComplete || episodeList.length === 0 || episodeList.length > 2);
+            const isEpisode = episodeList.length > 0 && !isSeasonPack && !isShowPack;
+
+            if (isShowPack) showPacks++;
+            else if (isSeasonPack) seasonPacks++;
+            else if (isEpisode) episodes++;
+        }
+
+        return {
+            all: baseStreams.length,
+            show_packs: showPacks,
+            season_packs: seasonPacks,
+            episodes: episodes
+        };
     });
 
     function toggleMagnetSelection(magnet: string) {
@@ -264,8 +366,8 @@
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
             }
 
-            if (disableBitrateCheck) {
-                queryParams.disable_bitrate_check = true;
+            if (maxBitrateOverride !== null) {
+                queryParams.max_bitrate_override = maxBitrateOverride;
             }
 
             const { data, error: err } = await providers.riven.POST(
@@ -303,17 +405,19 @@
 
                         if (parseData) {
                             mappings = files.map((file, idx) => {
-                                const parsedData = parseData.data[idx] as ParsedTitleData;
+                                const parsed = parseData.data[idx] as ParsedTitleData;
                                 return {
-                                    file_id: file.file_id?.toString() || "",
-                                    filename: file.filename || "",
-                                    filesize: file.filesize || 0,
-                                    season: parsedData?.seasons?.[0],
-                                    episode: parsedData?.episodes?.[0]
+                                    file_id: file.file_id?.toString() ?? "",
+                                    filename: file.filename ?? "",
+                                    filesize: file.filesize ?? 0,
+                                    season: parsed.seasons?.[0],
+                                    episode: parsed.episodes?.[0],
+                                    download_url: file.download_url
                                 };
                             });
+
                             batchSessions.push({
-                                sessionId: sData.session_id,
+                                sessionId: magnet, // Use magnet as ID for batch
                                 magnet,
                                 stream,
                                 sessionData: sData,
@@ -335,7 +439,12 @@
         error = null;
         magnetLink = "";
         streams = [];
-        sessionId = null;
+        loading = false;
+        error = null;
+        magnetLink = "";
+        streams = [];
+        currentSessionMagnet = null;
+        sessionData = null;
         sessionData = null;
         selectedFilesMappings = [];
 
@@ -417,6 +526,25 @@
 
                 rankingOptions = newRankingOptions;
                 selectedOptions = newSelectedOptions;
+
+                // Set default max bitrate override
+                if (data.downloaders) {
+                    const downloaders = data.downloaders as any;
+                    let defaultBitrate = -1;
+
+                    if (mediaType === "movie") {
+                        if (downloaders.movie_bitrate_mbps_max !== undefined) {
+                            defaultBitrate = downloaders.movie_bitrate_mbps_max;
+                        }
+                    } else {
+                        if (downloaders.episode_bitrate_mbps_max !== undefined) {
+                            defaultBitrate = downloaders.episode_bitrate_mbps_max;
+                        }
+                    }
+
+                    // map -1 to null (No limit), otherwise use value
+                    maxBitrateOverride = defaultBitrate === -1 ? null : defaultBitrate;
+                }
             }
         } catch (e) {
             logger.error("Failed to fetch settings", e);
@@ -425,67 +553,63 @@
         }
     }
 
+    function getRankingOverrides() {
+        const rankingOverrides: Record<string, string[]> = {};
+        Object.entries(selectedOptions).forEach(([key, value]) => {
+            if (
+                [
+                    "resolutions",
+                    "quality",
+                    "rips",
+                    "hdr",
+                    "audio",
+                    "extras",
+                    "trash",
+                    "require",
+                    "exclude"
+                ].includes(key)
+            ) {
+                rankingOverrides[key] = value;
+            }
+        });
+        return rankingOverrides;
+    }
+
+    function getScrapeParams() {
+        const params: any = {
+            media_type: mediaType
+        };
+
+        if (itemId) {
+            params.item_id = String(itemId);
+        }
+
+        if (externalId) {
+            if (mediaType === "movie") params.tmdb_id = externalId;
+            if (mediaType === "tv") params.tvdb_id = externalId;
+        }
+
+        return params;
+    }
+
     type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
 
     async function handleAutoScrape() {
-        // itemId is optional now, as we can fallback to externalId
-
         loading = true;
         error = null;
 
         try {
+            const params = getScrapeParams();
+            const rankingOverrides = getRankingOverrides();
+
             const body: AutoScrapeRequest = {
-                media_type: mediaType,
-                disable_bitrate_check: disableBitrateCheck
+                ...params,
+                max_bitrate_override: maxBitrateOverride
             };
-
-            // Only include IDs if they have valid values
-            if (itemId) {
-                const parsed = parseInt(String(itemId), 10);
-                if (!isNaN(parsed)) {
-                    // @ts-ignore
-                    body.item_id = parsed.toString();
-                }
-            }
-
-            if (externalId) {
-                if (mediaType === "movie") {
-                    body.tmdb_id = externalId;
-                } else if (mediaType === "tv") {
-                    body.tvdb_id = externalId;
-                }
-            }
-
-            // Only include selected options if they have values
-            const rankingOverrides: Record<string, string[]> = {};
-            const topLevelOptions: Record<string, string[]> = {};
-
-            Object.entries(selectedOptions).forEach(([key, value]) => {
-                if (
-                    [
-                        "resolutions",
-                        "quality",
-                        "rips",
-                        "hdr",
-                        "audio",
-                        "extras",
-                        "trash",
-                        "require",
-                        "exclude"
-                    ].includes(key)
-                ) {
-                    rankingOverrides[key] = value;
-                } else {
-                    // @ts-ignore
-                    topLevelOptions[key] = value;
-                }
-            });
 
             if (Object.keys(rankingOverrides).length > 0) {
                 body.ranking_overrides = rankingOverrides;
             }
-
-            Object.assign(body, topLevelOptions);
 
             if (
                 mediaType === "tv" &&
@@ -554,7 +678,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceDisableBitrateCheck: boolean = false) {
+    async function startScrapeSession(magnet: string, forceOverride: number | null = null) {
         loading = true;
         error = null;
 
@@ -564,24 +688,15 @@
                 magnet: magnet
             };
 
-            if (forceDisableBitrateCheck || disableBitrateCheck) {
-                // @ts-ignore
-                queryParams.disable_bitrate_check = true;
+            if (forceOverride !== null) {
+                queryParams.max_bitrate_override = forceOverride;
+            } else if (maxBitrateOverride !== null) {
+                queryParams.max_bitrate_override = maxBitrateOverride;
             }
 
-            if (itemId) {
-                queryParams.item_id = parseInt(itemId as string);
-            } else {
-                if (!externalId) {
-                    throw new Error("No item ID or external ID available");
-                }
-                if (mediaType === "movie") {
-                    queryParams.tmdb_id = externalId;
-                }
-                if (mediaType === "tv") {
-                    queryParams.tvdb_id = externalId;
-                }
-            }
+            // Use shared helper for IDs
+            const idParams = getScrapeParams();
+            Object.assign(queryParams, idParams);
 
             const { data, error: err } = await providers.riven.POST(
                 "/api/v1/scrape/start_session",
@@ -591,14 +706,38 @@
             );
 
             if (data) {
-                sessionId = data.session_id;
+                // Cast to any to handle new fields
+                const sData = data as any;
+                let mappings: FileMapping[];
+                currentSessionMagnet = magnet;
+
+                if (sData.parsed_files && sData.parsed_files.length > 0) {
+                    const files = sData.parsed_files;
+                    mappings = files.map((file, idx) => {
+                        const pm = file.parsed_metadata;
+                        return {
+                            file_id: file.file_id?.toString() || idx.toString(),
+                            filename: file.filename || "",
+                            filesize: file.filesize || 0,
+                            season: pm?.seasons?.[0],
+                            episode: pm?.episodes?.[0]
+                        };
+                    });
+
+                    batchSessions.push({
+                        sessionId: sData.torrent_info?.infohash || magnet,
+                        magnet,
+                        stream: streams.find((s) => s.magnet === magnet)?.stream as Stream,
+                        sessionData: sData,
+                        mappings,
+                        status: "pending"
+                    });
+                }
+
                 sessionData = data;
                 toast.success("Session started successfully!");
                 await handleSelectAllFiles();
-                if (step !== 3) {
-                    // If parsing failed, we stay on the current step (1 or 2) and show error
-                    // step = 3; // Removed fallback to step 3
-                }
+                // No longer need to check step, handleSelectAllFiles will move to step 3
             } else {
                 const errorMsg =
                     (err as any)?.detail || (err as any)?.message || "Failed to start session";
@@ -623,31 +762,20 @@
             isManualMagnet = true;
             // When manually entering a magnet, we assume the user knows what they are doing,
             // so we disable the filesize check to allow scraping of any file size.
-            await startScrapeSession(magnetLink, true);
+            // (Note: manual magnet usually implies skipping normal filters, so we could pass
+            // a very high bitrate or None if the backend treats None as 'use system limit' vs 'unlimited'.
+            // But here we just respect the UI setting or leave it default.)
+            await startScrapeSession(magnetLink);
             return;
         }
 
         // Build query parameters for SSE endpoint
+        const baseParams = getScrapeParams();
         const params = new URLSearchParams();
-        params.set("media_type", mediaType);
 
-        if (itemId) {
-            params.set("item_id", itemId);
-        } else {
-            if (!externalId) {
-                error = "No item ID or external ID available";
-                toast.error(error);
-                loading = false;
-                return;
-            }
-        }
-
-        if (mediaType === "movie" && externalId) {
-            params.set("tmdb_id", externalId);
-        }
-        if (mediaType === "tv" && externalId) {
-            params.set("tvdb_id", externalId);
-        }
+        Object.entries(baseParams).forEach(([key, value]) => {
+            if (value) params.set(key, String(value));
+        });
 
         if (customTitle) {
             // @ts-ignore
@@ -656,6 +784,13 @@
         if (customImdbId) {
             // @ts-ignore
             params.set("custom_imdb_id", customImdbId);
+        }
+
+        // Add ranking overrides
+        const rankingOverrides = getRankingOverrides();
+
+        if (Object.keys(rankingOverrides).length > 0) {
+            params.set("ranking_overrides", JSON.stringify(rankingOverrides));
         }
 
         // Create EventSource for streaming - use dedicated SSE proxy endpoint
@@ -789,11 +924,7 @@
     }
 
     async function handleSelectAllFiles() {
-        if (
-            !sessionData?.containers ||
-            !sessionData.containers.files ||
-            sessionData.containers.files.length === 0
-        ) {
+        if (!sessionData?.parsed_files || sessionData.parsed_files.length === 0) {
             error = "No files available to select";
             toast.error(error);
             return;
@@ -803,157 +934,23 @@
         error = null;
 
         try {
-            const files = sessionData.containers.files || [];
-            // Parse filenames to extract season/episode info
-            const filenames = files.reduce<string[]>((acc, f) => {
-                if (f.filename != null) acc.push(f.filename);
-                return acc;
-            }, []);
+            const files = sessionData.parsed_files || [];
 
-            // Ensure we have valid filenames before calling the API
-            if (filenames.length === 0) {
-                error = "No valid filenames found";
-                toast.error(error);
-                loading = false;
-                return;
-            }
-
-            const { data, error: err } = await providers.riven.POST("/api/v1/scrape/parse", {
-                body: filenames
-            });
-
-            if (data) {
-                selectedFilesMappings = files.map((file, idx) => {
-                    const parsedData = data.data[idx] as ParsedTitleData;
-                    return {
-                        file_id: file.file_id?.toString() || idx.toString(),
-                        filename: file.filename || "",
-                        filesize: file.filesize || 0,
-                        season: parsedData?.seasons?.[0],
-                        episode: parsedData?.episodes?.[0],
-                        download_url: file.download_url ?? undefined
-                    };
-                });
-                step = 3;
-                toast.success("Files selected!");
-            } else {
-                const errorMsg =
-                    (err as any)?.detail || (err as any)?.message || "Failed to parse filenames";
-                error = errorMsg;
-                toast.error(errorMsg);
-            }
-        } catch (e) {
-            const errorMsg = e instanceof Error ? e.message : "An error occurred";
-            error = errorMsg;
-            toast.error(errorMsg);
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function handleComplete() {
-        if (!sessionId) return;
-
-        loading = true;
-        error = null;
-
-        try {
-            // Step 1: Select files
-            const container: Container = {};
-            selectedFilesMappings.forEach((mapping) => {
-                // @ts-ignore
-                container[mapping.file_id] = {
-                    file_id: parseInt(mapping.file_id),
-                    filename: mapping.filename,
-                    filesize: mapping.filesize,
-                    download_url: mapping.download_url ?? undefined
+            // Fix season/episode indexing
+            selectedFilesMappings = files.map((file, idx) => {
+                const pm = file.parsed_metadata;
+                return {
+                    file_id: file.file_id?.toString() || idx.toString(),
+                    filename: file.filename || "",
+                    filesize: file.filesize || 0,
+                    season: pm?.seasons?.[0],
+                    episode: pm?.episodes?.[0],
+                    download_url: file.download_url ?? undefined
                 };
             });
 
-            const { data: selectData, error: selectErr } = await providers.riven.POST(
-                "/api/v1/scrape/select_files/{session_id}",
-                {
-                    params: { path: { session_id: sessionId } },
-                    body: container
-                }
-            );
-
-            if (!selectData) {
-                const errorMsg = (selectErr as any)?.message || "Failed to select files";
-                error = errorMsg;
-                toast.error(errorMsg);
-                return;
-            }
-
-            // Step 2: Update attributes
-            let updateBody: UpdateBody;
-
-            if (mediaType === "movie") {
-                // For movies, select the largest file
-                const largestFile = selectedFilesMappings.reduce((prev, current) =>
-                    current.filesize > prev.filesize ? current : prev
-                );
-                updateBody = {
-                    file_id: parseInt(largestFile.file_id),
-                    filename: largestFile.filename,
-                    filesize: largestFile.filesize,
-                    download_url: largestFile.download_url ?? undefined
-                };
-            } else {
-                // For TV shows, map files to episodes
-                updateBody = {};
-                selectedFilesMappings.forEach((mapping) => {
-                    if (mapping.season !== undefined && mapping.episode !== undefined) {
-                        const seasonKey = mapping.season.toString();
-                        const episodeKey = mapping.episode.toString();
-
-                        if (!(updateBody as Record<string, any>)[seasonKey]) {
-                            (updateBody as Record<string, any>)[seasonKey] = {};
-                        }
-
-                        (updateBody as Record<string, any>)[seasonKey][episodeKey] = {
-                            file_id: parseInt(mapping.file_id),
-                            filename: mapping.filename,
-                            filesize: mapping.filesize
-                        };
-                    }
-                });
-            }
-
-            const { data: updateData, error: updateErr } = await providers.riven.POST(
-                "/api/v1/scrape/update_attributes/{session_id}",
-                {
-                    params: { path: { session_id: sessionId } },
-                    body: updateBody
-                }
-            );
-
-            if (!updateData) {
-                logger.error(updateErr);
-                const errorMsg = (updateErr as any)?.message || "Failed to update attributes";
-                error = errorMsg;
-                toast.error(errorMsg);
-                return;
-            }
-
-            // Step 3: Complete session
-            const { data: completeData, error: completeErr } = await providers.riven.POST(
-                "/api/v1/scrape/complete_session/{session_id}",
-                {
-                    params: { path: { session_id: sessionId } }
-                }
-            );
-
-            if (completeData) {
-                toast.success("Manual scrape completed successfully!");
-                open = false;
-                resetFlow();
-                await invalidateAll();
-            } else {
-                const errorMsg = (completeErr as any)?.message || "Failed to complete session";
-                error = errorMsg;
-                toast.error(errorMsg);
-            }
+            step = 3;
+            toast.success("Files selected!");
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : "An error occurred";
             error = errorMsg;
@@ -984,7 +981,7 @@
                 };
 
                 try {
-                    // Step 1: Select files
+                    // Step 1: Select files (Stateless Download logic)
                     const container: Container = {};
                     session.mappings.forEach((mapping) => {
                         // @ts-ignore
@@ -995,52 +992,12 @@
                         };
                     });
 
-                    await providers.riven.POST("/api/v1/scrape/select_files/{session_id}", {
-                        params: { path: { session_id: session.sessionId } },
-                        // @ts-ignore
-                        body: container
-                    });
-
-                    // Step 2: Update attributes
-                    let updateBody: UpdateBody;
-
-                    if (mediaType === "movie") {
-                        const largestFile = session.mappings.reduce((prev, current) =>
-                            current.filesize > prev.filesize ? current : prev
-                        );
-                        updateBody = {
-                            file_id: parseInt(largestFile.file_id),
-                            filename: largestFile.filename,
-                            filesize: largestFile.filesize
-                        };
-                    } else {
-                        updateBody = {};
-                        session.mappings.forEach((mapping) => {
-                            if (mapping.season !== undefined && mapping.episode !== undefined) {
-                                const seasonKey = mapping.season.toString();
-                                const episodeKey = mapping.episode.toString();
-
-                                if (!(updateBody as Record<string, any>)[seasonKey]) {
-                                    (updateBody as Record<string, any>)[seasonKey] = {};
-                                }
-
-                                (updateBody as Record<string, any>)[seasonKey][episodeKey] = {
-                                    file_id: parseInt(mapping.file_id),
-                                    filename: mapping.filename,
-                                    filesize: mapping.filesize
-                                };
-                            }
-                        });
-                    }
-
-                    await providers.riven.POST("/api/v1/scrape/update_attributes/{session_id}", {
-                        params: { path: { session_id: session.sessionId } },
-                        body: updateBody
-                    });
-
-                    // Step 3: Complete
-                    await providers.riven.POST("/api/v1/scrape/complete_session/{session_id}", {
-                        params: { path: { session_id: session.sessionId } }
+                    await providers.riven.POST("/api/v1/scrape/select_files", {
+                        body: {
+                            magnet: session.magnet,
+                            items: container,
+                            max_bitrate_override: maxBitrateOverride
+                        }
                     });
 
                     // Update session status
@@ -1066,12 +1023,12 @@
     }
 
     function getResolutionColor(resolution?: string): string {
-        if (!resolution) return "bg-pink-600";
-        if (resolution.includes("2160")) return "bg-purple-600";
-        if (resolution.includes("1440")) return "bg-indigo-600";
-        if (resolution.includes("1080")) return "bg-blue-600";
-        if (resolution.includes("720")) return "bg-yellow-600";
-        return "bg-pink-600";
+        if (!resolution) return "bg-primary text-primary-foreground";
+        if (resolution.includes("2160")) return "bg-chart-5 text-primary-foreground";
+        if (resolution.includes("1440")) return "bg-chart-4 text-primary-foreground";
+        if (resolution.includes("1080")) return "bg-chart-2 text-primary-foreground";
+        if (resolution.includes("720")) return "bg-chart-3 text-primary-foreground";
+        return "bg-primary text-primary-foreground";
     }
 
     function formatFileSize(bytes: number): string {
@@ -1101,26 +1058,6 @@
 
         if (!open) {
             untrack(() => {
-                // Cleanup: abort session if not completed
-                if (sessionId) {
-                    providers.riven
-                        .POST("/api/v1/scrape/abort_session/{session_id}", {
-                            params: { path: { session_id: sessionId } }
-                        })
-                        .catch(() => {
-                            // Silently ignore cleanup errors
-                        });
-                }
-                // Cleanup batch sessions
-                batchSessions.forEach((s) => {
-                    if (s.status === "pending") {
-                        providers.riven
-                            .POST("/api/v1/scrape/abort_session/{session_id}", {
-                                params: { path: { session_id: s.sessionId } }
-                            })
-                            .catch(() => {});
-                    }
-                });
                 resetFlow();
             });
         }
@@ -1137,41 +1074,55 @@
         {/snippet}
     </Dialog.Trigger>
     <Dialog.Content
-        class={cn(
-            "flex w-full max-w-4xl flex-col overflow-hidden lg:max-w-7xl",
-            step === 2 ? "max-h-[75vh]" : "max-h-[90vh]"
-        )}>
-        <Dialog.Header class="flex-shrink-0">
-            <Dialog.Title>
+        class="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden lg:max-w-7xl">
+        <Dialog.Header class="relative flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <Dialog.Title class="text-lg font-semibold">
+                    {#if step === 5}
+                        Auto Scrape
+                    {:else if step === 1}
+                        Manual Scrape
+                    {:else if step === 2}
+                        Select Stream
+                    {:else if step === 3}
+                        {mediaType === "movie" ? "Confirm" : "Map Files"}
+                    {:else if step === 4}
+                        Auto Scrape
+                    {:else if step === 6}
+                        Batch Confirm
+                    {/if}
+                </Dialog.Title>
+                <!-- Step Indicator -->
+                <div class="flex items-center gap-2">
+                    {#each [1, 2, 3] as s}
+                        <div class="flex items-center gap-1.5">
+                            <div
+                                class={`h-2 w-2 rounded-full transition-colors ${step === s || (step === 4 && s === 1) || (step === 6 && s === 3) ? "bg-primary" : step > s ? "bg-primary/50" : "bg-muted"}`}>
+                            </div>
+                            {#if s < 3}
+                                <div
+                                    class={`h-px w-4 transition-colors ${step > s ? "bg-primary/50" : "bg-muted"}`}>
+                                </div>
+                            {/if}
+                        </div>
+                    {/each}
+                </div>
+            </div>
+            <Dialog.Description class="text-muted-foreground text-sm">
                 {#if step === 5}
-                    Auto Scrape - Select Resolutions
+                    Select resolutions to include
                 {:else if step === 1}
-                    Manual Scrape - Fetch Streams
+                    Choose how to find streams for "{title}"
                 {:else if step === 2}
-                    Manual Scrape - Select Stream
-                {:else if step === 3}
-                    Manual Scrape - {mediaType === "movie" ? "Confirm Selection" : "Map Files"}
-                {:else if step === 4}
-                    Manual Scrape - Auto Scrape Config
-                {:else if step === 6}
-                    Batch Scrape - Confirm All ({batchSessions.length} items)
-                {/if}
-            </Dialog.Title>
-            <Dialog.Description>
-                {#if step === 5}
-                    Select resolutions to include in the auto scrape
-                {:else if step === 1}
-                    Fetch available streams for "{title}"
-                {:else if step === 2}
-                    Choose a stream to download
+                    {filteredStreams.length} streams found
                 {:else if step === 3}
                     {mediaType === "movie"
                         ? "Confirm your file selection"
-                        : "Map files to seasons and episodes"}
+                        : `${selectedFilesMappings.length} files to map`}
                 {:else if step === 4}
-                    Configure constraints for auto scraping
+                    Configure quality constraints
                 {:else if step === 6}
-                    Review and confirm file mappings for all selected torrents
+                    {batchSessions.length} items ready
                 {/if}
             </Dialog.Description>
         </Dialog.Header>
@@ -1185,103 +1136,367 @@
 
         <div class="-mx-6 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 py-4">
             {#if step === 1}
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <Label for="magnet">Magnet Link (Optional)</Label>
-                        <div class="relative">
-                            <Magnet
-                                class="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                            <Input
-                                id="magnet"
-                                type="text"
-                                class="pl-9"
-                                placeholder="magnet:?xt=urn:btih:..."
-                                bind:value={magnetLink}
-                                onkeydown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        handleFetchStreams();
-                                    }
-                                }}
-                                disabled={loading} />
-                        </div>
-                        <p class="text-muted-foreground text-xs">
-                            Leave empty to fetch streams automatically
-                        </p>
-                    </div>
+                <Tabs.Root bind:value={tabValue} class="flex h-full flex-col">
+                    <Tabs.List class="mb-4 grid w-full grid-cols-2">
+                        <Tabs.Trigger value="search">Search</Tabs.Trigger>
+                        <Tabs.Trigger value="auto">Auto Scrape</Tabs.Trigger>
+                    </Tabs.List>
 
-                    <Accordion.Root type="single" collapsible>
-                        <Accordion.Item value="custom-params">
-                            <Accordion.Trigger class="hover:no-underline"
-                                >Custom Scrape Parameters</Accordion.Trigger>
-                            <Accordion.Content>
-                                <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-2">
-                                    <div class="flex flex-col gap-2">
-                                        <Label for="custom-title">Custom Title</Label>
+                    <div class="min-h-0 flex-1 overflow-y-auto">
+                        <Tabs.Content value="search" class="h-full">
+                            <div class="flex flex-col gap-4">
+                                <!-- Magnet Link Input -->
+                                <div class="flex flex-col gap-1.5">
+                                    <Label for="magnet" class="text-muted-foreground text-xs"
+                                        >Magnet Link (optional)</Label>
+                                    <div class="relative">
+                                        <Magnet
+                                            class="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                                         <Input
-                                            id="custom-title"
-                                            placeholder="e.g. French Title"
-                                            bind:value={customTitle} />
-                                        <p class="text-muted-foreground text-xs">
-                                            Override the title used for searching.
-                                        </p>
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <Label for="custom-imdb">Custom IMDB ID</Label>
-                                        <Input
-                                            id="custom-imdb"
-                                            placeholder="tt1234567"
-                                            bind:value={customImdbId} />
-                                        <p class="text-muted-foreground text-xs">
-                                            Override the IMDB ID used for searching.
-                                        </p>
+                                            id="magnet"
+                                            type="text"
+                                            class="h-9 pl-9"
+                                            placeholder="Paste magnet or leave empty to search"
+                                            bind:value={magnetLink}
+                                            onkeydown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    handleFetchStreams();
+                                                }
+                                            }}
+                                            disabled={loading} />
                                     </div>
                                 </div>
-                            </Accordion.Content>
-                        </Accordion.Item>
-                    </Accordion.Root>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <Button onclick={handleFetchStreams} disabled={loading} class="w-full">
-                            {#if loading}
-                                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                                Fetching...
-                            {:else}
-                                <Download class="mr-2 h-4 w-4" />
-                                Fetch Streams
-                            {/if}
-                        </Button>
+                                <Accordion.Root type="single" collapsible>
+                                    <Accordion.Item value="custom-params">
+                                        <Accordion.Trigger class="py-2 text-sm hover:no-underline">
+                                            Advanced Options
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="grid grid-cols-1 gap-3 pt-2 md:grid-cols-2">
+                                                <div class="flex flex-col gap-1.5">
+                                                    <Label for="custom-title" class="text-xs"
+                                                        >Custom Title</Label>
+                                                    <Input
+                                                        id="custom-title"
+                                                        placeholder="e.g. French Title"
+                                                        bind:value={customTitle}
+                                                        class="h-8 text-sm" />
+                                                </div>
+                                                <div class="flex flex-col gap-1.5">
+                                                    <Label for="custom-imdb" class="text-xs"
+                                                        >Custom IMDB ID</Label>
+                                                    <Input
+                                                        id="custom-imdb"
+                                                        placeholder="tt1234567"
+                                                        bind:value={customImdbId}
+                                                        class="h-8 text-sm" />
+                                                </div>
+                                            </div>
+                                        </Accordion.Content>
+                                    </Accordion.Item>
+                                </Accordion.Root>
 
-                        <Button
-                            variant="secondary"
-                            onclick={() => (step = 4)}
-                            disabled={loading}
-                            class="w-full">
-                            <Zap class="mr-2 h-4 w-4" />
-                            Auto Scrape
-                        </Button>
+                                <Button
+                                    onclick={handleFetchStreams}
+                                    disabled={loading}
+                                    variant="secondary"
+                                    class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary w-full border bg-transparent">
+                                    {#if loading}
+                                        <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                                        {magnetLink ? "Processing..." : "Searching..."}
+                                    {:else}
+                                        <Search class="mr-2 h-4 w-4" />
+                                        {magnetLink ? "Use Magnet" : "Search Streams"}
+                                    {/if}
+                                </Button>
+                            </div>
+                        </Tabs.Content>
+
+                        <Tabs.Content value="auto" class="h-full overflow-y-auto">
+                            <div class="flex h-full flex-col gap-4">
+                                {#if mediaType === "tv" && seasons.length > 0}
+                                    <div class="flex items-center justify-between">
+                                        <Popover.Root>
+                                            <Popover.Trigger>
+                                                {#snippet child({ props })}
+                                                    <Button
+                                                        variant="outline"
+                                                        class="h-9 justify-between gap-3 px-3 font-normal"
+                                                        {...props}>
+                                                        <span class="font-medium"
+                                                            >Select Seasons</span>
+                                                        <span
+                                                            class="text-muted-foreground flex items-center gap-1 text-xs">
+                                                            {selectedSeasons.size}
+                                                            <ChevronDown
+                                                                class="h-3.5 w-3.5 opacity-50" />
+                                                        </span>
+                                                    </Button>
+                                                {/snippet}
+                                            </Popover.Trigger>
+                                            <Popover.Content class="w-56 p-3" align="start">
+                                                <div class="space-y-4">
+                                                    <div class="flex items-center justify-between">
+                                                        <h4 class="leading-none font-medium">
+                                                            Seasons
+                                                        </h4>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            class="text-muted-foreground hover:text-foreground h-8 px-2 text-xs"
+                                                            onclick={() =>
+                                                                (selectedSeasons = new Set())}>
+                                                            Deselect All
+                                                        </Button>
+                                                    </div>
+                                                    <SeasonSelector
+                                                        {seasons}
+                                                        {open}
+                                                        bind:selectedSeasons
+                                                        class="max-h-[40vh]" />
+                                                </div>
+                                            </Popover.Content>
+                                        </Popover.Root>
+
+                                        {#if selectedSeasons.size > 0}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                class="text-muted-foreground hover:text-destructive h-8 px-2 text-xs"
+                                                onclick={() => (selectedSeasons = new Set())}>
+                                                Deselect All
+                                            </Button>
+                                        {/if}
+                                    </div>
+                                {/if}
+
+                                <!-- Quality Filters (collapsible) -->
+                                <Accordion.Root type="single" value="quality" class="w-full">
+                                    <Accordion.Item
+                                        value="quality"
+                                        class="border-border rounded-md border">
+                                        <Accordion.Trigger class="px-3 py-2 hover:no-underline">
+                                            <span class="text-sm font-medium">Quality Filters</span>
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="px-3 pb-3">
+                                                {#if settingsLoading}
+                                                    <div class="space-y-2">
+                                                        <Skeleton class="h-8 w-full" />
+                                                        <Skeleton class="h-8 w-full" />
+                                                    </div>
+                                                {:else}
+                                                    <div class="flex flex-col gap-4 pt-2">
+                                                        {#each Object.entries(rankingOptions) as [category, options] (category)}
+                                                            {@const isExpanded =
+                                                                expandedCategories.has(category)}
+                                                            <div class="flex flex-col gap-1.5">
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground flex w-full items-center justify-between gap-2 px-0.5 transition-colors"
+                                                                    onclick={() => {
+                                                                        const newSet = new Set(
+                                                                            expandedCategories
+                                                                        );
+                                                                        if (newSet.has(category)) {
+                                                                            newSet.delete(category);
+                                                                        } else {
+                                                                            newSet.add(category);
+                                                                        }
+                                                                        expandedCategories = newSet;
+                                                                    }}>
+                                                                    <div
+                                                                        class="flex items-center gap-2">
+                                                                        {#if categoryIcons[category]}
+                                                                            {@const Icon =
+                                                                                categoryIcons[
+                                                                                    category
+                                                                                ]}
+                                                                            <Icon
+                                                                                class="h-3.5 w-3.5 shrink-0" />
+                                                                        {/if}
+                                                                        <span
+                                                                            class="text-sm font-semibold capitalize">
+                                                                            {category === "trash"
+                                                                                ? "Bin"
+                                                                                : category === "hdr"
+                                                                                  ? "HDR"
+                                                                                  : category}
+                                                                        </span>
+                                                                    </div>
+                                                                    <ChevronDown
+                                                                        class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 {isExpanded
+                                                                            ? 'rotate-180'
+                                                                            : ''}" />
+                                                                </button>
+
+                                                                {#if isExpanded}
+                                                                    <div
+                                                                        class="flex flex-wrap gap-1.5">
+                                                                        {#each options as option (option)}
+                                                                            {@const isSelected =
+                                                                                selectedOptions[
+                                                                                    category
+                                                                                ]?.includes(option)}
+                                                                            <button
+                                                                                class="rounded-full border px-3 py-1 text-xs font-medium transition-colors {isSelected
+                                                                                    ? 'border-primary/50 bg-primary/10 text-primary'
+                                                                                    : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
+                                                                                onclick={() => {
+                                                                                    if (
+                                                                                        isSelected
+                                                                                    ) {
+                                                                                        selectedOptions[
+                                                                                            category
+                                                                                        ] = (
+                                                                                            selectedOptions[
+                                                                                                category
+                                                                                            ] || []
+                                                                                        ).filter(
+                                                                                            (r) =>
+                                                                                                r !==
+                                                                                                option
+                                                                                        );
+                                                                                    } else {
+                                                                                        selectedOptions[
+                                                                                            category
+                                                                                        ] = [
+                                                                                            ...(selectedOptions[
+                                                                                                category
+                                                                                            ] ||
+                                                                                                []),
+                                                                                            option
+                                                                                        ];
+                                                                                    }
+                                                                                }}>
+                                                                                {category ===
+                                                                                "resolutions"
+                                                                                    ? option.replace(
+                                                                                          /^r/,
+                                                                                          ""
+                                                                                      )
+                                                                                    : option.replace(
+                                                                                          /_/g,
+                                                                                          " "
+                                                                                      )}
+                                                                            </button>
+                                                                        {/each}
+                                                                    </div>
+                                                                {/if}
+                                                            </div>
+                                                        {/each}
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </Accordion.Content>
+                                    </Accordion.Item>
+                                </Accordion.Root>
+                                <!-- Advanced Options -->
+                                <Accordion.Root type="single" collapsible class="w-full">
+                                    <Accordion.Item value="advanced">
+                                        <Accordion.Trigger class="py-2 text-sm hover:no-underline">
+                                            Advanced Options
+                                        </Accordion.Trigger>
+                                        <Accordion.Content>
+                                            <div class="flex flex-col gap-3 pt-2">
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div class="flex flex-col gap-1.5">
+                                                        <Label class="text-xs">Require terms</Label>
+                                                        <Input
+                                                            placeholder="e.g. 4K, HDR"
+                                                            value={selectedOptions.require?.join(
+                                                                ", "
+                                                            ) || ""}
+                                                            oninput={(e) => {
+                                                                const val = e.currentTarget.value;
+                                                                selectedOptions.require = val
+                                                                    ? val
+                                                                          .split(",")
+                                                                          .map((s) => s.trim())
+                                                                          .filter(Boolean)
+                                                                    : [];
+                                                            }}
+                                                            class="h-8 text-sm" />
+                                                    </div>
+                                                    <div class="flex flex-col gap-1.5">
+                                                        <Label class="text-xs">Exclude terms</Label>
+                                                        <Input
+                                                            placeholder="e.g. CAM, TS"
+                                                            value={selectedOptions.exclude?.join(
+                                                                ", "
+                                                            ) || ""}
+                                                            oninput={(e) => {
+                                                                const val = e.currentTarget.value;
+                                                                selectedOptions.exclude = val
+                                                                    ? val
+                                                                          .split(",")
+                                                                          .map((s) => s.trim())
+                                                                          .filter(Boolean)
+                                                                    : [];
+                                                            }}
+                                                            class="h-8 text-sm" />
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="bg-muted/50 flex flex-col gap-2 rounded-md p-2">
+                                                    <Label
+                                                        for="max-bitrate-override-auto"
+                                                        class="text-xs">
+                                                        Max Bitrate Override (Mbps)
+                                                    </Label>
+                                                    <Input
+                                                        id="max-bitrate-override-auto"
+                                                        type="number"
+                                                        placeholder="No limit"
+                                                        bind:value={maxBitrateOverride}
+                                                        class="h-8 text-xs" />
+                                                </div>
+                                            </div></Accordion.Content>
+                                    </Accordion.Item>
+                                </Accordion.Root>
+
+                                <Button
+                                    onclick={handleAutoScrape}
+                                    disabled={loading || !canStartAutoScrape}
+                                    variant="secondary"
+                                    class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary w-full border bg-transparent">
+                                    {#if loading}
+                                        <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                                        Starting...
+                                    {:else}
+                                        <Zap class="mr-2 h-4 w-4" />
+                                        Start Auto Scrape
+                                    {/if}
+                                </Button>
+                            </div>
+                        </Tabs.Content>
                     </div>
-                </div>
+                </Tabs.Root>
             {:else if step === 2}
                 <div class="flex h-full flex-col gap-3">
                     {#if step > 1}
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center justify-between">
                                 <Button
-                                    variant="ghost"
+                                    variant="secondary"
                                     size="sm"
                                     onclick={() => (step = 1)}
-                                    class="w-fit">
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground w-fit border bg-transparent">
                                     <ChevronLeft class="mr-1 h-4 w-4" />
                                     Back
                                 </Button>
 
                                 <div class="flex items-center space-x-2">
-                                    <Label for="disable-bitrate-check" class="text-xs"
-                                        >Disable bitrate check</Label>
-                                    <Switch
-                                        id="disable-bitrate-check"
-                                        bind:checked={disableBitrateCheck} />
+                                    <Label for="max-bitrate-override" class="w-max text-xs"
+                                        >Max Bitrate (Mbps)</Label>
+                                    <Input
+                                        id="max-bitrate-override"
+                                        type="number"
+                                        placeholder="No limit"
+                                        bind:value={maxBitrateOverride}
+                                        class="h-7 w-20 text-xs" />
                                 </div>
 
                                 {#if selectedMagnets.size > 0}
@@ -1317,7 +1532,7 @@
                             {#if streamingProgress.isStreaming}
                                 <LoaderCircle class="text-primary h-4 w-4 animate-spin" />
                             {:else}
-                                <div class="h-4 w-4 rounded-full bg-green-500"></div>
+                                <div class="bg-chart-1 h-4 w-4 rounded-full"></div>
                             {/if}
                             <div class="flex flex-1 flex-col gap-1">
                                 <div class="flex items-center justify-between">
@@ -1361,10 +1576,20 @@
                                     {streamingProgress.message || ""}
                                 </p>
                             {:else}
-                                <p class="text-muted-foreground mb-2">No streams found.</p>
-                                <Button variant="outline" size="sm" onclick={() => (step = 1)}>
-                                    Back to Options
-                                </Button>
+                                <div class="flex flex-col items-center justify-center py-4">
+                                    <Ghost class="text-muted-foreground/30 mb-3 h-12 w-12" />
+                                    <h3 class="text-sm font-medium">No streams found</h3>
+                                    <p class="text-muted-foreground mt-1 text-xs">
+                                        Try adjusting your search terms or filters.
+                                    </p>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onclick={() => (step = 1)}
+                                        class="mt-4">
+                                        Back to Options
+                                    </Button>
+                                </div>
                             {/if}
                         </div>
                     {:else}
@@ -1374,17 +1599,47 @@
                             class="flex min-h-0 w-full flex-1 flex-col">
                             {#if mediaType === "tv"}
                                 <Tabs.List class="mb-4 grid w-full shrink-0 grid-cols-4">
-                                    <Tabs.Trigger value="all">All</Tabs.Trigger>
-                                    <Tabs.Trigger value="show_packs">Show Packs</Tabs.Trigger>
-                                    <Tabs.Trigger value="season_packs">Season Packs</Tabs.Trigger>
-                                    <Tabs.Trigger value="episodes">Episodes</Tabs.Trigger>
+                                    <Tabs.Trigger value="all" class="gap-1.5">
+                                        All
+                                        <Badge variant="secondary" class="h-4 px-1.5 text-[10px]"
+                                            >{streamCounts.all}</Badge>
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="show_packs" class="gap-1.5">
+                                        Shows
+                                        {#if streamCounts.show_packs > 0}
+                                            <Badge
+                                                variant="secondary"
+                                                class="h-4 px-1.5 text-[10px]"
+                                                >{streamCounts.show_packs}</Badge>
+                                        {/if}
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="season_packs" class="gap-1.5">
+                                        Seasons
+                                        {#if streamCounts.season_packs > 0}
+                                            <Badge
+                                                variant="secondary"
+                                                class="h-4 px-1.5 text-[10px]"
+                                                >{streamCounts.season_packs}</Badge>
+                                        {/if}
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="episodes" class="gap-1.5">
+                                        Episodes
+                                        {#if streamCounts.episodes > 0}
+                                            <Badge
+                                                variant="secondary"
+                                                class="h-4 px-1.5 text-[10px]"
+                                                >{streamCounts.episodes}</Badge>
+                                        {/if}
+                                    </Tabs.Trigger>
                                 </Tabs.List>
                             {/if}
 
                             <div class="min-h-0 flex-1 overflow-y-auto">
                                 {#if filteredStreams.length === 0}
-                                    <div class="text-muted-foreground py-8 text-center">
-                                        No streams found for this category.
+                                    <div
+                                        class="text-muted-foreground flex flex-col items-center justify-center py-12 text-center">
+                                        <Inbox class="text-muted-foreground/30 mb-3 h-10 w-10" />
+                                        <p class="text-sm">No streams in this category.</p>
                                     </div>
                                 {:else}
                                     <div class="flex flex-col gap-3 lg:grid lg:grid-cols-2">
@@ -1403,165 +1658,11 @@
                         </Tabs.Root>
                     {/if}
                 </div>
-            {:else if step === 4}
-                <div class="flex flex-col gap-4">
-                    <Button variant="ghost" size="sm" onclick={() => (step = 1)} class="w-fit">
-                        <ChevronLeft class="mr-1 h-4 w-4" />
-                        Back
-                    </Button>
-
-                    {#if mediaType === "tv" && seasons.length > 0}
-                        <SeasonSelector
-                            {seasons}
-                            {open}
-                            bind:selectedSeasons
-                            class="my-2 max-h-[40vh]" />
-                    {/if}
-
-                    <div
-                        class="flex max-h-[60vh] flex-col gap-2 overflow-y-auto rounded-md border p-2 pr-2">
-                        <div class="flex items-center justify-between">
-                            <Label>Quality Constraints</Label>
-                            <div class="flex items-center space-x-2">
-                                <Label for="disable-bitrate-check-auto" class="text-xs"
-                                    >Disable bitrate check</Label>
-                                <Switch
-                                    id="disable-bitrate-check-auto"
-                                    bind:checked={disableBitrateCheck} />
-                            </div>
-                        </div>
-                        <p class="text-muted-foreground mb-2 text-xs">
-                            Configure constraints for the auto scrape process.
-                        </p>
-
-                        {#if settingsLoading}
-                            <div class="space-y-2">
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                                <Skeleton class="h-10 w-full" />
-                            </div>
-                        {:else}
-                            <div class="mb-4 grid grid-cols-2 gap-4">
-                                <div class="flex flex-col gap-2">
-                                    <Label>Require</Label>
-                                    <Input
-                                        placeholder="e.g. 4K, HDR (comma separated)"
-                                        value={selectedOptions.require?.join(", ") || ""}
-                                        oninput={(e) => {
-                                            const val = e.currentTarget.value;
-                                            selectedOptions.require = val
-                                                ? val
-                                                      .split(",")
-                                                      .map((s) => s.trim())
-                                                      .filter(Boolean)
-                                                : [];
-                                        }} />
-                                    <p class="text-muted-foreground text-[10px]">
-                                        Must contain ANY of these terms
-                                    </p>
-                                </div>
-                                <div class="flex flex-col gap-2">
-                                    <Label>Exclude</Label>
-                                    <Input
-                                        placeholder="e.g. CAM, TS (comma separated)"
-                                        value={selectedOptions.exclude?.join(", ") || ""}
-                                        oninput={(e) => {
-                                            const val = e.currentTarget.value;
-                                            selectedOptions.exclude = val
-                                                ? val
-                                                      .split(",")
-                                                      .map((s) => s.trim())
-                                                      .filter(Boolean)
-                                                : [];
-                                        }} />
-                                    <p class="text-muted-foreground text-[10px]">
-                                        Must NOT contain ANY of these terms
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Accordion.Root type="multiple" class="w-full">
-                                {#each Object.entries(rankingOptions) as [category, options] (category)}
-                                    <Accordion.Item value={category}>
-                                        <Accordion.Trigger
-                                            class="py-2 text-sm capitalize hover:no-underline">
-                                            <div class="flex items-center gap-2">
-                                                {#if categoryIcons[category]}
-                                                    {@const Icon = categoryIcons[category]}
-                                                    <Icon class="h-4 w-4 shrink-0" />
-                                                {/if}
-                                                <span class="translate-y-[1px]">
-                                                    {category === "trash"
-                                                        ? "Bin"
-                                                        : category === "hdr"
-                                                          ? "HDR"
-                                                          : category}
-                                                </span>
-                                                {#if selectedOptions[category]?.length}
-                                                    <Badge
-                                                        variant="secondary"
-                                                        class="h-5 px-1.5 text-[10px]">
-                                                        {selectedOptions[category].length}
-                                                    </Badge>
-                                                {/if}
-                                            </div>
-                                        </Accordion.Trigger>
-                                        <Accordion.Content>
-                                            <div class="flex flex-wrap gap-2 pt-2">
-                                                {#each options as option (option)}
-                                                    {@const isSelected =
-                                                        selectedOptions[category]?.includes(option)}
-                                                    <Badge
-                                                        variant={isSelected ? "default" : "outline"}
-                                                        class="hover:bg-primary/90 cursor-pointer transition-colors"
-                                                        onclick={() => {
-                                                            if (isSelected) {
-                                                                selectedOptions[category] = (
-                                                                    selectedOptions[category] || []
-                                                                ).filter((r) => r !== option);
-                                                            } else {
-                                                                selectedOptions[category] = [
-                                                                    ...(selectedOptions[category] ||
-                                                                        []),
-                                                                    option
-                                                                ];
-                                                            }
-                                                        }}>
-                                                        {category === "resolutions"
-                                                            ? option.replace(/^r/, "")
-                                                            : option}
-                                                    </Badge>
-                                                {/each}
-                                            </div>
-                                        </Accordion.Content>
-                                    </Accordion.Item>
-                                {/each}
-                            </Accordion.Root>
-                        {/if}
-                    </div>
-
-                    <Button
-                        onclick={handleAutoScrape}
-                        disabled={loading || !canStartAutoScrape}
-                        class="w-full">
-                        {#if loading}
-                            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
-                            Starting...
-                        {:else}
-                            <Zap class="mr-2 h-4 w-4" />
-                            Start Auto Scrape
-                        {/if}
-                    </Button>
-                </div>
             {:else if step === 3}
                 <div class="flex flex-col gap-3">
                     {#if step > 1}
                         <Button
-                            variant="ghost"
+                            variant="secondary"
                             size="sm"
                             onclick={() => {
                                 if (isManualMagnet) {
@@ -1570,13 +1671,20 @@
                                     step = 2;
                                 }
                             }}
-                            class="w-fit">
+                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground w-fit border bg-transparent">
                             <ChevronLeft class="mr-1 h-4 w-4" />
                             Back
                         </Button>
                     {/if}
 
                     <div class="mb-4 flex flex-col gap-3">
+                        {#if selectedFilesMappings.length === 0}
+                            <div
+                                class="text-muted-foreground flex flex-col items-center justify-center py-8 text-center">
+                                <FileQuestion class="text-muted-foreground/30 mb-3 h-10 w-10" />
+                                <p class="text-sm">No files selected.</p>
+                            </div>
+                        {/if}
                         {#each selectedFilesMappings as mapping, idx (mapping.file_id)}
                             <Card.Root>
                                 <Card.Content class="flex flex-col gap-3 px-4">
@@ -1640,7 +1748,8 @@
                     <Button
                         onclick={handleComplete}
                         disabled={loading || !canProceedToComplete()}
-                        class="w-full">
+                        variant="secondary"
+                        class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary w-full border bg-transparent">
                         {#if loading}
                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                             Completing...
@@ -1651,7 +1760,11 @@
                 </div>
             {:else if step === 6}
                 <div class="flex h-full flex-col gap-3">
-                    <Button variant="ghost" size="sm" onclick={() => (step = 2)} class="w-fit">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onclick={() => (step = 2)}
+                        class="border-border text-muted-foreground hover:bg-muted hover:text-foreground w-fit border bg-transparent">
                         <ChevronLeft class="mr-1 h-4 w-4" />
                         Back to Streams
                     </Button>
@@ -1729,7 +1842,11 @@
                         {/each}
                     </div>
 
-                    <Button onclick={handleBatchComplete} disabled={loading} class="w-full">
+                    <Button
+                        onclick={handleBatchComplete}
+                        disabled={loading}
+                        variant="secondary"
+                        class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary w-full border bg-transparent">
                         {#if loading}
                             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
                             {batchProgress ? batchProgress.message : "Processing..."}

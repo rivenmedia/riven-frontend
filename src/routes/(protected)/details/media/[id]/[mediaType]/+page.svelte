@@ -305,6 +305,7 @@
                                 itemId={null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
+                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape
@@ -352,6 +353,7 @@
                                 itemId={rivenId?.toString() ?? null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
+                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape

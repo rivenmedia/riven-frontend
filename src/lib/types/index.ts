@@ -2,7 +2,6 @@ import type { components } from "$lib/providers/riven";
 
 export type AutoScrapeRequestPayload = components["schemas"]["AutoScrapeRequestPayload"];
 export type Stream = components["schemas"]["Stream"];
-export type StartSessionResponse = components["schemas"]["StartSessionResponse"];
 export type DebridFile = components["schemas"]["DebridFile"];
 export type Container = components["schemas"]["Container"];
 export type ShowFileData = components["schemas"]["ShowFileData"];
@@ -60,7 +59,7 @@ export interface BatchSession {
     sessionId: string;
     magnet: string;
     stream: Stream;
-    sessionData: StartSessionResponse;
+    sessionData: any;
     mappings: FileMapping[];
     status: "pending" | "completed" | "error";
     error?: string;
