@@ -5,49 +5,44 @@
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
     import AnimatedToggle from "$lib/components/animated-toggle.svelte";
+    import PageShell from "$lib/components/page-shell.svelte";
+    import type { Action } from "svelte/action";
 
     let { data } = $props();
 
     const searchStore = getContext<SearchStore>("searchStore");
-    let loadMoreTrigger = $state<HTMLDivElement | null>(null);
 
-    onDestroy(() => {
-        searchStore.clear();
-    });
-
-    // Handle query changes from URL
-    $effect(() => {
+    // Sync query from URL when data changes (runs before DOM updates)
+    $effect.pre(() => {
         if (data.parsed) {
             searchStore.syncQuery(data.parsed);
         }
     });
 
-    // Setup infinite scroll
-    let isTriggerVisible = $state(false);
+    onDestroy(() => {
+        searchStore.clear();
+    });
 
-    $effect(() => {
-        if (!loadMoreTrigger) return;
-
+    // Intersection observer action for infinite scroll
+    const infiniteScroll: Action<HTMLDivElement> = (node) => {
         const observer = new IntersectionObserver(
             (entries) => {
-                isTriggerVisible = entries[0].isIntersecting;
+                if (entries[0].isIntersecting && !searchStore.loading && searchStore.hasMore) {
+                    searchStore.loadMore();
+                }
             },
             { threshold: 0.1 }
         );
 
-        observer.observe(loadMoreTrigger);
+        observer.observe(node);
 
-        return () => {
-            observer.disconnect();
-            searchStore.cancelPendingRequests();
+        return {
+            destroy() {
+                observer.disconnect();
+                searchStore.cancelPendingRequests();
+            }
         };
-    });
-
-    $effect(() => {
-        if (isTriggerVisible && !searchStore.loading && searchStore.hasMore) {
-            searchStore.loadMore();
-        }
-    });
+    };
 
     let showEmptyState = $derived(
         !searchStore.rawSearchString && Object.keys(searchStore.filterParams).length === 0
@@ -59,7 +54,7 @@
     <title>Explore - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
+<PageShell>
     <!-- Header -->
     <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -164,5 +159,5 @@
         </div>
     {/if}
 
-    <div bind:this={loadMoreTrigger}></div>
-</div>
+    <div use:infiniteScroll></div>
+</PageShell>

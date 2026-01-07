@@ -27,6 +27,7 @@
     import LandscapeCard from "$lib/components/media/landscape-card.svelte";
     import StatusBadge from "$lib/components/media/status-badge.svelte";
     import { toast } from "svelte-sonner";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
 
@@ -544,7 +545,9 @@
                                             class="w-36 md:w-44 lg:w-48">
                                             {#snippet topRight()}
                                                 {#if rivenSeason?.state}
-                                                    <StatusBadge state={rivenSeason.state} />
+                                                    <StatusBadge
+                                                        state={rivenSeason.state}
+                                                        size="default" />
                                                 {/if}
                                             {/snippet}
                                         </PortraitCard>

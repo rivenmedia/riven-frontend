@@ -3,7 +3,6 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
     import { getContext, onDestroy, onMount } from "svelte";
-    import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
@@ -60,41 +59,31 @@
 <header
     class="pointer-events-none absolute top-0 left-0 z-50 flex h-14 w-full items-center bg-transparent px-2 md:px-4">
     <div class="pointer-events-auto flex w-full items-center justify-between gap-2">
-        <div class="w-full">
-            <ButtonGroup.Root class="bg-background/60 h-9 w-full rounded-lg backdrop-blur-md">
-                <InputGroup.Root>
-                    <InputGroup.Input
-                        bind:ref={inputRef}
-                        name="query"
-                        placeholder="Search..."
-                        value={$page.url.searchParams.get("query") || ""}
-                        oninput={handleInput}
-                        onkeydown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                navigateToSearch();
-                            }
-                        }}
-                        autocomplete="off" />
-                    {#if modifierKey}
-                        <InputGroup.Addon align="inline-end">
-                            <Kbd.Root>{modifierKey}K</Kbd.Root>
-                        </InputGroup.Addon>
-                    {/if}
-                </InputGroup.Root>
-
-                <Button
-                    variant="outline"
-                    size="icon"
-                    type="button"
-                    aria-label="Search"
-                    onclick={() => {
-                        navigateToSearch();
-                        inputRef?.focus();
-                    }}>
+        <div class="mx-auto w-full max-w-sm">
+            <InputGroup.Root class="bg-background/60 h-9 w-full rounded-lg backdrop-blur-md transition-all focus-within:w-full md:focus-within:max-w-md">
+                <InputGroup.Addon align="inline-start">
                     <Search />
-                </Button>
-            </ButtonGroup.Root>
+                </InputGroup.Addon>
+                <InputGroup.Input
+                    bind:ref={inputRef}
+                    name="query"
+                    placeholder="Search..."
+                    aria-label="Search"
+                    value={$page.url.searchParams.get("query") || ""}
+                    oninput={handleInput}
+                    onkeydown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            navigateToSearch();
+                        }
+                    }}
+                    autocomplete="off" />
+                {#if modifierKey}
+                    <InputGroup.Addon align="inline-end">
+                        <Kbd.Root>{modifierKey}K</Kbd.Root>
+                    </InputGroup.Addon>
+                {/if}
+            </InputGroup.Root>
         </div>
 
         <div class="flex items-center gap-1">

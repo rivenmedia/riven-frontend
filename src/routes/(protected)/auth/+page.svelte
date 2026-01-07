@@ -12,6 +12,7 @@
     import * as dateUtils from "$lib/utils/date";
     import { getInitials } from "$lib/utils";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
 
@@ -24,7 +25,7 @@
     <title>Profile - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
+<PageShell>
     <h1 class="text-3xl font-bold tracking-tight">{data.user.name}'s Profile</h1>
 
     <div class="mt-4 flex flex-col gap-4">
@@ -108,4 +109,4 @@
             Logout
         </Button>
     </div>
-</div>
+</PageShell>

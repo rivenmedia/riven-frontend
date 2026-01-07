@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { notificationStore } from "$lib/stores/notifications.svelte";
+    import { notificationStore, type Notification } from "$lib/stores/notifications.svelte";
     import { onMount, onDestroy } from "svelte";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -14,11 +14,21 @@
 
     let open = $state(false);
 
+    // Show toast when a new notification is added (callback pattern instead of $effect)
+    function handleNewNotification(notification: Notification) {
+        toast.success(notification.title, {
+            description: notification.message,
+            duration: 5000
+        });
+    }
+
     onMount(() => {
         notificationStore.connect();
+        notificationStore.onNotificationAdded = handleNewNotification;
     });
 
     onDestroy(() => {
+        notificationStore.onNotificationAdded = null;
         notificationStore.disconnect();
     });
 
@@ -69,18 +79,6 @@
     function handleRemove(id: string) {
         notificationStore.remove(id);
     }
-
-    // Watch for new notifications and show toast
-    $effect(() => {
-        const notifications = notificationStore.notifications;
-        if (notifications.length > 0 && !notifications[0].read) {
-            const latest = notifications[0];
-            toast.success(latest.title, {
-                description: latest.message,
-                duration: 5000
-            });
-        }
-    });
 </script>
 
 <Popover.Root bind:open>

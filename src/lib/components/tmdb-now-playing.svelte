@@ -45,8 +45,10 @@
 
     let currentIndex = $state(0);
 
-    // Handle carousel API events with proper cleanup
-    $effect(() => {
+    // Handle carousel API events with proper cleanup using $effect.pre
+    // This is the appropriate Svelte 5 pattern for subscribing to external events
+    // when reacting to state changes (api becoming available)
+    $effect.pre(() => {
         if (!api) return;
 
         const onSelect = () => {
@@ -119,23 +121,25 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="slide-content absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
+                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
                                     alignment,
                                     'container'
                                 )}">
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
-                                        class="reveal-1 line-clamp-2 text-xl font-semibold tracking-tight drop-shadow-2xl md:text-4xl md:leading-tight">
+                                        class="animate-slide-reveal line-clamp-2 text-xl font-semibold tracking-tight opacity-0 drop-shadow-2xl md:text-4xl md:leading-tight"
+                                        style="animation-delay: 0.1s">
                                         {displayTitle}
                                     </h1>
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="reveal-2 text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {getAlignmentClasses(
+                                        class="animate-slide-reveal text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs opacity-0 md:mt-3 md:text-sm {getAlignmentClasses(
                                             alignment,
                                             'flex'
-                                        )}">
+                                        )}"
+                                        style="animation-delay: 0.2s">
                                         <span
                                             class="bg-muted/50 rounded-md px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
@@ -159,7 +163,8 @@
                                     <!-- Overview -->
                                     {#if item.overview}
                                         <p
-                                            class="reveal-3 text-muted-foreground mt-1.5 line-clamp-2 text-xs md:mt-3 md:text-base">
+                                            class="animate-slide-reveal text-muted-foreground mt-1.5 line-clamp-2 text-xs opacity-0 md:mt-3 md:text-base"
+                                            style="animation-delay: 0.3s">
                                             {item.overview}
                                         </p>
                                     {/if}
@@ -167,10 +172,11 @@
                                     <!-- Genres -->
                                     {#if item.genre_ids?.length}
                                         <div
-                                            class="reveal-4 mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {getAlignmentClasses(
+                                            class="animate-slide-reveal mt-1.5 flex flex-wrap gap-1.5 opacity-0 md:mt-4 md:gap-2 {getAlignmentClasses(
                                                 alignment,
                                                 'flex'
-                                            )}">
+                                            )}"
+                                            style="animation-delay: 0.4s">
                                             {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
@@ -185,10 +191,11 @@
 
                                     <!-- Action Buttons -->
                                     <div
-                                        class="reveal-5 mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {getAlignmentClasses(
+                                        class="animate-slide-reveal mt-3 flex flex-wrap gap-2 opacity-0 md:mt-6 md:gap-3 {getAlignmentClasses(
                                             alignment,
                                             'flex'
-                                        )}">
+                                        )}"
+                                        style="animation-delay: 0.5s">
                                         {#if showRequestButton}
                                             <Button
                                                 href="/watch/{item.id}"
@@ -272,7 +279,7 @@
 
             <div class="bg-muted h-1.5 w-16 overflow-hidden rounded-full md:w-20">
                 {#key currentIndex}
-                    <div class="progress-bar-fill bg-primary h-full"></div>
+                    <div class="animate-progress-fill bg-primary h-full"></div>
                 {/key}
             </div>
         </div>
@@ -303,61 +310,3 @@
         </div>
     </div>
 {/if}
-
-<style>
-    /* Netflix-style staggered reveal animation */
-    @keyframes slide-reveal {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Progress bar animation - synced to autoplay delay */
-    @keyframes progress-fill {
-        from {
-            width: 0%;
-        }
-        to {
-            width: 100%;
-        }
-    }
-
-    .slide-content .reveal-1 {
-        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        animation-delay: 0.1s;
-        opacity: 0;
-    }
-
-    .slide-content .reveal-2 {
-        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        animation-delay: 0.2s;
-        opacity: 0;
-    }
-
-    .slide-content .reveal-3 {
-        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        animation-delay: 0.3s;
-        opacity: 0;
-    }
-
-    .slide-content .reveal-4 {
-        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        animation-delay: 0.4s;
-        opacity: 0;
-    }
-
-    .slide-content .reveal-5 {
-        animation: slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        animation-delay: 0.5s;
-        opacity: 0;
-    }
-
-    .progress-bar-fill {
-        animation: progress-fill 5s linear forwards;
-    }
-</style>

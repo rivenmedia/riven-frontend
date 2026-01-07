@@ -1,6 +1,7 @@
 <script lang="ts">
     import { setTheme, theme, themeStorageKey } from "mode-watcher";
     import Pallete from "@lucide/svelte/icons/palette";
+    import Check from "@lucide/svelte/icons/check";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 
@@ -37,13 +38,16 @@
             <DropdownMenu.Separator />
             {#each Object.entries(themes) as [key, name] (key)}
                 <DropdownMenu.Item
-                    class={theme.current === key
-                        ? "bg-accent/80 hover:bg-accent/90"
-                        : "hover:bg-accent/80"}
+                    class="flex items-center justify-between {theme.current === key
+                        ? 'bg-accent/80 hover:bg-accent/90'
+                        : 'hover:bg-accent/80'}"
                     onclick={() => {
                         setTheme(key);
                     }}>
-                    {name}
+                    <span>{name}</span>
+                    {#if theme.current === key}
+                        <Check class="ml-2 size-4" />
+                    {/if}
                 </DropdownMenu.Item>
             {/each}
         </DropdownMenu.Group>

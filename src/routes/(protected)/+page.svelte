@@ -6,6 +6,7 @@
     import AnimatedToggle from "$lib/components/animated-toggle.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -60,7 +61,7 @@
     </h2>
 {/snippet}
 
-<div class="flex flex-col gap-8 p-6 md:p-8 md:px-16">
+<PageShell class="mt-4 md:mt-6">
     {#if recentlyAddedStore?.items.length}
         <div class="flex flex-col gap-3">
             {@render listHeading("Recently Added")}
@@ -112,4 +113,4 @@
         </div>
         <ListCarousel data={anilistTrendingStore?.items ?? []} indexer="anilist" />
     </div>
-</div>
+</PageShell>

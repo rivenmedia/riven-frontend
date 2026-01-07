@@ -41,11 +41,11 @@
 <aside
     class="bg-opacity-75 top-0 left-0 z-5 hidden h-screen w-14 flex-col items-center bg-transparent backdrop-blur-sm md:flex">
     <div class="flex h-18 w-full items-center justify-center">
-        <div class="text-primary flex items-center justify-center">
+        <a href="/" class="text-primary flex items-center justify-center" aria-label="Home">
             <Mountain class="size-5" />
-        </div>
+        </a>
     </div>
-    <nav class="mt-4 flex flex-col items-center gap-3.5">
+    <nav class="mt-4 flex flex-col items-center gap-3.5" aria-label="Main Navigation">
         {#each navItems as item (item.href)}
             <Tooltip>
                 {#snippet trigger()}
@@ -54,7 +54,8 @@
                         href={item.href}
                         class="hover:bg-accent/80 group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors"
                         class:bg-accent={page.url.pathname === item.href}
-                        aria-label={item.label}>
+                        aria-label={item.label}
+                        aria-current={page.url.pathname === item.href ? "page" : undefined}>
                         <item.icon class="size-5" />
                     </a>
                 {/snippet}
@@ -72,14 +73,16 @@
         {#if user}
             <Tooltip>
                 {#snippet trigger()}
-                    <Avatar.Root class="cursor-pointer">
-                        {#if user.image}
-                            <Avatar.Image src={user.image} alt={user.name} />
-                        {/if}
-                        <Avatar.Fallback class="bg-primary text-primary-foreground">
-                            {getInitials(user.name)}
-                        </Avatar.Fallback>
-                    </Avatar.Root>
+                    <a href="/auth" class="cursor-pointer" aria-label="Profile">
+                        <Avatar.Root>
+                            {#if user.image}
+                                <Avatar.Image src={user.image} alt={user.name} />
+                            {/if}
+                            <Avatar.Fallback class="bg-primary text-primary-foreground">
+                                {getInitials(user.name)}
+                            </Avatar.Fallback>
+                        </Avatar.Root>
+                    </a>
                 {/snippet}
                 {#snippet content()}
                     <p class="font-medium">
@@ -105,11 +108,13 @@
                 <LogOut class="size-5" />
             </Button>
         {:else}
-            <Avatar.Root class="cursor-pointer">
-                <Avatar.Fallback class="bg-primary text-primary-foreground">
-                    {getInitials("Guest")}
-                </Avatar.Fallback>
-            </Avatar.Root>
+            <a href="/auth/login" class="cursor-pointer" aria-label="Login">
+                <Avatar.Root>
+                    <Avatar.Fallback class="bg-primary text-primary-foreground">
+                        {getInitials("Guest")}
+                    </Avatar.Fallback>
+                </Avatar.Root>
+            </a>
         {/if}
     </div>
 </aside>
@@ -169,7 +174,7 @@
         </Drawer.Header>
 
         <Separator class="my-2" />
-        <nav class="mb-8 flex flex-col items-start gap-2">
+        <nav class="mb-8 flex flex-col items-start gap-2" aria-label="Mobile Navigation">
             {#each navItems as item}
                 <Drawer.Close
                     onclick={() => {
@@ -179,7 +184,8 @@
                     <span
                         class="flex w-full items-center gap-2 px-4 py-2 text-sm
 						{cn('hover:bg-accent/80 transition-colors', page.url.pathname === item.href && 'bg-accent')}"
-                        aria-label={item.label}>
+                        aria-label={item.label}
+                        aria-current={page.url.pathname === item.href ? "page" : undefined}>
                         <item.icon class="size-5" />
                         <span>{item.label}</span>
                     </span>

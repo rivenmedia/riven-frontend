@@ -2,18 +2,35 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { cn } from "$lib/utils";
 
-    let { state, class: className }: { state: string; class?: string } = $props();
+    type Size = "sm" | "default";
+
+    let {
+        state,
+        size = "sm",
+        class: className
+    }: { state: string; size?: Size; class?: string } = $props();
 
     const variant = $derived(state === "Unknown" ? "destructive" : "secondary");
+
+    const sizeClasses = $derived(
+        size === "default" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs"
+    );
 </script>
 
 <Badge
     {variant}
     class={cn(
-        "inline-flex items-center justify-center px-2 py-0.5 text-xs backdrop-blur-sm",
-        state === "Completed" && "bg-green-500/90 text-black hover:bg-green-500/80",
+        "inline-flex items-center justify-center backdrop-blur-sm",
+        sizeClasses,
+        state === "Completed" && "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-600/70",
+        state === "Requested" && "bg-sky-600/80 text-sky-50 hover:bg-sky-600/70",
+        state === "Downloading" && "bg-amber-600/80 text-amber-50 hover:bg-amber-600/70",
+        state === "Paused" && "bg-slate-500/80 text-slate-50 hover:bg-slate-500/70",
         state !== "Completed" &&
+            state !== "Requested" &&
+            state !== "Downloading" &&
+            state !== "Paused" &&
             state !== "Unknown" &&
-            "bg-yellow-500/90 text-white hover:bg-yellow-500/80",
+            "bg-amber-600/80 text-amber-50 hover:bg-amber-600/70",
         className
     )}>{state}</Badge>

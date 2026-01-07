@@ -33,6 +33,9 @@ export class NotificationStore {
     #connection: ReturnType<typeof source> | null = null;
     #unsubscribe: (() => void) | null = null;
 
+    // Callback for when a new notification is added (for toast display)
+    onNotificationAdded: ((notification: Notification) => void) | null = null;
+
     get notifications() {
         return this.#notifications;
     }
@@ -52,6 +55,9 @@ export class NotificationStore {
             read: false
         };
         this.#notifications = [newNotification, ...this.#notifications];
+
+        // Trigger callback for toast notification
+        this.onNotificationAdded?.(newNotification);
     }
 
     markAsRead(id: string) {

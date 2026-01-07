@@ -5,9 +5,7 @@
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
     import ArrowRight from "@lucide/svelte/icons/arrow-right";
     import { cn, deduplicateById } from "$lib/utils";
-    import TmdbNowPlaying, {
-        type TMDBNowPlayingItem
-    } from "$lib/components/tmdb-now-playing.svelte";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
 
@@ -244,18 +242,17 @@
     {/if}
 
     <!-- Main Content -->
-    <div class="z-10 mt-16 flex h-full w-full flex-col">
-        <!-- Hero Banner -->
-        {#if carouselItems.length > 0}
-            <div class="mb-6 px-2 md:mb-8 md:px-4">
-                <TmdbNowPlaying
-                    data={carouselItems}
-                    alignment="right"
-                    showRequestButton={false}
-                    heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
-            </div>
-        {/if}
+    {#if carouselItems.length > 0}
+        <div class="mb-6 px-2 md:mb-8 md:px-4">
+            <TmdbNowPlaying
+                data={carouselItems}
+                alignment="right"
+                showRequestButton={false}
+                heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
+        </div>
+    {/if}
 
+    <PageShell class="mt-0">
         <!-- Hero Content Area -->
         <div
             class={cn(
@@ -358,7 +355,7 @@
             {@render creditsSection("TV Shows", showCredits)}
             {@render creditsSection("Crew", crewCredits)}
         </div>
-    </div>
+    </PageShell>
 </div>
 
 {#snippet creditsSection(title: string, credits: typeof movieCredits)}

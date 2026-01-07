@@ -10,6 +10,7 @@
     import * as Select from "$lib/components/ui/select/index.js";
     import XIcon from "@lucide/svelte/icons/x";
     import ArrowUpDownIcon from "@lucide/svelte/icons/arrow-up-down";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let searchStore = new SearchStore();
     let filterStore = new FilterStore();
@@ -72,7 +73,7 @@
     <title>Trending Movies - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
+<PageShell>
     <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Movies</h1>
@@ -144,4 +145,4 @@
         </div>
     {/if}
     <div bind:this={loadMoreTrigger}></div>
-</div>
+</PageShell>

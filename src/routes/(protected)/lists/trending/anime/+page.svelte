@@ -3,6 +3,7 @@
     import ListItem from "$lib/components/list-item.svelte";
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { onMount } from "svelte";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     const anilistTrendingStore = new MediaListStore<BaseListItem>(
         "anilistTrending",
@@ -36,7 +37,7 @@
     <title>Trending Animes - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
+<PageShell>
     <div class="flex flex-col">
         <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Animes</h1>
     </div>
@@ -66,4 +67,4 @@
         </div>
     {/if}
     <div bind:this={loadMoreTrigger}></div>
-</div>
+</PageShell>
