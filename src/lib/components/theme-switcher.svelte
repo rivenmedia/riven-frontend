@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { setTheme, theme, themeStorageKey } from "mode-watcher";
+    import { setTheme, theme } from "mode-watcher";
     import Pallete from "@lucide/svelte/icons/palette";
     import Check from "@lucide/svelte/icons/check";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -32,7 +32,10 @@
             </Button>
         {/snippet}
     </DropdownMenu.Trigger>
-    <DropdownMenu.Content>
+    <DropdownMenu.Content
+        side="right"
+        align="end"
+        class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
         <DropdownMenu.Group class="space-y-1 p-2">
             <DropdownMenu.Label>La Pallete</DropdownMenu.Label>
             <DropdownMenu.Separator />

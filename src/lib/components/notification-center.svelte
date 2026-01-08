@@ -11,6 +11,7 @@
     import CheckCheck from "@lucide/svelte/icons/check-check";
     import X from "@lucide/svelte/icons/x";
     import { toast } from "svelte-sonner";
+    import { cn } from "$lib/utils";
 
     let open = $state(false);
 
@@ -79,17 +80,30 @@
     function handleRemove(id: string) {
         notificationStore.remove(id);
     }
+
+    let {
+        class: className,
+        variant = "outline",
+        side = "bottom",
+        align = "end"
+    } = $props<{
+        class?: string;
+        variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+        side?: "top" | "right" | "bottom" | "left";
+        align?: "start" | "center" | "end";
+    }>();
 </script>
 
 <Popover.Root bind:open>
     <Popover.Trigger>
         {#snippet child({ props })}
             <Button
-                variant="outline"
+                {variant}
                 size="icon"
-                class="relative h-10 w-10 cursor-pointer"
+                class={cn("relative h-10 w-10 cursor-pointer", className)}
                 {...props}>
                 {#if notificationStore.unreadCount > 0}
+                    <div class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500"></div>
                     <BellRing class="size-5" />
                 {:else}
                     <Bell class="size-5" />
@@ -97,7 +111,10 @@
             </Button>
         {/snippet}
     </Popover.Trigger>
-    <Popover.Content class="w-96 p-0" align="end">
+    <Popover.Content
+        class="bg-popover w-96 rounded-2xl p-0 shadow-2xl shadow-black/50"
+        {side}
+        {align}>
         <div class="flex flex-col">
             <div class="flex items-center justify-between p-4 pb-3">
                 <h3 class="text-sm font-semibold">Notifications</h3>
@@ -129,8 +146,11 @@
             <div class="max-h-100 overflow-y-auto">
                 {#if notificationStore.notifications.length === 0}
                     <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <Bell class="text-muted-foreground/30 size-12" />
-                        <p class="text-muted-foreground mt-2 text-sm">No notifications yet</p>
+                        <div
+                            class="bg-muted/20 mb-4 flex items-center justify-center rounded-full p-4">
+                            <Bell class="text-muted-foreground/50 size-8" />
+                        </div>
+                        <p class="text-foreground text-sm font-medium">No notifications yet</p>
                         <p class="text-muted-foreground/70 mt-1 text-xs">
                             You'll be notified when items complete
                         </p>

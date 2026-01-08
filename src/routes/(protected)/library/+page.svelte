@@ -78,7 +78,8 @@
                                         ? $formData.type.join(", ")
                                         : "Select a type to display"}
                                 </Select.Trigger>
-                                <Select.Content>
+                                <Select.Content
+                                    class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
                                     {#each Object.keys(typeOptions) as option}
                                         <Select.Item value={option} label={option} />
                                     {/each}
@@ -100,7 +101,8 @@
                                         ? $formData.states.join(", ")
                                         : "Select a state to display"}
                                 </Select.Trigger>
-                                <Select.Content>
+                                <Select.Content
+                                    class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
                                     {#each Object.keys(stateOptions) as option}
                                         <Select.Item value={option} label={option} />
                                     {/each}

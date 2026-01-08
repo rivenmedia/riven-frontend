@@ -82,7 +82,9 @@
             </Button>
         {/snippet}
     </Popover.Trigger>
-    <Popover.Content class="max-h-[80vh] w-96 overflow-y-auto" align="end">
+    <Popover.Content
+        class="bg-popover max-h-[80vh] w-96 overflow-y-auto rounded-2xl border-none shadow-2xl shadow-black/50"
+        align="end">
         <div class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
                 <h4 class="font-semibold">Filters</h4>
@@ -150,7 +152,8 @@
                         {LANGUAGE_OPTIONS.find((l) => l.value === filterStore.withOriginalLanguage)
                             ?.label || "All Languages"}
                     </Select.Trigger>
-                    <Select.Content>
+                    <Select.Content
+                        class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
                         {#each LANGUAGE_OPTIONS as lang}
                             <Select.Item value={lang.value} label={lang.label} class="text-xs">
                                 {lang.label}
