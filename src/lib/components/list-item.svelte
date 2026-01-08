@@ -21,11 +21,23 @@
     if (indexer === "anilist" && !type) type = data.media_type;
     if ((indexer === "tvdb" || indexer === "tmdb") && type === "show") type = "tv";
 
+    // Ensure type is set if only in data
+    if (!type && data.media_type) type = data.media_type;
+
     let mediaURL = $derived.by(() => {
         if (!data.id) return "javascript:void(0)";
-        if ((indexer === "tmdb" || indexer === "tvdb") && (type === "movie" || type === "tv")) {
+
+        if (type === "person" || type === "company") {
+            return `/details/entity/${data.id}/${type}`;
+        }
+
+        if (
+            (indexer === "tmdb" || indexer === "tvdb" || indexer === undefined) &&
+            (type === "movie" || type === "tv")
+        ) {
             // Include indexer as query param when it's tvdb so details page knows to skip resolution
             const queryParam = indexer === "tvdb" ? "?indexer=tvdb" : "";
+            // If indexer is undefined, assume tmdb behavior for now as default
             return `/details/media/${data.id}/${type}${queryParam}`;
         }
         return `/details/${indexer}${type ? `/${type}` : ""}/${data.id}`;
@@ -33,9 +45,12 @@
 
     let subtitle = $derived.by(() => {
         const parts = [];
-        if (data.media_type === "tv") parts.push("TV");
-        else if (data.media_type === "movie") parts.push("Movie");
-        if (data.year) parts.push(data.year);
+        if (data.media_type === "tv" || type === "tv") parts.push("TV");
+        else if (data.media_type === "movie" || type === "movie") parts.push("Movie");
+        else if (data.media_type === "person" || type === "person") parts.push("Person");
+        else if (data.media_type === "company" || type === "company") parts.push("Studio");
+
+        if (data.year && data.year !== "N/A") parts.push(data.year);
         return parts.join(" • ") || null;
     });
 </script>

@@ -750,7 +750,7 @@
                             {#each data.mediaDetails.details.cast as member (member.id)}
                                 <Carousel.Item class="basis-auto pl-3">
                                     <a
-                                        href="/details/person/{member.id}"
+                                        href="/details/entity/{member.id}/person"
                                         class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
                                         <PortraitCard
                                             title={member.name}
