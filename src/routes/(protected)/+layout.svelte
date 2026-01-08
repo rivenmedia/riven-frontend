@@ -19,6 +19,7 @@
     import { SidebarStore, isMobileStore } from "$lib/stores/global.svelte";
     import { setContext } from "svelte";
     import Header from "$lib/components/header.svelte";
+    import MobileNav from "$lib/components/mobile-nav.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
     import { FilterStore } from "$lib/services/filter-store.svelte";
 
@@ -67,4 +68,5 @@
             {@render children?.()}
         </div>
     </main>
+    <MobileNav />
 </div>

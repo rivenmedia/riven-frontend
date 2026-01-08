@@ -2,9 +2,9 @@
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
     import { authClient } from "$lib/auth-client";
+    import NotificationCenter from "$lib/components/notification-center.svelte";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import * as Drawer from "$lib/components/ui/drawer/index.js";
     import { Separator } from "$lib/components/ui/separator/index.js";
     import { cn, getInitials } from "$lib/utils";
     import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -20,6 +20,8 @@
     import { getContext } from "svelte";
     import Tooltip from "./tooltip.svelte";
     import ThemeSwitcher from "./theme-switcher.svelte";
+    import { fade, fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
@@ -41,9 +43,9 @@
 <aside
     class="bg-opacity-75 top-0 left-0 z-5 hidden h-screen w-14 flex-col items-center bg-transparent backdrop-blur-sm md:flex">
     <div class="flex h-18 w-full items-center justify-center">
-        <a href="/" class="text-primary flex items-center justify-center" aria-label="Home">
+        <div class="text-primary flex items-center justify-center">
             <Mountain class="size-5" />
-        </a>
+        </div>
     </div>
     <nav class="mt-4 flex flex-col items-center gap-3.5" aria-label="Main Navigation">
         {#each navItems as item (item.href)}
@@ -69,6 +71,11 @@
     </nav>
 
     <div class="mt-auto flex flex-col items-center gap-3.5 pb-4">
+        <NotificationCenter
+            variant="ghost"
+            side="right"
+            align="end"
+            class="hover:bg-accent/80 group rounded-md transition-colors" />
         <ThemeSwitcher />
         {#if user}
             <Tooltip>
@@ -119,78 +126,90 @@
     </div>
 </aside>
 
-<Drawer.Root bind:open={SidebarStore.isOpen}>
-    <Drawer.Trigger class="hidden"></Drawer.Trigger>
-    <Drawer.Content>
-        <Drawer.Header class="flex flex-row items-center justify-between">
-            {#if user}
-                <div class="flex items-center gap-2">
-                    <Avatar.Root class="cursor-pointer">
-                        {#if user.image}
-                            <Avatar.Image src={user.image} alt={user.name} />
-                        {/if}
-                        <Avatar.Fallback class="bg-primary text-primary-foreground">
-                            {getInitials(user.name)}
-                        </Avatar.Fallback>
-                    </Avatar.Root>
-                    <p class="font-medium">
-                        {user.username}
-                    </p>
-                </div>
+{#if SidebarStore.isOpen}
+    <!-- Backdrop -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        onclick={() => SidebarStore.toggle()}
+        role="button"
+        tabindex="0"
+        onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                SidebarStore.toggle();
+            }
+        }}
+        class="fixed inset-0 z-40 cursor-default md:hidden">
+    </div>
 
-                <div class="flex items-center gap-2">
-                    <ThemeSwitcher />
-                    <Button
-                        onclick={async () => {
-                            await authClient.signOut({
-                                fetchOptions: {
-                                    onSuccess: () => {
-                                        goto("/auth/login");
+    <!-- Pop-out Menu -->
+    <div
+        transition:fly={{ y: 20, x: 20, duration: 300, easing: cubicOut, opacity: 0 }}
+        class="bg-popover fixed right-5 bottom-28 z-50 flex w-72 origin-bottom-right flex-col overflow-hidden rounded-2xl shadow-2xl shadow-black/50 md:hidden">
+        <div class="p-5">
+            {#if user}
+                <div class="mb-4 flex items-center justify-between px-2">
+                    <a
+                        href="/auth"
+                        class="flex items-center gap-3"
+                        onclick={() => SidebarStore.toggle()}>
+                        <Avatar.Root class="size-8">
+                            {#if user.image}
+                                <Avatar.Image src={user.image} alt={user.name} />
+                            {/if}
+                            <Avatar.Fallback class="bg-primary text-primary-foreground text-xs">
+                                {getInitials(user.name)}
+                            </Avatar.Fallback>
+                        </Avatar.Root>
+                        <p class="text-foreground/90 text-sm font-medium">
+                            {user.username}
+                        </p>
+                    </a>
+
+                    <div class="flex items-center gap-1">
+                        <ThemeSwitcher />
+                        <Button
+                            onclick={async () => {
+                                await authClient.signOut({
+                                    fetchOptions: {
+                                        onSuccess: () => {
+                                            goto("/auth/login");
+                                        }
                                     }
-                                }
-                            });
-                        }}
-                        variant="ghost"
-                        size="icon"
-                        class="size-10 rounded-md"
-                        aria-label="Logout">
-                        <Drawer.Close class="text-muted-foreground">
-                            <LogOut class="h-5 w-5" />
-                        </Drawer.Close>
-                    </Button>
+                                });
+                            }}
+                            variant="ghost"
+                            size="icon"
+                            class="text-muted-foreground hover:text-foreground size-8 rounded-full hover:bg-white/10"
+                            aria-label="Logout">
+                            <LogOut class="size-4" />
+                        </Button>
+                    </div>
                 </div>
             {:else}
-                <div class="flex items-center gap-2">
-                    <Avatar.Root class="cursor-pointer">
+                <div class="mb-4 flex items-center gap-3 px-2">
+                    <Avatar.Root class="size-8">
                         <Avatar.Fallback class="bg-primary text-primary-foreground">
                             {getInitials("Guest")}
                         </Avatar.Fallback>
                     </Avatar.Root>
-                    <p class="font-medium">Guest</p>
+                    <p class="text-sm font-medium">Guest</p>
                 </div>
-
-                <ThemeSwitcher />
             {/if}
-        </Drawer.Header>
 
-        <Separator class="my-2" />
-        <nav class="mb-8 flex flex-col items-start gap-2" aria-label="Mobile Navigation">
-            {#each navItems as item}
-                <Drawer.Close
-                    onclick={() => {
-                        goto(item.href);
-                    }}
-                    class="w-full">
-                    <span
-                        class="flex w-full items-center gap-2 px-4 py-2 text-sm
-						{cn('hover:bg-accent/80 transition-colors', page.url.pathname === item.href && 'bg-accent')}"
-                        aria-label={item.label}
+            <nav class="flex flex-col gap-1" aria-label="Mobile Navigation">
+                {#each navItems as item}
+                    <a
+                        href={item.href}
+                        onclick={() => SidebarStore.toggle()}
+                        class="hover:text-foreground flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/5
+						{page.url.pathname === item.href ? 'text-primary bg-white/5' : 'text-muted-foreground'}"
                         aria-current={page.url.pathname === item.href ? "page" : undefined}>
-                        <item.icon class="size-5" />
+                        <item.icon class="size-4" />
                         <span>{item.label}</span>
-                    </span>
-                </Drawer.Close>
-            {/each}
-        </nav>
-    </Drawer.Content>
-</Drawer.Root>
+                    </a>
+                {/each}
+            </nav>
+        </div>
+    </div>
+{/if}
