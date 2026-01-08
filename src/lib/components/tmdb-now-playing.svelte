@@ -33,7 +33,7 @@
         data = [],
         showRequestButton = true,
         alignment = "left",
-        heightClass = "h-[420px]"
+        heightClass = "h-[400px] md:h-[420px]"
     }: Props = $props();
 
     let api = $state<CarouselAPI>();
@@ -113,15 +113,16 @@
                             class="h-full w-full object-cover object-top select-none"
                             loading="lazy" />
 
-                        <!-- Gradient Overlay -->
+                        <!-- Gradient Overlay with dramatic landscape-card style mask -->
                         <div
-                            class="from-background via-background/90 pointer-events-none absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-t to-transparent lg:-right-4 lg:left-4">
+                            class="bg-background pointer-events-none absolute top-0 right-0 bottom-0 left-0"
+                            style="-webkit-mask-image: radial-gradient(120% 160% at 0% 100%, black 0%, transparent 70%), linear-gradient(to bottom, transparent 10%, black 100%); mask-image: radial-gradient(120% 160% at 0% 100%, black 0%, transparent 70%), linear-gradient(to bottom, transparent 10%, black 100%);">
                         </div>
 
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-4 pt-2 pb-14 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
+                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
                                     alignment,
                                     'container'
                                 )}">
@@ -147,7 +148,7 @@
                                         <span class="text-muted-foreground">•</span>
                                         <span
                                             >{getSeasonAndYear(
-                                                item.release_date || item.first_air_date
+                                                item.release_date || item.first_air_date || ""
                                             )}</span>
                                         <span class="text-muted-foreground">•</span>
                                         <span
