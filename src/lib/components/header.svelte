@@ -57,10 +57,11 @@
 </script>
 
 <header
-    class="pointer-events-none absolute top-0 left-0 z-50 flex h-14 w-full items-center bg-transparent px-2 md:px-4">
-    <div class="pointer-events-auto flex w-full items-center justify-between gap-2">
+    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-14 w-full items-center bg-transparent px-4 md:flex md:px-16">
+    <div class="pointer-events-auto flex w-full items-center justify-between gap-4">
         <div class="mx-auto w-full max-w-sm">
-            <InputGroup.Root class="bg-background/60 h-9 w-full rounded-lg backdrop-blur-md transition-all focus-within:w-full md:focus-within:max-w-md">
+            <InputGroup.Root
+                class="bg-background/60 h-10 w-full rounded-xl backdrop-blur-md transition-all focus-within:w-full md:focus-within:max-w-md">
                 <InputGroup.Addon align="inline-start">
                     <Search />
                 </InputGroup.Addon>
@@ -86,12 +87,14 @@
             </InputGroup.Root>
         </div>
 
-        <div class="flex items-center gap-1">
-            <NotificationCenter />
+        <div class="flex items-center gap-2">
+            <div class="md:hidden">
+                <NotificationCenter class="bg-background/60 rounded-xl backdrop-blur-md" />
+            </div>
 
             <Button
                 variant="ghost"
-                class="text-foreground hover:bg-muted size-10 rounded-md md:hidden"
+                class="bg-background/60 size-10 rounded-xl backdrop-blur-md md:hidden"
                 onclick={() => SidebarStore.toggle()}>
                 <Menu class="size-5" />
             </Button>
