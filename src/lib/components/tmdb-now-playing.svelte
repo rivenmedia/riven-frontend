@@ -33,7 +33,7 @@
         data = [],
         showRequestButton = true,
         alignment = "left",
-        heightClass = "h-[400px] md:h-[420px]"
+        heightClass = "h-[350px] md:h-[420px]"
     }: Props = $props();
 
     let api = $state<CarouselAPI>();
