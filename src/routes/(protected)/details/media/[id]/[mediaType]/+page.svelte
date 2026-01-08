@@ -182,8 +182,8 @@
         </div>
     {/if}
 
-    <div class="z-10 mt-16 flex h-full w-full flex-col">
-        <!-- Hero Banner - full width to match search bar -->
+    <div class="z-10 flex h-full w-full flex-col">
+        <!-- Hero Banner - extends behind search bar -->
         {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
             <div class="px-2 md:px-4">
                 <div
