@@ -122,8 +122,8 @@ export class NotificationStore {
 
         const notificationValue = this.#connection
             .select("notification")
-            .json<NotificationEvent>(({ error, previous }) => {
-                if (error) {
+            .json<NotificationEvent>(({ error, previous, raw }) => {
+                if (error && raw.trim() !== "") {
                     logger.warn("Failed to parse notification:", error);
                 }
                 return previous;

@@ -16,8 +16,10 @@
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
     import ItemManualScrape from "$lib/components/media/riven/item-manual-scrape.svelte";
+    import ItemProgress from "$lib/components/media/riven/item-progress.svelte";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
     import { toast } from "svelte-sonner";
+    import { page } from "$app/stores";
 
     let { data }: PageProps = $props();
 
@@ -354,19 +356,11 @@
                         {/if}
                     </div>
 
-                    {#if data.riven?.state}
-                        <Badge
-                            class={cn(
-                                "mb-2",
-                                data.riven.state === "Completed"
-                                    ? "bg-green-600"
-                                    : data.riven.state === "Unknown"
-                                      ? "bg-red-600"
-                                      : "bg-yellow-600"
-                            )}>
-                            {data.riven.state}
-                        </Badge>
-                    {/if}
+                    <ItemProgress
+                        itemId={data.riven?.id}
+                        currentState={data.riven?.state}
+                        externalId={$page.params.id}
+                        externalIdType={data.mediaDetails?.type === "movie" ? "tmdb" : "tvdb"} />
 
                     {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
                         <p class="text-muted-foreground mb-2 text-sm">

@@ -5,7 +5,7 @@ import { produce } from "sveltekit-sse";
 import { createScopedLogger } from "$lib/logger";
 import { createSSEProxy } from "$lib/server/sse-proxy";
 
-const logger = createScopedLogger("notifications-api");
+const logger = createScopedLogger("item-update-api");
 
 export const POST: RequestHandler = async ({ locals }) => {
     if (!locals.user || !locals.session) {
@@ -14,14 +14,14 @@ export const POST: RequestHandler = async ({ locals }) => {
 
     const backendUrl = env.BACKEND_URL;
     if (!backendUrl) {
-        logger.error("Notification proxy: BACKEND_URL is not configured");
+        logger.error("Item update proxy: BACKEND_URL is not configured");
         error(500, "Backend URL is not configured");
     }
 
     return produce(({ emit, lock }) =>
         createSSEProxy({
-            endpoint: "notifications",
-            eventName: "notification",
+            endpoint: "item_update",
+            eventName: "item_update",
             backendUrl,
             apiKey: env.BACKEND_API_KEY || "",
             emit,
