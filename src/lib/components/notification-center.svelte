@@ -9,7 +9,8 @@
     import BellRing from "@lucide/svelte/icons/bell-ring";
     import Check from "@lucide/svelte/icons/check";
     import CheckCheck from "@lucide/svelte/icons/check-check";
-    import X from "@lucide/svelte/icons/x";
+    import Trash2 from "@lucide/svelte/icons/trash-2";
+    import Tooltip from "./tooltip.svelte";
     import { toast } from "svelte-sonner";
     import { cn } from "$lib/utils";
 
@@ -100,11 +101,10 @@
             <Button
                 {variant}
                 size="icon"
-                class={cn("relative h-10 w-10 cursor-pointer", className)}
+                class={cn("h-10 w-10 cursor-pointer", className)}
                 {...props}>
                 {#if notificationStore.unreadCount > 0}
-                    <div class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500"></div>
-                    <BellRing class="size-5" />
+                    <BellRing class="text-primary fill-primary/10 size-5" />
                 {:else}
                     <Bell class="size-5" />
                 {/if}
@@ -118,26 +118,38 @@
         <div class="flex flex-col">
             <div class="flex items-center justify-between p-4 pb-3">
                 <h3 class="text-sm font-semibold">Notifications</h3>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1">
                     {#if notificationStore.unreadCount > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleMarkAllAsRead}>
-                            <CheckCheck class="mr-1 size-3" />
-                            Mark all read
-                        </Button>
+                        <Tooltip>
+                            {#snippet trigger()}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-muted-foreground hover:text-foreground h-7 w-7"
+                                    onclick={handleMarkAllAsRead}>
+                                    <CheckCheck class="size-3.5" />
+                                </Button>
+                            {/snippet}
+                            {#snippet content()}
+                                <p>Mark all as read</p>
+                            {/snippet}
+                        </Tooltip>
                     {/if}
                     {#if notificationStore.notifications.length > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleClearAll}>
-                            <X class="mr-1 size-3" />
-                            Clear all
-                        </Button>
+                        <Tooltip>
+                            {#snippet trigger()}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-muted-foreground hover:text-destructive h-7 w-7"
+                                    onclick={handleClearAll}>
+                                    <Trash2 class="size-3.5" />
+                                </Button>
+                            {/snippet}
+                            {#snippet content()}
+                                <p>Clear all notifications</p>
+                            {/snippet}
+                        </Tooltip>
                     {/if}
                 </div>
             </div>
@@ -185,21 +197,36 @@
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     {#if !notification.read}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-6"
-                                            onclick={() => handleMarkAsRead(notification.id)}>
-                                            <Check class="size-3" />
-                                        </Button>
+                                        <Tooltip>
+                                            {#snippet trigger()}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    class="text-muted-foreground hover:text-primary size-6"
+                                                    onclick={() =>
+                                                        handleMarkAsRead(notification.id)}>
+                                                    <Check class="size-3" />
+                                                </Button>
+                                            {/snippet}
+                                            {#snippet content()}
+                                                <p>Mark as read</p>
+                                            {/snippet}
+                                        </Tooltip>
                                     {/if}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        class="size-6"
-                                        onclick={() => handleRemove(notification.id)}>
-                                        <X class="size-3" />
-                                    </Button>
+                                    <Tooltip>
+                                        {#snippet trigger()}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="text-muted-foreground hover:text-destructive size-6"
+                                                onclick={() => handleRemove(notification.id)}>
+                                                <Trash2 class="size-3" />
+                                            </Button>
+                                        {/snippet}
+                                        {#snippet content()}
+                                            <p>Remove</p>
+                                        {/snippet}
+                                    </Tooltip>
                                 </div>
                             </div>
                         </div>
