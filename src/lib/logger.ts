@@ -1,25 +1,29 @@
 import { createConsola } from "consola";
+import { env } from "$env/dynamic/public";
 
 /**
  * Centralized logger instance for the application.
  * Uses consola for styled, consistent logging across the app.
  *
- * Log Levels:
- * - 0: Fatal and Error
- * - 1: Warnings
- * - 2: Normal logs
- * - 3: Informational logs (default)
- * - 4: Debug logs
- * - 5: Trace logs
+ * Available log levels:
  *
- * Set CONSOLA_LEVEL environment variable to adjust log level.
+ * 0: Fatal and Error
+ * 1: Warnings
+ * 2: Normal logs
+ * 3: Informational logs, success, fail, ready, start, ...
+ * 4: Debug logs
+ * 5: Trace logs
+ * -999: Silent
+ * +999: Verbose logs
+ *
+ * Set LOG_LEVEL environment variable to adjust log level.
  */
 export const logger = createConsola({
-    level: 5,
+    level: parseInt(String(env.PUBLIC_LOG_LEVEL), 10) || 3,
     formatOptions: {
-        date: true,
-        colors: true,
-        compact: false
+        date: env.PUBLIC_LOG_DATE !== "false",
+        colors: env.PUBLIC_LOG_COLORS !== "false",
+        compact: env.PUBLIC_LOG_COMPACT === "true"
     }
 });
 
