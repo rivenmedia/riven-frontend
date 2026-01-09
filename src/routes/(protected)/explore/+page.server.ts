@@ -38,66 +38,66 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
             providers.tmdb.GET("/3/trending/movie/{time_window}", {
                 params: {
                     path: { time_window: "week" },
-                    query: { page: 1 } as any
+                    query: { language: "en-US" }
                 },
                 fetch: customFetch
             }),
             providers.tmdb.GET("/3/trending/tv/{time_window}", {
                 params: {
                     path: { time_window: "week" },
-                    query: { page: 1 } as any
+                    query: { language: "en-US" }
                 },
                 fetch: customFetch
             }),
             // Random popular content
             providers.tmdb.GET("/3/movie/popular", {
                 params: {
-                    query: { page: randomPagePopMovie } as any
+                    query: { page: randomPagePopMovie, language: "en-US" }
                 },
                 fetch: customFetch
             }),
             providers.tmdb.GET("/3/tv/popular", {
                 params: {
-                    query: { page: randomPagePopTV } as any
+                    query: { page: randomPagePopTV, language: "en-US" }
                 },
                 fetch: customFetch
             }),
             // Random top rated content
             providers.tmdb.GET("/3/movie/top_rated", {
                 params: {
-                    query: { page: randomPageTopMovie } as any
+                    query: { page: randomPageTopMovie, language: "en-US" }
                 },
                 fetch: customFetch
             }),
             providers.tmdb.GET("/3/tv/top_rated", {
                 params: {
-                    query: { page: randomPageTopTV } as any
+                    query: { page: randomPageTopTV, language: "en-US" }
                 },
                 fetch: customFetch
             })
         ]);
 
         const heroMovieResults = transformTMDBList(
-            (trendingMovies.data?.results as unknown as TMDBListItem[]) ?? []
+            (trendingMovies.data?.results as TMDBListItem[]) ?? []
         );
         const heroTvResults = transformTMDBList(
-            (trendingTV.data?.results as unknown as TMDBListItem[]) ?? [],
+            (trendingTV.data?.results as TMDBListItem[]) ?? [],
             "tv"
         );
 
         const popularMovieResults = transformTMDBList(
-            (popularMovies.data?.results as unknown as TMDBListItem[]) ?? []
+            (popularMovies.data?.results as TMDBListItem[]) ?? []
         );
         const popularTvResults = transformTMDBList(
-            (popularTV.data?.results as unknown as TMDBListItem[]) ?? [],
+            (popularTV.data?.results as TMDBListItem[]) ?? [],
             "tv"
         );
 
         const topRatedMovieResults = transformTMDBList(
-            (topRatedMovies.data?.results as unknown as TMDBListItem[]) ?? []
+            (topRatedMovies.data?.results as TMDBListItem[]) ?? []
         );
         const topRatedTvResults = transformTMDBList(
-            (topRatedTV.data?.results as unknown as TMDBListItem[]) ?? [],
+            (topRatedTV.data?.results as TMDBListItem[]) ?? [],
             "tv"
         );
 
