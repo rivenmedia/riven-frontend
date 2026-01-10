@@ -27,6 +27,7 @@
     import { goto } from "$app/navigation";
     import { Skeleton } from "$lib/components/ui/skeleton";
     import { DELETE } from "../api/[...backendProxy]/+server";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
 
@@ -44,7 +45,7 @@
     let formElement: HTMLFormElement;
 </script>
 
-<div class="mt-14 flex h-full flex-col gap-4 p-6 md:p-8 md:px-16">
+<PageShell class="h-full">
     <form method="GET" class="flex flex-col" bind:this={formElement}>
         <div class="flex flex-col">
             <Form.Field {form} name="search">
@@ -77,7 +78,8 @@
                                         ? $formData.type.join(", ")
                                         : "Select a type to display"}
                                 </Select.Trigger>
-                                <Select.Content>
+                                <Select.Content
+                                    class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
                                     {#each Object.keys(typeOptions) as option}
                                         <Select.Item value={option} label={option} />
                                     {/each}
@@ -99,7 +101,8 @@
                                         ? $formData.states.join(", ")
                                         : "Select a state to display"}
                                 </Select.Trigger>
-                                <Select.Content>
+                                <Select.Content
+                                    class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
                                     {#each Object.keys(stateOptions) as option}
                                         <Select.Item value={option} label={option} />
                                     {/each}
@@ -359,4 +362,4 @@
             </div>
         {/if}
     </form>
-</div>
+</PageShell>

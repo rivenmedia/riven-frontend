@@ -28,7 +28,7 @@ export type RegisterSchema = z.infer<typeof registerSchema>;
 
 export const passwordChangeSchema = z
     .object({
-        oldPassword: z.string().nonempty("Your old password cannot be empty"),
+        oldPassword: z.string().min(1, "Your old password cannot be empty"),
         newPassword: z.string().min(8, "Your password must have 8 characters or more."),
         confirmNewPassword: z.string(),
         revokeSessions: z.coerce.boolean<boolean>()

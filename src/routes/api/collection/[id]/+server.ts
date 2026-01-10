@@ -1,10 +1,10 @@
-import type { PageServerLoad } from "./$types";
+import type { RequestHandler } from "./$types";
 import providers from "$lib/providers";
 import { parseCollectionDetails } from "$lib/providers/parser";
-import { error } from "@sveltejs/kit";
+import { error, json } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
 
-export const load = (async ({ fetch, params }) => {
+export const GET: RequestHandler = async ({ fetch, params }) => {
     const { id } = params;
     const customFetch = createCustomFetch(fetch);
 
@@ -30,7 +30,5 @@ export const load = (async ({ fetch, params }) => {
 
     const collection = parseCollectionDetails(collectionData);
 
-    return {
-        collection
-    };
-}) satisfies PageServerLoad;
+    return json({ collection });
+};

@@ -2,49 +2,99 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { getContext } from "svelte";
-    import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
+    import { getContext, onDestroy, onMount } from "svelte";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
+    import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
+    import type { createSidebarStore } from "$lib/stores/global.svelte";
 
-    const SidebarStore: any = getContext("sidebarStore");
+    const SidebarStore = getContext<createSidebarStore>("sidebarStore");
 
-    const onKeydown = (e: KeyboardEvent) => {
+    // Detect modifier key client-side only to avoid hydration mismatch
+    let modifierKey = $state<string | null>(null);
+
+    onMount(() => {
+        const platform = (
+            (navigator.userAgentData?.platform ?? navigator.platform) ||
+            ""
+        ).toUpperCase();
+        modifierKey = platform.includes("MAC") ? "⌘" : "^";
+    });
+
+    // Removed local searchQuery state and its effect sync
+    let inputRef = $state<HTMLInputElement | null>(null);
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function navigateToSearch() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        // Read directly from the input element via ref
+        const query = inputRef?.value.trim() || "";
+        const currentlyExplore = $page.url.pathname === "/explore";
+        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+            keepFocus: true,
+            noScroll: true,
+            replaceState: currentlyExplore
+        });
+    }
+
+    function handleInput() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(navigateToSearch, 300);
+    }
+
+    onDestroy(() => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+    });
+
+    function onKeydown(e: KeyboardEvent) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
             e.preventDefault();
-            const searchInput = document.querySelector('input[name="query"]') as HTMLInputElement;
-            if (searchInput) {
-                searchInput.focus();
-            }
+            inputRef?.focus();
         }
-    };
+    }
 </script>
 
 <header
-    class="absolute z-10 flex h-18 w-full items-center bg-transparent px-2 md:left-14 md:w-[calc(100%-3.5rem)] md:px-4">
-    <div class="flex w-full items-center justify-between gap-2">
-        <form method="GET" action="/explore" class="w-full">
-            <ButtonGroup.Root class="bg-opacity-75 h-9 w-full backdrop-blur-sm">
-                <InputGroup.Root>
-                    <InputGroup.Input name="query" placeholder="Search..." />
-                    <InputGroup.Addon align="inline-end">
-                        <Kbd.Root>^K</Kbd.Root>
-                    </InputGroup.Addon>
-                </InputGroup.Root>
-
-                <Button type="submit" variant="outline" size="icon" aria-label="Search">
+    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-14 w-full items-center bg-transparent px-4 md:flex md:px-16">
+    <div class="pointer-events-auto flex w-full items-center justify-between gap-4">
+        <div class="mx-auto w-full max-w-sm">
+            <InputGroup.Root
+                class="bg-background/60 h-10 w-full rounded-xl backdrop-blur-md transition-all focus-within:w-full md:focus-within:max-w-md">
+                <InputGroup.Addon align="inline-start">
                     <Search />
-                </Button>
-            </ButtonGroup.Root>
-        </form>
+                </InputGroup.Addon>
+                <InputGroup.Input
+                    bind:ref={inputRef}
+                    name="query"
+                    placeholder="Search..."
+                    aria-label="Search"
+                    value={$page.url.searchParams.get("query") || ""}
+                    oninput={handleInput}
+                    onkeydown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            navigateToSearch();
+                        }
+                    }}
+                    autocomplete="off" />
+                {#if modifierKey}
+                    <InputGroup.Addon align="inline-end">
+                        <Kbd.Root>{modifierKey}K</Kbd.Root>
+                    </InputGroup.Addon>
+                {/if}
+            </InputGroup.Root>
+        </div>
 
-        <div class="flex items-center">
-            <NotificationCenter />
+        <div class="flex items-center gap-2">
+            <div class="md:hidden">
+                <NotificationCenter class="bg-background/60 rounded-xl backdrop-blur-md" />
+            </div>
 
             <Button
                 variant="ghost"
-                class="size-10 rounded-md text-white hover:bg-white/10 md:hidden"
+                class="bg-background/60 size-10 rounded-xl backdrop-blur-md md:hidden"
                 onclick={() => SidebarStore.toggle()}>
                 <Menu class="size-5" />
             </Button>

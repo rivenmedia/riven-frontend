@@ -1,8 +1,9 @@
 <script lang="ts">
     import { MediaListStore, type BaseListItem } from "$lib/services/lists-cache.svelte";
     import ListItem from "$lib/components/list-item.svelte";
-    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { onMount } from "svelte";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     const anilistTrendingStore = new MediaListStore<BaseListItem>(
         "anilistTrending",
@@ -36,7 +37,7 @@
     <title>Trending Animes - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col gap-6 p-6 md:p-8 md:px-16">
+<PageShell>
     <div class="flex flex-col">
         <h1 class="text-2xl font-bold md:text-3xl lg:text-4xl">Trending Animes</h1>
     </div>
@@ -50,13 +51,8 @@
             {/each}
             {#if anilistTrendingStore.loading}
                 {#each Array(6) as _, i (i)}
-                    <div class="w-full">
-                        <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                        <Skeleton class="mt-2 h-4 w-full" />
-                        <div class="mt-1 flex items-center justify-between">
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                            <Skeleton class="h-4 w-12 rounded-full" />
-                        </div>
+                    <div class="w-36 md:w-44 lg:w-48">
+                        <PortraitCardSkeleton />
                     </div>
                 {/each}
             {/if}
@@ -64,16 +60,11 @@
     {:else}
         <div class="flex flex-wrap gap-4">
             {#each Array(12) as _, i (i)}
-                <div>
-                    <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                    <Skeleton class="mt-2 h-4 w-full" />
-                    <div class="mt-1 flex items-center justify-between">
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                    </div>
+                <div class="w-36 md:w-44 lg:w-48">
+                    <PortraitCardSkeleton />
                 </div>
             {/each}
         </div>
     {/if}
     <div bind:this={loadMoreTrigger}></div>
-</div>
+</PageShell>

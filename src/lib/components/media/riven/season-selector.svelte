@@ -1,7 +1,4 @@
 <script lang="ts">
-    import { Switch } from "$lib/components/ui/switch/index.js";
-    import { Badge } from "$lib/components/ui/badge/index.js";
-
     export interface SeasonInfo {
         id: number;
         season_number: number;
@@ -84,38 +81,27 @@
     }
 </script>
 
-<div class="max-h-[60vh] overflow-y-auto rounded-md border p-2 {className}">
-    <div class="mb-2 flex items-center justify-between border-b px-2 pb-2">
-        <span class="text-sm font-bold">Select Seasons</span>
-        <div class="flex items-center gap-2">
-            <span class="text-muted-foreground text-xs">{selectedSeasons.size} selected</span>
-            <Switch checked={areAllToggleableSelected()} onCheckedChange={toggleAll} />
-        </div>
-    </div>
-    <div class="flex flex-col gap-1">
-        {#each seasons as season (season.id)}
-            {@const locked = isSeasonLocked(season)}
-            <div
-                class="flex items-center justify-between rounded-md p-2 transition-colors
-                    {locked ? 'opacity-60' : 'hover:bg-muted/50'}">
-                <div class="flex items-center gap-4">
-                    <Switch
-                        checked={selectedSeasons.has(season.season_number)}
-                        disabled={locked}
-                        onCheckedChange={() => toggleSeason(season)} />
-                    <div class="flex flex-col">
-                        <span class="font-medium {locked ? 'text-muted-foreground' : ''}"
-                            >{season.name}</span>
-                        <span class="text-muted-foreground text-xs"
-                            >{season.episode_count} Episodes</span>
-                    </div>
-                </div>
-                {#if season.status}
-                    <Badge variant={season.status === "Available" ? "default" : "secondary"}>
-                        {season.status}
-                    </Badge>
-                {/if}
-            </div>
-        {/each}
-    </div>
+<div class="{className} flex w-full flex-col gap-0.5">
+    {#each seasons as season (season.id)}
+        {@const locked = isSeasonLocked(season)}
+        {@const selected = selectedSeasons.has(season.season_number)}
+        <button
+            class="group hover:bg-muted/30 flex w-full items-center justify-between rounded-md px-3 py-1.5 text-sm transition-all {locked
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer'} {selected && !locked
+                ? 'text-primary font-bold'
+                : 'text-foreground font-medium'}"
+            onclick={() => toggleSeason(season)}
+            disabled={locked}
+            title={season.name}>
+            <span>Season {season.season_number}</span>
+
+            {#if locked}
+                <span class="text-xs font-normal opacity-70">Installed</span>
+            {:else}
+                <span class="text-muted-foreground text-xs font-normal opacity-70"
+                    >{season.episode_count} eps</span>
+            {/if}
+        </button>
+    {/each}
 </div>

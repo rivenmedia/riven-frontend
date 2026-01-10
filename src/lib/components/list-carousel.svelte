@@ -2,7 +2,7 @@
     import * as Carousel from "$lib/components/ui/carousel/index.js";
     import { type CarouselAPI } from "$lib/components/ui/carousel/context.js";
     import ListItem from "./list-item.svelte";
-    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
 
     let api = $state<CarouselAPI>();
     let { data = $bindable(), indexer = undefined, type = "" } = $props();
@@ -14,11 +14,11 @@
             dragFree: true,
             slidesToScroll: "auto"
         }}
-        class="mt-1.5"
+        class="mt-0"
         setApi={(emblaApi) => (api = emblaApi)}>
-        <Carousel.Content>
+        <Carousel.Content class="-ml-3">
             {#each data as item (item.id)}
-                <Carousel.Item class="max-w-max">
+                <Carousel.Item class="max-w-max pl-3">
                     <ListItem
                         data={item}
                         indexer={indexer || item.indexer}
@@ -28,19 +28,10 @@
         </Carousel.Content>
     </Carousel.Root>
 {:else}
-    <div class="flex gap-3 overflow-x-auto pb-2">
-        {#each Array(2) as _, i}
-            <div class="w-40 flex-none sm:w-40 md:w-45">
-                <Skeleton class="aspect-2/3 w-full rounded-sm" />
-                <Skeleton class="mt-2 h-4 w-full" />
-                <div class="mt-1 flex items-center justify-between">
-                    <div class="flex items-center gap-1">
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <Skeleton class="h-4 w-12 rounded-full" />
-                    </div>
-                </div>
+    <div class="mt-1.5 flex gap-3 overflow-x-auto pb-2">
+        {#each Array(6) as _, i (i)}
+            <div class="w-36 flex-none md:w-44 lg:w-48">
+                <PortraitCardSkeleton />
             </div>
         {/each}
     </div>

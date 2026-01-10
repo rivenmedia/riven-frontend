@@ -19,22 +19,14 @@
     import { SidebarStore, isMobileStore } from "$lib/stores/global.svelte";
     import { setContext } from "svelte";
     import Header from "$lib/components/header.svelte";
+    import MobileNav from "$lib/components/mobile-nav.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
+    import { FilterStore } from "$lib/services/filter-store.svelte";
 
     let { data, children }: LayoutProps = $props();
 
     const searchStore = new SearchStore();
-
-    onNavigate((navigation) => {
-        if (!document.startViewTransition) return;
-
-        return new Promise((resolve) => {
-            document.startViewTransition(async () => {
-                resolve();
-                await navigation.complete;
-            });
-        });
-    });
+    const filterStore = new FilterStore();
 
     NProgress.configure({
         showSpinner: false
@@ -49,6 +41,7 @@
     setContext("sidebarStore", SidebarStore);
     setContext("ismobilestore", isMobileStore);
     setContext("searchStore", searchStore);
+    setContext("filterStore", filterStore);
 </script>
 
 <svelte:head>
@@ -67,10 +60,13 @@
 <div
     class="bg-background relative grid h-screen w-screen grid-cols-1 overflow-hidden md:grid-cols-[auto_1fr]">
     <Sidebar user={data.user} />
-    <main class="grid grid-rows-[auto_1fr] overflow-hidden">
-        <Header />
-        <div class="size-full overflow-x-hidden overflow-y-auto">
+    <main class="relative overflow-hidden">
+        <div
+            class="size-full overflow-x-hidden overflow-y-scroll"
+            style="scrollbar-gutter: stable;">
+            <Header />
             {@render children?.()}
         </div>
     </main>
+    <MobileNav />
 </div>

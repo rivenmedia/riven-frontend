@@ -33,6 +33,7 @@
 		type="file"
 		bind:files
 		bind:value
+		aria-disabled={restProps.disabled}
 		{...restProps}
 	/>
 {:else}
@@ -47,6 +48,7 @@
 		)}
 		{type}
 		bind:value
+		aria-disabled={restProps.disabled}
 		{...restProps}
 	/>
 {/if}

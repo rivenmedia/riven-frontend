@@ -6,6 +6,7 @@
     import { setShadcnContext } from "$lib/components/shadcn-context";
     import { toast } from "svelte-sonner";
     import { icons } from "@sjsf/lucide-icons";
+    import PageShell from "$lib/components/page-shell.svelte";
     setShadcnContext();
 
     let { data }: { data: PageData } = $props();
@@ -35,6 +36,6 @@
     <title>Settings - Riven</title>
 </svelte:head>
 
-<div class="mt-14 h-full w-full p-6 md:p-8 md:px-16">
+<PageShell class="h-full">
     <BasicForm {form} method="POST"></BasicForm>
-</div>
+</PageShell>

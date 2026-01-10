@@ -12,6 +12,7 @@
     import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import * as dateUtils from "$lib/utils/date";
     import { CalendarDate } from "@internationalized/date";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: { data: PageData } = $props();
     const isMobile = $state(new IsMobile(1280));
@@ -297,7 +298,7 @@
     </div>
 {/snippet}
 
-<div class="mt-14 h-full w-full p-6 md:p-8 md:px-16">
+<PageShell class="h-full w-full">
     <Card.Root class="mb-4 md:mb-6">
         <Card.Header class="pb-4">
             <div class="flex items-center justify-between">
@@ -390,4 +391,4 @@
             {/if}
         </Card.Content>
     </Card.Root>
-</div>
+</PageShell>
