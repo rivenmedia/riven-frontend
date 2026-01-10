@@ -6,6 +6,7 @@ settings:
 
 overrides:
   cookie: ^0.7.0
+  '@lucide/svelte': ^0.562.0
 
 importers:
 
@@ -1150,7 +1151,7 @@ packages:
   '@sjsf/lucide-icons@3.2.0':
     resolution: {integrity: sha512-kwey11SUobdDrpLKc3fX0LYUCPr96N4IpNnkpF/A/f+QEDu8cK3GZKXs2647b43mvhWOmsF2rzK1eQoR6nGyrw==}
     peerDependencies:
-      '@lucide/svelte': '>=0.479.0 <0.562.0'
+      '@lucide/svelte': ^0.562.0
       '@sjsf/form': ^3.2.0
       svelte: ^5.34.8
 
@@ -1158,7 +1159,7 @@ packages:
     resolution: {integrity: sha512-8/urhvj/3Xnm1dO/bpfpw6mjoP5JyKLDl9C4vLAQHHMzDHZcV5qWKB6vBllHv/7c9dEZTO44BHs8UBC+DTr6ng==}
     peerDependencies:
       '@internationalized/date': ^3.10.0
-      '@lucide/svelte': ^0.544.0
+      '@lucide/svelte': ^0.562.0
       '@sjsf/form': ^3.2.0
       bits-ui: ^2.14.0
       clsx: ^2.1.0
