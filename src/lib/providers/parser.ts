@@ -330,7 +330,9 @@ export function transformTMDBList(items: any[] | null, type: "movie" | "tv" | "p
             indexer: "tmdb" as const,
             original_language: item.original_language,
             overview: item.overview,
-            backdrop_path: item.backdrop_path,
+            backdrop_path: item.backdrop_path
+                ? `${TMDB_IMAGE_BASE_URL}/w1280${item.backdrop_path}`
+                : null,
             genre_ids: item.genre_ids,
             release_date: item.release_date,
             first_air_date: item.first_air_date,

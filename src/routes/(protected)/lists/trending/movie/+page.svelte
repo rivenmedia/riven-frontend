@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { setContext } from "svelte";
+    import { getContext } from "svelte";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
@@ -12,13 +12,9 @@
     import ArrowUpDownIcon from "@lucide/svelte/icons/arrow-up-down";
     import PageShell from "$lib/components/page-shell.svelte";
 
-    let searchStore = new SearchStore();
-    let filterStore = new FilterStore();
+    let searchStore = getContext<SearchStore>("searchStore");
+    let filterStore = getContext<FilterStore>("filterStore");
     let loadMoreTrigger = $state<HTMLDivElement | null>(null);
-
-    // Provide stores to children (like FilterPopover)
-    setContext("searchStore", searchStore);
-    setContext("filterStore", filterStore);
 
     let isTriggerVisible = $state(false);
 
@@ -47,7 +43,10 @@
 
     $effect(() => {
         if (isTriggerVisible && !searchStore.loading && searchStore.hasMore) {
-            searchStore.loadMore();
+            const timer = setTimeout(() => {
+                searchStore.loadMore();
+            }, 500);
+            return () => clearTimeout(timer);
         }
     });
 
@@ -93,7 +92,7 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        {#each SORT_OPTIONS as option}
+                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("movie") ?? true) as option}
                             <Select.Item value={option.value} label={option.label}>
                                 {option.label}
                             </Select.Item>

@@ -60,20 +60,42 @@
             const tmdbId = (data.mediaDetails?.details as any)?.external_ids?.tmdb;
             if (tmdbId) return Number(tmdbId);
         }
-        return key;
-    }
+        return urlId;
+    });
+
+    let details = $derived(
+        [
+            data.mediaDetails?.details.year,
+            data.mediaDetails?.details.certification,
+            data.mediaDetails?.details.formatted_runtime,
+            data.mediaDetails?.details.status
+        ].filter(Boolean)
+    );
+
+    let ratingsData = $state<any>(null);
+    let ratingsLoading = $state(true);
+
+    $effect(() => {
+        if (!ratingsId) return;
+        ratingsLoading = true;
+        fetch(`/api/ratings/${ratingsId}?type=${data.mediaDetails?.type}`)
+            .then((r) => r.json())
+            .then((d) => {
+                ratingsData = d;
+                ratingsLoading = false;
+            })
+            .catch(() => {
+                ratingsLoading = false;
+            });
+    });
 
     function getExternalMetadata(key: string) {
         const normalizedKey = normalizeExternalIdKey(key);
         return externalMetaData[normalizedKey];
     }
 
-    let showTrailer = $state(
-        !data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer
-    );
-
     function toggleTrailer() {
-        showTrailer = !showTrailer;
+        showTrailerOverride = !showTrailer;
     }
 
     let showVideoPlayer = $state(false);
@@ -82,8 +104,44 @@
         showVideoPlayer = !showVideoPlayer;
     }
 
-    let selectedSeason: string | undefined = $state("1");
-    let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+    function getSeasonData() {
+        if (data.mediaDetails?.type !== "tv" || !data.mediaDetails.details.seasons)
+            return undefined;
+        return data.mediaDetails.details.seasons
+            .filter((s) => s.number != null && s.number > 0)
+            .map((s) => ({
+                id: s.id,
+                name: `Season ${s.number}`,
+                season_number: s.number!,
+                episode_count:
+                    data.mediaDetails?.type === "tv"
+                        ? data.mediaDetails.details.episodes.filter(
+                              (e) => e.seasonNumber === s.number
+                          ).length
+                        : 0
+            }));
+    }
+
+    function formatCurrency(amount: number | null | undefined): string {
+        if (amount == null) return "N/A";
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
+
+    function formatSize(bytes: number | null | undefined): string {
+        if (bytes == null) return "Unknown";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let size = bytes;
+        let unitIndex = 0;
+        while (size >= 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
+        return `${size.toFixed(2)} ${units[unitIndex]}`;
+    }
 </script>
 
 {#snippet mediaCarousel(
@@ -216,8 +274,8 @@
                             onclick={() => (showTrailerOverride = false)}>
                             <div class="i-lucide-x h-6 w-6"></div>
                         </Button>
-                    {/if}
-                </div>
+                    </div>
+                {/if}
             </div>
         {/if}
 
@@ -272,7 +330,6 @@
                                 itemId={null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
-                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape
@@ -320,7 +377,6 @@
                                 itemId={rivenId?.toString() ?? null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
-                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape

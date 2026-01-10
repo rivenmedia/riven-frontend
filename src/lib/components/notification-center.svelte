@@ -25,8 +25,8 @@
     }
 
     onMount(() => {
-        notificationStore.connect();
         notificationStore.onNotificationAdded = handleNewNotification;
+        notificationStore.connect();
     });
 
     onDestroy(() => {

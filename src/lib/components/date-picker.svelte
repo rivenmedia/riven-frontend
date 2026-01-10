@@ -1,11 +1,6 @@
 <script lang="ts">
     import CalendarIcon from "@lucide/svelte/icons/calendar";
-    import {
-        parseDate,
-        type DateValue,
-        getLocalTimeZone,
-        CalendarDate
-    } from "@internationalized/date";
+    import { parseDate, type DateValue, CalendarDate } from "@internationalized/date";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import { Calendar } from "$lib/components/ui/calendar/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -76,7 +71,6 @@
 <div class={cn("flex w-full items-center gap-2")}>
     <div class="relative flex-1">
         <!-- Ghost text for "YYYY-MM-DD" mask -->
-        <!-- Ghost text for "YYYY-MM-DD" mask -->
         {#if (value?.length ?? 0) < 10}
             <div
                 class="pointer-events-none absolute inset-0 flex items-center px-3 font-mono text-sm tracking-normal">
@@ -91,7 +85,7 @@
             oninput={handleInput}
             class="relative z-10 w-full bg-transparent font-mono text-sm"
             maxlength={10}
-            placeholder="" />
+            {placeholder} />
     </div>
     <Popover.Root>
         <Popover.Trigger>

@@ -30,6 +30,14 @@
     const filterStore = getContext<FilterStore>("filterStore");
     const searchStore = getContext<SearchStore>("searchStore");
 
+    if (!filterStore) {
+        throw new Error("FilterPopover must be used within a context that provides 'filterStore'.");
+    }
+
+    if (!searchStore) {
+        throw new Error("FilterPopover must be used within a context that provides 'searchStore'.");
+    }
+
     // Get genres based on media type
     let availableGenres = $derived(
         searchStore.mediaType === "tv"

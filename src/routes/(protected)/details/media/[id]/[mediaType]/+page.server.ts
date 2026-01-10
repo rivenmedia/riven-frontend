@@ -230,9 +230,17 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
             const { data: episodesData, error: episodesError } = tvdbEpisodesResult;
             const { data: translationsData, error: translationsError } = tvdbTranslationsResult;
 
-            // Use episodes result as base, merge translations if available
-            const detailsError = episodesError || translationsError;
+            // Use episodes result as base
+            const detailsError = episodesError;
             const details = episodesData;
+
+            // Log translation error if present, but don't fail the request
+            if (translationsError) {
+                logger.error(
+                    `TVDB translations fetch failed for ID ${tvdbId} (Original: ${id}):`,
+                    translationsError
+                );
+            }
 
             // Merge translations into the details if both requests succeeded
             if (details?.data && translationsData?.data?.translations) {
@@ -278,15 +286,25 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             fetch: customFetch
                         });
 
+                    // The generated types for this endpoint are incorrect (expects data.series.episodes),
+                    // but the actual API returns data.episodes.
+                    type EpisodeType = ParsedShowDetails["episodes"][number];
+                    interface EngEpisodesResponse {
+                        data: {
+                            episodes: EpisodeType[];
+                        };
+                    }
+
                     if (
                         !engEpisodesError &&
                         engEpisodesData &&
-                        engEpisodesData.data &&
-                        // @ts-expect-error it says data.series.episodes but it's actually data.episodes
-                        engEpisodesData.data.episodes
+                        engEpisodesData.data
                     ) {
-                        // @ts-expect-error it says data.series.episodes but it's actually data.episodes
-                        details.data.episodes = engEpisodesData.data.episodes;
+                        const rawData = engEpisodesData as unknown as EngEpisodesResponse;
+                        if (rawData.data?.episodes) {
+                            // Cast to any because details.data (inferred) expects undefined but parser allows null
+                            (details.data as any).episodes = rawData.data.episodes;
+                        }
                     }
                 } catch (err) {
                     logger.warn("Failed to fetch English episodes fallback:", err);

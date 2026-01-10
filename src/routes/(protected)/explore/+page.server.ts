@@ -6,6 +6,7 @@ import { parseSearchQuery } from "$lib/search-parser";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem, type TMDBTransformedListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
+import { logger } from "$lib/logger";
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
     // Parse and validate search params from the URL
@@ -102,18 +103,16 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
         );
 
         // Hero items: Top trending
-        heroItems = [...heroMovieResults.slice(0, 5), ...heroTvResults.slice(0, 5)].sort(
-            () => 0.5 - Math.random()
-        );
+        heroItems = shuffleArray([...heroMovieResults.slice(0, 5), ...heroTvResults.slice(0, 5)]);
 
         // Feeling Lucky: Massive pool of random high-quality content
-        feelingLuckyItems = [
+        feelingLuckyItems = shuffleArray([
             ...heroItems,
             ...popularMovieResults,
             ...popularTvResults,
             ...topRatedMovieResults,
             ...topRatedTvResults
-        ].sort(() => 0.5 - Math.random());
+        ]);
 
         // Extract titles for search examples from hero items
         searchExamples = heroItems.slice(0, 6).map((item) => item.title?.toLowerCase() || "");
@@ -129,3 +128,12 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
         feelingLuckyItems
     };
 };
+
+function shuffleArray<T>(array: T[]): T[] {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}

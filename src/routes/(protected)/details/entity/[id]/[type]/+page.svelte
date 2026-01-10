@@ -18,6 +18,9 @@
     const GRID_CLASSES =
         "grid grid-cols-3 gap-4 min-[450px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9" as const;
 
+    const badgeClass =
+        "border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60";
+
     const CONFETTI_CONFIG = {
         colors: [
             "#ff6b6b",
@@ -84,7 +87,7 @@
 
     // Select Top 5 for carousel (matching Seerr's logic)
     const backdropCandidates = uniqueCredits
-        .filter((c) => c.backdrop_path)
+        .filter((c) => c.backdrop_path && c.vote_count != null)
         .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0))
         .slice(0, 5);
 
@@ -391,32 +394,24 @@
 
 {#snippet metadataBadges()}
     {#if data.entity.known_for_department}
-        <Badge
-            variant="outline"
-            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+        <Badge variant="outline" class={badgeClass}>
             {data.entity.known_for_department}
         </Badge>
     {/if}
     {#if data.entity.gender}
-        <Badge
-            variant="outline"
-            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+        <Badge variant="outline" class={badgeClass}>
             {data.entity.gender}
         </Badge>
     {/if}
     {#if data.entity.birthday}
-        <Badge
-            variant="outline"
-            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+        <Badge variant="outline" class={badgeClass}>
             {formatDate(data.entity.birthday)}
             {#if !data.entity.deathday}
                 • {calculateAge(data.entity.birthday)} y/o{/if}
         </Badge>
     {/if}
     {#if data.entity.place_of_birth}
-        <Badge
-            variant="outline"
-            class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+        <Badge variant="outline" class={badgeClass}>
             {data.entity.place_of_birth}
         </Badge>
     {/if}
@@ -430,9 +425,7 @@
             </h3>
             <div class="flex flex-wrap gap-2">
                 {#each data.entity.also_known_as as alias}
-                    <Badge
-                        variant="outline"
-                        class="border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60">
+                    <Badge variant="outline" class={badgeClass}>
                         {alias}
                     </Badge>
                 {/each}

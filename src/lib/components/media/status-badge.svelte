@@ -10,6 +10,9 @@
         class: className
     }: { state: string; size?: Size; class?: string } = $props();
 
+    const KNOWN_STATES = ["Completed", "Requested", "Downloading", "Paused", "Unknown"];
+    const isDefaultState = $derived(!KNOWN_STATES.includes(state));
+
     const variant = $derived(state === "Unknown" ? "destructive" : "secondary");
 
     const sizeClasses = $derived(
@@ -26,11 +29,6 @@
         state === "Requested" && "bg-sky-600/80 text-sky-50 hover:bg-sky-600/70",
         state === "Downloading" && "bg-amber-600/80 text-amber-50 hover:bg-amber-600/70",
         state === "Paused" && "bg-slate-500/80 text-slate-50 hover:bg-slate-500/70",
-        state !== "Completed" &&
-            state !== "Requested" &&
-            state !== "Downloading" &&
-            state !== "Paused" &&
-            state !== "Unknown" &&
-            "bg-amber-600/80 text-amber-50 hover:bg-amber-600/70",
+        isDefaultState && "bg-amber-600/80 text-amber-50 hover:bg-amber-600/70",
         className
     )}>{state}</Badge>

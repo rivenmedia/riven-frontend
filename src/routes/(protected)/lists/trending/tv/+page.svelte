@@ -47,7 +47,10 @@
 
     $effect(() => {
         if (isTriggerVisible && !searchStore.loading && searchStore.hasMore) {
-            searchStore.loadMore();
+            const timer = setTimeout(() => {
+                searchStore.loadMore();
+            }, 500);
+            return () => clearTimeout(timer);
         }
     });
 
@@ -93,7 +96,7 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        {#each SORT_OPTIONS.filter((o) => !o.value.includes("revenue")) as option}
+                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("tv" as any) ?? true) as option}
                             <Select.Item value={option.value} label={option.label}>
                                 {option.label}
                             </Select.Item>
@@ -116,7 +119,7 @@
 
     {#if Array.isArray(searchStore.results) && searchStore.results.length > 0}
         <div class="flex flex-wrap gap-4">
-            {#each searchStore.results as item (item.id)}
+            {#each searchStore.results as item (`${item.id}-${item.indexer}`)}
                 <div>
                     <ListItem data={item} indexer={item.indexer} type="tv" />
                 </div>

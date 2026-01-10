@@ -97,6 +97,9 @@
         "openapi-fetch": "^0.15.0",
         "zod": "^4.3.5"
     },
+    "overrides": {
+        "@lucide/svelte": "^0.562.0"
+    },
     "pnpm": {
         "onlyBuiltDependencies": [
             "@tailwindcss/oxide",
@@ -104,7 +107,8 @@
             "esbuild"
         ],
         "overrides": {
-            "cookie": "^0.7.0"
+            "cookie": "^0.7.0",
+            "@lucide/svelte": "^0.562.0"
         }
     }
 }

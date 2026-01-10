@@ -8,9 +8,8 @@
     import AnimatedToggle from "$lib/components/animated-toggle.svelte";
     import SearchIcon from "@lucide/svelte/icons/search";
     import Sparkles from "@lucide/svelte/icons/sparkles";
-    import Play from "@lucide/svelte/icons/play";
     import Info from "@lucide/svelte/icons/info";
-    import { scale, fade } from "svelte/transition";
+    import { scale } from "svelte/transition";
     import { goto } from "$app/navigation";
 
     let { data } = $props();
@@ -60,7 +59,9 @@
     onMount(() => {
         // Rotate search examples
         const exampleInterval = setInterval(() => {
-            currentExampleIndex = (currentExampleIndex + 6) % data.searchExamples.length;
+            if (data.searchExamples?.length > 0) {
+                currentExampleIndex = (currentExampleIndex + 6) % data.searchExamples.length;
+            }
         }, 4000);
 
         // Rotate hero item every 8 seconds (faster for more dynamism)

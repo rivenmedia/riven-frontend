@@ -25,7 +25,7 @@
     if (!type && data.media_type) type = data.media_type;
 
     let mediaURL = $derived.by(() => {
-        if (!data.id) return "javascript:void(0)";
+        if (!data.id) return null;
 
         if (type === "person" || type === "company") {
             return `/details/entity/${data.id}/${type}`;
@@ -53,11 +53,12 @@
         if (data.year && data.year !== "N/A") parts.push(data.year);
         return parts.join(" • ") || null;
     });
+
+    const CONTAINER_CLASSES =
+        "group relative block w-36 opacity-80 transition-all duration-200 hover:opacity-100 md:w-44 lg:w-48";
 </script>
 
-<a
-    href={mediaURL}
-    class="group relative block w-36 opacity-80 transition-all duration-200 hover:opacity-100 md:w-44 lg:w-48">
+{#snippet cardContent()}
     <PortraitCard
         title={data.title}
         {subtitle}
@@ -75,4 +76,14 @@
             {/if}
         {/snippet}
     </PortraitCard>
-</a>
+{/snippet}
+
+{#if mediaURL}
+    <a href={mediaURL} class={CONTAINER_CLASSES}>
+        {@render cardContent()}
+    </a>
+{:else}
+    <div role="button" aria-disabled="true" tabindex="-1" class={CONTAINER_CLASSES}>
+        {@render cardContent()}
+    </div>
+{/if}
