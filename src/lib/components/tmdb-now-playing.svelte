@@ -290,12 +290,12 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-white/10 bg-black/30 absolute bottom-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-4 rounded-full border px-6 py-2.5 backdrop-blur-xl">
-            <span class="text-white/90 text-xs font-medium font-mono"
+            class="border-white/10 bg-black/30 absolute bottom-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-4 rounded-full border px-4 py-2 backdrop-blur-xl md:px-6 md:py-2.5">
+            <span class="text-white/90 text-xs font-medium font-mono whitespace-nowrap"
                 >{currentIndex + 1} / {data.length}</span>
 
-            <!-- Desktop Segmented Progress -->
-            <div class="hidden gap-1.5 md:flex">
+            <!-- Desktop Segmented Progress (Hidden until Large screens) -->
+            <div class="hidden gap-1.5 lg:flex">
                 {#each data as _, i}
                     <button
                         class="h-1 w-6 cursor-pointer rounded-full transition-all duration-300 {i ===
@@ -308,8 +308,8 @@
                 {/each}
             </div>
 
-            <!-- Mobile Simple Progress Bar -->
-            <div class="bg-white/20 h-1 w-32 overflow-hidden rounded-full md:hidden">
+            <!-- Mobile/Tablet Simple Progress Bar -->
+            <div class="bg-white/20 h-1 w-32 overflow-hidden rounded-full lg:hidden">
                 <div
                     class="bg-primary h-full transition-all duration-300 ease-out"
                     style="width: {((currentIndex + 1) / data.length) * 100}%">
