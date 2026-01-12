@@ -19,6 +19,10 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
             }
         });
 
+        const recentlyAddedRes = await fetch("/api/library/recent");
+        const recentlyAddedJson = recentlyAddedRes.ok ? await recentlyAddedRes.json() : { items: [] };
+        const recentlyAdded = recentlyAddedJson.items || [];
+
         // Filter to only movies and TV shows with backdrops
         const filtered = (data?.results ?? []).filter(
             (item: any) =>
@@ -26,10 +30,11 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
         );
 
         return {
-            nowPlaying: transformTMDBList(filtered as TMDBListItem[])
+            nowPlaying: transformTMDBList(filtered as TMDBListItem[], "movie", "original"),
+            recentlyAdded: (recentlyAdded || []) as any[]
         };
     } catch (err) {
         logger.error("Error fetching now playing data:", err);
-        return { nowPlaying: [] };
+        return { nowPlaying: [], recentlyAdded: [] };
     }
 };

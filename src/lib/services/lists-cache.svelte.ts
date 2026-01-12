@@ -92,7 +92,7 @@ export class MediaListStore<T = unknown> {
         key: string,
         apiPath: string,
         initialTimeWindow: "day" | "week" | null = null,
-        options: { noCache?: boolean } = {}
+        options: { noCache?: boolean; initialData?: T[] } = {}
     ) {
         this.#key = key;
         this.#apiPath = apiPath;
@@ -108,8 +108,17 @@ export class MediaListStore<T = unknown> {
             );
         }
 
-        // Eagerly load data on construction in browser
-        if (browser) {
+        // Initialize with initialData if provided, otherwise empty
+        if (options.initialData && options.initialData.length > 0) {
+            this.#items = options.initialData;
+            this.#initialized = true;
+            // Optionally cache it if we want persistence across soft reloads, 
+            // but usually server data is fresh enough.
+            if (!this.#noCache) {
+                this.#setCachedData(options.initialData);
+            }
+        } else if (browser) {
+            // Only auto-load if no initial data
             this.load();
         }
     }
