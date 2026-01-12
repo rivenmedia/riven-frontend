@@ -158,7 +158,7 @@
                 const mapping = selectedFilesMappings[0];
                 if (mapping) {
                     fileDataPayload = {
-                        file_id: parseFileId(fileDataPayload.file_id),
+                        file_id: parseFileId(mapping.file_id),
                         filename: mapping.filename,
                         filesize: mapping.filesize,
                         download_url: mapping.download_url

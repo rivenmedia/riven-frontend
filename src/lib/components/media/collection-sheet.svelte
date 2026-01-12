@@ -111,22 +111,32 @@
                 </div>
             {:else if collectionData}
                 {#if collectionData.backdrop_path}
-                    <div class="relative h-48 w-full overflow-hidden rounded-lg md:h-64">
+                    <div class="relative h-48 w-full overflow-hidden rounded-xl shadow-lg md:h-64">
                         <img
                             src={collectionData.backdrop_path}
                             alt={collectionData.name}
                             class="h-full w-full object-cover" />
-                        <div class="bg-background/60 absolute inset-0"></div>
-                        <div class="absolute right-4 bottom-4 left-4">
-                            <p class="text-foreground line-clamp-3 text-sm font-medium">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                        </div>
+                        <div class="absolute right-6 bottom-6 left-6">
+                            <p
+                                class="text-white/90 line-clamp-3 text-sm font-medium leading-relaxed drop-shadow-md">
                                 {collectionData.overview}
                             </p>
+                        </div>
+                        <!-- Glass Border -->
+                        <div
+                            class="border-white/10 pointer-events-none absolute inset-0 rounded-xl border">
                         </div>
                     </div>
                 {/if}
 
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="h-5 w-1 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]">
+                    </div>
+                    <h3 class="text-lg font-bold tracking-tight">
                         {collectionData.parts?.length ?? 0} Movies
                     </h3>
                 </div>
@@ -135,7 +145,7 @@
                     {#each collectionData.parts ?? [] as part (part.id)}
                         <a
                             href="/details/media/{part.id}/movie"
-                            class="block"
+                            class="group block transition-all duration-300 hover:scale-[1.02]"
                             onclick={() => isMobileStore.isMobile && (open = false)}>
                             <LandscapeCard
                                 title={part.title}
@@ -143,11 +153,12 @@
                                 overview={part.overview}
                                 tmdbId={part.id}
                                 mediaType="movie"
-                                initialRating={part.vote_average ?? undefined}>
+                                initialRating={part.vote_average ?? undefined}
+                                class="group-hover:shadow-lg transition-shadow">
                                 {#snippet meta()}
                                     {#if part.year}
                                         <span
-                                            class="border-border bg-muted/50 text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
+                                            class="border-white/10 bg-white/5 text-muted-foreground rounded-full border px-2 py-0.5 text-xs backdrop-blur-sm">
                                             {part.year}
                                         </span>
                                     {/if}
@@ -160,8 +171,12 @@
         </div>
 
         {#if collectionData?.parts?.length}
-            <Sheet.Footer class="border-border border-t px-6 pt-4">
-                <Button onclick={requestAll} disabled={requestLoading} class="w-full">
+            <Sheet.Footer class="border-white/5 bg-black/20 border-t p-6 backdrop-blur-md">
+                <Button
+                    onclick={requestAll}
+                    disabled={requestLoading}
+                    variant="secondary"
+                    class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 w-full backdrop-blur-md border transition-all hover:scale-[1.02] shadow-lg">
                     {#if requestLoading}
                         <Loader2 class="mr-2 size-4 animate-spin" />
                     {/if}

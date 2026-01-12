@@ -52,7 +52,7 @@
 
 {#snippet ratingBadge(rating: number)}
     <div
-        class="border-border bg-muted/50 text-foreground/80 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
+        class="border-white/10 bg-white/10 text-foreground/90 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs backdrop-blur-md">
         <Star size={12} class="fill-yellow-500 text-yellow-500" />
         {rating.toFixed(1)}
     </div>
@@ -60,12 +60,12 @@
 
 <div
     class={cn(
-        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-md transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-xl",
+        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-lg transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
         className
     )}>
-    <!-- Inner Border Overlay -->
+    <!-- Inner Border Overlay with glass effect -->
     <div
-        class="border-border/50 group-hover:border-border pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-500">
+        class="border-white/10 group-hover:border-primary/30 pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-500">
     </div>
 
     <div class="relative aspect-video w-full flex-grow overflow-hidden">
@@ -81,6 +81,10 @@
             </div>
         {/if}
 
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-80">
+        </div>
+
         {#if topRight}
             <div class="absolute top-2 z-10 flex w-full justify-end px-2">
                 {@render topRight()}
@@ -88,11 +92,6 @@
         {/if}
 
         <div class="absolute inset-0 flex flex-col justify-end">
-            <div
-                class="bg-card/90 absolute -inset-px backdrop-blur-3xl"
-                style="-webkit-mask-image: radial-gradient(100% 150% at 0% 100%, black 0%, transparent 90%), linear-gradient(to bottom, transparent 30%, black 100%); mask-image: radial-gradient(100% 150% at 0% 100%, black 0%, transparent 90%), linear-gradient(to bottom, transparent 30%, black 100%);">
-            </div>
-
             <div class="relative z-10 flex flex-col gap-1.5 p-3 md:p-4">
                 <h3
                     class="text-foreground relative z-20 line-clamp-1 text-base font-extrabold drop-shadow-md md:text-lg">
@@ -110,7 +109,7 @@
                                 {#if initialRating}
                                     {@render ratingBadge(initialRating)}
                                 {:else}
-                                    <div class="bg-muted h-5 w-12 animate-pulse rounded"></div>
+                                    <div class="bg-white/10 h-5 w-12 animate-pulse rounded-full backdrop-blur-md"></div>
                                 {/if}
                             {:then ratingsData}
                                 {#if ratingsData?.scores?.length}
@@ -120,7 +119,7 @@
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
-                                            class="border-border bg-muted/50 text-foreground/80 hover:bg-muted flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors">
+                                            class="border-white/10 bg-white/10 text-foreground/90 hover:bg-white/20 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs backdrop-blur-md transition-colors">
                                             {#if score.image}
                                                 <img
                                                     src="/rating-logos/{score.image}"
