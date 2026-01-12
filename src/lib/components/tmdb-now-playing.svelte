@@ -151,27 +151,27 @@
                                             delay: 200,
                                             easing: cubicOut
                                         }}
-                                        class="text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {getAlignmentClasses(
+                                        class="text-foreground/90 mt-2 flex flex-wrap items-center gap-3 text-xs md:mt-4 md:text-sm {getAlignmentClasses(
                                             alignment,
                                             'flex'
                                         )}">
                                         <span
-                                            class="bg-muted/50 rounded-md px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm md:text-xs">
+                                            class="bg-white/10 border-white/10 rounded-md border px-2.5 py-1 text-[10px] font-medium backdrop-blur-md md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
                                         </span>
-                                        <span class="text-muted-foreground">•</span>
-                                        <span
+                                        <span class="text-white/40">•</span>
+                                        <span class="font-medium"
                                             >{getSeasonAndYear(
                                                 item.release_date || item.first_air_date || ""
                                             )}</span>
-                                        <span class="text-muted-foreground">•</span>
-                                        <span
+                                        <span class="text-white/40">•</span>
+                                        <span class="font-medium"
                                             >{item.vote_average
                                                 ? item.vote_average.toFixed(1)
                                                 : "N/A"}/10</span>
                                         {#if item.original_language}
-                                            <span class="text-muted-foreground">•</span>
-                                            <span class="uppercase">{item.original_language}</span>
+                                            <span class="text-white/40">•</span>
+                                            <span class="uppercase font-medium">{item.original_language}</span>
                                         {/if}
                                     </div>
 
@@ -184,7 +184,7 @@
                                                 delay: 300,
                                                 easing: cubicOut
                                             }}
-                                            class="text-muted-foreground mt-1.5 line-clamp-2 text-xs md:mt-3 md:text-base">
+                                            class="text-muted-foreground/80 mt-3 line-clamp-2 max-w-xl text-xs leading-relaxed md:mt-4 md:text-base">
                                             {item.overview}
                                         </p>
                                     {/if}
@@ -198,7 +198,7 @@
                                                 delay: 400,
                                                 easing: cubicOut
                                             }}
-                                            class="mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {getAlignmentClasses(
+                                            class="mt-3 flex flex-wrap gap-2 md:mt-5 {getAlignmentClasses(
                                                 alignment,
                                                 'flex'
                                             )}">
@@ -206,7 +206,7 @@
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
                                                         variant="outline"
-                                                        class="border-border bg-background/50 text-foreground/90 hover:bg-background/70 text-[10px] backdrop-blur-sm md:text-xs">
+                                                        class="border-white/10 bg-white/5 text-foreground/80 hover:bg-white/10 text-[10px] backdrop-blur-md transition-colors md:text-xs">
                                                         {TMDB_GENRES[genreId]}
                                                     </Badge>
                                                 {/if}
@@ -222,7 +222,7 @@
                                             delay: 500,
                                             easing: cubicOut
                                         }}
-                                        class="mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {getAlignmentClasses(
+                                        class="mt-4 flex flex-wrap gap-3 md:mt-8 {getAlignmentClasses(
                                             alignment,
                                             'flex'
                                         )}">
@@ -231,7 +231,7 @@
                                                 href="/watch/{item.id}"
                                                 variant="secondary"
                                                 size="sm"
-                                                class="border-primary/50 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary border bg-transparent px-4 md:h-11 md:px-8 md:text-base">
+                                                class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 backdrop-blur-md border px-6 transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
                                                 Request
                                             </Button>
                                         {/if}
@@ -239,7 +239,7 @@
                                             variant="secondary"
                                             size="sm"
                                             href="/details/media/{item.id}/{mediaType}"
-                                            class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4 md:h-11 md:px-8 md:text-base">
+                                            class="border-white/10 bg-white/5 text-foreground hover:bg-white/10 hover:border-white/20 backdrop-blur-md border px-6 transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
                                             View Details
                                         </Button>
                                     </div>
@@ -255,7 +255,7 @@
         <div
             class="pointer-events-none absolute inset-0 z-20 flex items-center justify-between px-4">
             <button
-                class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground pointer-events-auto hidden h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                class="border-white/10 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
                 onclick={() => api?.scrollPrev()}
                 aria-label="Previous slide">
                 <svg
@@ -266,12 +266,12 @@
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    class="h-5 w-5">
+                    class="h-6 w-6">
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
             </button>
             <button
-                class="border-border bg-background/60 text-foreground/80 hover:bg-background/80 hover:text-foreground pointer-events-auto hidden h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                class="border-white/10 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
                 onclick={() => api?.scrollNext()}
                 aria-label="Next slide">
                 <svg
@@ -282,7 +282,7 @@
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    class="h-5 w-5">
+                    class="h-6 w-6">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
             </button>
@@ -290,27 +290,30 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-border bg-background/60 absolute bottom-2 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-full border px-4 py-2 backdrop-blur-md">
-            <span class="text-foreground/80 text-xs font-medium"
-                >{currentIndex + 1}/{data.length}</span>
+            class="border-white/10 bg-black/30 absolute bottom-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-4 rounded-full border px-6 py-2.5 backdrop-blur-xl">
+            <span class="text-white/90 text-xs font-medium font-mono"
+                >{currentIndex + 1} / {data.length}</span>
 
-            <div class="flex gap-1.5">
+            <!-- Desktop Segmented Progress -->
+            <div class="hidden gap-1.5 md:flex">
                 {#each data as _, i}
                     <button
-                        class="h-2 w-2 cursor-pointer rounded-full transition-all duration-300 {i ===
+                        class="h-1 w-6 cursor-pointer rounded-full transition-all duration-300 {i ===
                         currentIndex
-                            ? 'bg-primary scale-110'
-                            : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'}"
+                            ? 'bg-primary'
+                            : 'bg-white/20 hover:bg-white/40'}"
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
                     </button>
                 {/each}
             </div>
 
-            <div class="bg-muted h-1.5 w-16 overflow-hidden rounded-full md:w-20">
-                {#key currentIndex}
-                    <div class="animate-progress-fill bg-primary h-full"></div>
-                {/key}
+            <!-- Mobile Simple Progress Bar -->
+            <div class="bg-white/20 h-1 w-32 overflow-hidden rounded-full md:hidden">
+                <div
+                    class="bg-primary h-full transition-all duration-300 ease-out"
+                    style="width: {((currentIndex + 1) / data.length) * 100}%">
+                </div>
             </div>
         </div>
     </div>

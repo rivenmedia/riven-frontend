@@ -56,7 +56,7 @@
 
 <div
     bind:this={container}
-    class="border-border/50 bg-background/50 relative flex w-fit items-center gap-1 rounded-full border p-1 backdrop-blur-md">
+    class="border-white/10 bg-black/20 relative flex w-fit items-center gap-1 rounded-full border p-1 backdrop-blur-md shadow-inner">
     <!-- Layer 1: Inactive State (Base Layer) & Layout Driver -->
     {#each options as option, i}
         <div bind:this={elements[i]} class="relative z-0 flex flex-1 items-center justify-center">

@@ -12,7 +12,7 @@
     let { data }: { data: PageData } = $props();
 
     const viewAllButtonClass =
-        "text-muted-foreground border-border/50 bg-background/50 hover:bg-muted hover:text-foreground h-9 w-20 rounded-full border text-xs backdrop-blur-md";
+        "text-muted-foreground border-white/10 bg-black/20 hover:bg-black/40 hover:text-foreground h-8 w-24 rounded-full border text-xs font-medium backdrop-blur-md shadow-sm transition-all";
 
     const recentlyAddedStore = new MediaListStore<BaseListItem>(
         "recentlyAdded",
