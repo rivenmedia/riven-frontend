@@ -9,7 +9,7 @@
     import SearchIcon from "@lucide/svelte/icons/search";
     import Sparkles from "@lucide/svelte/icons/sparkles";
     import Info from "@lucide/svelte/icons/info";
-    import { scale } from "svelte/transition";
+    import { scale, fly } from "svelte/transition";
     import { goto } from "$app/navigation";
 
     let { data } = $props();
@@ -30,8 +30,14 @@
 
     // Ratings promise derived from hero item
     let ratingsPromise = $derived.by(async () => {
-        if (!heroItem) return null;
-        const res = await fetch(`/api/ratings/${heroItem.id}?type=${heroItem.media_type}`);
+        const item = heroItem;
+        if (!item) return null;
+
+        const res = await fetch(`/api/ratings/${item.id}?type=${item.media_type}`);
+
+        // Race condition check: If the hero item has rotated while fetching, ignore this result
+        if (heroItem?.id !== item.id) return null;
+
         return res.ok
             ? (res.json() as Promise<{
                   scores: Array<{ name: string; image?: string; score: string; url: string }>;
@@ -236,7 +242,8 @@
                     {#if heroItem}
                         {#key heroItem.id}
                             <div
-                                class="animate-in fade-in slide-in-from-bottom-8 flex flex-col gap-6 duration-1000 md:gap-8">
+                                in:fly={{ y: 20, duration: 1000 }}
+                                class="flex flex-col gap-6 md:gap-8">
                                 <div class="max-w-3xl space-y-4">
                                     <div class="flex items-center gap-4">
                                         {#await ratingsPromise}

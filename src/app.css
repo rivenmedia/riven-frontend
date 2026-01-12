@@ -49,9 +49,6 @@
 
     --animate-accordion-expand: accordion-expand 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     --animate-accordion-collapse: accordion-collapse 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    --animate-fade-in-up: slide-in 0.5s ease-out both;
-    --animate-slide-reveal: slide-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    --animate-progress-fill: progress-fill 5s linear forwards;
 
     @keyframes accordion-expand {
         from {
@@ -73,27 +70,6 @@
         }
     }
 
-    @keyframes slide-in {
-        from {
-            opacity: 0;
-            transform: translateY(var(--slide-in-distance, 20px));
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes progress-fill {
-        from {
-            width: 0%;
-        }
-
-        to {
-            width: 100%;
-        }
-    }
 }
 
 @layer base {

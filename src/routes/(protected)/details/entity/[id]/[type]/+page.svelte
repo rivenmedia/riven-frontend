@@ -1,5 +1,7 @@
 <script lang="ts">
     import { type PageProps } from "./$types";
+    import { fade, fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
@@ -193,180 +195,208 @@
     {/if}
 </svelte:head>
 
-<div class="relative flex min-h-screen flex-col overflow-x-hidden">
-    <!-- Birthday Confetti -->
-    {#if birthdayToday && !data.entity.deathday}
-        <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-            {#each Array(20) as _, i}
-                <div
-                    class="confetti {CONFETTI_CONFIG.shapes[i % CONFETTI_CONFIG.shapes.length]}"
-                    style="
+{#key data.entity.id}
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        <!-- Birthday Confetti -->
+        {#if birthdayToday && !data.entity.deathday}
+            <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+                {#each Array(20) as _, i}
+                    <div
+                        class="confetti {CONFETTI_CONFIG.shapes[i % CONFETTI_CONFIG.shapes.length]}"
+                        style="
                 left: {(i * 5.26) % 100}%;
                 background: {CONFETTI_CONFIG.colors[i % CONFETTI_CONFIG.colors.length]};
                 animation: {CONFETTI_CONFIG.animations[
-                        i % CONFETTI_CONFIG.animations.length
-                    ]} {2.5 + (i % 8) * 0.2}s linear infinite;
+                            i % CONFETTI_CONFIG.animations.length
+                        ]} {2.5 + (i % 8) * 0.2}s linear infinite;
                 animation-delay: {(i * 0.15) % 2}s;
                 width: {8 + (i % 5)}px;
                 height: {8 + ((i * 3) % 5)}px;
             ">
+                    </div>
+                {/each}
+            </div>
+        {/if}
+
+        <!-- Background -->
+        {#if currentBackdrop?.backdrop_path}
+            <div class="fixed top-0 left-0 z-0 h-screen w-full">
+                <img
+                    alt=""
+                    in:fade|global={{ duration: 1000, easing: cubicOut }}
+                    class="h-full w-full object-cover opacity-30 blur-3xl transition-opacity duration-1000"
+                    src={currentBackdrop.backdrop_path} />
+                <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
+                <div
+                    class="from-background via-background/50 absolute inset-0 bg-gradient-to-t to-transparent">
                 </div>
-            {/each}
-        </div>
-    {/if}
-
-    <!-- Background -->
-    {#if currentBackdrop?.backdrop_path}
-        <div class="fixed top-0 left-0 z-0 h-screen w-full">
-            <img
-                alt=""
-                class="animate-in fade-in zoom-in-105 h-full w-full object-cover opacity-30 blur-3xl transition-opacity duration-1000"
-                src={currentBackdrop.backdrop_path} />
-            <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
-            <div
-                class="from-background via-background/50 absolute inset-0 bg-gradient-to-t to-transparent">
-            </div>
-            <div
-                class="from-background/20 absolute inset-0 bg-gradient-to-b via-transparent to-transparent">
-            </div>
-        </div>
-    {:else if data.entity.profile_path}
-        <div class="fixed top-0 left-0 z-0 h-screen w-full">
-            <img
-                alt=""
-                class="h-full w-full object-cover opacity-10 blur-3xl transition-opacity duration-1000"
-                src={data.entity.profile_path} />
-            <div class="bg-background/50 absolute inset-0"></div>
-        </div>
-    {:else}
-        <div class="fixed top-0 left-0 z-0 h-screen w-full">
-            <div class="bg-background absolute inset-0"></div>
-            <div
-                class="bg-primary/10 absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
-            </div>
-        </div>
-    {/if}
-
-    <!-- Main Content -->
-    {#if carouselItems.length > 0}
-        <div class="mb-6 px-2 md:mb-8 md:px-4">
-            <TmdbNowPlaying
-                data={carouselItems}
-                alignment="right"
-                showRequestButton={false}
-                heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
-        </div>
-    {/if}
-
-    <PageShell class="mt-0">
-        <!-- Hero Content Area -->
-        <div
-            class={cn(
-                "px-4 pb-6 md:px-8 md:pb-8 lg:px-12",
-                carouselItems.length === 0 && "pt-24 md:pt-[20vh]"
-            )}>
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr] lg:gap-8">
-                <!-- Portrait Column (Desktop) -->
-                <div class="relative hidden lg:mx-0 lg:block">
-                    <PortraitCard
-                        title={data.entity.name}
-                        image={data.entity.profile_path}
-                        class="group w-48 rounded-xl shadow-2xl transition-transform duration-500 hover:scale-105 lg:w-64"
-                        showContent={false} />
-
-                    {#if birthdayToday && !data.entity.deathday}
-                        <div
-                            class="bg-primary absolute -top-3 -right-3 z-20 animate-bounce rounded-full p-2 shadow-lg">
-                            <span class="text-xl">🎂</span>
-                        </div>
-                    {/if}
+                <div
+                    class="from-background/20 absolute inset-0 bg-gradient-to-b via-transparent to-transparent">
                 </div>
+            </div>
+        {:else if data.entity.profile_path}
+            <div class="fixed top-0 left-0 z-0 h-screen w-full">
+                <img
+                    alt=""
+                    class="h-full w-full object-cover opacity-10 blur-3xl transition-opacity duration-1000"
+                    src={data.entity.profile_path} />
+                <div class="bg-background/50 absolute inset-0"></div>
+            </div>
+        {:else}
+            <div class="fixed top-0 left-0 z-0 h-screen w-full">
+                <div class="bg-background absolute inset-0"></div>
+                <div
+                    class="bg-primary/10 absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
+                </div>
+            </div>
+        {/if}
 
-                <!-- Content Column -->
-                <div class="flex flex-col justify-end gap-5 pb-2">
-                    <!-- Unified Content Wrapper -->
-                    <div class="flex gap-4 lg:block">
-                        <!-- Mobile Portrait (Hidden on Desktop) -->
-                        <div class="relative flex-shrink-0 lg:hidden">
-                            <PortraitCard
-                                title={data.entity.name}
-                                image={data.entity.profile_path}
-                                class="group w-28 rounded-lg shadow-xl sm:w-32"
-                                showContent={false} />
-                            {#if birthdayToday && !data.entity.deathday}
-                                <div
-                                    class="bg-primary absolute -top-2 -right-2 z-20 animate-bounce rounded-full p-2 shadow-lg">
-                                    <span class="text-lg">🎂</span>
-                                </div>
-                            {/if}
-                        </div>
+        <!-- Main Content -->
+        {#if carouselItems.length > 0}
+            <div
+                class="mb-6 px-2 md:mb-8 md:px-4"
+                in:fly|global={{ y: 20, duration: 400, delay: 0, easing: cubicOut }}>
+                <TmdbNowPlaying
+                    data={carouselItems}
+                    alignment="right"
+                    showRequestButton={false}
+                    heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
+            </div>
+        {/if}
 
-                        <!-- Info Content -->
-                        <div class="min-w-0 flex-1 space-y-2 lg:space-y-0">
-                            <h1
-                                class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-7xl">
-                                {data.entity.name}
-                            </h1>
+        <PageShell class="mt-0">
+            <!-- Hero Content Area -->
+            <div
+                class={cn(
+                    "px-4 pb-6 md:px-8 md:pb-8 lg:px-12",
+                    carouselItems.length === 0 && "pt-24 md:pt-[20vh]"
+                )}>
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr] lg:gap-8">
+                    <!-- Portrait Column (Desktop) -->
+                    <div
+                        class="relative hidden lg:mx-0 lg:block"
+                        in:fly|global={{ y: 20, duration: 400, delay: 50, easing: cubicOut }}>
+                        <PortraitCard
+                            title={data.entity.name}
+                            image={data.entity.profile_path}
+                            class="group w-48 rounded-xl shadow-2xl transition-transform duration-500 hover:scale-105 lg:w-64"
+                            showContent={false} />
 
-                            <!-- Metadata Pills -->
-                            <div class="flex flex-wrap items-center gap-2 lg:mt-4">
-                                {@render metadataBadges()}
+                        {#if birthdayToday && !data.entity.deathday}
+                            <div
+                                class="bg-primary absolute -top-3 -right-3 z-20 animate-bounce rounded-full p-2 shadow-lg">
+                                <span class="text-xl">🎂</span>
                             </div>
-
-                            <!-- Also Known As -->
-                            <div class="lg:mt-3">
-                                {@render alsoKnownAs(
-                                    "text-xs font-semibold uppercase tracking-wide lg:text-sm lg:normal-case lg:tracking-normal",
-                                    "hidden lg:inline"
-                                )}
-                            </div>
-                        </div>
+                        {/if}
                     </div>
 
-                    <!-- Biography -->
-                    {#if data.entity.biography}
-                        <div class="mt-2 max-w-4xl space-y-2">
-                            <h3 class="text-foreground text-lg font-bold">Biography</h3>
-                            <div class="relative">
-                                <p
-                                    class="text-muted-foreground line-clamp-4 text-base leading-relaxed">
-                                    {data.entity.biography}
-                                </p>
-                                {#if data.entity.biography.length > 300 && data.entity.imdb_id}
-                                    <a
-                                        href="https://www.imdb.com/name/{data.entity.imdb_id}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="text-primary hover:text-primary/80 mt-1 flex items-center gap-1 text-xs font-bold">
-                                        Read More on IMDb
-                                        <ArrowRight
-                                            size={12}
-                                            class="transition-transform duration-300" />
-                                    </a>
+                    <!-- Content Column -->
+                    <div class="flex flex-col justify-end gap-5 pb-2">
+                        <!-- Unified Content Wrapper -->
+                        <div class="flex gap-4 lg:block">
+                            <!-- Mobile Portrait (Hidden on Desktop) -->
+                            <div
+                                class="relative flex-shrink-0 lg:hidden"
+                                in:fly|global={{
+                                    y: 20,
+                                    duration: 400,
+                                    delay: 50,
+                                    easing: cubicOut
+                                }}>
+                                <PortraitCard
+                                    title={data.entity.name}
+                                    image={data.entity.profile_path}
+                                    class="group w-28 rounded-lg shadow-xl sm:w-32"
+                                    showContent={false} />
+                                {#if birthdayToday && !data.entity.deathday}
+                                    <div
+                                        class="bg-primary absolute -top-2 -right-2 z-20 animate-bounce rounded-full p-2 shadow-lg">
+                                        <span class="text-lg">🎂</span>
+                                    </div>
                                 {/if}
                             </div>
+
+                            <!-- Info Content -->
+                            <div
+                                class="min-w-0 flex-1 space-y-2 lg:space-y-0"
+                                in:fly|global={{
+                                    y: 20,
+                                    duration: 400,
+                                    delay: 100,
+                                    easing: cubicOut
+                                }}>
+                                <h1
+                                    class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-7xl">
+                                    {data.entity.name}
+                                </h1>
+
+                                <!-- Metadata Pills -->
+                                <div class="flex flex-wrap items-center gap-2 lg:mt-4">
+                                    {@render metadataBadges()}
+                                </div>
+
+                                <!-- Also Known As -->
+                                <div class="lg:mt-3">
+                                    {@render alsoKnownAs(
+                                        "text-xs font-semibold uppercase tracking-wide lg:text-sm lg:normal-case lg:tracking-normal",
+                                        "hidden lg:inline"
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    {/if}
+
+                        <!-- Biography -->
+                        {#if data.entity.biography}
+                            <div
+                                class="mt-2 max-w-4xl space-y-2"
+                                in:fly|global={{
+                                    y: 20,
+                                    duration: 400,
+                                    delay: 150,
+                                    easing: cubicOut
+                                }}>
+                                <h3 class="text-foreground text-lg font-bold">Biography</h3>
+                                <div class="relative">
+                                    <p
+                                        class="text-muted-foreground line-clamp-4 text-base leading-relaxed">
+                                        {data.entity.biography}
+                                    </p>
+                                    {#if data.entity.biography.length > 300 && data.entity.imdb_id}
+                                        <a
+                                            href="https://www.imdb.com/name/{data.entity.imdb_id}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-primary hover:text-primary/80 mt-1 flex items-center gap-1 text-xs font-bold">
+                                            Read More on IMDb
+                                            <ArrowRight
+                                                size={12}
+                                                class="transition-transform duration-300" />
+                                        </a>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="px-4 md:px-12 lg:px-20 xl:px-24">
-            <div class="bg-border/20 my-6 h-px w-full"></div>
-        </div>
+            <div class="px-4 md:px-12 lg:px-20 xl:px-24">
+                <div class="bg-border/20 my-6 h-px w-full"></div>
+            </div>
 
-        <!-- Credits -->
-        <div class="flex flex-col gap-20 px-4 pb-20 md:px-12 lg:px-20 xl:px-24">
-            {@render creditsSection("Movies", movieCredits)}
-            {@render creditsSection("TV Shows", showCredits)}
-            {@render creditsSection("Crew", crewCredits)}
-        </div>
-    </PageShell>
-</div>
+            <!-- Credits -->
+            <div class="flex flex-col gap-20 px-4 pb-20 md:px-12 lg:px-20 xl:px-24">
+                {@render creditsSection("Movies", movieCredits, 200)}
+                {@render creditsSection("TV Shows", showCredits, 250)}
+                {@render creditsSection("Crew", crewCredits, 300)}
+            </div>
+        </PageShell>
+    </div>
+{/key}
 
-{#snippet creditsSection(title: string, credits: typeof movieCredits)}
+{#snippet creditsSection(title: string, credits: typeof movieCredits, delay: number)}
     {#if credits.length > 0}
-        <section>
+        <section in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
             <div class="mb-6 flex items-baseline gap-3">
                 <h2 class="text-foreground text-3xl font-bold tracking-tight">{title}</h2>
                 <span class="text-muted-foreground text-lg font-medium">({credits.length})</span>
