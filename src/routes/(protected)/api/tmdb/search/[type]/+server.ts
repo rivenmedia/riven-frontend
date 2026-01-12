@@ -56,7 +56,10 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 "person-discover": { endpoint: "/3/search/person", queryKey: "searchPersonQuery" },
                 "company-search": { endpoint: "/3/search/company", queryKey: "searchCompanyQuery" },
                 // Company discover doesn't exist, fallback to search
-                "company-discover": { endpoint: "/3/search/company", queryKey: "searchCompanyQuery" }
+                "company-discover": {
+                    endpoint: "/3/search/company",
+                    queryKey: "searchCompanyQuery"
+                }
             } as const;
 
             const route = ROUTE_MAP[routeKey as keyof typeof ROUTE_MAP];

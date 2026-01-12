@@ -295,11 +295,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                         };
                     }
 
-                    if (
-                        !engEpisodesError &&
-                        engEpisodesData &&
-                        engEpisodesData.data
-                    ) {
+                    if (!engEpisodesError && engEpisodesData && engEpisodesData.data) {
                         const rawData = engEpisodesData as unknown as EngEpisodesResponse;
                         if (rawData.data?.episodes) {
                             // Cast to any because details.data (inferred) expects undefined but parser allows null

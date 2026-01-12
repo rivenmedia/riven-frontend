@@ -4,7 +4,11 @@ import { searchSchema } from "$lib/schemas/search";
 import type { PageServerLoad } from "./$types";
 import { parseSearchQuery } from "$lib/search-parser";
 import providers from "$lib/providers";
-import { transformTMDBList, type TMDBListItem, type TMDBTransformedListItem } from "$lib/providers/parser";
+import {
+    transformTMDBList,
+    type TMDBListItem,
+    type TMDBTransformedListItem
+} from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { logger } from "$lib/logger";
 
@@ -27,56 +31,50 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
         const randomPageTopMovie = Math.floor(Math.random() * 50) + 1;
         const randomPageTopTV = Math.floor(Math.random() * 50) + 1;
 
-        const [
-            trendingMovies,
-            trendingTV,
-            popularMovies,
-            popularTV,
-            topRatedMovies,
-            topRatedTV
-        ] = await Promise.all([
-            // High quality for Hero/Examples
-            providers.tmdb.GET("/3/trending/movie/{time_window}", {
-                params: {
-                    path: { time_window: "week" },
-                    query: { language: "en-US" }
-                },
-                fetch: customFetch
-            }),
-            providers.tmdb.GET("/3/trending/tv/{time_window}", {
-                params: {
-                    path: { time_window: "week" },
-                    query: { language: "en-US" }
-                },
-                fetch: customFetch
-            }),
-            // Random popular content
-            providers.tmdb.GET("/3/movie/popular", {
-                params: {
-                    query: { page: randomPagePopMovie, language: "en-US" }
-                },
-                fetch: customFetch
-            }),
-            providers.tmdb.GET("/3/tv/popular", {
-                params: {
-                    query: { page: randomPagePopTV, language: "en-US" }
-                },
-                fetch: customFetch
-            }),
-            // Random top rated content
-            providers.tmdb.GET("/3/movie/top_rated", {
-                params: {
-                    query: { page: randomPageTopMovie, language: "en-US" }
-                },
-                fetch: customFetch
-            }),
-            providers.tmdb.GET("/3/tv/top_rated", {
-                params: {
-                    query: { page: randomPageTopTV, language: "en-US" }
-                },
-                fetch: customFetch
-            })
-        ]);
+        const [trendingMovies, trendingTV, popularMovies, popularTV, topRatedMovies, topRatedTV] =
+            await Promise.all([
+                // High quality for Hero/Examples
+                providers.tmdb.GET("/3/trending/movie/{time_window}", {
+                    params: {
+                        path: { time_window: "week" },
+                        query: { language: "en-US" }
+                    },
+                    fetch: customFetch
+                }),
+                providers.tmdb.GET("/3/trending/tv/{time_window}", {
+                    params: {
+                        path: { time_window: "week" },
+                        query: { language: "en-US" }
+                    },
+                    fetch: customFetch
+                }),
+                // Random popular content
+                providers.tmdb.GET("/3/movie/popular", {
+                    params: {
+                        query: { page: randomPagePopMovie, language: "en-US" }
+                    },
+                    fetch: customFetch
+                }),
+                providers.tmdb.GET("/3/tv/popular", {
+                    params: {
+                        query: { page: randomPagePopTV, language: "en-US" }
+                    },
+                    fetch: customFetch
+                }),
+                // Random top rated content
+                providers.tmdb.GET("/3/movie/top_rated", {
+                    params: {
+                        query: { page: randomPageTopMovie, language: "en-US" }
+                    },
+                    fetch: customFetch
+                }),
+                providers.tmdb.GET("/3/tv/top_rated", {
+                    params: {
+                        query: { page: randomPageTopTV, language: "en-US" }
+                    },
+                    fetch: customFetch
+                })
+            ]);
 
         const heroMovieResults = transformTMDBList(
             (trendingMovies.data?.results as TMDBListItem[]) ?? []

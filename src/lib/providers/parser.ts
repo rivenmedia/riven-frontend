@@ -303,7 +303,10 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
     trakt_recommendations: TMDBTransformedListItem[];
 }
 
-export function transformTMDBList(items: any[] | null, type: "movie" | "tv" | "person" | "company" = "movie") {
+export function transformTMDBList(
+    items: any[] | null,
+    type: "movie" | "tv" | "person" | "company" = "movie"
+) {
     return (
         items?.map((item) => ({
             id: item.id,
@@ -311,10 +314,10 @@ export function transformTMDBList(items: any[] | null, type: "movie" | "tv" | "p
             poster_path: item.poster_path
                 ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
                 : item.profile_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
-                    : (item as any).logo_path
-                        ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
-                        : null,
+                  ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
+                  : (item as any).logo_path
+                    ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
+                    : null,
             media_type: item.media_type || type,
             year:
                 (item.media_type || type) === "movie"
@@ -322,8 +325,8 @@ export function transformTMDBList(items: any[] | null, type: "movie" | "tv" | "p
                         ? (dateUtils.getYearFromISO(item.release_date) ?? "N/A")
                         : "N/A"
                     : item.first_air_date
-                        ? (dateUtils.getYearFromISO(item.first_air_date) ?? "N/A")
-                        : "N/A",
+                      ? (dateUtils.getYearFromISO(item.first_air_date) ?? "N/A")
+                      : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
             popularity: item.popularity,
@@ -532,15 +535,15 @@ export function parseTMDBMovieDetails(
         logo: chosenLogo,
         trailer: trailer
             ? {
-                id: trailer.id,
-                name: trailer.name,
-                site: trailer.site,
-                key: trailer.key,
-                url:
-                    trailer.site === "YouTube"
-                        ? `https://www.youtube.com/watch?v=${trailer.key}`
-                        : null
-            }
+                  id: trailer.id,
+                  name: trailer.name,
+                  site: trailer.site,
+                  key: trailer.key,
+                  url:
+                      trailer.site === "YouTube"
+                          ? `https://www.youtube.com/watch?v=${trailer.key}`
+                          : null
+              }
             : null,
         certification,
         genres: (data.genres ?? []).map((genre) => ({
@@ -582,11 +585,11 @@ export function parseTMDBMovieDetails(
         external_ids: data.external_ids,
         collection: data.belongs_to_collection
             ? {
-                id: data.belongs_to_collection.id,
-                name: data.belongs_to_collection.name,
-                poster_path: buildTMDBImage(data.belongs_to_collection.poster_path, "w500"),
-                backdrop_path: buildTMDBImage(data.belongs_to_collection.backdrop_path, "w1920")
-            }
+                  id: data.belongs_to_collection.id,
+                  name: data.belongs_to_collection.name,
+                  poster_path: buildTMDBImage(data.belongs_to_collection.poster_path, "w500"),
+                  backdrop_path: buildTMDBImage(data.belongs_to_collection.backdrop_path, "w1920")
+              }
             : null,
         trakt_recommendations: transformTraktRecommendations(traktRecs, true)
     };
@@ -692,29 +695,29 @@ export interface TVDBBaseItem {
     airsTime: string | null; // "21:00"
     seasons: TVDBSeasonItem[] | null;
     tags:
-    | { id: number; tag: number; tagName: string; name: string; helpText: string | null }[]
-    | null;
+        | { id: number; tag: number; tagName: string; name: string; helpText: string | null }[]
+        | null;
     contentRatings:
-    | {
-        id: number;
-        name: string;
-        country: string | null;
-        description: string;
-        contentType: string;
-        order: number;
-        fullName: unknown | null;
-    }[]
-    | null;
+        | {
+              id: number;
+              name: string;
+              country: string | null;
+              description: string;
+              contentType: string;
+              order: number;
+              fullName: unknown | null;
+          }[]
+        | null;
     seasonTypes: { id: number; name: string; type: string; alternateName: string | null }[] | null;
     translations: {
         nameTranslations:
-        | {
-            name: string;
-            language: string;
-            isPrimary?: boolean;
-            isAlias?: boolean;
-        }[]
-        | null;
+            | {
+                  name: string;
+                  language: string;
+                  isPrimary?: boolean;
+                  isAlias?: boolean;
+              }[]
+            | null;
         overviewTranslations: { overview: string; language: string; isPrimary?: boolean }[] | null;
         aliases: string[] | null;
     };
@@ -963,17 +966,17 @@ export function parseTVDBShowDetails(
 
     const posterPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 2 || art.type === 14, "eng")?.image ??
-        data.image
+            data.image
     );
 
     const backdropPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15, null)?.image ??
-        null
+            null
     );
 
     const logoPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25, "eng")?.image ??
-        null
+            null
     );
 
     function extractYoutubeKey(url: string | null): string | undefined {
@@ -996,12 +999,12 @@ export function parseTVDBShowDetails(
     const trailerEntry = data.trailers?.find((item) => Boolean(item.url)) ?? null;
     const trailer: ParsedTrailer | null = trailerEntry
         ? {
-            id: trailerEntry.id,
-            name: trailerEntry.name,
-            site: resolveTrailerSite(trailerEntry.url),
-            url: trailerEntry.url,
-            key: extractYoutubeKey(trailerEntry.url)
-        }
+              id: trailerEntry.id,
+              name: trailerEntry.name,
+              site: resolveTrailerSite(trailerEntry.url),
+              url: trailerEntry.url,
+              key: extractYoutubeKey(trailerEntry.url)
+          }
         : null;
 
     const certification =
@@ -1382,7 +1385,8 @@ export function parseCompanyDetails(
     return {
         id: companyData.id ?? 0,
         name: companyData.name ?? "",
-        biography: companyData.description || `Headquarters: ${companyData.headquarters || "Unknown"}`,
+        biography:
+            companyData.description || `Headquarters: ${companyData.headquarters || "Unknown"}`,
         birthday: null,
         deathday: null,
         place_of_birth: companyData.origin_country ?? null,

@@ -122,12 +122,7 @@ export class SearchStore {
 
     get hasMore() {
         if (this.mediaType === "both") {
-            return (
-                this.movieHasMore ||
-                this.tvHasMore ||
-                this.personHasMore ||
-                this.companyHasMore
-            );
+            return this.movieHasMore || this.tvHasMore || this.personHasMore || this.companyHasMore;
         }
         return this.mediaType === "movie" ? this.movieHasMore : this.tvHasMore;
     }
@@ -142,15 +137,22 @@ export class SearchStore {
         // If we switched to a type and have NO results for it, fetch.
         const needMovies = (type === "movie" || type === "both") && this.movieResults.length === 0;
         const needTV = (type === "tv" || type === "both") && this.tvResults.length === 0;
-        const needPerson = (type === "person" || type === "both") && this.personResults.length === 0;
-        const needCompany = (type === "company" || type === "both") && this.companyResults.length === 0;
+        const needPerson =
+            (type === "person" || type === "both") && this.personResults.length === 0;
+        const needCompany =
+            (type === "company" || type === "both") && this.companyResults.length === 0;
 
         if (needMovies || needTV || needPerson || needCompany) {
             await this.fetchMissingMedia(needMovies, needTV, needPerson, needCompany);
         }
     }
 
-    private async fetchMissingMedia(needMovies: boolean, needTV: boolean, needPerson: boolean = false, needCompany: boolean = false) {
+    private async fetchMissingMedia(
+        needMovies: boolean,
+        needTV: boolean,
+        needPerson: boolean = false,
+        needCompany: boolean = false
+    ) {
         this.cancelPendingRequests();
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
@@ -398,7 +400,7 @@ export class SearchStore {
         )
             return;
 
-        // Type cast for fetchSearchResults strict typing if needed, 
+        // Type cast for fetchSearchResults strict typing if needed,
         // effectively we support "movie" | "tv" | "person" | "company" now
         const result = await this.fetchSearchResults(type as any, page, signal);
 
@@ -434,10 +436,10 @@ export class SearchStore {
                 type === "movie"
                     ? this.movieResults
                     : type === "person"
-                        ? this.personResults
-                        : type === "company"
-                            ? this.companyResults
-                            : this.tvResults; // This line was already correct.
+                      ? this.personResults
+                      : type === "company"
+                        ? this.companyResults
+                        : this.tvResults; // This line was already correct.
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
@@ -462,7 +464,10 @@ export class SearchStore {
         }
     }
 
-    private async loadMoreMedia(type: "movie" | "tv" | "person" | "company", signal?: AbortSignal): Promise<void> {
+    private async loadMoreMedia(
+        type: "movie" | "tv" | "person" | "company",
+        signal?: AbortSignal
+    ): Promise<void> {
         // Allow load more if we have either a parsed search, filter params, or if empty search is allowed
         if (
             !this.parsedSearch &&
@@ -488,10 +493,10 @@ export class SearchStore {
             type === "movie"
                 ? this.moviePage
                 : type === "person"
-                    ? this.personPage
-                    : type === "company"
-                        ? this.companyPage
-                        : this.tvPage;
+                  ? this.personPage
+                  : type === "company"
+                    ? this.companyPage
+                    : this.tvPage;
 
         try {
             const result = await this.fetchSearchResults(type as any, page, signal);
@@ -505,10 +510,10 @@ export class SearchStore {
                     type === "movie"
                         ? this.movieResults
                         : type === "person"
-                            ? this.personResults
-                            : type === "company"
-                                ? this.companyResults
-                                : this.tvResults;
+                          ? this.personResults
+                          : type === "company"
+                            ? this.companyResults
+                            : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {

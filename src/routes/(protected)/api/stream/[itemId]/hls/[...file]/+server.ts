@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ params, locals, fetch, url }) => {
         const response = await fetch(backendUrl, {
             headers,
             // @ts-ignore - Required for streaming
-            duplex: 'half' 
+            duplex: "half"
         });
 
         if (!response.ok) {
@@ -35,10 +35,10 @@ export const GET: RequestHandler = async ({ params, locals, fetch, url }) => {
         // Forward key headers
         const type = response.headers.get("content-type");
         if (type) responseHeaders.set("content-type", type);
-        
+
         // Caching is important for segments, but BAD for the playlist (if live)
         // Since this is VOD, we can cache segments aggressively
-        if (file.endsWith('.ts')) {
+        if (file.endsWith(".ts")) {
             responseHeaders.set("cache-control", "public, max-age=3600");
         }
 

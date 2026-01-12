@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         try {
             // Use consolidated endpoint with stream=true param
             const searchParams = new URLSearchParams(url.searchParams);
-            searchParams.set('stream', 'true');
+            searchParams.set("stream", "true");
             // Ensure backendUrl doesn't have a trailing slash and target the correct /scrape endpoint
             const baseUrl = backendUrl.replace(/\/$/, "");
             const targetUrl = `${baseUrl}/api/v1/scrape?${searchParams.toString()}`;
@@ -47,10 +47,13 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                 const text = await response.text();
                 logger.error(`Scrape stream proxy error ${response.status}: ${text}`);
                 // Emit error event to client before closing
-                emit("message", JSON.stringify({
-                    event: "error",
-                    message: `Backend error ${response.status}: ${text}`
-                }));
+                emit(
+                    "message",
+                    JSON.stringify({
+                        event: "error",
+                        message: `Backend error ${response.status}: ${text}`
+                    })
+                );
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
