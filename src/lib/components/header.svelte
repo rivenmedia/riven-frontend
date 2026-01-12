@@ -6,11 +6,14 @@
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
-    import { goto } from "$app/navigation";
+    import { goto, afterNavigate } from "$app/navigation";
     import { page } from "$app/stores";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
+    import type { SearchStore } from "$lib/services/search-store.svelte";
+    import { parseSearchQuery } from "$lib/search-parser";
 
     const SidebarStore = getContext<createSidebarStore>("sidebarStore");
+    const searchStore = getContext<SearchStore>("searchStore");
 
     // Detect modifier key client-side only to avoid hydration mismatch
     let modifierKey = $state<string | null>(null);
@@ -23,15 +26,36 @@
         modifierKey = platform.includes("MAC") ? "⌘" : "^";
     });
 
-    // Removed local searchQuery state and its effect sync
+    // Local input value state to decouple from URL updates while typing
+    let inputValue = $state($page.url.searchParams.get("query") || "");
     let inputRef = $state<HTMLInputElement | null>(null);
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // Sync external URL changes to input, but avoid overwriting while typing
+    // We use afterNavigate instead of $effect to avoid state loops
+    afterNavigate(() => {
+        const urlQuery = $page.url.searchParams.get("query") || "";
+        // Only update if the value is different and we aren't focused
+        // Or if we just navigated to a completely different page/query via link
+        if (urlQuery !== inputValue && inputRef !== document.activeElement) {
+            inputValue = urlQuery;
+        }
+    });
+
     function navigateToSearch() {
         if (debounceTimer) clearTimeout(debounceTimer);
-        // Read directly from the input element via ref
-        const query = inputRef?.value.trim() || "";
+        // Read directly from local state
+        const query = inputValue.trim();
         const currentlyExplore = $page.url.pathname === "/explore";
+
+        // Client-first search: Immediately update store if we're on the explore page
+        // This avoids waiting for the server round-trip (goto -> load -> data -> effect)
+        // and fixes reactivity issues when typing quickly.
+        if (currentlyExplore) {
+            const parsed = parseSearchQuery(query);
+            searchStore.syncQuery(parsed);
+        }
+
         goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: true,
             noScroll: true,
@@ -70,7 +94,7 @@
                     name="query"
                     placeholder="Search..."
                     aria-label="Search"
-                    value={$page.url.searchParams.get("query") || ""}
+                    bind:value={inputValue}
                     oninput={handleInput}
                     onkeydown={(e) => {
                         if (e.key === "Enter") {

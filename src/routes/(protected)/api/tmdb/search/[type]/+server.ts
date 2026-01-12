@@ -129,8 +129,6 @@ const BOOLEAN_KEYS = new Set([
 const NUMERIC_KEYS = new Set([
     "year",
     "page",
-    "with_networks",
-    "with_release_type",
     "first_air_date_year",
     "primary_release_year",
     "vote_average.gte",
@@ -149,6 +147,23 @@ function parseParams(searchParams: URLSearchParams): ParsedParams {
 
         if (BOOLEAN_KEYS.has(key)) {
             queryObj[key] = value === "true" || value === "1";
+        } else if (key === "with_networks" || key === "with_release_type") {
+            const separator = key === "with_networks" ? "," : "|";
+            const parts = value.split(separator);
+            const nums: number[] = [];
+            for (const part of parts) {
+                const trimmed = part.trim();
+                if (trimmed) {
+                    const n = Number(trimmed);
+                    if (!isNaN(n)) nums.push(n);
+                }
+            }
+            if (nums.length > 0) {
+                // If the API expects a single number (conceptually) but supports delimited,
+                // passing an array might rely on the fetch client to serialize it back to delimited
+                // or explode it. Based on user request, we pass the numeric array.
+                queryObj[key] = nums;
+            }
         } else if (NUMERIC_KEYS.has(key)) {
             const trimmed = value.trim();
             if (trimmed !== "") {

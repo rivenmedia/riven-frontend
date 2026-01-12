@@ -105,7 +105,11 @@ export class SearchStore {
                 this.companyResults.length
             );
         }
-        return this.mediaType === "movie" ? this.movieResults.length : this.tvResults.length;
+        if (this.mediaType === "movie") return this.movieResults.length;
+        if (this.mediaType === "tv") return this.tvResults.length;
+        if (this.mediaType === "person") return this.personResults.length;
+        if (this.mediaType === "company") return this.companyResults.length;
+        return 0;
     }
 
     get totalResults() {
@@ -117,14 +121,22 @@ export class SearchStore {
                 this.totalResultsCompany
             );
         }
-        return this.mediaType === "movie" ? this.totalResultsMovie : this.totalResultsTV;
+        if (this.mediaType === "movie") return this.totalResultsMovie;
+        if (this.mediaType === "tv") return this.totalResultsTV;
+        if (this.mediaType === "person") return this.totalResultsPerson;
+        if (this.mediaType === "company") return this.totalResultsCompany;
+        return 0;
     }
 
     get hasMore() {
         if (this.mediaType === "both") {
             return this.movieHasMore || this.tvHasMore || this.personHasMore || this.companyHasMore;
         }
-        return this.mediaType === "movie" ? this.movieHasMore : this.tvHasMore;
+        if (this.mediaType === "movie") return this.movieHasMore;
+        if (this.mediaType === "tv") return this.tvHasMore;
+        if (this.mediaType === "person") return this.personHasMore;
+        if (this.mediaType === "company") return this.companyHasMore;
+        return false;
     }
 
     async setMediaType(type: "movie" | "tv" | "person" | "company" | "both") {
@@ -436,10 +448,10 @@ export class SearchStore {
                 type === "movie"
                     ? this.movieResults
                     : type === "person"
-                      ? this.personResults
-                      : type === "company"
-                        ? this.companyResults
-                        : this.tvResults; // This line was already correct.
+                        ? this.personResults
+                        : type === "company"
+                            ? this.companyResults
+                            : this.tvResults; // This line was already correct.
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
@@ -493,10 +505,10 @@ export class SearchStore {
             type === "movie"
                 ? this.moviePage
                 : type === "person"
-                  ? this.personPage
-                  : type === "company"
-                    ? this.companyPage
-                    : this.tvPage;
+                    ? this.personPage
+                    : type === "company"
+                        ? this.companyPage
+                        : this.tvPage;
 
         try {
             const result = await this.fetchSearchResults(type as any, page, signal);
@@ -510,10 +522,10 @@ export class SearchStore {
                     type === "movie"
                         ? this.movieResults
                         : type === "person"
-                          ? this.personResults
-                          : type === "company"
-                            ? this.companyResults
-                            : this.tvResults;
+                            ? this.personResults
+                            : type === "company"
+                                ? this.companyResults
+                                : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {
