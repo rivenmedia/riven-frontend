@@ -36,6 +36,20 @@
         ];
     });
 
+    const completionRate = $derived.by(() => {
+        if (
+            !data.statistics ||
+            data.statistics.total_items === 0 ||
+            data.statistics.states.Completed === undefined
+        ) {
+            return "0%";
+        }
+        return (
+            ((data.statistics.states.Completed / data.statistics.total_items) * 100).toFixed(2) +
+            "%"
+        );
+    });
+
     const heatmapLegend = [
         { label: "No Activity", color: "var(--muted)" },
         { label: "Low", color: "var(--chart-4)" },
@@ -101,15 +115,7 @@
         })}
         {@render KPICard({
             title: "Completion Rate",
-            value:
-                data.statistics &&
-                data.statistics.total_items > 0 &&
-                data.statistics.states.Completed !== undefined
-                    ? (
-                          (data.statistics.states.Completed / data.statistics.total_items) *
-                          100
-                      ).toFixed(2) + "%"
-                    : "0%",
+            value: completionRate,
             sub: "Completed / Total"
         })}
     </section>

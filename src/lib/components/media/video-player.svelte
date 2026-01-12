@@ -9,7 +9,7 @@
 
     let { itemId, class: className = "" }: VideoPlayerProps = $props();
 
-    let videoElement: HTMLVideoElement;
+    let videoElement: HTMLVideoElement | undefined = $state();
     let hls: Hls;
     let error = $state<string | null>(null);
 
@@ -50,7 +50,9 @@
                     maxLoadingDelay: 4
                 });
                 hls.loadSource(hlsUrl);
-                hls.attachMedia(videoElement);
+                if (videoElement) {
+                    hls.attachMedia(videoElement);
+                }
 
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
@@ -61,7 +63,9 @@
             }
         } else {
             console.log("HEVC supported. Using Direct Play.");
-            videoElement.src = directUrl;
+            if (videoElement) {
+                videoElement.src = directUrl;
+            }
         }
     });
 

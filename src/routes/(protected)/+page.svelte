@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import type { PageData } from "./$types";
     import TmdbNowPlaying from "$lib/components/tmdb-now-playing.svelte";
     import ListCarousel from "$lib/components/list-carousel.svelte";
@@ -46,15 +45,18 @@
 </div>
 
 {#snippet listHeading(title: string)}
-    <h2 class="text-xl font-bold tracking-tight drop-shadow-md">
-        {title}
-    </h2>
+    <div class="flex items-center gap-3">
+        <div class="h-6 w-1 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]"></div>
+        <h2 class="text-2xl font-bold tracking-tight drop-shadow-md text-foreground">
+            {title}
+        </h2>
+    </div>
 {/snippet}
 
-<PageShell class="mt-4 md:mt-6">
+<PageShell class="mt-4 md:mt-8 flex flex-col gap-10 pb-20">
     {#if recentlyAddedStore.items.length}
         <div
-            class="flex flex-col gap-3"
+            class="flex flex-col gap-4"
             in:fly|global={{ y: 20, duration: 400, delay: 100, easing: cubicOut }}>
             {@render listHeading("Recently Added")}
             <ListCarousel data={recentlyAddedStore.items} />
@@ -62,11 +64,11 @@
     {/if}
 
     <div
-        class="flex flex-col"
+        class="flex flex-col gap-4"
         in:fly|global={{ y: 20, duration: 400, delay: 150, easing: cubicOut }}>
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-1 flex items-center justify-between">
             {@render listHeading("Trending Movies")}
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 <AnimatedToggle
                     options={[
                         { label: "Today", value: "day" },
@@ -82,11 +84,11 @@
     </div>
 
     <div
-        class="flex flex-col"
+        class="flex flex-col gap-4"
         in:fly|global={{ y: 20, duration: 400, delay: 200, easing: cubicOut }}>
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-1 flex items-center justify-between">
             {@render listHeading("Trending TV Shows")}
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 <AnimatedToggle
                     options={[
                         { label: "Today", value: "day" },
@@ -102,9 +104,9 @@
     </div>
 
     <div
-        class="flex flex-col"
+        class="flex flex-col gap-4"
         in:fly|global={{ y: 20, duration: 400, delay: 250, easing: cubicOut }}>
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-1 flex items-center justify-between">
             {@render listHeading("Trending Anime")}
             <Button class={viewAllButtonClass} variant="ghost" href="/lists/trending/anime"
                 >View All</Button>

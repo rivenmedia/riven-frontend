@@ -12,13 +12,13 @@
 
     export interface TMDBNowPlayingItem {
         id: number;
-        media_type?: "movie" | "tv";
+        media_type?: "movie" | "tv" | "person" | "company";
         title?: string;
         name?: string;
-        backdrop_path: string | null;
+        backdrop_path?: string | null;
         release_date?: string;
         first_air_date?: string;
-        vote_average?: number;
+        vote_average?: number | null;
         original_language?: string;
         overview?: string;
         genre_ids?: number[];

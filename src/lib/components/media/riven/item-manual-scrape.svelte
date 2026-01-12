@@ -73,6 +73,7 @@
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
         seasons?: SeasonInfo[];
+        children?: Snippet;
     }
 
     let {
@@ -140,15 +141,15 @@
             }
 
             // Action 1: Select Files
-            await (providers.riven as any).POST(
-                `/api/v1/scrape/session/${sessionData.session_id}`,
-                {
-                    body: {
-                        action: "select_files",
-                        files: container
-                    }
+            await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
+                params: {
+                    path: { session_id: sessionData.session_id }
+                },
+                body: {
+                    action: "select_files",
+                    files: container
                 }
-            );
+            });
 
             // Action 1.5: Update Attributes (Map files to episodes/movies)
             let fileDataPayload: any = null;
@@ -186,21 +187,24 @@
             }
 
             if (fileDataPayload) {
-                await (providers.riven as any).POST(
-                    `/api/v1/scrape/session/${sessionData.session_id}`,
-                    {
-                        body: {
-                            action: "update_attributes",
-                            file_data: fileDataPayload
-                        }
+                await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
+                    params: {
+                        path: { session_id: sessionData.session_id }
+                    },
+                    body: {
+                        action: "update_attributes",
+                        file_data: fileDataPayload
                     }
-                );
+                });
             }
 
             // Action 2: Complete Session
-            const { data: selectData, error: selectErr } = await (providers.riven as any).POST(
-                `/api/v1/scrape/session/${sessionData.session_id}`,
+            const { data: selectData, error: selectErr } = await providers.riven.POST(
+                "/api/v1/scrape/session/{session_id}",
                 {
+                    params: {
+                        path: { session_id: sessionData.session_id }
+                    },
                     body: {
                         action: "complete"
                     }
@@ -208,7 +212,10 @@
             );
 
             if (!selectData) {
-                const errorMsg = (selectErr as any)?.message || "Failed to start download";
+                const errorMsg =
+                    (selectErr as { message?: string; detail?: string })?.message ||
+                    (selectErr as { message?: string; detail?: string })?.detail ||
+                    "Failed to start download";
                 error = errorMsg;
                 toast.error(errorMsg);
                 return;
@@ -446,7 +453,8 @@
             );
 
             if (data) {
-                const sData = data;
+                // Cast to specific type if known, or improve type definitions
+                const sData = data as components["schemas"]["StartSessionResponse"];
                 let mappings: FileMapping[];
 
                 if (
@@ -455,7 +463,7 @@
                     sData.containers.files.length > 0
                 ) {
                     const files = sData.containers.files;
-                    const filenames = files.reduce<string[]>((acc, f) => {
+                    const filenames = files.reduce<string[]>((acc: string[], f: DebridFile) => {
                         if (f.filename != null) acc.push(f.filename);
                         return acc;
                     }, []);
@@ -470,7 +478,8 @@
                         );
 
                         if (parseData) {
-                            mappings = files.map((file: any, idx: number) => {
+                            mappings = files.map((file: DebridFile, idx: number) => {
+                                // Assuming parseData follows a specific structure, cast appropriately or define it
                                 const parsed = (parseData as any).data[idx] as ParsedTitleData;
                                 return {
                                     file_id: file.file_id?.toString() ?? "",
@@ -483,7 +492,7 @@
                             });
 
                             batchSessions.push({
-                                sessionId: (sData as any).session_id, // Use actual session ID
+                                sessionId: sData.session_id, // Use actual session ID
                                 magnet,
                                 stream,
                                 sessionData: sData,
@@ -1042,25 +1051,25 @@
                     });
 
                     // Use unified session endpoint with select_files and update_attributes actions
-                    await (providers.riven as any).POST(
-                        `/api/v1/scrape/session/${session.sessionId}`,
-                        {
-                            body: {
-                                action: "select_files",
-                                files: container
-                            }
+                    await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
+                        params: {
+                            path: { session_id: session.sessionId }
+                        },
+                        body: {
+                            action: "select_files",
+                            files: container
                         }
-                    );
+                    });
 
                     // Complete the session
-                    await (providers.riven as any).POST(
-                        `/api/v1/scrape/session/${session.sessionId}`,
-                        {
-                            body: {
-                                action: "complete"
-                            }
+                    await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
+                        params: {
+                            path: { session_id: session.sessionId }
+                        },
+                        body: {
+                            action: "complete"
                         }
-                    );
+                    });
 
                     // Update session status
                     session.status = "completed";

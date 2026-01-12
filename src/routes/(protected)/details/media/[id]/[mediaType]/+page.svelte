@@ -2,6 +2,7 @@
     import { browser } from "$app/environment";
     import { page } from "$app/stores";
     import { type PageProps } from "./$types";
+    import type { ParsedShowDetails } from "$lib/providers/parser";
     import { fade, fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
     import * as Carousel from "$lib/components/ui/carousel/index.js";
@@ -55,15 +56,13 @@
     }
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+
     // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)
-    let ratingsId = $derived.by(() => {
-        const urlId = Number($page.params.id);
-        if (data.mediaDetails?.type === "tv") {
-            const tmdbId = (data.mediaDetails?.details as any)?.external_ids?.tmdb;
-            if (tmdbId) return Number(tmdbId);
-        }
-        return urlId || null;
-    });
+    let ratingsId = $derived(
+        data.mediaDetails?.type === "tv"
+            ? (data.mediaDetails?.details.external_ids?.tmdb ?? Number($page.params.id))
+            : Number($page.params.id)
+    );
     let mediaType = $derived(data.mediaDetails?.type);
 
     let ratingsData = $state<{
@@ -77,31 +76,37 @@
             ratingsData = null;
             return;
         }
+
         const controller = new AbortController();
         ratingsLoading = true;
+
         fetch(`/api/ratings/${ratingsId}?type=${mediaType}`, { signal: controller.signal })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-                if (!controller.signal.aborted) {
-                    ratingsData = d;
-                    ratingsLoading = false;
+            .then(async (r) => {
+                if (r.ok) {
+                    ratingsData = await r.json();
+                } else {
+                    ratingsData = null;
                 }
+                ratingsLoading = false;
             })
-            .catch(() => {
-                if (!controller.signal.aborted) ratingsLoading = false;
+            .catch((e) => {
+                if (e.name !== "AbortError") {
+                    ratingsLoading = false;
+                    ratingsData = null;
+                }
             });
+
         return () => controller.abort();
     });
 
-    const getSeasonData = () => {
+    const seasonData = $derived.by(() => {
         if (data.mediaDetails?.type !== "tv" || !data.mediaDetails?.details?.seasons) return [];
-        return data.mediaDetails.details.seasons.map((s) => ({
+        const details = data.mediaDetails.details as ParsedShowDetails;
+        return details.seasons.map((s) => ({
             id: s.id,
             season_number: s.number ?? 0,
             episode_count:
-                (data.mediaDetails?.details as any)?.episodes?.filter(
-                    (ep: any) => ep.seasonNumber === s.number
-                ).length ?? 0,
+                details.episodes?.filter((ep) => ep.seasonNumber === s.number).length ?? 0,
             name: `Season ${s.number}`,
             status:
                 data.riven?.seasons?.find((rs) => rs.season_number === s.number)?.state ===
@@ -109,7 +114,7 @@
                     ? "Available"
                     : undefined
         }));
-    };
+    });
 
     const formatCurrency = (n: number) =>
         new Intl.NumberFormat("en-US", {
@@ -121,8 +126,6 @@
         `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m ${Math.floor(s % 60)}s`;
     const formatSize = (b: number) => `${(b / 1073741824).toFixed(2)} GB`;
 
-    const formatSubtitleCodec = (c: string) =>
-        c === "subrip" ? "SRT" : c === "hdmv_pgs_subtitle" ? "PGS" : c?.toUpperCase() || "Unknown";
     const details = $derived(
         [
             data.mediaDetails?.details.year,
@@ -310,7 +313,7 @@
                                     ids={rivenId ? [rivenId.toString()] : []}
                                     mediaType={data.mediaDetails?.type}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                    seasons={getSeasonData()}>
+                                    seasons={seasonData}>
                                     <Download class="mr-1.5 h-4 w-4" />
                                     Request
                                 </ItemRequest>
@@ -322,8 +325,7 @@
                                     itemId={null}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                     mediaType={data.mediaDetails?.type}
-                                    backdrop={data.mediaDetails?.details?.backdrop_path}
-                                    seasons={getSeasonData()}>
+                                    seasons={seasonData}>
                                     <Search class="mr-1.5 h-4 w-4" />
                                     Manual Scrape
                                 </ItemManualScrape>
@@ -357,7 +359,7 @@
                                         mediaType={data.mediaDetails?.type}
                                         externalId={data.mediaDetails?.details?.id?.toString() ??
                                             ""}
-                                        seasons={getSeasonData()}>
+                                        seasons={seasonData}>
                                         <Download class="mr-1.5 h-4 w-4" />
                                         Request More
                                     </ItemRequest>
@@ -371,8 +373,7 @@
                                     itemId={rivenId?.toString() ?? null}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                     mediaType={data.mediaDetails?.type}
-                                    backdrop={data.mediaDetails?.details?.backdrop_path}
-                                    seasons={getSeasonData()}>
+                                    seasons={seasonData}>
                                     <Search class="mr-1.5 h-4 w-4" />
                                     Manual Scrape
                                 </ItemManualScrape>
@@ -529,9 +530,9 @@
                                         <!-- Background Layer -->
                                         <div class="absolute inset-0">
                                             <img
-                                                alt={movieDetails.collection.name}
+                                                alt={movieDetails.collection?.name}
                                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                src={movieDetails.collection.backdrop_path}
+                                                src={movieDetails.collection?.backdrop_path}
                                                 loading="lazy" />
                                             <div
                                                 class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
@@ -543,7 +544,7 @@
                                             class="relative flex flex-col justify-center p-4 md:p-8">
                                             <span
                                                 class="text-foreground text-xl font-black drop-shadow-lg md:text-3xl"
-                                                >{movieDetails.collection.name}</span>
+                                                >{movieDetails.collection?.name}</span>
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
@@ -965,25 +966,25 @@
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="text-primary font-semibold">Video</span>
                                             {#if video.resolution_width && video.resolution_height}<Badge
-                                                    variant="outline"
-                                                    class="text-sm"
+                                                    variant="secondary"
+                                                    class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border"
                                                     >{video.resolution_width}x{video.resolution_height}</Badge
                                                 >{/if}
                                             {#if video.codec}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">{video.codec}</Badge
+                                                    variant="secondary"
+                                                    class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.codec}</Badge
                                                 >{/if}
                                             {#if video.bit_depth}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">{video.bit_depth}-bit</Badge
+                                                    variant="secondary"
+                                                    class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.bit_depth}-bit</Badge
                                                 >{/if}
                                             {#if video.hdr_type}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">{video.hdr_type}</Badge
+                                                    variant="secondary"
+                                                    class="bg-purple-500/10 border-purple-500/20 text-purple-200 backdrop-blur-sm font-mono text-xs border">{video.hdr_type}</Badge
                                                 >{/if}
                                             {#if video.frame_rate}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">{video.frame_rate} FPS</Badge
+                                                    variant="secondary"
+                                                    class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.frame_rate} FPS</Badge
                                                 >{/if}
                                         </div>
                                     {/if}
@@ -993,7 +994,7 @@
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="text-primary font-semibold">Audio</span>
                                             {#each meta.audio_tracks as track}
-                                                <Badge variant="outline" class="text-sm"
+                                                <Badge variant="secondary" class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border"
                                                     >{track.codec}{track.channels
                                                         ? track.channels === 8
                                                             ? " 7.1"
@@ -1013,7 +1014,7 @@
                                             <span class="text-primary font-semibold"
                                                 >Subtitles</span>
                                             {#each meta.subtitle_tracks as track}
-                                                <Badge variant="outline" class="text-sm"
+                                                <Badge variant="secondary" class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm text-[10px] border"
                                                     >{track.language
                                                         ? track.language.toUpperCase()
                                                         : "Unknown"}</Badge>
@@ -1025,19 +1026,19 @@
                                     {#if meta?.quality_source}
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="text-primary font-semibold">Source</span>
-                                            <Badge variant="outline" class="text-sm"
+                                            <Badge variant="secondary" class="bg-blue-500/10 border-blue-500/20 text-blue-200 backdrop-blur-sm font-bold text-xs border"
                                                 >{meta.quality_source}</Badge>
                                             {#if meta?.is_remux}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">REMUX</Badge
+                                                    variant="secondary"
+                                                    class="bg-amber-500/10 border-amber-500/20 text-amber-200 backdrop-blur-sm font-bold text-xs border">REMUX</Badge
                                                 >{/if}
                                             {#if meta?.is_proper}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">PROPER</Badge
+                                                    variant="secondary"
+                                                    class="bg-green-500/10 border-green-500/20 text-green-200 backdrop-blur-sm font-bold text-xs border">PROPER</Badge
                                                 >{/if}
                                             {#if meta?.is_repack}<Badge
-                                                    variant="outline"
-                                                    class="text-sm">REPACK</Badge
+                                                    variant="secondary"
+                                                    class="bg-green-500/10 border-green-500/20 text-green-200 backdrop-blur-sm font-bold text-xs border">REPACK</Badge
                                                 >{/if}
                                         </div>
                                     {/if}
@@ -1049,7 +1050,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-primary font-semibold"
                                                         >Size</span>
-                                                    <span class="text-muted-foreground"
+                                                    <span class="text-muted-foreground font-mono"
                                                         >{formatSize(fs.file_size)}</span>
                                                 </div>
                                             {/if}
@@ -1057,7 +1058,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-primary font-semibold"
                                                         >Bitrate</span>
-                                                    <span class="text-muted-foreground"
+                                                    <span class="text-muted-foreground font-mono"
                                                         >{Math.round(meta.bitrate / 1000000)} Mbps</span>
                                                 </div>
                                             {/if}

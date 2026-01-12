@@ -2,7 +2,7 @@
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { getContext, onDestroy, onMount } from "svelte";
+    import { getContext, onMount } from "svelte";
     import Search from "@lucide/svelte/icons/search";
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
@@ -29,7 +29,7 @@
     // Local input value state to decouple from URL updates while typing
     let inputValue = $state($page.url.searchParams.get("query") || "");
     let inputRef = $state<HTMLInputElement | null>(null);
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
     // Sync external URL changes to input, but avoid overwriting while typing
     // We use afterNavigate instead of $effect to avoid state loops
@@ -43,7 +43,7 @@
     });
 
     function navigateToSearch() {
-        if (debounceTimer) clearTimeout(debounceTimer);
+        clearTimeout(debounceTimer);
         // Read directly from local state
         const query = inputValue.trim();
         const currentlyExplore = $page.url.pathname === "/explore";
@@ -64,12 +64,12 @@
     }
 
     function handleInput() {
-        if (debounceTimer) clearTimeout(debounceTimer);
+        clearTimeout(debounceTimer);
         debounceTimer = setTimeout(navigateToSearch, 300);
     }
 
-    onDestroy(() => {
-        if (debounceTimer) clearTimeout(debounceTimer);
+    $effect(() => {
+        return () => clearTimeout(debounceTimer);
     });
 
     function onKeydown(e: KeyboardEvent) {

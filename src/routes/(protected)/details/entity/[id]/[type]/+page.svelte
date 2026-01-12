@@ -14,7 +14,7 @@
 
     let { data }: PageProps = $props();
 
-    const birthdayToday = isDayAndMonthToday(data.entity.birthday);
+    const birthdayToday = $derived(isDayAndMonthToday(data.entity.birthday));
 
     // Constants
     const GRID_CLASSES =
@@ -49,7 +49,7 @@
     };
 
     // Combine Cast and Crew for carousel
-    const combinedCredits = [
+    const combinedCredits = $derived([
         ...data.entity.cast_credits.map((c) => ({
             id: c.id,
             title: c.title,
@@ -72,29 +72,29 @@
             role: c.job ?? "Crew",
             character: null as string | null
         }))
-    ];
+    ]);
 
-    const uniqueCredits = deduplicateById(combinedCredits);
+    const uniqueCredits = $derived(deduplicateById(combinedCredits));
 
     // Filter credits by type
-    const movieCredits = data.entity.cast_credits.filter((c) => c.media_type === "movie");
-    const showCredits = data.entity.cast_credits.filter((c) => c.media_type === "tv");
-    const crewCredits = deduplicateById(
+    const movieCredits = $derived(data.entity.cast_credits.filter((c) => c.media_type === "movie"));
+    const showCredits = $derived(data.entity.cast_credits.filter((c) => c.media_type === "tv"));
+    const crewCredits = $derived(deduplicateById(
         data.entity.crew_credits.map((c) => ({
             ...c,
             role: c.job ?? "Crew",
             character: null
         }))
-    );
+    ));
 
     // Select Top 5 for carousel (matching Seerr's logic)
-    const backdropCandidates = uniqueCredits
+    const backdropCandidates = $derived(uniqueCredits
         .filter((c) => c.backdrop_path && c.vote_count != null)
         .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0))
-        .slice(0, 5);
+        .slice(0, 5));
 
     // Map to carousel format
-    const carouselItems: TMDBNowPlayingItem[] = backdropCandidates.map((c) => ({
+    const carouselItems: TMDBNowPlayingItem[] = $derived(backdropCandidates.map((c) => ({
         id: c.id,
         media_type: c.media_type as "movie" | "tv",
         title: c.title,
@@ -103,9 +103,9 @@
         vote_average: c.vote_average ?? 0,
         overview: c.character ? `as ${c.character}` : c.role,
         genre_ids: []
-    }));
+    })));
 
-    const currentBackdrop = carouselItems[0];
+    const currentBackdrop = $derived(carouselItems[0]);
 
     function formatCreditSubtitle(credit: {
         character?: string | null;

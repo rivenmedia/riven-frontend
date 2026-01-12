@@ -2,9 +2,7 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-    import type { components } from "$lib/providers/riven";
-
-    type Stream = components["schemas"]["Stream"];
+    import type { Stream } from "$lib/types";
 
     interface Props {
         stream: Stream;

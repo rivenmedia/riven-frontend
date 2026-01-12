@@ -112,7 +112,7 @@ export class MediaListStore<T = unknown> {
         if (options.initialData && options.initialData.length > 0) {
             this.#items = options.initialData;
             this.#initialized = true;
-            // Optionally cache it if we want persistence across soft reloads, 
+            // Optionally cache it if we want persistence across soft reloads,
             // but usually server data is fresh enough.
             if (!this.#noCache) {
                 this.#setCachedData(options.initialData);

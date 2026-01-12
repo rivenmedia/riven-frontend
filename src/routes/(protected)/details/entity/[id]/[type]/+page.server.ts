@@ -57,8 +57,9 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
             })
         ]);
 
-        if (companyRes.error) {
-            error(500, (companyRes.error as any).message || "Failed to fetch company details");
+        const companyResUnknown = companyRes as { error?: { message?: string } };
+        if (companyResUnknown.error) {
+            error(500, companyResUnknown.error.message || "Failed to fetch company details");
         }
 
         const movies = transformTMDBList(moviesRes.data?.results ?? [], "movie");

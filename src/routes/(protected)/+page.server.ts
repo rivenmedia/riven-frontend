@@ -20,7 +20,9 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
         });
 
         const recentlyAddedRes = await fetch("/api/library/recent");
-        const recentlyAddedJson = recentlyAddedRes.ok ? await recentlyAddedRes.json() : { items: [] };
+        const recentlyAddedJson = recentlyAddedRes.ok
+            ? await recentlyAddedRes.json()
+            : { items: [] };
         const recentlyAdded = recentlyAddedJson.items || [];
 
         // Filter to only movies and TV shows with backdrops

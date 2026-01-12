@@ -101,7 +101,7 @@ export const load: PageServerLoad = async (event) => {
 
     return {
         items: itemsResponse.data
-            ? transformItems(itemsResponse.data.items as RivenLibraryItem[])
+            ? transformItems(itemsResponse.data.items as unknown as RivenLibraryItem[])
             : [],
         page: itemsResponse.data ? itemsResponse.data.page : 1,
         totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,

@@ -51,7 +51,7 @@
     });
 </script>
 
-{#snippet passwordFormField(form: FsSuperForm, name: PasswordFieldName, title: string)}
+{#snippet passwordFormField(form: FsSuperForm<SetPasswordSchema>, name: PasswordFieldName, title: string)}
     <Form.Field {form} {name}>
         <Form.Control>
             {#snippet children({ props })}

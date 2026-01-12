@@ -95,16 +95,16 @@ export class FilterStore {
     certifications = $state<ContentRating[]>([]);
 
     // Runtime (minutes)
-    runtimeMin = $state(RUNTIME_CONFIG.min);
-    runtimeMax = $state(RUNTIME_CONFIG.max);
+    runtimeMin = $state<number>(RUNTIME_CONFIG.min);
+    runtimeMax = $state<number>(RUNTIME_CONFIG.max);
 
     // Vote average (0-10)
-    voteAverageMin = $state(VOTE_AVERAGE_CONFIG.min);
-    voteAverageMax = $state(VOTE_AVERAGE_CONFIG.max);
+    voteAverageMin = $state<number>(VOTE_AVERAGE_CONFIG.min);
+    voteAverageMax = $state<number>(VOTE_AVERAGE_CONFIG.max);
 
     // Vote count
-    voteCountMin = $state(VOTE_COUNT_CONFIG.min);
-    voteCountMax = $state(VOTE_COUNT_CONFIG.max);
+    voteCountMin = $state<number>(VOTE_COUNT_CONFIG.min);
+    voteCountMax = $state<number>(VOTE_COUNT_CONFIG.max);
 
     // Sort
     sortBy = $state("popularity.desc");

@@ -385,7 +385,7 @@ export class SearchStore {
      * Fetch search results from the API
      */
     private async fetchSearchResults(
-        type: "movie" | "tv",
+        type: "movie" | "tv" | "person" | "company",
         page: number,
         signal?: AbortSignal
     ): Promise<SearchResult> {
@@ -414,7 +414,7 @@ export class SearchStore {
 
         // Type cast for fetchSearchResults strict typing if needed,
         // effectively we support "movie" | "tv" | "person" | "company" now
-        const result = await this.fetchSearchResults(type as any, page, signal);
+        const result = await this.fetchSearchResults(type, page, signal);
 
         if (signal?.aborted) return;
 
@@ -448,10 +448,10 @@ export class SearchStore {
                 type === "movie"
                     ? this.movieResults
                     : type === "person"
-                        ? this.personResults
-                        : type === "company"
-                            ? this.companyResults
-                            : this.tvResults; // This line was already correct.
+                      ? this.personResults
+                      : type === "company"
+                        ? this.companyResults
+                        : this.tvResults; // This line was already correct.
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
@@ -505,13 +505,13 @@ export class SearchStore {
             type === "movie"
                 ? this.moviePage
                 : type === "person"
-                    ? this.personPage
-                    : type === "company"
-                        ? this.companyPage
-                        : this.tvPage;
+                  ? this.personPage
+                  : type === "company"
+                    ? this.companyPage
+                    : this.tvPage;
 
         try {
-            const result = await this.fetchSearchResults(type as any, page, signal);
+            const result = await this.fetchSearchResults(type, page, signal);
 
             if (signal?.aborted) return;
 
@@ -522,10 +522,10 @@ export class SearchStore {
                     type === "movie"
                         ? this.movieResults
                         : type === "person"
-                            ? this.personResults
-                            : type === "company"
-                                ? this.companyResults
-                                : this.tvResults;
+                          ? this.personResults
+                          : type === "company"
+                            ? this.companyResults
+                            : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {

@@ -54,7 +54,7 @@
 
     const itemsByDate = $derived.by(() => {
         const items: EntertainmentItem[] = data.calendar?.data
-            ? (Object.values(data.calendar.data) as EntertainmentItem[])
+            ? (Object.values(data.calendar.data) as unknown as EntertainmentItem[])
             : [];
 
         const result: Record<string, EntertainmentItem[]> = {};

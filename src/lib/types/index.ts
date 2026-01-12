@@ -1,11 +1,21 @@
 import type { components } from "$lib/providers/riven";
 
-export type AutoScrapeRequestPayload = components["schemas"]["AutoScrapeRequestPayload"];
-export type Stream = components["schemas"]["Stream"];
+// Manually define Stream if not in schemas
+export interface Stream {
+    raw_title: string;
+    rank: number;
+    parsed_data: ParsedTitleData;
+    is_cached: boolean;
+    magnet: string;
+    size: number;
+    [key: string]: unknown;
+}
+
+export type AutoScrapeRequestPayload = components["schemas"]["AutoScrapeRequest"];
 export type DebridFile = components["schemas"]["DebridFile"];
 export type Container = components["schemas"]["Container"];
 export type ShowFileData = components["schemas"]["ShowFileData"];
-export type ParsedData = components["schemas"]["ParsedData"];
+export type ParsedData = components["schemas"]["ParsedFile"];
 
 // Re-export types from riven.ts
 export type {
