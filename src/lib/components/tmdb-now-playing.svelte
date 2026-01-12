@@ -126,7 +126,7 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-16 md:pt-8 md:pb-16 lg:-right-4 lg:left-4 {getAlignmentClasses(
+                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-32 md:pt-8 md:pb-16 lg:left-0 lg:right-0 {getAlignmentClasses(
                                     alignment,
                                     'container'
                                 )}">
