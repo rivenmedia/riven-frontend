@@ -372,22 +372,24 @@
                     </div>
                 </div>
             {:else if hasResults}
-                <div class="flex flex-wrap items-center gap-4">
+                <div
+                    class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8">
                     {#each searchStore.results as item (`${item.media_type}-${item.id}`)}
                         <ListItem data={item} indexer={item.indexer} type={item.media_type} />
                     {/each}
                     {#if searchStore.loading}
                         {#each Array(6) as _}
-                            <div class="w-36 md:w-44 lg:w-48">
+                            <div class="aspect-[2/3] w-full">
                                 <PortraitCardSkeleton />
                             </div>
                         {/each}
                     {/if}
                 </div>
             {:else if searchStore.loading}
-                <div class="flex flex-wrap gap-4">
+                <div
+                    class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8">
                     {#each Array(12) as _}
-                        <div class="w-36 md:w-44 lg:w-48">
+                        <div class="aspect-[2/3] w-full">
                             <PortraitCardSkeleton />
                         </div>
                     {/each}
