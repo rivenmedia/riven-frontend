@@ -25,6 +25,8 @@
 
     let { data, children }: LayoutProps = $props();
 
+    let mainContent: HTMLElement;
+
     const searchStore = new SearchStore();
     const filterStore = new FilterStore();
 
@@ -36,6 +38,7 @@
     });
     afterNavigate(() => {
         NProgress.done();
+        if (mainContent) mainContent.scrollTop = 0;
     });
 
     setContext("sidebarStore", SidebarStore);
@@ -62,6 +65,7 @@
     <Sidebar user={data.user} />
     <main class="relative overflow-hidden">
         <div
+            bind:this={mainContent}
             class="size-full overflow-x-hidden overflow-y-scroll"
             style="scrollbar-gutter: stable;">
             <Header />
