@@ -4855,6 +4855,10 @@ export interface operations {
                 ranking_overrides?: string | null;
                 /** @description If true, stream results via SSE as scrapers complete */
                 stream?: boolean;
+                /** @description Minimum filesize in MB */
+                min_filesize_override?: number | null;
+                /** @description Maximum filesize in MB */
+                max_filesize_override?: number | null;
                 api_key?: string | null;
             };
             header?: never;
