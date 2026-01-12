@@ -14,7 +14,8 @@
         indexer = $bindable<string | undefined>(),
         type = $bindable<string | undefined>(),
         isSelectable = false,
-        selectStore = undefined
+        selectStore = undefined,
+        class: className
     } = $props();
 
     // Normalize type for different indexers
@@ -26,7 +27,6 @@
 
     let mediaURL = $derived.by(() => {
         if (!data.id) return null;
-
         if (type === "person" || type === "company") {
             return `/details/entity/${data.id}/${type}`;
         }
@@ -54,8 +54,12 @@
         return parts.join(" • ") || null;
     });
 
-    const CONTAINER_CLASSES =
-        "group relative block w-36 opacity-80 transition-all duration-200 hover:opacity-100 md:w-44 lg:w-48";
+    // Default container classes (w-full allows grid to control width)
+    // Merged with passed className
+    const containerClasses = $derived(cn(
+        "group relative block w-full opacity-80 transition-all duration-200 hover:opacity-100",
+        className
+    ));
 </script>
 
 {#snippet cardContent()}
@@ -79,11 +83,11 @@
 {/snippet}
 
 {#if mediaURL}
-    <a href={mediaURL} class={CONTAINER_CLASSES}>
+    <a href={mediaURL} class={containerClasses}>
         {@render cardContent()}
     </a>
 {:else}
-    <div role="button" aria-disabled="true" tabindex="-1" class={CONTAINER_CLASSES}>
+    <div role="button" aria-disabled="true" tabindex="-1" class={containerClasses}>
         {@render cardContent()}
     </div>
 {/if}

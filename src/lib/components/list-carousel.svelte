@@ -22,7 +22,8 @@
                     <ListItem
                         data={item}
                         indexer={indexer || item.indexer}
-                        type={type || item.media_type || item.type} />
+                        type={type || item.media_type || item.type}
+                        class="w-36 md:w-44 lg:w-48" />
                 </Carousel.Item>
             {/each}
         </Carousel.Content>
