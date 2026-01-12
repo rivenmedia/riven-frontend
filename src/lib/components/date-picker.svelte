@@ -70,8 +70,8 @@
 
 <div class={cn("flex w-full items-center gap-2")}>
     <div class="relative flex-1">
-        <!-- Ghost text for "YYYY-MM-DD" mask -->
-        {#if (value?.length ?? 0) < 10}
+        <!-- Ghost text for "YYYY-MM-DD" mask. Only show when user is typing (value exists) to avoid overlap with placeholder -->
+        {#if value && value.length < 10}
             <div
                 class="pointer-events-none absolute inset-0 flex items-center px-3 font-mono text-sm tracking-normal">
                 <span class="opacity-0">{value ?? ""}</span>

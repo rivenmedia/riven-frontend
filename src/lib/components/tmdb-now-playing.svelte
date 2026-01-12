@@ -1,5 +1,7 @@
 <script lang="ts">
     import * as Carousel from "$lib/components/ui/carousel/index.js";
+    import { fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
     import { type CarouselAPI } from "$lib/components/ui/carousel/context.js";
     import Autoplay from "embla-carousel-autoplay";
     import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/providers";
@@ -108,7 +110,9 @@
                     <Carousel.Item class="relative w-full {heightClass}">
                         <!-- Backdrop Image -->
                         <img
-                            src="{TMDB_IMAGE_BASE_URL}/original{item.backdrop_path}"
+                            src={item.backdrop_path?.startsWith("http")
+                                ? item.backdrop_path
+                                : `${TMDB_IMAGE_BASE_URL}/original${item.backdrop_path}`}
                             alt={displayTitle}
                             class="h-full w-full object-cover object-top select-none"
                             loading="lazy" />
@@ -129,18 +133,28 @@
                                 <div class="w-full max-w-2xl">
                                     <!-- Title -->
                                     <h1
-                                        class="animate-slide-reveal line-clamp-2 text-xl font-semibold tracking-tight opacity-0 drop-shadow-2xl md:text-4xl md:leading-tight"
-                                        style="animation-delay: 0.1s">
+                                        in:fly={{
+                                            y: 20,
+                                            duration: 1000,
+                                            delay: 100,
+                                            easing: cubicOut
+                                        }}
+                                        class="line-clamp-2 text-xl font-semibold tracking-tight drop-shadow-2xl md:text-4xl md:leading-tight">
                                         {displayTitle}
                                     </h1>
 
                                     <!-- Metadata Row -->
                                     <div
-                                        class="animate-slide-reveal text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs opacity-0 md:mt-3 md:text-sm {getAlignmentClasses(
+                                        in:fly={{
+                                            y: 20,
+                                            duration: 1000,
+                                            delay: 200,
+                                            easing: cubicOut
+                                        }}
+                                        class="text-foreground/80 mt-1.5 flex flex-wrap items-center gap-2 text-xs md:mt-3 md:text-sm {getAlignmentClasses(
                                             alignment,
                                             'flex'
-                                        )}"
-                                        style="animation-delay: 0.2s">
+                                        )}">
                                         <span
                                             class="bg-muted/50 rounded-md px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
@@ -164,8 +178,13 @@
                                     <!-- Overview -->
                                     {#if item.overview}
                                         <p
-                                            class="animate-slide-reveal text-muted-foreground mt-1.5 line-clamp-2 text-xs opacity-0 md:mt-3 md:text-base"
-                                            style="animation-delay: 0.3s">
+                                            in:fly|global={{
+                                                y: 20,
+                                                duration: 1000,
+                                                delay: 300,
+                                                easing: cubicOut
+                                            }}
+                                            class="text-muted-foreground mt-1.5 line-clamp-2 text-xs md:mt-3 md:text-base">
                                             {item.overview}
                                         </p>
                                     {/if}
@@ -173,11 +192,16 @@
                                     <!-- Genres -->
                                     {#if item.genre_ids?.length}
                                         <div
-                                            class="animate-slide-reveal mt-1.5 flex flex-wrap gap-1.5 opacity-0 md:mt-4 md:gap-2 {getAlignmentClasses(
+                                            in:fly|global={{
+                                                y: 20,
+                                                duration: 1000,
+                                                delay: 400,
+                                                easing: cubicOut
+                                            }}
+                                            class="mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2 {getAlignmentClasses(
                                                 alignment,
                                                 'flex'
-                                            )}"
-                                            style="animation-delay: 0.4s">
+                                            )}">
                                             {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
@@ -192,11 +216,16 @@
 
                                     <!-- Action Buttons -->
                                     <div
-                                        class="animate-slide-reveal mt-3 flex flex-wrap gap-2 opacity-0 md:mt-6 md:gap-3 {getAlignmentClasses(
+                                        in:fly={{
+                                            y: 20,
+                                            duration: 1000,
+                                            delay: 500,
+                                            easing: cubicOut
+                                        }}
+                                        class="mt-3 flex flex-wrap gap-2 md:mt-6 md:gap-3 {getAlignmentClasses(
                                             alignment,
                                             'flex'
-                                        )}"
-                                        style="animation-delay: 0.5s">
+                                        )}">
                                         {#if showRequestButton}
                                             <Button
                                                 href="/watch/{item.id}"

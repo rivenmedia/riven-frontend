@@ -3,15 +3,15 @@
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
-    import type {
-        ScrapeSeasonRequest,
-        Stream,
-        DebridFile,
-        Container,
-        ShowFileData,
-        FileMapping,
-        ParsedTitleData,
-        BatchSession
+    import {
+        type ScrapeSeasonRequest,
+        type Stream,
+        type DebridFile,
+        type Container,
+        type ShowFileData,
+        type FileMapping,
+        type ParsedTitleData,
+        type BatchSession
     } from "$lib/types";
 
     import type { Snippet } from "svelte";
@@ -25,14 +25,11 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import * as Accordion from "$lib/components/ui/accordion/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
-    import { Switch } from "$lib/components/ui/switch/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Input } from "$lib/components/ui/input/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
-    import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-    import { cn } from "$lib/utils";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import AlertCircle from "@lucide/svelte/icons/alert-circle";
     import FileIcon from "@lucide/svelte/icons/file";
@@ -76,7 +73,6 @@
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
         seasons?: SeasonInfo[];
-        children?: Snippet;
     }
 
     let {
@@ -109,6 +105,17 @@
     let streams = $state<{ magnet: string; stream: Stream }[]>([]);
     let currentSessionMagnet: string | null = null;
 
+    function parseFileId(value: string | number | undefined): number {
+        if (value === undefined || value === null) {
+            throw new Error("File ID is undefined or null");
+        }
+        const parsed = typeof value === "number" ? value : parseInt(value, 10);
+        if (isNaN(parsed)) {
+            throw new Error(`Invalid file ID: ${value}`);
+        }
+        return parsed;
+    }
+
     async function handleComplete() {
         if (!currentSessionMagnet) return;
 
@@ -119,9 +126,9 @@
             // Step 1: Select files (Stateless Download logic)
             const container: Container = {};
             selectedFilesMappings.forEach((mapping) => {
-                // @ts-ignore
-                container[mapping.file_id] = {
-                    file_id: parseInt(mapping.file_id),
+                const fId = parseFileId(mapping.file_id);
+                container[fId] = {
+                    file_id: fId,
                     filename: mapping.filename,
                     filesize: mapping.filesize,
                     download_url: mapping.download_url ?? undefined
@@ -150,7 +157,7 @@
                 const mapping = selectedFilesMappings[0];
                 if (mapping) {
                     fileDataPayload = {
-                        file_id: parseInt(mapping.file_id.toString()),
+                        file_id: parseFileId(fileDataPayload.file_id),
                         filename: mapping.filename,
                         filesize: mapping.filesize,
                         download_url: mapping.download_url
@@ -165,7 +172,7 @@
                             showData[m.season] = {};
                         }
                         showData[m.season][m.episode] = {
-                            file_id: parseInt(m.file_id.toString()),
+                            file_id: parseFileId(m.file_id),
                             filename: m.filename,
                             filesize: m.filesize,
                             download_url: m.download_url
@@ -423,7 +430,7 @@
             }
 
             if (itemId)
-                queryParams.item_id = parseInt(itemId as string); // Ensure int
+                queryParams.item_id = parseFileId(itemId); // Ensure int
             else if (externalId) {
                 if (mediaType === "movie") queryParams.tmdb_id = externalId;
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
@@ -1026,9 +1033,9 @@
                     // Step 1: Select files (Stateless Download logic)
                     const container: Container = {};
                     session.mappings.forEach((mapping) => {
-                        // @ts-ignore
-                        container[mapping.file_id] = {
-                            file_id: parseInt(mapping.file_id),
+                        const fId = parseFileId(mapping.file_id);
+                        container[fId] = {
+                            file_id: fId,
                             filename: mapping.filename,
                             filesize: mapping.filesize
                         };

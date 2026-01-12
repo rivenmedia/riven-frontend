@@ -305,7 +305,8 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
 
 export function transformTMDBList(
     items: any[] | null,
-    type: "movie" | "tv" | "person" | "company" = "movie"
+    type: "movie" | "tv" | "person" | "company" = "movie",
+    backdropSize: string = "w1280"
 ) {
     return (
         items?.map((item) => ({
@@ -314,10 +315,10 @@ export function transformTMDBList(
             poster_path: item.poster_path
                 ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
                 : item.profile_path
-                  ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
-                  : (item as any).logo_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
-                    : null,
+                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
+                    : (item as any).logo_path
+                        ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
+                        : null,
             media_type: item.media_type || type,
             year:
                 (item.media_type || type) === "movie"
@@ -325,8 +326,8 @@ export function transformTMDBList(
                         ? (dateUtils.getYearFromISO(item.release_date) ?? "N/A")
                         : "N/A"
                     : item.first_air_date
-                      ? (dateUtils.getYearFromISO(item.first_air_date) ?? "N/A")
-                      : "N/A",
+                        ? (dateUtils.getYearFromISO(item.first_air_date) ?? "N/A")
+                        : "N/A",
             vote_average: item.vote_average ? item.vote_average : null,
             vote_count: item.vote_count ? item.vote_count : null,
             popularity: item.popularity,
@@ -334,7 +335,7 @@ export function transformTMDBList(
             original_language: item.original_language,
             overview: item.overview,
             backdrop_path: item.backdrop_path
-                ? `${TMDB_IMAGE_BASE_URL}/w1280${item.backdrop_path}`
+                ? `${TMDB_IMAGE_BASE_URL}/${backdropSize}${item.backdrop_path}`
                 : null,
             genre_ids: item.genre_ids,
             release_date: item.release_date,
@@ -535,15 +536,15 @@ export function parseTMDBMovieDetails(
         logo: chosenLogo,
         trailer: trailer
             ? {
-                  id: trailer.id,
-                  name: trailer.name,
-                  site: trailer.site,
-                  key: trailer.key,
-                  url:
-                      trailer.site === "YouTube"
-                          ? `https://www.youtube.com/watch?v=${trailer.key}`
-                          : null
-              }
+                id: trailer.id,
+                name: trailer.name,
+                site: trailer.site,
+                key: trailer.key,
+                url:
+                    trailer.site === "YouTube"
+                        ? `https://www.youtube.com/watch?v=${trailer.key}`
+                        : null
+            }
             : null,
         certification,
         genres: (data.genres ?? []).map((genre) => ({
@@ -585,11 +586,11 @@ export function parseTMDBMovieDetails(
         external_ids: data.external_ids,
         collection: data.belongs_to_collection
             ? {
-                  id: data.belongs_to_collection.id,
-                  name: data.belongs_to_collection.name,
-                  poster_path: buildTMDBImage(data.belongs_to_collection.poster_path, "w500"),
-                  backdrop_path: buildTMDBImage(data.belongs_to_collection.backdrop_path, "w1920")
-              }
+                id: data.belongs_to_collection.id,
+                name: data.belongs_to_collection.name,
+                poster_path: buildTMDBImage(data.belongs_to_collection.poster_path, "w500"),
+                backdrop_path: buildTMDBImage(data.belongs_to_collection.backdrop_path, "w1920")
+            }
             : null,
         trakt_recommendations: transformTraktRecommendations(traktRecs, true)
     };
@@ -695,29 +696,29 @@ export interface TVDBBaseItem {
     airsTime: string | null; // "21:00"
     seasons: TVDBSeasonItem[] | null;
     tags:
-        | { id: number; tag: number; tagName: string; name: string; helpText: string | null }[]
-        | null;
+    | { id: number; tag: number; tagName: string; name: string; helpText: string | null }[]
+    | null;
     contentRatings:
-        | {
-              id: number;
-              name: string;
-              country: string | null;
-              description: string;
-              contentType: string;
-              order: number;
-              fullName: unknown | null;
-          }[]
-        | null;
+    | {
+        id: number;
+        name: string;
+        country: string | null;
+        description: string;
+        contentType: string;
+        order: number;
+        fullName: unknown | null;
+    }[]
+    | null;
     seasonTypes: { id: number; name: string; type: string; alternateName: string | null }[] | null;
     translations: {
         nameTranslations:
-            | {
-                  name: string;
-                  language: string;
-                  isPrimary?: boolean;
-                  isAlias?: boolean;
-              }[]
-            | null;
+        | {
+            name: string;
+            language: string;
+            isPrimary?: boolean;
+            isAlias?: boolean;
+        }[]
+        | null;
         overviewTranslations: { overview: string; language: string; isPrimary?: boolean }[] | null;
         aliases: string[] | null;
     };
@@ -966,17 +967,17 @@ export function parseTVDBShowDetails(
 
     const posterPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 2 || art.type === 14, "eng")?.image ??
-            data.image
+        data.image
     );
 
     const backdropPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 3 || art.type === 15, null)?.image ??
-            null
+        null
     );
 
     const logoPath = buildTVDBImage(
         selectArtwork(data.artworks, (art) => art.type === 23 || art.type === 25, "eng")?.image ??
-            null
+        null
     );
 
     function extractYoutubeKey(url: string | null): string | undefined {
@@ -999,12 +1000,12 @@ export function parseTVDBShowDetails(
     const trailerEntry = data.trailers?.find((item) => Boolean(item.url)) ?? null;
     const trailer: ParsedTrailer | null = trailerEntry
         ? {
-              id: trailerEntry.id,
-              name: trailerEntry.name,
-              site: resolveTrailerSite(trailerEntry.url),
-              url: trailerEntry.url,
-              key: extractYoutubeKey(trailerEntry.url)
-          }
+            id: trailerEntry.id,
+            name: trailerEntry.name,
+            site: resolveTrailerSite(trailerEntry.url),
+            url: trailerEntry.url,
+            key: extractYoutubeKey(trailerEntry.url)
+        }
         : null;
 
     const certification =
@@ -1352,34 +1353,42 @@ export function parseCompanyDetails(
     shows: TMDBTransformedListItem[]
 ): PersonDetails {
     const castCredits: PersonCreditCast[] = [
-        ...movies.map((m) => ({
-            id: m.id,
-            title: m.title,
-            original_title: m.original_title || m.title,
-            character: "Production",
-            poster_path: m.poster_path,
-            backdrop_path: m.backdrop_path || null,
-            release_date: m.release_date || null,
-            year: m.year ? Number(m.year) : null,
-            media_type: "movie" as const,
-            vote_average: m.vote_average,
-            vote_count: m.vote_count,
-            popularity: m.popularity || 0
-        })),
-        ...shows.map((s) => ({
-            id: s.id,
-            title: s.title,
-            original_title: s.original_title || s.title,
-            character: "Production",
-            poster_path: s.poster_path,
-            backdrop_path: s.backdrop_path || null,
-            release_date: s.first_air_date || null,
-            year: s.year ? Number(s.year) : null,
-            media_type: "tv" as const,
-            vote_average: s.vote_average,
-            vote_count: s.vote_count,
-            popularity: s.popularity || 0
-        }))
+        ...movies.map((m) => {
+            const rawYear = m.year;
+            const yearNum = rawYear != null ? Number(rawYear) : null;
+            return {
+                id: m.id,
+                title: m.title,
+                original_title: m.original_title || m.title,
+                character: "Production",
+                poster_path: m.poster_path,
+                backdrop_path: m.backdrop_path || null,
+                release_date: m.release_date || null,
+                year: Number.isFinite(yearNum) ? Number(yearNum) : null,
+                media_type: "movie" as const,
+                vote_average: m.vote_average,
+                vote_count: m.vote_count,
+                popularity: m.popularity || 0
+            };
+        }),
+        ...shows.map((s) => {
+            const rawYear = s.year;
+            const yearNum = rawYear != null ? Number(rawYear) : null;
+            return {
+                id: s.id,
+                title: s.title,
+                original_title: s.original_title || s.title,
+                character: "Production",
+                poster_path: s.poster_path,
+                backdrop_path: s.backdrop_path || null,
+                release_date: s.first_air_date || null,
+                year: Number.isFinite(yearNum) ? Number(yearNum) : null,
+                media_type: "tv" as const,
+                vote_average: s.vote_average,
+                vote_count: s.vote_count,
+                popularity: s.popularity || 0
+            };
+        })
     ].sort(sortByReleaseDateDesc);
 
     return {
