@@ -373,7 +373,7 @@
                 </div>
             {:else if hasResults}
                 <div
-                    class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8">
+                    class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
                     {#each searchStore.results as item (`${item.media_type}-${item.id}`)}
                         <ListItem data={item} indexer={item.indexer} type={item.media_type} />
                     {/each}
@@ -387,7 +387,7 @@
                 </div>
             {:else if searchStore.loading}
                 <div
-                    class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-8">
+                    class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
                     {#each Array(12) as _}
                         <div class="aspect-[2/3] w-full">
                             <PortraitCardSkeleton />
