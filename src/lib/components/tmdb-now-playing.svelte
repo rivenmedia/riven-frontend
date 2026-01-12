@@ -93,6 +93,20 @@
     }
 </script>
 
+<style>
+    @keyframes progress {
+        from {
+            width: 0%;
+        }
+        to {
+            width: 100%;
+        }
+    }
+    .animate-progress {
+        animation: progress 5s linear;
+    }
+</style>
+
 {#if Array.isArray(data) && data.length > 0}
     <div class="border-border/50 relative overflow-hidden rounded-2xl border shadow-2xl">
         <Carousel.Root
@@ -298,12 +312,17 @@
             <div class="hidden gap-1.5 lg:flex">
                 {#each data as _, i}
                     <button
-                        class="h-1 w-6 cursor-pointer rounded-full transition-all duration-300 {i ===
+                        class="relative h-1 w-6 cursor-pointer overflow-hidden rounded-full transition-all duration-300 {i ===
                         currentIndex
-                            ? 'bg-primary'
+                            ? 'bg-white/20'
                             : 'bg-white/20 hover:bg-white/40'}"
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
+                        {#if i === currentIndex}
+                            <div
+                                class="animate-progress absolute top-0 bottom-0 left-0 bg-primary">
+                            </div>
+                        {/if}
                     </button>
                 {/each}
             </div>
