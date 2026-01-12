@@ -26,7 +26,13 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         const abortController = new AbortController();
 
         try {
-            const targetUrl = `${backendUrl}/api/v1/scrape/scrape_stream${url.search}`;
+            // Use consolidated endpoint with stream=true param
+            const searchParams = new URLSearchParams(url.searchParams);
+            searchParams.set('stream', 'true');
+            // Ensure backendUrl doesn't have a trailing slash and target the correct /scrape endpoint
+            const baseUrl = backendUrl.replace(/\/$/, "");
+            const targetUrl = `${baseUrl}/api/v1/scrape?${searchParams.toString()}`;
+            logger.info(`Scrape stream proxy: forwarding to ${targetUrl}`);
             const response = await fetch(targetUrl, {
                 method: "GET",
                 headers: {
@@ -40,6 +46,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             if (!response.ok) {
                 const text = await response.text();
                 logger.error(`Scrape stream proxy error ${response.status}: ${text}`);
+                // Emit error event to client before closing
+                emit("message", JSON.stringify({
+                    event: "error",
+                    message: `Backend error ${response.status}: ${text}`
+                }));
                 lock.set(false);
                 return function stop() {
                     abortController.abort();

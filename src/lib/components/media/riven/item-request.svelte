@@ -17,7 +17,7 @@
         mediaType: string; //"movie" | "tv"
         seasons?: SeasonInfo[];
         buttonLabel?: string;
-        externalId?: string; // TVDB or TMDB ID for /api/v1/scrape/seasons
+        externalId?: string; // TVDB or TMDB ID for scraping
         variant?:
             | "ghost"
             | "default"
@@ -62,13 +62,13 @@
                 externalId
             ) {
                 const body: ScrapeSeasonRequest = {
+                    media_type: "tv",
                     tvdb_id: externalId,
-                    season_numbers: Array.from(selectedSeasons),
-                    disable_bitrate_check: false
+                    season_numbers: Array.from(selectedSeasons)
                 };
 
-                // HACK: Casting providers.riven to any because the endpoint might not be in the generated client
-                const response = await (providers.riven as any).POST("/api/v1/scrape/seasons", {
+                // Use consolidated /auto endpoint with season_numbers
+                const response = await (providers.riven as any).POST("/api/v1/scrape/auto", {
                     body: body
                 });
 

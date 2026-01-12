@@ -15,12 +15,8 @@
     import Search from "@lucide/svelte/icons/search";
     import Pause from "@lucide/svelte/icons/pause";
     import Download from "@lucide/svelte/icons/download";
-    import X from "@lucide/svelte/icons/x";
-    import Mountain from "@lucide/svelte/icons/mountain";
-    import Video from "@lucide/svelte/icons/video";
     import { cn } from "$lib/utils";
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
-    import VideoPlayer from "$lib/components/media/video-player.svelte";
     import ItemRequest from "$lib/components/media/riven/item-request.svelte";
     import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
@@ -30,8 +26,10 @@
     import CollectionSheet from "$lib/components/media/collection-sheet.svelte";
     import LandscapeCard from "$lib/components/media/landscape-card.svelte";
     import StatusBadge from "$lib/components/media/status-badge.svelte";
+    import VideoPlayer from "$lib/components/media/video-player.svelte";
     import { toast } from "svelte-sonner";
     import PageShell from "$lib/components/page-shell.svelte";
+    import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
 
@@ -46,11 +44,13 @@
     };
     const getExternal = (key: string) => externalMeta[key.replace("_id", "")];
 
-    let showTrailerOverride = $state<boolean | null>(null);
-    let showTrailer = $derived(
-        showTrailerOverride ??
-            (!data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer)
-    );
+    let showTrailerOverride = $state(false);
+    const showTrailer = $derived(showTrailerOverride && data.mediaDetails?.details?.trailer);
+
+    let showVideoPlayer = $state(false);
+    function toggleVideoPlayer() {
+        showVideoPlayer = !showVideoPlayer;
+    }
     let selectedSeason: string | undefined = $state("1");
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
     // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)
@@ -60,88 +60,76 @@
             const tmdbId = (data.mediaDetails?.details as any)?.external_ids?.tmdb;
             if (tmdbId) return Number(tmdbId);
         }
-        return urlId;
+        return urlId || null;
     });
+    let mediaType = $derived(data.mediaDetails?.type);
 
-    let details = $derived(
-        [
-            data.mediaDetails?.details.year,
-            data.mediaDetails?.details.certification,
-            data.mediaDetails?.details.formatted_runtime,
-            data.mediaDetails?.details.status
-        ].filter(Boolean)
-    );
-
-    let ratingsData = $state<any>(null);
-    let ratingsLoading = $state(true);
+    let ratingsData = $state<{
+        scores: Array<{ name: string; image?: string; score: string; url: string }>;
+    } | null>(null);
+    let ratingsLoading = $state(false);
 
     $effect(() => {
-        if (!ratingsId) return;
+        if (!browser || !ratingsId || !mediaType) {
+            ratingsLoading = false;
+            ratingsData = null;
+            return;
+        }
+        const controller = new AbortController();
         ratingsLoading = true;
-        fetch(`/api/ratings/${ratingsId}?type=${data.mediaDetails?.type}`)
-            .then((r) => r.json())
+        fetch(`/api/ratings/${ratingsId}?type=${mediaType}`, { signal: controller.signal })
+            .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
-                ratingsData = d;
-                ratingsLoading = false;
+                if (!controller.signal.aborted) {
+                    ratingsData = d;
+                    ratingsLoading = false;
+                }
             })
             .catch(() => {
-                ratingsLoading = false;
+                if (!controller.signal.aborted) ratingsLoading = false;
             });
+        return () => controller.abort();
     });
 
-    function getExternalMetadata(key: string) {
-        const normalizedKey = normalizeExternalIdKey(key);
-        return externalMetaData[normalizedKey];
-    }
+    const getSeasonData = () => {
+        if (data.mediaDetails?.type !== "tv" || !data.mediaDetails?.details?.seasons) return [];
+        return data.mediaDetails.details.seasons.map((s) => ({
+            id: s.id,
+            season_number: s.number ?? 0,
+            episode_count:
+                (data.mediaDetails?.details as any)?.episodes?.filter(
+                    (ep: any) => ep.seasonNumber === s.number
+                ).length ?? 0,
+            name: `Season ${s.number}`,
+            status:
+                data.riven?.seasons?.find((rs) => rs.season_number === s.number)?.state ===
+                "Completed"
+                    ? "Available"
+                    : undefined
+        }));
+    };
 
-    function toggleTrailer() {
-        showTrailerOverride = !showTrailer;
-    }
-
-    let showVideoPlayer = $state(false);
-
-    function toggleVideoPlayer() {
-        showVideoPlayer = !showVideoPlayer;
-    }
-
-    function getSeasonData() {
-        if (data.mediaDetails?.type !== "tv" || !data.mediaDetails.details.seasons)
-            return undefined;
-        return data.mediaDetails.details.seasons
-            .filter((s) => s.number != null && s.number > 0)
-            .map((s) => ({
-                id: s.id,
-                name: `Season ${s.number}`,
-                season_number: s.number!,
-                episode_count:
-                    data.mediaDetails?.type === "tv"
-                        ? data.mediaDetails.details.episodes.filter(
-                              (e) => e.seasonNumber === s.number
-                          ).length
-                        : 0
-            }));
-    }
-
-    function formatCurrency(amount: number | null | undefined): string {
-        if (amount == null) return "N/A";
-        return new Intl.NumberFormat("en-US", {
+    const formatCurrency = (n: number) =>
+        new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",
             maximumFractionDigits: 0
-        }).format(amount);
-    }
+        }).format(n);
+    const formatDuration = (s: number) =>
+        `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m ${Math.floor(s % 60)}s`;
+    const formatSize = (b: number) => `${(b / 1073741824).toFixed(2)} GB`;
 
-    function formatSize(bytes: number | null | undefined): string {
-        if (bytes == null) return "Unknown";
-        const units = ["B", "KB", "MB", "GB", "TB"];
-        let size = bytes;
-        let unitIndex = 0;
-        while (size >= 1024 && unitIndex < units.length - 1) {
-            size /= 1024;
-            unitIndex++;
-        }
-        return `${size.toFixed(2)} ${units[unitIndex]}`;
-    }
+    const formatSubtitleCodec = (c: string) =>
+        c === "subrip" ? "SRT" : c === "hdmv_pgs_subtitle" ? "PGS" : c?.toUpperCase() || "Unknown";
+    const details = $derived(
+        [
+            data.mediaDetails?.details.year,
+            data.mediaDetails?.details.formatted_runtime,
+            data.mediaDetails?.details.original_language?.toUpperCase(),
+            data.mediaDetails?.details.certification,
+            data.mediaDetails?.details.status
+        ].filter(Boolean)
+    );
 </script>
 
 {#snippet mediaCarousel(
@@ -201,64 +189,56 @@
     <div class="z-10 flex h-full w-full flex-col">
         <!-- Hero Banner - extends behind search bar -->
         {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
-            <div
-                class={cn(
-                    "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-120 xl:h-128 2xl:h-136",
-                    !showTrailer && "p-8"
-                )}
-                style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
-                {#if showVideoPlayer}
-                    <div class="absolute inset-0 z-20 bg-black">
-                        <VideoPlayer itemId={rivenId} class="h-full w-full" />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            class="bg-background/60 text-foreground hover:bg-background/80 absolute top-4 right-4 z-30"
-                            onclick={toggleVideoPlayer}>
-                            <X class="h-6 w-6" />
-                        </Button>
+            <div class="px-2 md:px-4">
+                <div
+                    class={cn(
+                        "relative mb-6 flex h-[35vh] max-h-[500px] min-h-[300px] items-end justify-between overflow-hidden rounded-2xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-8 md:max-h-[600px]",
+                        !showTrailer && "p-6 md:p-10"
+                    )}
+                    style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
                     </div>
-                {/if}
+                    <!-- Border Overlay to prevent bright edge glitch -->
+                    <div
+                        class="border-border/10 pointer-events-none absolute inset-0 rounded-2xl border">
+                    </div>
 
-                {#if !showTrailer}
-                    {#if data.mediaDetails?.details.logo}
-                        <div>
-                            <img
-                                alt="Movie logo"
-                                class="h-8 w-full object-contain drop-shadow-lg md:h-10 lg:h-12"
-                                src={data.mediaDetails?.details.logo}
-                                loading="lazy" />
+                    {#if !showTrailer}
+                        <div class="relative z-10 flex w-full items-end justify-between">
+                            {#if data.mediaDetails?.details.logo}
+                                <img
+                                    alt="Logo"
+                                    class="max-h-16 max-w-[60%] object-contain drop-shadow-2xl md:max-h-28 lg:max-h-36"
+                                    src={data.mediaDetails?.details.logo}
+                                    loading="lazy" />
+                            {:else}<div></div>{/if}
+
+                            <div class="flex gap-2 md:gap-4">
+                                {#if data.riven?.state === "Completed"}
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        class="bg-muted/40 text-foreground hover:bg-muted/60 px-3 text-sm font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 md:px-4 md:text-sm"
+                                        onclick={toggleVideoPlayer}>
+                                        <Play class="mr-1.5 h-4 w-4 fill-current md:mr-2" />
+                                        Play
+                                    </Button>
+                                {/if}
+                                {#if data.mediaDetails?.details.trailer}
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        class="bg-muted/40 text-foreground hover:bg-muted/60 px-3 text-sm font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 md:px-4 md:text-sm"
+                                        onclick={() => (showTrailerOverride = !showTrailer)}>
+                                        <Play
+                                            size={14}
+                                            class="mr-1.5 fill-current md:mr-2" />Trailer
+                                    </Button>
+                                {/if}
+                            </div>
                         </div>
                     {:else}
-                        <!-- Empty div to maintain layout when no logo -->
-                        <div></div>
-                    {/if}
-
-                    <div class="flex gap-2">
-                        {#if data.riven && data.riven.state === "Completed"}
-                            <Button
-                                variant="ghost"
-                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                                onclick={toggleVideoPlayer}
-                                aria-label="Play Video">
-                                <Video size={18} />
-                                <span class="hidden md:block">Play</span>
-                            </Button>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.trailer}
-                            <Button
-                                variant="ghost"
-                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                                onclick={toggleTrailer}
-                                aria-label="Play Trailer">
-                                <Play size={18} />
-                                <span class="hidden md:block">Trailer</span>
-                            </Button>
-                        {/if}
-                    </div>
-                {:else}
-                    <div class="relative h-full w-full">
                         <iframe
                             class="absolute inset-0 h-full w-full"
                             src="https://www.youtube-nocookie.com/embed/{data.mediaDetails?.details
@@ -272,10 +252,10 @@
                             size="icon"
                             class="bg-background/60 text-foreground hover:bg-background/80 absolute top-4 right-4 z-20"
                             onclick={() => (showTrailerOverride = false)}>
-                            <div class="i-lucide-x h-6 w-6"></div>
+                            <X class="h-6 w-6" />
                         </Button>
-                    </div>
-                {/if}
+                    {/if}
+                </div>
             </div>
         {/if}
 
@@ -330,6 +310,7 @@
                                 itemId={null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
+                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape
@@ -377,6 +358,7 @@
                                 itemId={rivenId?.toString() ?? null}
                                 externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
                                 mediaType={data.mediaDetails?.type}
+                                backdrop={data.mediaDetails?.details?.backdrop_path}
                                 seasons={getSeasonData()}>
                                 <Search class="mr-1.5 h-4 w-4" />
                                 Manual Scrape
@@ -1031,17 +1013,17 @@
     </div>
 </div>
 
-{#if data.riven && data.riven.state === "Completed"}
-    <Dialog.Root bind:open={showVideoPlayer}>
-        <Dialog.Content class="max-w-7xl">
-            <Dialog.Header>
-                <Dialog.Title>{data.mediaDetails?.details.title}</Dialog.Title>
-            </Dialog.Header>
-            <div class="mt-4 aspect-video w-full">
-                {#if showVideoPlayer && rivenId}
-                    <VideoPlayer itemId={rivenId} class="h-full w-full" />
-                {/if}
-            </div>
-        </Dialog.Content>
-    </Dialog.Root>
-{/if}
+<!-- Video Player Dialog -->
+<Dialog.Root bind:open={showVideoPlayer}>
+    <Dialog.Content class="border-border/50 max-w-5xl overflow-hidden bg-black p-0">
+        <Dialog.Header class="sr-only">
+            <Dialog.Title>Video Player</Dialog.Title>
+            <Dialog.Description>Playing {data.mediaDetails?.details.title}</Dialog.Description>
+        </Dialog.Header>
+        <div class="aspect-video w-full">
+            {#if showVideoPlayer && rivenId}
+                <VideoPlayer itemId={rivenId} class="h-full w-full" />
+            {/if}
+        </div>
+    </Dialog.Content>
+</Dialog.Root>

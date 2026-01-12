@@ -17,6 +17,7 @@
     import type { Snippet } from "svelte";
 
     type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
+    type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
 
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -127,20 +128,74 @@
                 };
             });
 
-            // Call simplified stateless endpoint
-            const { data: selectData, error: selectErr } = await providers.riven.POST(
-                "/api/v1/scrape/select_files",
+            if (!sessionData?.session_id) {
+                throw new Error("No active session found");
+            }
+
+            // Action 1: Select Files
+            await (providers.riven as any).POST(
+                `/api/v1/scrape/session/${sessionData.session_id}`,
                 {
                     body: {
-                        magnet: currentSessionMagnet,
-                        items: container,
-                        item_id: itemId ? parseInt(itemId as string) : undefined,
-                        // For new items without a Riven ID, pass external IDs so backend can create/find item
-                        tmdb_id: !itemId && mediaType === "movie" ? externalId : undefined,
-                        tvdb_id: !itemId && mediaType === "tv" ? externalId : undefined,
-                        imdb_id: customImdbId || undefined,
-                        media_type: !itemId ? mediaType : undefined,
-                        max_bitrate_override: maxBitrateOverride
+                        action: "select_files",
+                        files: container
+                    }
+                }
+            );
+
+            // Action 1.5: Update Attributes (Map files to episodes/movies)
+            let fileDataPayload: any = null;
+
+            if (mediaType === "movie") {
+                const mapping = selectedFilesMappings[0];
+                if (mapping) {
+                    fileDataPayload = {
+                        file_id: parseInt(mapping.file_id.toString()),
+                        filename: mapping.filename,
+                        filesize: mapping.filesize,
+                        download_url: mapping.download_url
+                    };
+                }
+            } else {
+                // TV Shows
+                const showData: Record<number, Record<number, any>> = {};
+                selectedFilesMappings.forEach((m) => {
+                    if (m.season !== undefined && m.episode !== undefined) {
+                        if (!showData[m.season]) {
+                            showData[m.season] = {};
+                        }
+                        showData[m.season][m.episode] = {
+                            file_id: parseInt(m.file_id.toString()),
+                            filename: m.filename,
+                            filesize: m.filesize,
+                            download_url: m.download_url
+                        };
+                    }
+                });
+
+                if (Object.keys(showData).length > 0) {
+                    fileDataPayload = showData;
+                }
+            }
+
+            if (fileDataPayload) {
+                await (providers.riven as any).POST(
+                    `/api/v1/scrape/session/${sessionData.session_id}`,
+                    {
+                        body: {
+                            action: "update_attributes",
+                            file_data: fileDataPayload
+                        }
+                    }
+                );
+            }
+
+            // Action 2: Complete Session
+            const { data: selectData, error: selectErr } = await (providers.riven as any).POST(
+                `/api/v1/scrape/session/${sessionData.session_id}`,
+                {
+                    body: {
+                        action: "complete"
                     }
                 }
             );
@@ -185,10 +240,11 @@
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
-    let maxBitrateOverride = $state<number | null>(null);
 
     let customTitle = $state("");
     let customImdbId = $state("");
+    let minFilesizeOverride = $state<number | null>(null);
+    let maxFilesizeOverride = $state<number | null>(null);
 
     // Season Selection State - managed by SeasonSelector component
     let selectedSeasons = $state<Set<number>>(new Set());
@@ -359,15 +415,18 @@
                 magnet: `magnet:?xt=urn:btih:${magnet}`
             };
 
+            if (minFilesizeOverride !== null) {
+                queryParams.min_filesize_override = minFilesizeOverride;
+            }
+            if (maxFilesizeOverride !== null) {
+                queryParams.max_filesize_override = maxFilesizeOverride;
+            }
+
             if (itemId)
                 queryParams.item_id = parseInt(itemId as string); // Ensure int
             else if (externalId) {
                 if (mediaType === "movie") queryParams.tmdb_id = externalId;
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
-            }
-
-            if (maxBitrateOverride !== null) {
-                queryParams.max_bitrate_override = maxBitrateOverride;
             }
 
             const { data, error: err } = await providers.riven.POST(
@@ -404,8 +463,8 @@
                         );
 
                         if (parseData) {
-                            mappings = files.map((file, idx) => {
-                                const parsed = parseData.data[idx] as ParsedTitleData;
+                            mappings = files.map((file: any, idx: number) => {
+                                const parsed = (parseData as any).data[idx] as ParsedTitleData;
                                 return {
                                     file_id: file.file_id?.toString() ?? "",
                                     filename: file.filename ?? "",
@@ -417,7 +476,7 @@
                             });
 
                             batchSessions.push({
-                                sessionId: magnet, // Use magnet as ID for batch
+                                sessionId: (sData as any).session_id, // Use actual session ID
                                 magnet,
                                 stream,
                                 sessionData: sData,
@@ -526,25 +585,6 @@
 
                 rankingOptions = newRankingOptions;
                 selectedOptions = newSelectedOptions;
-
-                // Set default max bitrate override
-                if (data.downloaders) {
-                    const downloaders = data.downloaders as any;
-                    let defaultBitrate = -1;
-
-                    if (mediaType === "movie") {
-                        if (downloaders.movie_bitrate_mbps_max !== undefined) {
-                            defaultBitrate = downloaders.movie_bitrate_mbps_max;
-                        }
-                    } else {
-                        if (downloaders.episode_bitrate_mbps_max !== undefined) {
-                            defaultBitrate = downloaders.episode_bitrate_mbps_max;
-                        }
-                    }
-
-                    // map -1 to null (No limit), otherwise use value
-                    maxBitrateOverride = defaultBitrate === -1 ? null : defaultBitrate;
-                }
             }
         } catch (e) {
             logger.error("Failed to fetch settings", e);
@@ -592,8 +632,6 @@
         return params;
     }
 
-    type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
-
     async function handleAutoScrape() {
         loading = true;
         error = null;
@@ -604,7 +642,8 @@
 
             const body: AutoScrapeRequest = {
                 ...params,
-                max_bitrate_override: maxBitrateOverride
+                min_filesize_override: minFilesizeOverride,
+                max_filesize_override: maxFilesizeOverride
             };
 
             if (Object.keys(rankingOverrides).length > 0) {
@@ -617,15 +656,17 @@
                 selectedSeasons.size > 0 &&
                 selectedSeasons.size < seasons.length
             ) {
-                // Use ScrapeSeasonRequest if available
-                const seasonBody: ScrapeSeasonRequest = {
-                    ...body,
+                const { media_type: _, ...restBody } = body;
+                // Use AutoScrapeRequest
+                const seasonBody: AutoScrapeRequest = {
+                    ...restBody,
+                    media_type: "tv",
                     season_numbers: Array.from(selectedSeasons)
                 };
 
                 // Fire and forget - don't await this
                 providers.riven
-                    .POST("/api/v1/scrape/seasons", {
+                    .POST("/api/v1/scrape/auto", {
                         body: seasonBody
                     })
                     .then(({ data: sData, error: sErr }) => {
@@ -678,7 +719,7 @@
     }
 
     // Helper to start a session with a given magnet link
-    async function startScrapeSession(magnet: string, forceOverride: number | null = null) {
+    async function startScrapeSession(magnet: string) {
         loading = true;
         error = null;
 
@@ -688,10 +729,11 @@
                 magnet: magnet
             };
 
-            if (forceOverride !== null) {
-                queryParams.max_bitrate_override = forceOverride;
-            } else if (maxBitrateOverride !== null) {
-                queryParams.max_bitrate_override = maxBitrateOverride;
+            if (minFilesizeOverride !== null) {
+                queryParams.min_filesize_override = minFilesizeOverride;
+            }
+            if (maxFilesizeOverride !== null) {
+                queryParams.max_filesize_override = maxFilesizeOverride;
             }
 
             // Use shared helper for IDs
@@ -713,7 +755,7 @@
 
                 if (sData.parsed_files && sData.parsed_files.length > 0) {
                     const files = sData.parsed_files;
-                    mappings = files.map((file, idx) => {
+                    mappings = files.map((file: any, idx: number) => {
                         const pm = file.parsed_metadata;
                         return {
                             file_id: file.file_id?.toString() || idx.toString(),
@@ -937,7 +979,7 @@
             const files = sessionData.parsed_files || [];
 
             // Fix season/episode indexing
-            selectedFilesMappings = files.map((file, idx) => {
+            selectedFilesMappings = files.map((file: any, idx: number) => {
                 const pm = file.parsed_metadata;
                 return {
                     file_id: file.file_id?.toString() || idx.toString(),
@@ -992,13 +1034,26 @@
                         };
                     });
 
-                    await providers.riven.POST("/api/v1/scrape/select_files", {
-                        body: {
-                            magnet: session.magnet,
-                            items: container,
-                            max_bitrate_override: maxBitrateOverride
+                    // Use unified session endpoint with select_files and update_attributes actions
+                    await (providers.riven as any).POST(
+                        `/api/v1/scrape/session/${session.sessionId}`,
+                        {
+                            body: {
+                                action: "select_files",
+                                files: container
+                            }
                         }
-                    });
+                    );
+
+                    // Complete the session
+                    await (providers.riven as any).POST(
+                        `/api/v1/scrape/session/${session.sessionId}`,
+                        {
+                            body: {
+                                action: "complete"
+                            }
+                        }
+                    );
 
                     // Update session status
                     session.status = "completed";
@@ -1168,7 +1223,7 @@
                                     </div>
                                 </div>
 
-                                <Accordion.Root type="single" collapsible>
+                                <Accordion.Root type="single" class="w-full">
                                     <Accordion.Item value="custom-params">
                                         <Accordion.Trigger class="py-2 text-sm hover:no-underline">
                                             Advanced Options
@@ -1191,6 +1246,26 @@
                                                         id="custom-imdb"
                                                         placeholder="tt1234567"
                                                         bind:value={customImdbId}
+                                                        class="h-8 text-sm" />
+                                                </div>
+                                                <div class="flex flex-col gap-1.5">
+                                                    <Label for="min-filesize" class="text-xs"
+                                                        >Min Filesize (MB)</Label>
+                                                    <Input
+                                                        id="min-filesize"
+                                                        type="number"
+                                                        placeholder="e.g. 1000"
+                                                        bind:value={minFilesizeOverride}
+                                                        class="h-8 text-sm" />
+                                                </div>
+                                                <div class="flex flex-col gap-1.5">
+                                                    <Label for="max-filesize" class="text-xs"
+                                                        >Max Filesize (MB)</Label>
+                                                    <Input
+                                                        id="max-filesize"
+                                                        type="number"
+                                                        placeholder="e.g. 5000"
+                                                        bind:value={maxFilesizeOverride}
                                                         class="h-8 text-sm" />
                                                 </div>
                                             </div>
@@ -1394,7 +1469,7 @@
                                     </Accordion.Item>
                                 </Accordion.Root>
                                 <!-- Advanced Options -->
-                                <Accordion.Root type="single" collapsible class="w-full">
+                                <Accordion.Root type="single" class="w-full">
                                     <Accordion.Item value="advanced">
                                         <Accordion.Trigger class="py-2 text-sm hover:no-underline">
                                             Advanced Options
@@ -1441,17 +1516,32 @@
                                                 </div>
                                                 <div
                                                     class="bg-muted/50 flex flex-col gap-2 rounded-md p-2">
-                                                    <Label
-                                                        for="max-bitrate-override-auto"
-                                                        class="text-xs">
-                                                        Max Bitrate Override (Mbps)
-                                                    </Label>
-                                                    <Input
-                                                        id="max-bitrate-override-auto"
-                                                        type="number"
-                                                        placeholder="No limit"
-                                                        bind:value={maxBitrateOverride}
-                                                        class="h-8 text-xs" />
+                                                    <div class="flex gap-2">
+                                                        <div class="flex flex-1 flex-col gap-1.5">
+                                                            <Label
+                                                                for="min-filesize-auto"
+                                                                class="text-xs"
+                                                                >Min Filesize (MB)</Label>
+                                                            <Input
+                                                                id="min-filesize-auto"
+                                                                type="number"
+                                                                placeholder="e.g. 1000"
+                                                                class="h-8 text-xs"
+                                                                bind:value={minFilesizeOverride} />
+                                                        </div>
+                                                        <div class="flex flex-1 flex-col gap-1.5">
+                                                            <Label
+                                                                for="max-filesize-auto"
+                                                                class="text-xs"
+                                                                >Max Filesize (MB)</Label>
+                                                            <Input
+                                                                id="max-filesize-auto"
+                                                                type="number"
+                                                                placeholder="e.g. 5000"
+                                                                class="h-8 text-xs"
+                                                                bind:value={maxFilesizeOverride} />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div></Accordion.Content>
                                     </Accordion.Item>
@@ -1487,17 +1577,6 @@
                                     <ChevronLeft class="mr-1 h-4 w-4" />
                                     Back
                                 </Button>
-
-                                <div class="flex items-center space-x-2">
-                                    <Label for="max-bitrate-override" class="w-max text-xs"
-                                        >Max Bitrate (Mbps)</Label>
-                                    <Input
-                                        id="max-bitrate-override"
-                                        type="number"
-                                        placeholder="No limit"
-                                        bind:value={maxBitrateOverride}
-                                        class="h-7 w-20 text-xs" />
-                                </div>
 
                                 {#if selectedMagnets.size > 0}
                                     <Button
