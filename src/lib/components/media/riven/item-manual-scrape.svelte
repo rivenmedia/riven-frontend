@@ -15,7 +15,6 @@
 
     import type { Snippet } from "svelte";
 
-    type RtnSettingsModel = components["schemas"]["RTNSettingsModel"];
     type AutoScrapeRequest = components["schemas"]["AutoScrapeRequest"];
 
     import { toast } from "svelte-sonner";
@@ -86,14 +85,6 @@
         children,
         ...restProps
     }: Props = $props();
-
-    interface FileSelection {
-        file_id: number;
-        filename: string;
-        filesize: number;
-    }
-
-    type UpdateBody = DebridFile | ShowFileData;
 
     let open = $state(false);
     let step = $state(1);

@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                     "message",
                     JSON.stringify({
                         event: "error",
-                        message: `Backend error ${response.status}: ${text}`
+                        message: `An internal server error occurred (${response.status})`
                     })
                 );
                 lock.set(false);

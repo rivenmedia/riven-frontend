@@ -30,7 +30,7 @@
     import * as Pagination from "$lib/components/ui/pagination/index.js";
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
-    import { goto } from "$app/navigation";
+    import { goto, invalidateAll } from "$app/navigation";
     import { Skeleton } from "$lib/components/ui/skeleton";
     import { DELETE } from "../api/[...backendProxy]/+server";
     import PageShell from "$lib/components/page-shell.svelte";
@@ -237,6 +237,7 @@
                                 else {
                                     toast.success(`Removed ${itemsStore.count} items`);
                                     itemsStore.clear();
+                                    await invalidateAll();
                                 }
                             } finally {
                                 actionInProgress = false;
@@ -253,6 +254,7 @@
                                 else {
                                     toast.success(`Reset ${itemsStore.count} items`);
                                     itemsStore.clear();
+                                    await invalidateAll();
                                 }
                             } finally {
                                 actionInProgress = false;
@@ -269,6 +271,7 @@
                                 else {
                                     toast.success(`Retried ${itemsStore.count} items`);
                                     itemsStore.clear();
+                                    await invalidateAll();
                                 }
                             } finally {
                                 actionInProgress = false;

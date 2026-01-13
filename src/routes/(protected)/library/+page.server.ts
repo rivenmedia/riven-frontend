@@ -5,6 +5,9 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import providers from "$lib/providers";
 import { superValidate } from "sveltekit-superforms";
 import * as dateUtils from "$lib/utils/date";
+import { createScopedLogger } from "$lib/logger";
+
+const logger = createScopedLogger("library-page-server");
 
 const VALID_ITEM_TYPES = ["movie", "show", "season", "episode"] as const;
 type ValidItemType = (typeof VALID_ITEM_TYPES)[number];
@@ -56,8 +59,8 @@ function transformItems(items: RivenLibraryItem[]) {
             }
 
             // Skip items without valid navigation IDs
-            if (id === null || id === undefined) {
-                console.warn(
+            if (!id || id === "") {
+                logger.warn(
                     `Skipping item "${item.title}" (riven_id: ${item.id}, type: ${item.type}): missing required ID field`
                 );
                 return null;
