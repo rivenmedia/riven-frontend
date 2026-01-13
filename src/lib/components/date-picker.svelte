@@ -54,7 +54,8 @@
             const d = parseInt(raw.slice(6, 8));
             const maxD = getDaysInMonth(y, m);
 
-            if (raw.length === 7 && parseInt(raw[6]) > 3) raw = raw.slice(0, 6);
+            if (raw.length === 7 && parseInt(raw[6]) > Math.floor(maxD / 10))
+                raw = raw.slice(0, 6);
             else if (d === 0 || d > maxD) raw = raw.slice(0, 7);
         }
 

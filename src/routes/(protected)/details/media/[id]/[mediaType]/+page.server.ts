@@ -14,6 +14,20 @@ import { resolveId } from "$lib/services/resolver";
 
 const logger = createScopedLogger("media-details");
 
+async function normalizeFetch<T>(p: Promise<T>) {
+    try {
+        return await p;
+    } catch (e) {
+        return {
+            data: null,
+            error: {
+                status: 503,
+                message: e instanceof Error ? e.message : String(e)
+            }
+        } as any;
+    }
+}
+
 /**
  * Validates that a TVDB API response contains required fields for parsing.
  * Throws if validation fails, otherwise returns the typed value.
@@ -125,18 +139,20 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
 
             // Fetch TMDB details and Trakt data in parallel
             const [tmdbResult, traktResult, rivenData] = await Promise.all([
-                providers.tmdb.GET(`/3/movie/{movie_id}`, {
-                    params: {
-                        path: {
-                            movie_id: Number(id)
+                normalizeFetch(
+                    providers.tmdb.GET(`/3/movie/{movie_id}`, {
+                        params: {
+                            path: {
+                                movie_id: Number(id)
+                            },
+                            query: {
+                                append_to_response:
+                                    "external_ids,images,recommendations,similar,videos,credits,release_dates"
+                            }
                         },
-                        query: {
-                            append_to_response:
-                                "external_ids,images,recommendations,similar,videos,credits,release_dates"
-                        }
-                    },
-                    fetch: customFetch
-                }),
+                        fetch: customFetch
+                    })
+                ),
                 getTraktData(customFetch, id, true),
                 rivenPromise
             ]);
@@ -174,16 +190,18 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 tvdbId = Number(id);
             } else {
                 // Resolve TMDB ID to TVDB ID
-                const resolved = await resolveId({
-                    from: "tmdb",
-                    to: "tvdb",
-                    id: Number(id),
-                    mediaType: "tv",
-                    tvdbToken,
-                    customFetch
-                });
+                const resolved = await normalizeFetch(
+                    resolveId({
+                        from: "tmdb",
+                        to: "tvdb",
+                        id: Number(id),
+                        mediaType: "tv",
+                        tvdbToken,
+                        customFetch
+                    })
+                );
 
-                if (!resolved.resolved) {
+                if (!resolved || !resolved.resolved) {
                     logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`);
                     error(502, "Unable to resolve TV show ID. Please try again later.");
                 }
@@ -207,22 +225,26 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
             // Fetch TVDB details (episodes + translations separately), Trakt data, and Riven data in parallel
             const [tvdbEpisodesResult, tvdbTranslationsResult, traktResult, rivenData] =
                 await Promise.all([
-                    providers.tvdb.GET(`/series/{id}/extended`, {
-                        params: {
-                            path: { id: tvdbId },
-                            query: { meta: "episodes" }
-                        },
-                        headers: { Authorization: `Bearer ${tvdbToken}` },
-                        fetch: customFetch
-                    }),
-                    providers.tvdb.GET(`/series/{id}/extended`, {
-                        params: {
-                            path: { id: tvdbId },
-                            query: { meta: "translations" }
-                        },
-                        headers: { Authorization: `Bearer ${tvdbToken}` },
-                        fetch: customFetch
-                    }),
+                    normalizeFetch(
+                        providers.tvdb.GET(`/series/{id}/extended`, {
+                            params: {
+                                path: { id: tvdbId },
+                                query: { meta: "episodes" }
+                            },
+                            headers: { Authorization: `Bearer ${tvdbToken}` },
+                            fetch: customFetch
+                        })
+                    ),
+                    normalizeFetch(
+                        providers.tvdb.GET(`/series/{id}/extended`, {
+                            params: {
+                                path: { id: tvdbId },
+                                query: { meta: "translations" }
+                            },
+                            headers: { Authorization: `Bearer ${tvdbToken}` },
+                            fetch: customFetch
+                        })
+                    ),
                     getTraktData(customFetch, String(tvdbId), false),
                     rivenPromise
                 ]);
@@ -268,8 +290,8 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 languagesToCheck.includes(details.data.originalLanguage)
             ) {
                 try {
-                    const { data: engEpisodesData, error: engEpisodesError } =
-                        await providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
+                    const { data: engEpisodesData, error: engEpisodesError } = await normalizeFetch(
+                        providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
                             params: {
                                 path: {
                                     id: tvdbId,
@@ -284,7 +306,8 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                                 Authorization: `Bearer ${tvdbToken}`
                             },
                             fetch: customFetch
-                        });
+                        })
+                    );
 
                     // The generated types for this endpoint are incorrect (expects data.series.episodes),
                     // but the actual API returns data.episodes.

@@ -32,7 +32,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             // Ensure backendUrl doesn't have a trailing slash and target the correct /scrape endpoint
             const baseUrl = backendUrl.replace(/\/$/, "");
             const targetUrl = `${baseUrl}/api/v1/scrape?${searchParams.toString()}`;
-            logger.info(`Scrape stream proxy: forwarding to ${targetUrl}`);
+
+            // Sanitize log URL
+            const logUrl = new URL(targetUrl);
+            logUrl.search = ""; // Redact all query params
+            logger.info(`Scrape stream proxy: forwarding to ${logUrl.toString()}`);
+
             const response = await fetch(targetUrl, {
                 method: "GET",
                 headers: {
