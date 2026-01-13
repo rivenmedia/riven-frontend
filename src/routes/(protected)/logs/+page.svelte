@@ -86,7 +86,7 @@
                     "Failed to copy logs link. Make sure you are using https or localhost."
                 );
             }
-        } catch (e: any) {
+        } catch (e) {
             logger.error("Failed to upload logs:", e);
         }
     }
@@ -227,7 +227,7 @@
                 <div class="min-h-0 flex-1 overflow-y-auto">
                     {#if activeTab === "live"}
                         {#if logs.length > 0}
-                            {#each logs.slice().reverse() as log}
+                            {#each logs.slice().reverse() as log, i (i)}
                                 {@render logEntry(log)}
                             {/each}
                         {:else if connectionStatus === "connecting"}
@@ -242,7 +242,7 @@
                             )}
                         </div>
                     {:else if historicalLogs.length > 0}
-                        {#each historicalLogs.slice().reverse() as log}
+                        {#each historicalLogs.slice().reverse() as log, i (i)}
                             {@render logEntry(log)}
                         {/each}
                     {:else}

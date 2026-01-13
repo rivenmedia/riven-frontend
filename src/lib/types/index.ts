@@ -69,7 +69,7 @@ export interface BatchSession {
     sessionId: string;
     magnet: string;
     stream: Stream;
-    sessionData: any;
+    sessionData: components["schemas"]["StartSessionResponse"];
     mappings: FileMapping[];
     status: "pending" | "completed" | "error";
     error?: string;

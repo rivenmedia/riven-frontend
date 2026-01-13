@@ -102,8 +102,8 @@
                 void authClient.signIn.passkey({
                     autoFill: true,
                     fetchOptions: {
-                        onSuccess() {
-                            goto("/");
+                        async onSuccess() {
+                            await goto("/");
                         },
                         onError(context) {
                             logger.debug("Passkey autofill failed:", context.error);
@@ -119,15 +119,15 @@
         try {
             await authClient.signIn.passkey({
                 fetchOptions: {
-                    onSuccess() {
-                        goto("/");
+                    async onSuccess() {
+                        await goto("/");
                     },
                     onError(context) {
                         toast.error(context.error.message || "Passkey authentication failed");
                     }
                 }
             });
-        } catch (error) {
+        } catch {
             toast.error("Passkey authentication failed");
         } finally {
             isPasskeyLoading = false;
@@ -143,6 +143,7 @@
 <div class="grid min-h-svh lg:grid-cols-2">
     <div class="flex flex-col gap-4 p-6 md:p-10">
         <div class="flex justify-center gap-2 md:justify-start">
+            <!-- svelte-ignore svelte/no-navigation-without-resolve -->
             <a href="/" class="flex items-center gap-2 font-medium">
                 <div
                     class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
@@ -211,7 +212,7 @@
                             {/if}
 
                             <div class="flex flex-col gap-2">
-                                {#each Object.entries(data.authProviders) as [key, provider]}
+                                {#each Object.entries(data.authProviders) as [key, provider] (key)}
                                     {#if key !== "credential" && provider.enabled}
                                         <Button
                                             onclick={async () => {

@@ -43,6 +43,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
 export const actions = {
     default: async ({ request, fetch, locals }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handleForm = createFormHandler<any, true>({
             ...defaults,
             // @ts-expect-error - it's valid
@@ -50,7 +51,7 @@ export const actions = {
             sendData: true
         });
 
-        const [form, , invalid] = await handleForm(request.signal, await request.formData());
+        const [form] = await handleForm(request.signal, await request.formData());
         if (!form.isValid) {
             return fail(400, { form });
         }

@@ -9,12 +9,10 @@
     import PageShell from "$lib/components/page-shell.svelte";
     setShadcnContext();
 
-    let { data }: { data: PageData } = $props();
-
     const meta = createMeta<ActionData, PageData>().form;
 
     // @ts-expect-error - Schema is provided by page data
-    const { form, request } = setupSvelteKitForm(meta, {
+    const { form } = setupSvelteKitForm(meta, {
         ...defaults,
         icons,
         delayedMs: 500,

@@ -1,9 +1,9 @@
 <script lang="ts">
     import { untrack } from "svelte";
-    import { SvelteSet } from "svelte/reactivity";
+    import { SvelteSet, SvelteURLSearchParams } from "svelte/reactivity";
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
-    import type { components } from "$lib/providers/riven";
+    import type { components, operations } from "$lib/providers/riven";
     import {
         type Stream,
         type DebridFile,
@@ -141,7 +141,10 @@
             });
 
             // Action 1.5: Update Attributes (Map files to episodes/movies)
-            let fileDataPayload: any = null;
+            let fileDataPayload:
+                | components["schemas"]["DebridFile"]
+                | components["schemas"]["ShowFileData"]
+                | null = null;
 
             if (mediaType === "movie") {
                 const mapping = selectedFilesMappings[0];
@@ -155,13 +158,15 @@
                 }
             } else {
                 // TV Shows
-                const showData: Record<number, Record<number, any>> = {};
+                const showData: components["schemas"]["ShowFileData"] = {};
                 selectedFilesMappings.forEach((m) => {
                     if (m.season !== undefined && m.episode !== undefined) {
-                        if (!showData[m.season]) {
-                            showData[m.season] = {};
+                        const seasonKey = String(m.season);
+                        const episodeKey = String(m.episode);
+                        if (!showData[seasonKey]) {
+                            showData[seasonKey] = {};
                         }
-                        showData[m.season][m.episode] = {
+                        showData[seasonKey][episodeKey] = {
                             file_id: parseFileId(m.file_id),
                             filename: m.filename,
                             filesize: m.filesize,
@@ -222,7 +227,7 @@
             loading = false;
         }
     }
-    let sessionData = $state<any | null>(null);
+    let sessionData = $state<components["schemas"]["StartSessionResponse"] | null>(null);
     let selectedFilesMappings = $state<FileMapping[]>([]);
     let rankingOptions = $state<Record<string, string[]>>({});
     let selectedOptions = $state<Record<string, string[]>>({
@@ -239,7 +244,7 @@
     });
     let canStartAutoScrape = $derived(Object.values(selectedOptions).some((arr) => arr.length > 0));
 
-    let selectedMagnets = $state<SvelteSet<string>>(new SvelteSet());
+    let selectedMagnets = new SvelteSet<string>();
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
@@ -250,7 +255,7 @@
     let maxFilesizeOverride = $state<number | null>(null);
 
     // Season Selection State - managed by SeasonSelector component
-    let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
+    let selectedSeasons = new SvelteSet<number>();
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
@@ -271,7 +276,7 @@
     });
     let eventSourceRef = $state<EventSource | null>(null);
 
-    const categoryIcons: Record<string, any> = {
+    const categoryIcons: Record<string, typeof Monitor> = {
         resolutions: Monitor,
         quality: Star,
         rips: Disc,
@@ -282,7 +287,7 @@
     };
 
     // Track which categories are expanded (all collapsed by default)
-    let expandedCategories = $state<SvelteSet<string>>(new SvelteSet());
+    let expandedCategories = new SvelteSet<string>();
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -411,8 +416,8 @@
 
     async function prepareBatchSession(magnet: string, stream: Stream) {
         try {
-            const queryParams: any = {
-                media_type: mediaType,
+            const queryParams: operations["start_manual_session"]["parameters"]["query"] = {
+                media_type: mediaType as "movie" | "tv",
                 magnet: `magnet:?xt=urn:btih:${magnet}`
             };
 
@@ -437,8 +442,7 @@
             });
 
             if (data) {
-                // Cast to specific type if known, or improve type definitions
-                const sData = data as components["schemas"]["StartSessionResponse"];
+                const sData = data;
                 let mappings: FileMapping[];
 
                 if (
@@ -463,8 +467,7 @@
 
                         if (parseData) {
                             mappings = files.map((file: DebridFile, idx: number) => {
-                                // Assuming parseData follows a specific structure, cast appropriately or define it
-                                const parsed = (parseData as any).data[idx] as ParsedTitleData;
+                                const parsed = parseData.data[idx] as ParsedTitleData;
                                 return {
                                     file_id: file.file_id?.toString() ?? "",
                                     filename: file.filename ?? "",
@@ -558,21 +561,26 @@
                 }
 
                 // Custom Ranks
-                const categories: (keyof import("$lib/providers/riven").components["schemas"]["CustomRanksConfig"])[] =
-                    ["quality", "rips", "hdr", "audio", "extras", "trash"];
-                // Note: 'trash' might not be in CustomRanksConfig in the same way, need verification or ANY cast if strict.
+                const categories: (keyof components["schemas"]["CustomRanksConfig"])[] = [
+                    "quality",
+                    "rips",
+                    "hdr",
+                    "audio",
+                    "extras",
+                    "trash"
+                ];
 
                 categories.forEach((cat) => {
-                    if (ranking?.custom_ranks && (ranking.custom_ranks as any)[cat]) {
-                        const categoryObj = (ranking.custom_ranks as any)[cat];
+                    if (ranking?.custom_ranks && ranking.custom_ranks[cat]) {
+                        const categoryObj = ranking.custom_ranks[cat];
                         if (!categoryObj) return;
 
                         newRankingOptions[cat] = Object.keys(categoryObj);
 
                         // Populate selected options for this category
                         newSelectedOptions[cat] = Object.entries(categoryObj)
-                            .filter(([val]) => {
-                                return (val as any)?.fetch === true;
+                            .filter(([, val]) => {
+                                return (val as components["schemas"]["CustomRank"])?.fetch === true;
                             })
                             .map(([key]) => key);
                     }
@@ -611,12 +619,12 @@
     }
 
     function getScrapeParams() {
-        const params: any = {
-            media_type: mediaType
+        const params: Partial<AutoScrapeRequest> = {
+            media_type: mediaType as "movie" | "tv"
         };
 
         if (itemId) {
-            params.item_id = String(itemId);
+            params.item_id = parseFileId(itemId);
         }
 
         if (externalId) {
@@ -667,8 +675,8 @@
                     .then(({ error: sErr }) => {
                         if (sErr) {
                             const errorMsg =
-                                (sErr as any).message ||
-                                (sErr as any).detail ||
+                                (sErr as { message?: string; detail?: string }).message ||
+                                (sErr as { message?: string; detail?: string }).detail ||
                                 "Failed to start auto scrape";
                             toast.error(errorMsg);
                         }
@@ -719,8 +727,8 @@
         error = null;
 
         try {
-            const queryParams: any = {
-                media_type: mediaType,
+            const queryParams: operations["start_manual_session"]["parameters"]["query"] = {
+                media_type: mediaType as "movie" | "tv",
                 magnet: magnet
             };
 
@@ -743,15 +751,14 @@
             );
 
             if (data) {
-                // Cast to any to handle new fields
-                const sData = data as any;
+                const sData = data;
                 let mappings: FileMapping[];
                 currentSessionMagnet = magnet;
 
                 if (sData.parsed_files && sData.parsed_files.length > 0) {
                     const files = sData.parsed_files;
-                    mappings = files.map((file: any, idx: number) => {
-                        const pm = file.parsed_metadata;
+                    mappings = files.map((file, idx: number) => {
+                        const pm = file.parsed_metadata as ParsedTitleData;
                         return {
                             file_id: file.file_id?.toString() || idx.toString(),
                             filename: file.filename || "",
@@ -777,7 +784,9 @@
                 // No longer need to check step, handleSelectAllFiles will move to step 3
             } else {
                 const errorMsg =
-                    (err as any)?.detail || (err as any)?.message || "Failed to start session";
+                    (err as { detail?: string; message?: string })?.detail ||
+                    (err as { detail?: string; message?: string })?.message ||
+                    "Failed to start session";
                 error = errorMsg;
                 toast.error(errorMsg);
             }
@@ -808,7 +817,7 @@
 
         // Build query parameters for SSE endpoint
         const baseParams = getScrapeParams();
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
 
         Object.entries(baseParams).forEach(([key, value]) => {
             if (value) params.set(key, String(value));
@@ -974,8 +983,8 @@
             const files = sessionData.parsed_files || [];
 
             // Fix season/episode indexing
-            selectedFilesMappings = files.map((file: any, idx: number) => {
-                const pm = file.parsed_metadata;
+            selectedFilesMappings = files.map((file, idx: number) => {
+                const pm = file.parsed_metadata as ParsedTitleData;
                 return {
                     file_id: file.file_id?.toString() || idx.toString(),
                     filename: file.filename || "",

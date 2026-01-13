@@ -96,8 +96,7 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        <!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("tv" as any) ?? true) as option (option.value)}
+                        {#each SORT_OPTIONS.filter( (o) => (o.allowedFor as unknown as string[]).includes("tv") ) as option (option.value)}
                             <Select.Item value={option.value} label={option.label}>
                                 {option.label}
                             </Select.Item>
@@ -126,7 +125,7 @@
                 </div>
             {/each}
             {#if searchStore.loading}
-                {#each Array(6) as i (i)}
+                {#each [...Array(6).keys()] as i (i)}
                     <div class="w-36 md:w-44 lg:w-48">
                         <PortraitCardSkeleton />
                     </div>
@@ -135,7 +134,7 @@
         </div>
     {:else if searchStore.loading}
         <div class="flex flex-wrap gap-4">
-            {#each Array(12) as i (i)}
+            {#each [...Array(12).keys()] as i (i)}
                 <div class="w-36 md:w-44 lg:w-48">
                     <PortraitCardSkeleton />
                 </div>
