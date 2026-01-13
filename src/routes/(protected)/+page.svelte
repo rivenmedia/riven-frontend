@@ -46,14 +46,15 @@
 
 {#snippet listHeading(title: string)}
     <div class="flex items-center gap-3">
-        <div class="h-6 w-1 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]"></div>
-        <h2 class="text-2xl font-bold tracking-tight drop-shadow-md text-foreground">
+        <div class="bg-primary h-6 w-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]">
+        </div>
+        <h2 class="text-foreground text-2xl font-bold tracking-tight drop-shadow-md">
             {title}
         </h2>
     </div>
 {/snippet}
 
-<PageShell class="mt-4 md:mt-8 flex flex-col gap-10 pb-20">
+<PageShell class="mt-4 flex flex-col gap-10 pb-20 md:mt-8">
     {#if recentlyAddedStore.items.length}
         <div
             class="flex flex-col gap-4"

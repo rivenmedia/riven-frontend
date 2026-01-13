@@ -79,31 +79,37 @@
     // Filter credits by type
     const movieCredits = $derived(data.entity.cast_credits.filter((c) => c.media_type === "movie"));
     const showCredits = $derived(data.entity.cast_credits.filter((c) => c.media_type === "tv"));
-    const crewCredits = $derived(deduplicateById(
-        data.entity.crew_credits.map((c) => ({
-            ...c,
-            role: c.job ?? "Crew",
-            character: null
-        }))
-    ));
+    const crewCredits = $derived(
+        deduplicateById(
+            data.entity.crew_credits.map((c) => ({
+                ...c,
+                role: c.job ?? "Crew",
+                character: null
+            }))
+        )
+    );
 
     // Select Top 5 for carousel (matching Seerr's logic)
-    const backdropCandidates = $derived(uniqueCredits
-        .filter((c) => c.backdrop_path && c.vote_count != null)
-        .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0))
-        .slice(0, 5));
+    const backdropCandidates = $derived(
+        uniqueCredits
+            .filter((c) => c.backdrop_path && c.vote_count != null)
+            .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0))
+            .slice(0, 5)
+    );
 
     // Map to carousel format
-    const carouselItems: TMDBNowPlayingItem[] = $derived(backdropCandidates.map((c) => ({
-        id: c.id,
-        media_type: c.media_type as "movie" | "tv",
-        title: c.title,
-        backdrop_path: c.backdrop_path,
-        release_date: c.release_date ?? undefined,
-        vote_average: c.vote_average ?? 0,
-        overview: c.character ? `as ${c.character}` : c.role,
-        genre_ids: []
-    })));
+    const carouselItems: TMDBNowPlayingItem[] = $derived(
+        backdropCandidates.map((c) => ({
+            id: c.id,
+            media_type: c.media_type as "movie" | "tv",
+            title: c.title,
+            backdrop_path: c.backdrop_path,
+            release_date: c.release_date ?? undefined,
+            vote_average: c.vote_average ?? 0,
+            overview: c.character ? `as ${c.character}` : c.role,
+            genre_ids: []
+        }))
+    );
 
     const currentBackdrop = $derived(carouselItems[0]);
 

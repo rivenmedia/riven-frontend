@@ -138,9 +138,10 @@
 </script>
 
 {#snippet sectionHeading(title: string)}
-    <div class="flex items-center gap-3 mb-4">
-        <div class="h-6 w-1 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]"></div>
-        <h2 class="text-xl font-bold tracking-tight drop-shadow-md text-foreground">
+    <div class="mb-4 flex items-center gap-3">
+        <div class="bg-primary h-6 w-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]">
+        </div>
+        <h2 class="text-foreground text-xl font-bold tracking-tight drop-shadow-md">
             {title}
         </h2>
     </div>
@@ -157,7 +158,9 @@
     title: string,
     delay: number = 600
 )}
-    <section class="mt-8 md:mt-12" in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
+    <section
+        class="mt-8 md:mt-12"
+        in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
         {@render sectionHeading(title)}
         <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
             <Carousel.Content class="-ml-3">
@@ -237,7 +240,7 @@
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            class="bg-white/10 text-white hover:bg-white/20 px-4 text-sm font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 border border-white/10"
+                                            class="border border-white/10 bg-white/10 px-4 text-sm font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
                                             onclick={toggleVideoPlayer}>
                                             <Play class="mr-1.5 h-4 w-4 fill-current md:mr-2" />
                                             Play
@@ -247,7 +250,7 @@
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            class="bg-white/10 text-white hover:bg-white/20 px-4 text-sm font-bold shadow-xl backdrop-blur-md transition-all hover:scale-105 border border-white/10"
+                                            class="border border-white/10 bg-white/10 px-4 text-sm font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
                                             onclick={() => (showTrailerOverride = !showTrailer)}>
                                             <Play
                                                 size={14}
@@ -627,7 +630,7 @@
                                     (e) => e.episode_number === episode.number
                                 )}
                                 <Drawer.Root direction="bottom">
-                                    <Drawer.Trigger class="w-full text-left group">
+                                    <Drawer.Trigger class="group w-full text-left">
                                         <LandscapeCard
                                             title={episode.name}
                                             episodeNumber={episode.number ?? undefined}
@@ -641,11 +644,11 @@
                                             {/snippet}
                                             {#snippet meta()}
                                                 <span
-                                                    class="border-white/10 bg-white/5 text-muted-foreground rounded-full border px-2 py-0.5 text-sm backdrop-blur-sm"
+                                                    class="text-muted-foreground rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
                                                     >{episode.aired}</span>
                                                 {#if episode.runtime}
                                                     <span
-                                                        class="border-white/10 bg-white/5 text-muted-foreground rounded-full border px-2 py-0.5 text-sm backdrop-blur-sm"
+                                                        class="text-muted-foreground rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
                                                         >{episode.runtime} min</span>
                                                 {/if}
                                             {/snippet}
@@ -838,17 +841,19 @@
                 <section
                     class="mt-8 md:mt-12"
                     in:fly|global={{ y: 20, duration: 400, delay: 600, easing: cubicOut }}>
-                    <div class="flex flex-col gap-8 lg:flex-row lg:gap-12 max-w-7xl">
+                    <div class="flex max-w-7xl flex-col gap-8 lg:flex-row lg:gap-12">
                         <!-- More Details Column -->
-                        <div class="flex-1 min-w-0">
+                        <div class="min-w-0 flex-1">
                             {@render sectionHeading("More Details")}
                             <div class="flex flex-col gap-6 text-sm">
                                 <!-- Financials Row -->
                                 {#if data.mediaDetails?.type === "movie" && (data.mediaDetails?.details.budget || data.mediaDetails?.details.revenue)}
                                     <div class="flex flex-wrap gap-12">
                                         {#if data.mediaDetails.details.budget}
-                                            <div class="flex flex-col gap-1 min-w-[120px]">
-                                                <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Budget</span>
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Budget</span>
                                                 <span class="text-foreground font-mono"
                                                     >{formatCurrency(
                                                         data.mediaDetails.details.budget
@@ -856,8 +861,10 @@
                                             </div>
                                         {/if}
                                         {#if data.mediaDetails.details.revenue}
-                                            <div class="flex flex-col gap-1 min-w-[120px]">
-                                                <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Revenue</span>
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Revenue</span>
                                                 <span class="text-foreground font-mono"
                                                     >{formatCurrency(
                                                         data.mediaDetails.details.revenue
@@ -871,8 +878,10 @@
                                 {#if data.mediaDetails?.details.origin_country?.length || data.mediaDetails?.details.spoken_languages?.length}
                                     <div class="flex flex-wrap gap-12">
                                         {#if data.mediaDetails?.details.origin_country?.length}
-                                            <div class="flex flex-col gap-1 min-w-[120px]">
-                                                <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Origin</span>
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Origin</span>
                                                 <span class="text-foreground"
                                                     >{data.mediaDetails.details.origin_country.join(
                                                         ", "
@@ -880,8 +889,10 @@
                                             </div>
                                         {/if}
                                         {#if data.mediaDetails?.details.spoken_languages?.length}
-                                            <div class="flex flex-col gap-1 min-w-[120px]">
-                                                <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Languages</span>
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Languages</span>
                                                 <span class="text-foreground"
                                                     >{data.mediaDetails.details.spoken_languages
                                                         .map((l) => l.english_name)
@@ -894,11 +905,13 @@
                                 <!-- Production Companies -->
                                 {#if data.mediaDetails?.details.production_companies?.length}
                                     <div class="flex flex-col gap-2">
-                                        <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold"
+                                        <span
+                                            class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                             >Production</span>
                                         <div class="flex flex-wrap gap-2">
                                             {#each data.mediaDetails.details.production_companies as company}
-                                                <span class="bg-white/5 border-white/10 rounded px-2 py-1 text-xs border text-muted-foreground">
+                                                <span
+                                                    class="text-muted-foreground rounded border border-white/10 bg-white/5 px-2 py-1 text-xs">
                                                     {company.name}
                                                 </span>
                                             {/each}
@@ -909,35 +922,40 @@
                                 <!-- External Links -->
                                 {#if data.mediaDetails?.details.homepage || data.mediaDetails?.details.imdb_id || data.mediaDetails?.details.external_ids}
                                     <div class="flex flex-col gap-2">
-                                        <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Links</span>
+                                        <span
+                                            class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                            >Links</span>
                                         <div class="flex flex-wrap gap-2">
                                             {#if data.mediaDetails?.details.homepage}
                                                 <a
                                                     href={data.mediaDetails.details.homepage}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    class="bg-white/5 hover:bg-white/10 border-white/10 text-foreground rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                                                    class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
                                                     >Website</a>
                                             {/if}
                                             {#if data.mediaDetails?.details.imdb_id}
                                                 <a
-                                                    href="https://www.imdb.com/title/{data.mediaDetails
-                                                        .details.imdb_id}/parentalguide/"
+                                                    href="https://www.imdb.com/title/{data
+                                                        .mediaDetails.details
+                                                        .imdb_id}/parentalguide/"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    class="bg-white/5 hover:bg-white/10 border-white/10 text-foreground rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                                                    class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
                                                     >Parental Guide</a>
                                             {/if}
                                             {#if data.mediaDetails?.details.external_ids}
                                                 {@const validLinks = Object.entries(
                                                     data.mediaDetails.details.external_ids
-                                                ).filter(([key, value]) => value && getExternal(key))}
+                                                ).filter(
+                                                    ([key, value]) => value && getExternal(key)
+                                                )}
                                                 {#each validLinks as [key, value]}
                                                     <a
                                                         href="{getExternal(key).url}{value}"
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        class="bg-white/5 hover:bg-white/10 border-white/10 text-foreground rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                                                        class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
                                                         >{getExternal(key).name}</a>
                                                 {/each}
                                             {/if}
@@ -952,16 +970,17 @@
                             {@const meta = data.riven.media_metadata}
                             {@const fs = data.riven.filesystem_entry}
                             {@const video = meta?.video}
-                            <div class="flex-1 min-w-0">
+                            <div class="min-w-0 flex-1">
                                 {@render sectionHeading("File Information")}
                                 <div class="flex flex-col gap-6 text-sm">
                                     <!-- Filenames -->
                                     {#if meta?.filename}
                                         <div class="flex flex-col gap-1">
-                                            <p class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">
+                                            <p
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                                                 Current Filename
                                             </p>
-                                            <p class="text-foreground break-all font-mono text-xs">
+                                            <p class="text-foreground font-mono text-xs break-all">
                                                 {meta.filename}
                                             </p>
                                         </div>
@@ -970,28 +989,34 @@
                                     <!-- Video -->
                                     {#if video}
                                         <div class="flex flex-col gap-2">
-                                            <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Video</span>
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Video</span>
                                             <div class="flex flex-wrap gap-2">
                                                 {#if video.resolution_width && video.resolution_height}<Badge
                                                         variant="secondary"
-                                                        class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
                                                         >{video.resolution_width}x{video.resolution_height}</Badge
                                                     >{/if}
                                                 {#if video.codec}<Badge
                                                         variant="secondary"
-                                                        class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.codec}</Badge
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.codec}</Badge
                                                     >{/if}
                                                 {#if video.bit_depth}<Badge
                                                         variant="secondary"
-                                                        class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.bit_depth}-bit</Badge
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.bit_depth}-bit</Badge
                                                     >{/if}
                                                 {#if video.hdr_type}<Badge
                                                         variant="secondary"
-                                                        class="bg-purple-500/10 border-purple-500/20 text-purple-200 backdrop-blur-sm font-mono text-xs border">{video.hdr_type}</Badge
+                                                        class="border border-purple-500/20 bg-purple-500/10 font-mono text-xs text-purple-200 backdrop-blur-sm"
+                                                        >{video.hdr_type}</Badge
                                                     >{/if}
                                                 {#if video.frame_rate}<Badge
                                                         variant="secondary"
-                                                        class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border">{video.frame_rate} FPS</Badge
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.frame_rate} FPS</Badge
                                                     >{/if}
                                             </div>
                                         </div>
@@ -1000,10 +1025,14 @@
                                     <!-- Audio - Show ALL tracks -->
                                     {#if meta?.audio_tracks?.length}
                                         <div class="flex flex-col gap-2">
-                                            <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Audio</span>
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Audio</span>
                                             <div class="flex flex-wrap gap-2">
                                                 {#each meta.audio_tracks as track}
-                                                    <Badge variant="secondary" class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm font-mono text-xs border"
+                                                    <Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
                                                         >{track.codec}{track.channels
                                                             ? track.channels === 8
                                                                 ? " 7.1"
@@ -1021,11 +1050,14 @@
                                     <!-- Subtitles - Show ALL tracks -->
                                     {#if meta?.subtitle_tracks?.length}
                                         <div class="flex flex-col gap-2">
-                                            <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold"
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                 >Subtitles</span>
                                             <div class="flex flex-wrap gap-2">
                                                 {#each meta.subtitle_tracks as track}
-                                                    <Badge variant="secondary" class="bg-white/5 border-white/10 text-muted-foreground backdrop-blur-sm text-[10px] border"
+                                                    <Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 text-[10px] backdrop-blur-sm"
                                                         >{track.language
                                                             ? track.language.toUpperCase()
                                                             : "Unknown"}</Badge>
@@ -1037,21 +1069,28 @@
                                     <!-- Source -->
                                     {#if meta?.quality_source}
                                         <div class="flex flex-col gap-2">
-                                            <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Source</span>
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Source</span>
                                             <div class="flex flex-wrap gap-2">
-                                                <Badge variant="secondary" class="bg-blue-500/10 border-blue-500/20 text-blue-200 backdrop-blur-sm font-bold text-xs border"
+                                                <Badge
+                                                    variant="secondary"
+                                                    class="border border-blue-500/20 bg-blue-500/10 text-xs font-bold text-blue-200 backdrop-blur-sm"
                                                     >{meta.quality_source}</Badge>
                                                 {#if meta?.is_remux}<Badge
                                                         variant="secondary"
-                                                        class="bg-amber-500/10 border-amber-500/20 text-amber-200 backdrop-blur-sm font-bold text-xs border">REMUX</Badge
+                                                        class="border border-amber-500/20 bg-amber-500/10 text-xs font-bold text-amber-200 backdrop-blur-sm"
+                                                        >REMUX</Badge
                                                     >{/if}
                                                 {#if meta?.is_proper}<Badge
                                                         variant="secondary"
-                                                        class="bg-green-500/10 border-green-500/20 text-green-200 backdrop-blur-sm font-bold text-xs border">PROPER</Badge
+                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                        >PROPER</Badge
                                                     >{/if}
                                                 {#if meta?.is_repack}<Badge
                                                         variant="secondary"
-                                                        class="bg-green-500/10 border-green-500/20 text-green-200 backdrop-blur-sm font-bold text-xs border">REPACK</Badge
+                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                        >REPACK</Badge
                                                     >{/if}
                                             </div>
                                         </div>
@@ -1060,18 +1099,22 @@
                                     <!-- Size & Bitrate -->
                                     {#if fs?.file_size || meta?.bitrate}
                                         <div class="flex flex-col gap-2">
-                                            <span class="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Metrics</span>
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Metrics</span>
                                             <div class="flex flex-wrap gap-4">
                                                 {#if fs?.file_size}
                                                     <div class="flex items-center gap-2">
-                                                        <span class="text-muted-foreground text-xs">Size</span>
+                                                        <span class="text-muted-foreground text-xs"
+                                                            >Size</span>
                                                         <span class="text-foreground font-mono"
                                                             >{formatSize(fs.file_size)}</span>
                                                     </div>
                                                 {/if}
                                                 {#if meta?.bitrate}
                                                     <div class="flex items-center gap-2">
-                                                        <span class="text-muted-foreground text-xs">Bitrate</span>
+                                                        <span class="text-muted-foreground text-xs"
+                                                            >Bitrate</span>
                                                         <span class="text-foreground font-mono"
                                                             >{Math.round(meta.bitrate / 1000000)} Mbps</span>
                                                     </div>

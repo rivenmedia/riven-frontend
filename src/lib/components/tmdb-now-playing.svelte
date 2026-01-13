@@ -93,20 +93,6 @@
     }
 </script>
 
-<style>
-    @keyframes progress {
-        from {
-            width: 0%;
-        }
-        to {
-            width: 100%;
-        }
-    }
-    .animate-progress {
-        animation: progress 5s linear;
-    }
-</style>
-
 {#if Array.isArray(data) && data.length > 0}
     <div class="border-border/50 relative overflow-hidden rounded-2xl border shadow-2xl">
         <Carousel.Root
@@ -140,7 +126,7 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-32 md:pt-8 md:pb-16 lg:left-0 lg:right-0 {getAlignmentClasses(
+                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-32 md:pt-8 md:pb-16 lg:right-0 lg:left-0 {getAlignmentClasses(
                                     alignment,
                                     'container'
                                 )}">
@@ -170,7 +156,7 @@
                                             'flex'
                                         )}">
                                         <span
-                                            class="bg-white/10 border-white/10 rounded-md border px-2.5 py-1 text-[10px] font-medium backdrop-blur-md md:text-xs">
+                                            class="rounded-md border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-medium backdrop-blur-md md:text-xs">
                                             {isTV ? "TV Show" : "Movie"}
                                         </span>
                                         <span class="text-white/40">•</span>
@@ -185,7 +171,8 @@
                                                 : "N/A"}/10</span>
                                         {#if item.original_language}
                                             <span class="text-white/40">•</span>
-                                            <span class="uppercase font-medium">{item.original_language}</span>
+                                            <span class="font-medium uppercase"
+                                                >{item.original_language}</span>
                                         {/if}
                                     </div>
 
@@ -220,7 +207,7 @@
                                                 {#if TMDB_GENRES[genreId]}
                                                     <Badge
                                                         variant="outline"
-                                                        class="border-white/10 bg-white/5 text-foreground/80 hover:bg-white/10 text-[10px] backdrop-blur-md transition-colors md:text-xs">
+                                                        class="text-foreground/80 border-white/10 bg-white/5 text-[10px] backdrop-blur-md transition-colors hover:bg-white/10 md:text-xs">
                                                         {TMDB_GENRES[genreId]}
                                                     </Badge>
                                                 {/if}
@@ -245,7 +232,7 @@
                                                 href="/watch/{item.id}"
                                                 variant="secondary"
                                                 size="sm"
-                                                class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 backdrop-blur-md border px-6 transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
+                                                class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 border px-6 backdrop-blur-md transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
                                                 Request
                                             </Button>
                                         {/if}
@@ -253,7 +240,7 @@
                                             variant="secondary"
                                             size="sm"
                                             href="/details/media/{item.id}/{mediaType}"
-                                            class="border-white/10 bg-white/5 text-foreground hover:bg-white/10 hover:border-white/20 backdrop-blur-md border px-6 transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
+                                            class="text-foreground border border-white/10 bg-white/5 px-6 backdrop-blur-md transition-all hover:scale-105 hover:border-white/20 hover:bg-white/10 md:h-11 md:px-8 md:text-base">
                                             View Details
                                         </Button>
                                     </div>
@@ -269,7 +256,7 @@
         <div
             class="pointer-events-none absolute inset-0 z-20 flex items-center justify-between px-4">
             <button
-                class="border-white/10 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                class="pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/70 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/40 hover:text-white md:flex"
                 onclick={() => api?.scrollPrev()}
                 aria-label="Previous slide">
                 <svg
@@ -285,7 +272,7 @@
                 </svg>
             </button>
             <button
-                class="border-white/10 bg-black/20 text-white/70 hover:bg-black/40 hover:text-white pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all hover:scale-110 md:flex"
+                class="pointer-events-auto hidden h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/70 backdrop-blur-md transition-all hover:scale-110 hover:bg-black/40 hover:text-white md:flex"
                 onclick={() => api?.scrollNext()}
                 aria-label="Next slide">
                 <svg
@@ -304,8 +291,8 @@
 
         <!-- Progress Indicator -->
         <div
-            class="border-white/10 bg-black/30 absolute bottom-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-4 rounded-full border px-4 py-2 backdrop-blur-xl md:px-6 md:py-2.5">
-            <span class="text-white/90 text-xs font-medium font-mono whitespace-nowrap"
+            class="absolute bottom-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-xl md:px-6 md:py-2.5">
+            <span class="font-mono text-xs font-medium whitespace-nowrap text-white/90"
                 >{currentIndex + 1} / {data.length}</span>
 
             <!-- Desktop Segmented Progress (Hidden until Large screens) -->
@@ -319,8 +306,7 @@
                         onclick={() => api?.scrollTo(i)}
                         aria-label="Go to slide {i + 1}">
                         {#if i === currentIndex}
-                            <div
-                                class="animate-progress absolute top-0 bottom-0 left-0 bg-primary">
+                            <div class="animate-progress bg-primary absolute top-0 bottom-0 left-0">
                             </div>
                         {/if}
                     </button>
@@ -328,7 +314,7 @@
             </div>
 
             <!-- Mobile/Tablet Simple Progress Bar -->
-            <div class="bg-white/20 h-1 w-32 overflow-hidden rounded-full lg:hidden">
+            <div class="h-1 w-32 overflow-hidden rounded-full bg-white/20 lg:hidden">
                 <div
                     class="bg-primary h-full transition-all duration-300 ease-out"
                     style="width: {((currentIndex + 1) / data.length) * 100}%">
@@ -362,3 +348,17 @@
         </div>
     </div>
 {/if}
+
+<style>
+    @keyframes progress {
+        from {
+            width: 0%;
+        }
+        to {
+            width: 100%;
+        }
+    }
+    .animate-progress {
+        animation: progress 5s linear;
+    }
+</style>

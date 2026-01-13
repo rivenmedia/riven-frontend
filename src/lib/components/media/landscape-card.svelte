@@ -52,7 +52,7 @@
 
 {#snippet ratingBadge(rating: number)}
     <div
-        class="border-white/10 bg-white/10 text-foreground/90 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs backdrop-blur-md">
+        class="text-foreground/90 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs backdrop-blur-md">
         <Star size={12} class="fill-yellow-500 text-yellow-500" />
         {rating.toFixed(1)}
     </div>
@@ -65,7 +65,7 @@
     )}>
     <!-- Inner Border Overlay with glass effect -->
     <div
-        class="border-white/10 group-hover:border-primary/30 pointer-events-none absolute inset-0 z-50 rounded-xl border transition-colors duration-500">
+        class="group-hover:border-primary/30 pointer-events-none absolute inset-0 z-50 rounded-xl border border-white/10 transition-colors duration-500">
     </div>
 
     <div class="relative aspect-video w-full flex-grow overflow-hidden">
@@ -109,7 +109,9 @@
                                 {#if initialRating}
                                     {@render ratingBadge(initialRating)}
                                 {:else}
-                                    <div class="bg-white/10 h-5 w-12 animate-pulse rounded-full backdrop-blur-md"></div>
+                                    <div
+                                        class="h-5 w-12 animate-pulse rounded-full bg-white/10 backdrop-blur-md">
+                                    </div>
                                 {/if}
                             {:then ratingsData}
                                 {#if ratingsData?.scores?.length}
@@ -119,7 +121,7 @@
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
-                                            class="border-white/10 bg-white/10 text-foreground/90 hover:bg-white/20 flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs backdrop-blur-md transition-colors">
+                                            class="text-foreground/90 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs backdrop-blur-md transition-colors hover:bg-white/20">
                                             {#if score.image}
                                                 <img
                                                     src="/rating-logos/{score.image}"

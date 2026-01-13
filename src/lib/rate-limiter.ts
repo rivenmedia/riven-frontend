@@ -149,7 +149,7 @@ const rateLimiters: Record<string, RateLimiter> = {
     "graphql.anilist.co": new RateLimiter({
         name: "AniList",
         maxConcurrent: 5,
-        maxRPS: 3
+        maxRPS: 1.5
     }),
     "api.ani.zip": new RateLimiter({
         name: "AniZip",

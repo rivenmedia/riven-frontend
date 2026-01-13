@@ -56,10 +56,12 @@
 
     // Default container classes (w-full allows grid to control width)
     // Merged with passed className
-    const containerClasses = $derived(cn(
-        "group relative block w-full opacity-80 transition-all duration-200 hover:opacity-100",
-        className
-    ));
+    const containerClasses = $derived(
+        cn(
+            "group relative block w-full opacity-80 transition-all duration-200 hover:opacity-100",
+            className
+        )
+    );
 </script>
 
 {#snippet cardContent()}

@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button/index.js";
-    import { cn } from "$lib/utils.js";
     import { Spring } from "svelte/motion";
     import { onMount } from "svelte";
 
@@ -52,13 +51,19 @@
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     });
+
+    $effect(() => {
+        if (value) {
+            updatePosition(value);
+        }
+    });
 </script>
 
 <div
     bind:this={container}
-    class="border-white/10 bg-black/20 relative flex w-fit items-center gap-1 rounded-full border p-1 backdrop-blur-md shadow-inner">
+    class="relative flex w-fit items-center gap-1 rounded-full border border-white/10 bg-black/20 p-1 shadow-inner backdrop-blur-md">
     <!-- Layer 1: Inactive State (Base Layer) & Layout Driver -->
-    {#each options as option, i}
+    {#each options as option, i (option.value)}
         <div bind:this={elements[i]} class="relative z-0 flex flex-1 items-center justify-center">
             <Button
                 variant="ghost"
@@ -85,7 +90,7 @@
             style="transform: translateX({-styles.current
                 .x}px); width: {containerWidth}px; padding: 4px;">
             <!-- padding-1 = 4px -->
-            {#each options as option}
+            {#each options as option (option.value)}
                 <div class="flex flex-1 items-center justify-center">
                     <Button
                         variant="ghost"

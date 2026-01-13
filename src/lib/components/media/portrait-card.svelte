@@ -35,15 +35,14 @@
 <div
     class={cn(
         "bg-card group relative aspect-[2/3] rounded-xl shadow-lg transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
-        selected && "ring-primary ring-2 ring-inset shadow-[0_0_20px_rgba(var(--primary),0.5)]",
+        selected && "ring-primary shadow-[0_0_20px_rgba(var(--primary),0.5)] ring-2 ring-inset",
         className
     )}>
-
     <!-- Inner Content Clipper -->
     <div class="absolute inset-0 overflow-hidden rounded-xl">
         <!-- Inner Border Overlay with glass effect -->
         <div
-            class="border-white/10 group-hover:border-primary/50 pointer-events-none absolute inset-0 z-50 rounded-[inherit] border-2 transition-colors duration-300">
+            class="group-hover:border-primary/50 pointer-events-none absolute inset-0 z-50 rounded-[inherit] border-2 border-white/10 transition-colors duration-300">
         </div>
 
         {#if isSelectable}
@@ -84,8 +83,7 @@
                     style="-webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.9) 70%, black 100%); mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, rgba(0,0,0,0.6) 45%, rgba(0,0,0,0.9) 70%, black 100%);">
                 </div>
                 <div class="relative z-10 p-3 text-center">
-                    <p
-                        class="text-foreground line-clamp-2 text-sm font-extrabold drop-shadow-md">
+                    <p class="text-foreground line-clamp-2 text-sm font-extrabold drop-shadow-md">
                         {title}
                     </p>
                     {#if subtitle}<p class="text-muted-foreground mt-1 text-xs">{subtitle}</p>{/if}

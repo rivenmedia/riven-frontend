@@ -121,20 +121,20 @@
                         </div>
                         <div class="absolute right-6 bottom-6 left-6">
                             <p
-                                class="text-white/90 line-clamp-3 text-sm font-medium leading-relaxed drop-shadow-md">
+                                class="line-clamp-3 text-sm leading-relaxed font-medium text-white/90 drop-shadow-md">
                                 {collectionData.overview}
                             </p>
                         </div>
                         <!-- Glass Border -->
                         <div
-                            class="border-white/10 pointer-events-none absolute inset-0 rounded-xl border">
+                            class="pointer-events-none absolute inset-0 rounded-xl border border-white/10">
                         </div>
                     </div>
                 {/if}
 
                 <div class="flex items-center gap-3">
                     <div
-                        class="h-5 w-1 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]">
+                        class="bg-primary h-5 w-1 rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]">
                     </div>
                     <h3 class="text-lg font-bold tracking-tight">
                         {collectionData.parts?.length ?? 0} Movies
@@ -154,11 +154,11 @@
                                 tmdbId={part.id}
                                 mediaType="movie"
                                 initialRating={part.vote_average ?? undefined}
-                                class="group-hover:shadow-lg transition-shadow">
+                                class="transition-shadow group-hover:shadow-lg">
                                 {#snippet meta()}
                                     {#if part.year}
                                         <span
-                                            class="border-white/10 bg-white/5 text-muted-foreground rounded-full border px-2 py-0.5 text-xs backdrop-blur-sm">
+                                            class="text-muted-foreground rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs backdrop-blur-sm">
                                             {part.year}
                                         </span>
                                     {/if}
@@ -171,12 +171,12 @@
         </div>
 
         {#if collectionData?.parts?.length}
-            <Sheet.Footer class="border-white/5 bg-black/20 border-t p-6 backdrop-blur-md">
+            <Sheet.Footer class="border-t border-white/5 bg-black/20 p-6 backdrop-blur-md">
                 <Button
                     onclick={requestAll}
                     disabled={requestLoading}
                     variant="secondary"
-                    class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 w-full backdrop-blur-md border transition-all hover:scale-[1.02] shadow-lg">
+                    class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 w-full border shadow-lg backdrop-blur-md transition-all hover:scale-[1.02]">
                     {#if requestLoading}
                         <Loader2 class="mr-2 size-4 animate-spin" />
                     {/if}
