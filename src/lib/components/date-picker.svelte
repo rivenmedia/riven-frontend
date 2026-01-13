@@ -25,7 +25,7 @@
         if (value) {
             try {
                 internalValue = parseDate(value);
-            } catch (e) {
+            } catch {
                 // Invalid date string, don't update calendar
             }
         } else {

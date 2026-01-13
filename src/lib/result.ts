@@ -1,9 +1,9 @@
 /*
-	Installed from @ieedan/shadcn-svelte-extras
+    Installed from @ieedan/shadcn-svelte-extras
 */
 
 /*
-	Installed from @ieedan/std
+    Installed from @ieedan/std
 */
 
 /** This is just a helper type used only within this file */

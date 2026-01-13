@@ -63,7 +63,7 @@
                                         providerId: providerId
                                     });
                                     toast.success(`${providerId} unlinked successfully.`);
-                                    goto("/auth", { invalidateAll: true });
+                                    await goto("/auth", { invalidateAll: true });
                                 }}>
                                 <Link2Off class="mr-2 h-4 w-4" />
                                 Unlink

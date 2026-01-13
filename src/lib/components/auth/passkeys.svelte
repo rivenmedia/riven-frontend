@@ -13,8 +13,14 @@
 
     const logger = createScopedLogger("passkeys");
 
+    interface Passkey {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+    }
+
     let isRegisteringPasskey = $state(false);
-    let userPasskeys = $state<any[]>([]);
+    let userPasskeys = $state<Passkey[]>([]);
     let isLoadingPasskeys = $state(true);
     let editingPasskeyId = $state<string | null>(null);
     let editingPasskeyName = $state<string>("");
@@ -28,7 +34,7 @@
         isLoadingPasskeys = true;
         try {
             const response = await authClient.passkey.listUserPasskeys();
-            userPasskeys = response.data || [];
+            userPasskeys = (response.data || []) as Passkey[];
         } catch (error) {
             logger.error("Failed to load passkeys:", error);
             userPasskeys = [];
@@ -51,14 +57,14 @@
                     }
                 }
             });
-        } catch (error) {
+        } catch {
             toast.error("Failed to register passkey");
         } finally {
             isRegisteringPasskey = false;
         }
     }
 
-    function startEditingPasskey(passkey: any) {
+    function startEditingPasskey(passkey: Passkey) {
         editingPasskeyId = passkey.id;
         editingPasskeyName = passkey.name || "";
     }
@@ -76,7 +82,7 @@
 
         isUpdatingPasskey = true;
         try {
-            const { data, error } = await authClient.passkey.updatePasskey({
+            const { error } = await authClient.passkey.updatePasskey({
                 id: passkeyId,
                 name: editingPasskeyName.trim()
             });
@@ -89,7 +95,7 @@
                 editingPasskeyName = "";
                 await loadPasskeys();
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to update passkey name");
         } finally {
             isUpdatingPasskey = false;
@@ -178,7 +184,7 @@
                                                     }
                                                 }
                                             });
-                                        } catch (error) {
+                                        } catch {
                                             toast.error("Failed to delete passkey");
                                         }
                                     }}>
