@@ -1,10 +1,8 @@
 <script lang="ts">
     import * as Carousel from "$lib/components/ui/carousel/index.js";
-    import { type CarouselAPI } from "$lib/components/ui/carousel/context.js";
     import ListItem from "./list-item.svelte";
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
 
-    let api = $state<CarouselAPI>();
     let { data = $bindable(), indexer = undefined, type = "" } = $props();
 </script>
 
@@ -14,8 +12,7 @@
             dragFree: true,
             slidesToScroll: "auto"
         }}
-        class="mt-0"
-        setApi={(emblaApi) => (api = emblaApi)}>
+        class="mt-0">
         <Carousel.Content class="-ml-3">
             {#each data as item (item.id)}
                 <Carousel.Item class="max-w-max pl-3">
@@ -30,7 +27,7 @@
     </Carousel.Root>
 {:else}
     <div class="mt-1.5 flex gap-3 overflow-x-auto pb-2">
-        {#each Array(6) as _, i (i)}
+        {#each Array(6) as i (i)}
             <div class="w-36 flex-none md:w-44 lg:w-48">
                 <PortraitCardSkeleton />
             </div>

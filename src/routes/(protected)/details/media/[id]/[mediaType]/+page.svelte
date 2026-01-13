@@ -31,7 +31,6 @@
     import StatusBadge from "$lib/components/media/status-badge.svelte";
     import VideoPlayer from "$lib/components/media/video-player.svelte";
     import { toast } from "svelte-sonner";
-    import PageShell from "$lib/components/page-shell.svelte";
     import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
@@ -68,7 +67,6 @@
 
     $effect(() => {
         // Track ID changes to reset selected season
-        const _id = data.mediaDetails?.details?.id;
         selectedSeason = getInitialSeason();
     });
 
@@ -139,8 +137,6 @@
             currency: "USD",
             maximumFractionDigits: 0
         }).format(n);
-    const formatDuration = (s: number) =>
-        `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m ${Math.floor(s % 60)}s`;
     const formatSize = (b: number) => `${(b / 1073741824).toFixed(2)} GB`;
 
     const details = $derived(

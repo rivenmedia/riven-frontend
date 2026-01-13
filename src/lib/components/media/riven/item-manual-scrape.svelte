@@ -7,7 +7,6 @@
         type Stream,
         type DebridFile,
         type Container,
-        type ShowFileData,
         type FileMapping,
         type ParsedTitleData,
         type BatchSession
@@ -82,7 +81,6 @@
         variant = "ghost",
         size = "sm",
         seasons = [],
-        children,
         ...restProps
     }: Props = $props();
 
@@ -433,14 +431,11 @@
                 if (mediaType === "tv") queryParams.tvdb_id = externalId;
             }
 
-            const { data, error: err } = await providers.riven.POST(
-                "/api/v1/scrape/start_session",
-                {
-                    params: {
-                        query: queryParams
-                    }
+            const { data } = await providers.riven.POST("/api/v1/scrape/start_session", {
+                params: {
+                    query: queryParams
                 }
-            );
+            });
 
             if (data) {
                 // Cast to specific type if known, or improve type definitions
@@ -582,7 +577,7 @@
 
                         // Populate selected options for this category
                         newSelectedOptions[cat] = Object.entries(categoryObj)
-                            .filter(([_, val]) => {
+                            .filter(([val]) => {
                                 return (val as any)?.fetch === true;
                             })
                             .map(([key]) => key);
@@ -662,7 +657,7 @@
                 selectedSeasons.size > 0 &&
                 selectedSeasons.size < seasons.length
             ) {
-                const { media_type: _, ...restBody } = body;
+                const { media_type, ...restBody } = body;
                 // Use AutoScrapeRequest
                 const seasonBody: AutoScrapeRequest = {
                     ...restBody,
@@ -675,7 +670,7 @@
                     .POST("/api/v1/scrape/auto", {
                         body: seasonBody
                     })
-                    .then(({ data: sData, error: sErr }) => {
+                    .then(({ error: sErr }) => {
                         if (sErr) {
                             const errorMsg =
                                 (sErr as any).message ||
@@ -700,7 +695,7 @@
                 .POST("/api/v1/scrape/auto", {
                     body: body
                 })
-                .then(({ data, error: err }) => {
+                .then(({ error: err }) => {
                     if (err) {
                         // @ts-ignore
                         const errorMsg = err.message || err.detail || "Failed to start auto scrape";
@@ -1081,15 +1076,6 @@
             loading = false;
             batchProgress = null;
         }
-    }
-
-    function getResolutionColor(resolution?: string): string {
-        if (!resolution) return "bg-primary text-primary-foreground";
-        if (resolution.includes("2160")) return "bg-chart-5 text-primary-foreground";
-        if (resolution.includes("1440")) return "bg-chart-4 text-primary-foreground";
-        if (resolution.includes("1080")) return "bg-chart-2 text-primary-foreground";
-        if (resolution.includes("720")) return "bg-chart-3 text-primary-foreground";
-        return "bg-primary text-primary-foreground";
     }
 
     function formatFileSize(bytes: number): string {

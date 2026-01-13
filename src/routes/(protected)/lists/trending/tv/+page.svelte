@@ -125,7 +125,7 @@
                 </div>
             {/each}
             {#if searchStore.loading}
-                {#each Array(6) as _, i (i)}
+                {#each Array(6) as i (i)}
                     <div class="w-36 md:w-44 lg:w-48">
                         <PortraitCardSkeleton />
                     </div>
@@ -134,7 +134,7 @@
         </div>
     {:else if searchStore.loading}
         <div class="flex flex-wrap gap-4">
-            {#each Array(12) as _, i (i)}
+            {#each Array(12) as i (i)}
                 <div class="w-36 md:w-44 lg:w-48">
                     <PortraitCardSkeleton />
                 </div>
