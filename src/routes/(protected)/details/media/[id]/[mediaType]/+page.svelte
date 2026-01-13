@@ -54,7 +54,24 @@
     function toggleVideoPlayer() {
         showVideoPlayer = !showVideoPlayer;
     }
-    let selectedSeason: string | undefined = $state("1");
+
+    function getInitialSeason() {
+        if (data.mediaDetails?.type !== "tv") return "1";
+        const details = data.mediaDetails?.details as ParsedShowDetails;
+        if (!details?.seasons?.length) return "1";
+
+        const hasSeason1 = details.seasons.some((s) => s.number === 1);
+        return hasSeason1 ? "1" : (details.seasons[0].number?.toString() ?? "1");
+    }
+
+    let selectedSeason: string | undefined = $state(getInitialSeason());
+
+    $effect(() => {
+        // Track ID changes to reset selected season
+        const _id = data.mediaDetails?.details?.id;
+        selectedSeason = getInitialSeason();
+    });
+
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
 
     // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)

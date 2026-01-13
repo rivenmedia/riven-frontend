@@ -4,7 +4,6 @@
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
     import {
-        type ScrapeSeasonRequest,
         type Stream,
         type DebridFile,
         type Container,

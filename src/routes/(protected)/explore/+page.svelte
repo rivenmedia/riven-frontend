@@ -345,19 +345,15 @@
                         </h3>
                         {#key currentExampleIndex}
                             <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {#each data.searchExamples.slice(currentExampleIndex, currentExampleIndex + 6) as example (example)}
+                                {#each (data.searchExamples ?? []).slice(currentExampleIndex, currentExampleIndex + 6) as example (example)}
                                     <button
                                         onclick={() => {
-                                            const input = document.querySelector(
-                                                'input[name="query"]'
-                                            ) as HTMLInputElement;
-                                            if (input) {
-                                                input.value = example;
-                                                input.dispatchEvent(
-                                                    new Event("input", { bubbles: true })
-                                                );
-                                                input.focus();
-                                            }
+                                            // Dispatch event for header search input
+                                            window.dispatchEvent(
+                                                new CustomEvent("riven:search", {
+                                                    detail: { query: example }
+                                                })
+                                            );
                                         }}
                                         class="bg-card/50 hover:bg-accent/50 group animate-in fade-in slide-in-from-bottom-2 hover:border-border/50 flex items-center gap-3 rounded-xl border border-transparent p-3 text-left backdrop-blur-sm transition-all duration-500 hover:scale-[1.02] md:gap-4 md:p-5">
                                         <SearchIcon

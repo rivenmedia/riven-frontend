@@ -24,6 +24,18 @@
             ""
         ).toUpperCase();
         modifierKey = platform.includes("MAC") ? "⌘" : "^";
+
+        const handleSearch = (e: Event) => {
+            const evt = e as CustomEvent<{ query: string }>;
+            if (evt.detail.query) {
+                inputValue = evt.detail.query;
+                inputRef?.focus();
+                navigateToSearch();
+            }
+        };
+
+        window.addEventListener("riven:search", handleSearch);
+        return () => window.removeEventListener("riven:search", handleSearch);
     });
 
     // Local input value state to decouple from URL updates while typing

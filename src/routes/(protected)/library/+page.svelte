@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tick } from "svelte";
     import type { PageProps } from "./$types";
     import { fly } from "svelte/transition";
     import * as Form from "$lib/components/ui/form/index.js";
@@ -228,35 +229,50 @@
 
                         {@render actionButton("Remove", "destructive", async () => {
                             actionInProgress = true;
-                            const data = await providers.riven.DELETE("/api/v1/items/remove", {
-                                body: { ids: itemsStore.items.map((id) => id.toString()) }
-                            });
-                            if (data.error) toast.error(`Failed: ${data.error}`);
-                            else {
-                                toast.success(`Removed ${itemsStore.count} items`);
-                                itemsStore.clear();
+                            try {
+                                const data = await providers.riven.DELETE("/api/v1/items/remove", {
+                                    body: { ids: itemsStore.items.map((id) => id.toString()) }
+                                });
+                                if (data.error) toast.error(`Failed: ${data.error}`);
+                                else {
+                                    toast.success(`Removed ${itemsStore.count} items`);
+                                    itemsStore.clear();
+                                }
+                            } finally {
+                                actionInProgress = false;
                             }
-                            actionInProgress = false;
                         })}
 
                         {@render actionButton("Reset", "secondary", async () => {
                             actionInProgress = true;
-                            await providers.riven.POST("/api/v1/items/reset", {
-                                body: { ids: itemsStore.items.map((id) => id.toString()) }
-                            });
-                            toast.success(`Reset ${itemsStore.count} items`);
-                            itemsStore.clear();
-                            actionInProgress = false;
+                            try {
+                                const data = await providers.riven.POST("/api/v1/items/reset", {
+                                    body: { ids: itemsStore.items.map((id) => id.toString()) }
+                                });
+                                if (data.error) toast.error(`Failed: ${data.error}`);
+                                else {
+                                    toast.success(`Reset ${itemsStore.count} items`);
+                                    itemsStore.clear();
+                                }
+                            } finally {
+                                actionInProgress = false;
+                            }
                         })}
 
                         {@render actionButton("Retry", "secondary", async () => {
                             actionInProgress = true;
-                            await providers.riven.POST("/api/v1/items/retry", {
-                                body: { ids: itemsStore.items.map((id) => id.toString()) }
-                            });
-                            toast.success(`Retried ${itemsStore.count} items`);
-                            itemsStore.clear();
-                            actionInProgress = false;
+                            try {
+                                const data = await providers.riven.POST("/api/v1/items/retry", {
+                                    body: { ids: itemsStore.items.map((id) => id.toString()) }
+                                });
+                                if (data.error) toast.error(`Failed: ${data.error}`);
+                                else {
+                                    toast.success(`Retried ${itemsStore.count} items`);
+                                    itemsStore.clear();
+                                }
+                            } finally {
+                                actionInProgress = false;
+                            }
                         })}
                     </div>
                 </div>
@@ -291,8 +307,10 @@
                                 <Pagination.Item>
                                     <Pagination.PrevButton
                                         class="border-0 bg-transparent hover:bg-white/5"
-                                        onclick={() =>
-                                            setTimeout(() => formElement.requestSubmit(), 10)} />
+                                        onclick={async () => {
+                                            await tick();
+                                            formElement.requestSubmit();
+                                        }} />
                                 </Pagination.Item>
                                 {#each pages as page (page.key)}
                                     {#if page.type === "ellipsis"}
@@ -307,11 +325,10 @@
                                                 class={currentPage === page.value
                                                     ? "bg-primary/20 text-primary border-0 font-bold"
                                                     : "border-0 bg-transparent hover:bg-white/5"}
-                                                onclick={() =>
-                                                    setTimeout(
-                                                        () => formElement.requestSubmit(),
-                                                        10
-                                                    )}>
+                                                onclick={async () => {
+                                                    await tick();
+                                                    formElement.requestSubmit();
+                                                }}>
                                                 {page.value}
                                             </Pagination.Link>
                                         </Pagination.Item>
@@ -320,8 +337,10 @@
                                 <Pagination.Item>
                                     <Pagination.NextButton
                                         class="border-0 bg-transparent hover:bg-white/5"
-                                        onclick={() =>
-                                            setTimeout(() => formElement.requestSubmit(), 10)} />
+                                        onclick={async () => {
+                                            await tick();
+                                            formElement.requestSubmit();
+                                        }} />
                                 </Pagination.Item>
                             </Pagination.Content>
                         {/snippet}

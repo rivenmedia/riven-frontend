@@ -292,7 +292,7 @@
     </section>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {#each data.downloaderInfo?.services as downloader (downloader.service)}
+        {#each data.downloaderInfo?.services || [] as downloader (downloader.service)}
             <Card.Root class="bg-card border bg-linear-to-br">
                 <Card.Header class="pb-3">
                     <div class="flex items-center justify-between">

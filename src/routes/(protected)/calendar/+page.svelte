@@ -54,7 +54,9 @@
 
     const itemsByDate = $derived.by(() => {
         const items: EntertainmentItem[] = data.calendar?.data
-            ? (Object.values(data.calendar.data) as unknown as EntertainmentItem[])
+            ? Object.values(data.calendar.data).flatMap((dateItems) =>
+                  Object.values(dateItems as unknown as Record<string, EntertainmentItem>)
+              )
             : [];
 
         const result: Record<string, EntertainmentItem[]> = {};

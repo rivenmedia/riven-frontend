@@ -321,8 +321,6 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     details: parsedDetails as ParsedShowDetails
                 } as MediaDetails
             };
-        } else {
-            error(400, "Invalid media type");
         }
     } catch (err) {
         // Re-throw SvelteKit errors (like 400, 503) so they render the error page
