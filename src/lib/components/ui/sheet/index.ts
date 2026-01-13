@@ -8,8 +8,8 @@ import Footer from "./sheet-footer.svelte";
 import Title from "./sheet-title.svelte";
 import Description from "./sheet-description.svelte";
 
-const Root = SheetPrimitive.Root;
-const Portal = SheetPrimitive.Portal;
+const Root = SheetPrimitive?.Root;
+const Portal = SheetPrimitive?.Portal;
 
 export {
 	Root,

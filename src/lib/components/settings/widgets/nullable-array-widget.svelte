@@ -8,20 +8,15 @@
     import X from "@lucide/svelte/icons/x";
     import Plus from "@lucide/svelte/icons/plus";
 
-    /**
-     * This widget handles nullable array types (anyOf: [array, null]).
-     * Currently only supports string[] arrays - items are rendered as text chips
-     * with a text input for adding new values.
-     */
+    // Handles nullable array types (anyOf: [array, null]).
+    // Supports string[] and number[] - items rendered as chips with input for adding.
     let { config, value = $bindable() }: FieldCommonProps<SchemaValue> = $props();
 
     const form = getFormContext();
     const fieldId = $derived(getId(form, config.path));
-
-    // Get field title from config
     const fieldTitle = $derived(config.title || "Filter");
 
-    // Derive the array item type from schema (anyOf: [{ type: "array", items: { type: "..." } }, { type: "null" }])
+    // Derive item type from schema: anyOf: [{ type: "array", items: { type: "..." } }, { type: "null" }]
     const itemType = $derived.by(() => {
         const anyOf = config.schema.anyOf;
         if (!Array.isArray(anyOf)) return "string";
@@ -30,39 +25,43 @@
         );
         if (!arraySchema || typeof arraySchema !== "object") return "string";
         const items = (arraySchema as { items?: { type?: string } }).items;
-        return items?.type ?? "string";
+        const type = items?.type ?? "string";
+        return type === "integer" ? "number" : type;
     });
 
-    // Warn in development if using unsupported item type
+    const isNumeric = $derived(itemType === "number");
+
+    // Warn in dev for unsupported types (not string or number)
     $effect(() => {
-        if (dev && itemType !== "string") {
+        if (dev && itemType !== "string" && itemType !== "number") {
             console.warn(
                 `[nullable-array-widget] Unsupported item type "${itemType}" for field "${config.path.join(".")}". ` +
-                    `This widget only supports string arrays. Non-string items will be converted to strings.`
+                    `Supported types: string, number. Values will be converted to strings.`
             );
         }
     });
 
-    // Derive enabled state from whether value is an array (not null)
     const isEnabled = $derived(Array.isArray(value));
-    // Convert items to strings for display; this widget only properly supports string[]
-    const items = $derived(isEnabled ? (value as unknown[]).map((item) => String(item)) : []);
+    const items = $derived<(string | number)[]>(isEnabled ? (value as (string | number)[]) : []);
 
     let newItem = $state("");
 
     function toggleEnabled(checked: boolean) {
-        if (checked) {
-            // Enable: set to empty array
-            value = [];
-        } else {
-            // Disable: set to null
-            value = null;
-        }
+        value = checked ? [] : null;
     }
 
     function addItem() {
-        if (!newItem.trim()) return;
-        value = [...items, newItem.trim()];
+        const trimmed = newItem.trim();
+        if (!trimmed) return;
+
+        if (isNumeric) {
+            const num = Number(trimmed);
+            if (!Number.isNaN(num)) {
+                value = [...items, num];
+            }
+        } else {
+            value = [...items, trimmed];
+        }
         newItem = "";
     }
 
@@ -88,7 +87,6 @@
 
     {#if isEnabled}
         <div class="space-y-2 pl-1">
-            <!-- Existing items -->
             {#if items.length > 0}
                 <div class="flex flex-wrap gap-2">
                     {#each items as item, index (index)}
@@ -108,12 +106,11 @@
                 </div>
             {/if}
 
-            <!-- Add new item -->
             <div class="flex gap-2">
                 <Input
                     id={`${fieldId}-new`}
-                    type="text"
-                    placeholder="Add value..."
+                    type={isNumeric ? "number" : "text"}
+                    placeholder={isNumeric ? "Add number..." : "Add value..."}
                     bind:value={newItem}
                     onkeydown={handleKeydown}
                     class="h-8 flex-1" />

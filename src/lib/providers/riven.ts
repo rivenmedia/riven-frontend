@@ -983,6 +983,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/schema/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings Schema For Keys */
+        get: operations["get_settings_schema_for_keys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/load": {
         parameters: {
             query?: never;
@@ -1068,7 +1085,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/settings/set": {
+    "/api/v1/settings/set/{paths}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1158,6 +1175,40 @@ export interface paths {
          *         A StreamingResponse for the file content.
          */
         get: operations["stream_file_api_v1_stream_file__item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stream/hls/{item_id}/index.m3u8": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Hls Playlist */
+        get: operations["get_hls_playlist_api_v1_stream_hls__item_id__index_m3u8_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stream/hls/{item_id}/segment/{seq}.ts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Hls Segment */
+        get: operations["get_hls_segment_api_v1_stream_hls__item_id__segment__seq__ts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3073,13 +3124,6 @@ export interface components {
              * @enum {string}
              */
             download_type: "cached" | "uncached";
-        };
-        /** SetSettings */
-        SetSettings: {
-            /** Key */
-            key: string;
-            /** Value */
-            value: unknown;
         };
         /**
          * ShowFileData
@@ -5620,6 +5664,50 @@ export interface operations {
             };
         };
     };
+    get_settings_schema_for_keys: {
+        parameters: {
+            query: {
+                /** @description Comma-separated list of top-level keys to get schema for (e.g., 'version,api_key,updaters') */
+                keys: string;
+                /** @description Title of the schema */
+                title?: string;
+                api_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     load_settings: {
         parameters: {
             query?: {
@@ -5827,12 +5915,17 @@ export interface operations {
                 api_key?: string | null;
             };
             header?: never;
-            path?: never;
+            path: {
+                /** @description Comma-separated list of settings paths to update */
+                paths: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetSettings"][];
+                "application/json": {
+                    [key: string]: unknown;
+                };
             };
         };
         responses: {
@@ -5988,6 +6081,95 @@ export interface operations {
             header?: never;
             path: {
                 item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_hls_playlist_api_v1_stream_hls__item_id__index_m3u8_get: {
+        parameters: {
+            query?: {
+                pix_fmt?: string | null;
+                profile?: string | null;
+                level?: string | null;
+                resolution?: string | null;
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_hls_segment_api_v1_stream_hls__item_id__segment__seq__ts_get: {
+        parameters: {
+            query?: {
+                pix_fmt?: string | null;
+                profile?: string | null;
+                level?: string | null;
+                resolution?: string | null;
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+                seq: number;
             };
             cookie?: never;
         };

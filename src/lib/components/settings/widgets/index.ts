@@ -1,15 +1,8 @@
-// Custom widgets for settings forms
-// Import this file to register the widgets with the form system
-
 import type { FieldCommonProps, SchemaValue } from "@sjsf/form";
 
-// Module augmentation to register custom field component types
-// These replace anyOfField/objectField so they use FieldCommonProps, not WidgetCommonProps
+// Module augmentation to register custom field component types.
+// These replace anyOfField/objectField so they use FieldCommonProps, not WidgetCommonProps.
 declare module "@sjsf/form" {
-    // Extend UiOptions to include custom options used by our widgets
-    interface UiOptions {
-        placeholder?: string;
-    }
     interface ComponentProps {
         customRankWidget: FieldCommonProps<SchemaValue>;
         nullableArrayWidget: FieldCommonProps<SchemaValue>;

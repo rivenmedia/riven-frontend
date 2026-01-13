@@ -1,278 +1,100 @@
-import type { Schema, UiSchemaRoot, UiSchemaDefinition } from "@sjsf/form";
+import type { Schema, UiSchemaRoot } from "@sjsf/form";
 import { getSchemaAtPath } from "./schema-utils";
+import { findNullableFields } from "./schema-patterns";
 
-/**
- * Field group definition for organizing global fields in UI.
- * Used by section components to render fields in logical groups.
- */
-export interface FieldGroup {
-    id: string;
-    /** Fields in this group - titles/descriptions come from schema */
-    fields: string[];
-    /** Force single-column layout regardless of field count */
-    layout?: "stack" | "grid";
-}
-
-/**
- * UI Schema section configuration.
- * Defines field groups for a schema section (e.g., "scraping", "downloaders").
- */
-export interface SectionUiConfig {
-    groups: FieldGroup[];
-}
-
-/**
- * Field grouping configuration for settings sections.
- * This is UI presentation metadata - it defines how global fields
- * should be grouped visually within each section.
- *
- * Note: This is intentionally separate from the JSON Schema because
- * grouping is a UI concern, not a data structure concern.
- * Titles and descriptions come from the schema, not hardcoded here.
- */
-export const SECTION_FIELD_GROUPS: Record<string, SectionUiConfig> = {
-    // Root-level fields (general section) - use empty sectionPath
-    "": {
-        groups: [
-            {
-                id: "backend",
-                fields: ["api_key", "database"]
-            },
-            {
-                id: "behavior",
-                fields: ["retry_interval"]
-            },
-            {
-                id: "log_level",
-                fields: ["log_level"]
-            },
-            {
-                id: "debug",
-                layout: "stack",
-                fields: ["enable_network_tracing", "enable_stream_tracing", "tracemalloc"]
-            }
-        ]
-    },
-    updaters: {
-        groups: [
-            {
-                id: "library_sync",
-                fields: ["library_path", "updater_interval"]
-            }
-        ]
-    },
-    scraping: {
-        groups: [
-            {
-                id: "retry_delays",
-                fields: ["after_2", "after_5", "after_10", "max_failed_attempts"]
-            },
-            {
-                id: "matching",
-                fields: ["bucket_limit", "enable_aliases", "dubbed_anime_only"]
-            }
-        ]
-    },
-    downloaders: {
-        groups: [
-            {
-                id: "movie_filesize",
-                fields: ["movie_filesize_mb_min", "movie_filesize_mb_max"]
-            },
-            {
-                id: "episode_filesize",
-                fields: ["episode_filesize_mb_min", "episode_filesize_mb_max"]
-            },
-            {
-                id: "other",
-                fields: ["video_extensions", "proxy_url"]
-            }
-        ]
+/** Set a value at a nested path, creating intermediate objects as needed. */
+function setAtPath(obj: Record<string, unknown>, path: string[], value: unknown): void {
+    let current = obj;
+    for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (!(key in current) || typeof current[key] !== "object" || current[key] === null) {
+            current[key] = {};
+        }
+        current = current[key] as Record<string, unknown>;
     }
-};
-
-/**
- * Get field groups for a section, validating against the actual schema.
- * Returns only groups whose fields exist in the schema.
- *
- * @param schema - The root JSON schema
- * @param sectionPath - Path to the section (e.g., "scraping") or empty string for root-level fields
- */
-export function getFieldGroupsForSection(schema: Schema, sectionPath: string): FieldGroup[] {
-    const config = SECTION_FIELD_GROUPS[sectionPath];
-    if (!config) return [];
-
-    // Get the section schema to validate fields exist
-    // For root-level fields (empty sectionPath), use the root schema directly
-    const sectionSchema = sectionPath ? getSchemaAtPath(schema, sectionPath) : schema;
-    if (!sectionSchema?.properties) return [];
-
-    const availableFields = new Set(
-        Object.keys(sectionSchema.properties as Record<string, unknown>)
-    );
-
-    // Filter groups and their fields to only include what exists in schema
-    return config.groups
-        .map((group) => ({
-            ...group,
-            fields: group.fields.filter((field) => availableFields.has(field))
-        }))
-        .filter((group) => group.fields.length > 0);
+    if (path.length > 0) {
+        current[path[path.length - 1]] = value;
+    }
 }
 
-/**
- * Build UI schema entries for CustomRank objects within a category.
- * Each CustomRank field (av1, avc, etc.) gets configured to use the customRankWidget.
- */
-function buildCustomRankUiSchema(schema: Schema, categoryPath: string): Record<string, unknown> {
-    const categorySchema = getSchemaAtPath(schema, categoryPath);
-    if (!categorySchema?.properties) return {};
+/** Get or create a nested object at a path. */
+function getOrCreateAtPath(obj: Record<string, unknown>, path: string[]): Record<string, unknown> {
+    let current = obj;
+    for (const key of path) {
+        if (!(key in current) || typeof current[key] !== "object" || current[key] === null) {
+            current[key] = {};
+        }
+        current = current[key] as Record<string, unknown>;
+    }
+    return current;
+}
 
-    const result: Record<string, unknown> = {};
+/** Apply customRankWidget to all CustomRank objects in a category. */
+function applyCustomRankWidgets(
+    result: Record<string, unknown>,
+    schema: Schema,
+    categoryPath: string
+): void {
+    const categorySchema = getSchemaAtPath(schema, categoryPath);
+    if (!categorySchema?.properties) return;
+
+    const pathParts = categoryPath.split(".");
+    const target = getOrCreateAtPath(result, pathParts);
+
     for (const itemKey of Object.keys(categorySchema.properties as Record<string, unknown>)) {
-        result[itemKey] = {
+        target[itemKey] = {
             "ui:components": {
                 objectField: "customRankWidget"
             }
         };
     }
-    return result;
 }
 
 /**
- * Build a UI Schema from a JSON Schema.
- *
- * This configures:
- * - Custom widgets for complex field types (nullable arrays, custom ranks)
- * - Layout hints (hideTitle for wrapper objects)
- *
- * Titles and descriptions should come from the JSON Schema itself.
- * Only override here if the schema is genuinely wrong (and create issue to fix in backend).
- *
- * @param schema - The JSON Schema from the backend
- * @returns A UI Schema with widget and layout configurations
+ * Build UI Schema from JSON Schema. Configures custom widgets for nullable fields
+ * and CustomRank objects. Card styling is handled via CSS (.settings-form fieldset).
  */
 export function buildSettingsUiSchema(schema: Schema): UiSchemaRoot {
-    // Build UI schema for CustomRank objects in each category
-    const customRanksSchema = getSchemaAtPath(schema, "ranking.custom_ranks");
-    const customRanksUiSchema: Record<string, unknown> = {};
+    const props = schema.properties as Record<string, Schema> | undefined;
+    if (!props) return {};
 
-    if (customRanksSchema?.properties) {
-        for (const categoryKey of Object.keys(
-            customRanksSchema.properties as Record<string, unknown>
-        )) {
-            customRanksUiSchema[categoryKey] = {
-                // Hide category title since we render our own headers in ranking-section
-                "ui:options": {
-                    hideTitle: true
-                },
-                ...buildCustomRankUiSchema(schema, `ranking.custom_ranks.${categoryKey}`)
-            };
+    const result: Record<string, unknown> = {
+        // Hide the default submit button (we render our own)
+        "ui:globalOptions": {
+            shadcn4SubmitButton: { hidden: true }
+        },
+        // Hide the root schema title (we render our own header in settings-content.svelte)
+        "ui:options": {
+            hideTitle: true
+        }
+    };
+
+    const has = (key: string) => key in props;
+
+    // Auto-detect and apply nullable field widgets
+    const nullableFields = findNullableFields(schema);
+    for (const { path, widget } of nullableFields) {
+        setAtPath(result, [...path, "ui:components"], { anyOfField: widget });
+    }
+
+    // Database host field - wider for connection strings
+    if (has("database")) {
+        setAtPath(result, ["database", "host", "ui:options"], {
+            shadcn4Field: { style: "max-width: 100%;" }
+        });
+    }
+
+    // Ranking section - custom rank widgets
+    if (has("ranking")) {
+        const customRanksSchema = getSchemaAtPath(schema, "ranking.custom_ranks");
+        if (customRanksSchema?.properties) {
+            for (const categoryKey of Object.keys(
+                customRanksSchema.properties as Record<string, unknown>
+            )) {
+                applyCustomRankWidgets(result, schema, `ranking.custom_ranks.${categoryKey}`);
+            }
         }
     }
 
-    return {
-        // Hide wrapper object titles where we use Card headers instead
-        database: {
-            "ui:options": {
-                hideTitle: true
-            }
-        },
-        // Filesystem - hide verbose model titles throughout nested structure
-        filesystem: {
-            "ui:options": {
-                hideTitle: true
-            },
-            library_profiles: {
-                // additionalProperties objects (dictionary of LibraryProfile)
-                additionalProperties: {
-                    "ui:options": {
-                        hideTitle: true
-                    },
-                    filter_rules: {
-                        "ui:options": {
-                            hideTitle: true
-                        },
-                        // These fields use anyOf: [array, null] pattern
-                        // Use custom widget for better UX (switch + array input)
-                        content_types: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        genres: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        networks: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        countries: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        languages: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        content_ratings: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        exclude_genres: {
-                            "ui:components": { anyOfField: "nullableArrayWidget" }
-                        },
-                        // Non-array anyOf fields - use custom widget for consistent UX
-                        min_year: {
-                            "ui:components": { anyOfField: "nullablePrimitiveWidget" }
-                        },
-                        max_year: {
-                            "ui:components": { anyOfField: "nullablePrimitiveWidget" }
-                        },
-                        min_rating: {
-                            "ui:components": { anyOfField: "nullablePrimitiveWidget" }
-                        },
-                        max_rating: {
-                            "ui:components": { anyOfField: "nullablePrimitiveWidget" }
-                        },
-                        is_anime: {
-                            "ui:components": { anyOfField: "nullablePrimitiveWidget" }
-                        }
-                    }
-                }
-            }
-        } as UiSchemaDefinition,
-        // Configure ranking section
-        ranking: {
-            // Hide the ranking object's own title/description since we use Card headers
-            "ui:options": {
-                hideTitle: true
-            },
-            // Resolutions - hide since we render inside a Card with our own header
-            resolutions: {
-                "ui:options": {
-                    hideTitle: true
-                }
-            },
-            // Options - hide object wrapper title
-            options: {
-                "ui:options": {
-                    hideTitle: true
-                }
-            },
-            // Languages object - hide wrapper title
-            languages: {
-                "ui:options": {
-                    hideTitle: true
-                }
-            },
-            // Configure CustomRank objects to use the custom widget
-            custom_ranks: {
-                "ui:options": {
-                    hideTitle: true
-                },
-                ...customRanksUiSchema
-            }
-        },
-        // Notifications - hide model title
-        notifications: {
-            "ui:options": {
-                hideTitle: true
-            }
-        }
-    };
+    return result as UiSchemaRoot;
 }

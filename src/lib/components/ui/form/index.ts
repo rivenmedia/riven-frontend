@@ -8,7 +8,7 @@ import Legend from "./form-legend.svelte";
 import ElementField from "./form-element-field.svelte";
 import Button from "./form-button.svelte";
 
-const Control = FormPrimitive.Control;
+const Control = FormPrimitive?.Control;
 
 export {
 	Field,

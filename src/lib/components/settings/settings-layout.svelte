@@ -1,120 +1,84 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import { page } from "$app/state";
-    import { replaceState } from "$app/navigation";
-    import { untrack } from "svelte";
-    import {
-        Form,
-        SubmitButton,
-        HiddenIdPrefixInput,
-        setFormContext,
-        type Schema
-    } from "@sjsf/form";
-    import { SETTINGS_SECTIONS } from "./settings-sections";
-    import SettingsSidebar from "./settings-sidebar.svelte";
-    import SettingsSection from "./settings-section.svelte";
-    import * as Accordion from "$lib/components/ui/accordion";
     import { MediaQuery } from "svelte/reactivity";
-    import type { SettingsFormState } from "./form-defaults";
+    import * as Accordion from "$lib/components/ui/accordion";
+    import { SECTION_GROUPS } from "./settings-sections";
+    import { getSettingsContext } from "./settings-context";
+    import SettingsSidebar from "./settings-sidebar.svelte";
+    import SettingsContent from "./settings-content.svelte";
+    import SectionForm from "./section-form.svelte";
+    import UnsavedChangesDialog from "./unsaved-changes-dialog.svelte";
 
-    interface Props {
-        form: SettingsFormState;
-        schema: Schema;
-    }
-
-    let { form, schema }: Props = $props();
-
-    // Set form context for child components (must be called synchronously at component init)
-    // Using untrack because form is a stable reference - its internal state is reactive, not the reference itself
-    untrack(() => setFormContext(form));
+    const store = getSettingsContext();
 
     // Use MediaQuery only in browser, default to desktop on SSR
     const mobileQuery = browser ? new MediaQuery("(max-width: 768px)") : null;
     const isMobile = $derived(mobileQuery?.current ?? false);
 
-    /** Set of valid section IDs for O(1) validation */
-    const validSectionIds = new Set(SETTINGS_SECTIONS.map((s) => s.id));
-    /** Default section ID to use when an invalid or missing section is requested */
-    const defaultSectionId = SETTINGS_SECTIONS[0].id;
+    // Track which accordion sections have been opened (for lazy loading)
+    let openedSections = $state<Record<string, boolean>>({});
 
-    /**
-     * Validates a section ID and returns a valid one.
-     * @param sectionId - The section ID to validate (may be null from URL params)
-     * @returns A valid section ID, falling back to default if invalid
-     */
-    function getValidSectionId(sectionId: string | null): string {
-        return sectionId && validSectionIds.has(sectionId) ? sectionId : defaultSectionId;
+    function handleAccordionValueChange(value: string | string[] | undefined) {
+        if (!value || typeof value !== "string") return;
+
+        // Mark as opened for lazy loading tracking
+        openedSections[value] = true;
+
+        // Use store's navigation (handles unsaved changes check)
+        store.navigateTo(value);
     }
 
-    let activeSection = $state(getValidSectionId(page.url.searchParams.get("section")));
-
-    /**
-     * Sets the active section and updates the URL query parameter.
-     * Invalid section IDs are coerced to the default section.
-     * @param sectionId - The section ID to activate
-     */
-    function setActiveSection(sectionId: string): void {
-        const validId = getValidSectionId(sectionId);
-        activeSection = validId;
-        // Update URL query param without full navigation
-        if (browser) {
-            const url = new URL(page.url);
-            url.searchParams.set("section", validId);
-            // eslint-disable-next-line svelte/no-navigation-without-resolve -- shallow update to current URL, not a route navigation
-            replaceState(url, {});
+    function handleConfirmNavigation() {
+        // Mark pending section as opened before confirming
+        const pending = store.pendingSection;
+        if (pending) {
+            openedSections[pending] = true;
         }
+        store.confirmNavigation();
     }
 </script>
 
 {#if isMobile}
     <!-- Mobile: Accordion layout -->
-    <div class="h-full w-full overflow-auto p-4">
-        <Form attributes={{ class: "w-full", method: "POST", novalidate: true }}>
-            <HiddenIdPrefixInput {form} />
-            <Accordion.Root type="single" class="w-full">
-                {#each SETTINGS_SECTIONS as section (section.id)}
-                    <Accordion.Item value={section.id}>
-                        <Accordion.Trigger class="gap-2">
-                            <section.icon class="h-4 w-4" />
-                            {section.label}
-                        </Accordion.Trigger>
-                        <Accordion.Content>
-                            <div class="pb-4">
-                                <SettingsSection {form} {schema} {section} />
-                            </div>
-                        </Accordion.Content>
-                    </Accordion.Item>
-                {/each}
-            </Accordion.Root>
-            <div class="bg-background sticky bottom-0 border-t p-4">
-                <SubmitButton />
-            </div>
-        </Form>
+    <div class="h-full w-full overflow-auto p-4 pt-18">
+        <h1 class="mb-4 text-xl font-semibold">Settings</h1>
+        <Accordion.Root type="single" class="w-full" onValueChange={handleAccordionValueChange}>
+            {#each SECTION_GROUPS as section (section.id)}
+                {@const state = store.getSection(section.id)}
+                {@const saving = store.savingSectionId === section.id}
+                {@const hasChanges = state?.form?.isChanged ?? false}
+                <Accordion.Item value={section.id} class="border-b">
+                    <Accordion.Trigger class="flex w-full items-center gap-2 py-4">
+                        <section.icon class="h-4 w-4" />
+                        <span class="flex-1 text-left">{section.title}</span>
+                    </Accordion.Trigger>
+                    <Accordion.Content>
+                        <div class="pb-4">
+                            <p class="text-muted-foreground mb-4 text-sm">{section.description}</p>
+                            <SectionForm
+                                sectionId={section.id}
+                                {state}
+                                {saving}
+                                {hasChanges}
+                                onSave={() => store.save(section.id)}
+                                onReset={() => store.reset(section.id)}
+                                onRetry={() => store.retry(section.id)}
+                                wasOpened={!!openedSections[section.id]} />
+                        </div>
+                    </Accordion.Content>
+                </Accordion.Item>
+            {/each}
+        </Accordion.Root>
     </div>
 {:else}
     <!-- Desktop: Sidebar + Content layout -->
-    <div class="flex h-full">
-        <SettingsSidebar {activeSection} {form} onSectionChange={setActiveSection} />
-
-        <div class="flex min-h-0 flex-1 flex-col">
-            <Form
-                attributes={{
-                    class: "flex min-h-0 flex-1 flex-col",
-                    method: "POST",
-                    novalidate: true
-                }}>
-                <HiddenIdPrefixInput {form} />
-                <div class="min-h-0 flex-1 overflow-y-auto p-6">
-                    {#each SETTINGS_SECTIONS as section (section.id)}
-                        <div class:hidden={activeSection !== section.id}>
-                            <SettingsSection {form} {schema} {section} />
-                        </div>
-                    {/each}
-                </div>
-                <div class="bg-background border-t p-4">
-                    <SubmitButton />
-                </div>
-            </Form>
-        </div>
+    <div class="mt-14 flex h-[calc(100vh-3.5rem)] w-full">
+        <SettingsSidebar />
+        <SettingsContent />
     </div>
 {/if}
+
+<UnsavedChangesDialog
+    open={store.showUnsavedDialog}
+    onDiscard={handleConfirmNavigation}
+    onCancel={() => store.cancelNavigation()} />

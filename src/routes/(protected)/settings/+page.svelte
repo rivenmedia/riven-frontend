@@ -1,76 +1,71 @@
 <script lang="ts">
-    import type { ActionData, PageData } from "./$types";
-    import { createMeta, setupSvelteKitForm } from "@sjsf/sveltekit/client";
-    import { setValue, type Schema } from "@sjsf/form";
-    import * as formDefaults from "$lib/components/settings/form-defaults";
-    import type { AppSettings, SettingsFormState } from "$lib/components/settings/form-defaults";
-    import { setSettingsFormContext } from "$lib/components/settings-form-context";
-    import { toast } from "svelte-sonner";
-    import { icons } from "@sjsf/lucide-icons";
-    import { invalidateAll } from "$app/navigation";
+    import type { PageData } from "./$types";
+    import { onMount, untrack } from "svelte";
+    import { page } from "$app/state";
+    import { browser } from "$app/environment";
+    import { beforeNavigate, replaceState } from "$app/navigation";
+    import { setShadcnContext } from "$lib/components/shadcn-context";
+    import { Switch } from "$lib/components/ui/switch";
+    import { SettingsStore } from "$lib/components/settings/settings-store.svelte";
+    import { setSettingsContext } from "$lib/components/settings/settings-context";
     import SettingsLayout from "$lib/components/settings/settings-layout.svelte";
 
-    setSettingsFormContext();
+    setShadcnContext({ componentOverrides: { Checkbox: Switch } });
 
-    let { data }: { data: PageData } = $props();
+    const { data }: { data: PageData } = $props();
 
-    const meta = createMeta<ActionData, PageData>().form;
+    // Extract initial section ID from server data (intentionally not reactive)
+    const initialSectionId = untrack(() => data.currentSectionId);
 
-    // ignore warnings because Schema and UISchema are pre-built on the server - static after page load
-    // svelte-ignore state_referenced_locally
-    const schema = data.form.schema as Schema;
-    // svelte-ignore state_referenced_locally
-    const uiSchema = data.form.uiSchema;
+    const store = new SettingsStore();
+    setSettingsContext(store);
 
-    // Track pending form resync after successful save
-    let pendingResync = $state(false);
+    // Set initial section after store is created (triggers auto-load via effect)
+    store.setActiveSection(initialSectionId);
 
-    // setupSvelteKitForm infers from meta, but the schema is dynamic from page data
-    // so we need to cast the form to the proper type for type-safe usage in components
-    const { form: formState } = setupSvelteKitForm(meta, {
-        ...formDefaults,
-        schema,
-        uiSchema,
-        icons,
-        delayedMs: 500,
-        timeoutMs: 30000,
-        // Re-fetch settings after save to ensure UI reflects server state.
-        // Trade-off: extra network round-trip vs optimistic update (using submitted
-        // values directly). Re-fetching guarantees correctness if server transforms data.
-        onSuccess: async (result) => {
-            if (result.type === "success") {
-                toast.success("Settings saved");
-                pendingResync = true;
-                await invalidateAll();
-                // Data sync happens reactively in the $effect below
-            } else {
-                toast.error("Failed to save settings");
-            }
-        },
-        onFailure: () => {
-            toast.error("Something went wrong while saving settings");
-        }
-    });
-
-    // Sync form state when data updates after a successful save
+    // Sync URL when section changes
+    let previousSection = initialSectionId;
     $effect(() => {
-        // Access data.form.initialValue to establish reactive dependency
-        const newValue = data.form.initialValue;
-        if (pendingResync && newValue) {
-            setValue(formState, newValue as AppSettings);
-            pendingResync = false;
+        const section = store.activeSection;
+        // Skip if section hasn't changed (avoids initial URL rewrite)
+        if (section === previousSection) return;
+        previousSection = section;
+
+        if (browser) {
+            const url = new URL(page.url);
+            url.searchParams.set("section", section);
+            replaceState(url, {});
         }
     });
 
-    // Cast to SettingsFormState for type-safe component usage
-    // This is valid because we know the schema defines AppSettings
-    const form = formState as unknown as SettingsFormState;
+    // Native confirm() required - browser security prevents custom dialogs from blocking
+    // back/forward navigation. UnsavedChangesDialog only works for in-app navigation.
+    beforeNavigate(({ cancel }) => {
+        if (store.hasAnyUnsavedChanges()) {
+            if (!confirm("You have unsaved changes. Are you sure you want to leave?")) {
+                cancel();
+            }
+        }
+    });
+
+    // Warn before closing tab/window or external navigation
+    onMount(() => {
+        function handleBeforeUnload(e: BeforeUnloadEvent) {
+            if (store.hasAnyUnsavedChanges()) {
+                e.preventDefault();
+                // Modern browsers ignore custom messages, but returnValue is still required
+                e.returnValue = "";
+                return "";
+            }
+        }
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    });
 </script>
 
 <svelte:head>
     <title>Settings - Riven</title>
 </svelte:head>
 
-<div class="mt-14 h-[calc(100vh-3.5rem)] w-full">
-    <SettingsLayout {form} schema={data.form.schema!} />
-</div>
+<SettingsLayout />

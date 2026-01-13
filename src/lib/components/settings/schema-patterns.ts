@@ -2,13 +2,6 @@ import type { Schema } from "@sjsf/form";
 import { resolveRef } from "./schema-utils";
 
 /**
- * Schema pattern detection utilities.
- *
- * These functions detect common JSON Schema patterns (like nullable fields)
- * to enable automatic widget selection without manual configuration.
- */
-
-/**
  * Check if schema represents a nullable array: anyOf: [array, null]
  */
 export function isNullableArraySchema(schema: Schema): boolean {
@@ -35,23 +28,16 @@ export function isNullablePrimitiveSchema(schema: Schema): boolean {
     );
 }
 
-/**
- * Result of finding nullable fields in a schema.
- */
+export type NullableWidget = "nullableArrayWidget" | "nullablePrimitiveWidget";
+
 export interface NullableFieldInfo {
     path: string[];
-    widget: "nullableArrayWidget" | "nullablePrimitiveWidget";
+    widget: NullableWidget;
 }
 
 /**
- * Recursively walk a JSON Schema and find all nullable fields.
- * Returns paths and their appropriate widget assignments.
- *
- * This enables automatic widget detection without listing every field in UI schema.
- *
- * @param schema - The JSON Schema to walk
- * @param path - Current path in the schema (for recursion)
- * @param rootSchema - The root schema for resolving $ref (defaults to schema)
+ * Recursively find all nullable fields in a schema.
+ * Returns paths and their widget assignments for automatic UI schema generation.
  */
 export function findNullableFields(
     schema: Schema,
@@ -61,7 +47,6 @@ export function findNullableFields(
     const root = rootSchema ?? schema;
     const results: NullableFieldInfo[] = [];
 
-    // Resolve $ref if present, falling back to original schema if resolution fails
     const ref = schema.$ref as string | undefined;
     const resolvedSchema = ref ? (resolveRef(root, ref) ?? schema) : schema;
 
@@ -82,7 +67,8 @@ export function findNullableFields(
         }
     }
 
-    // Recurse into additionalProperties (for dictionary-like objects)
+    // Recurse into additionalProperties for dictionary-typed objects (e.g., library_profiles)
+    // This allows auto-detection of nullable fields inside arbitrary-keyed objects
     if (
         resolvedSchema.additionalProperties &&
         typeof resolvedSchema.additionalProperties === "object"
@@ -97,56 +83,4 @@ export function findNullableFields(
     }
 
     return results;
-}
-
-/**
- * Build a nested object structure from a list of nullable fields.
- * Used to generate UI schema widget assignments.
- *
- * @param fields - Array of nullable field info from findNullableFields
- * @returns Nested object with ui:components assignments
- */
-export function buildNullableWidgetUiSchema(fields: NullableFieldInfo[]): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
-
-    for (const { path, widget } of fields) {
-        setNestedValue(result, path, {
-            "ui:components": { anyOfField: widget }
-        });
-    }
-
-    return result;
-}
-
-/**
- * Set a value at a nested path in an object, creating intermediate objects as needed.
- */
-function setNestedValue(obj: Record<string, unknown>, path: string[], value: unknown): void {
-    if (path.length === 0) return;
-
-    let current = obj;
-    for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        if (!(key in current) || typeof current[key] !== "object") {
-            current[key] = {};
-        }
-        current = current[key] as Record<string, unknown>;
-    }
-
-    const lastKey = path[path.length - 1];
-
-    // Merge with existing value if both are objects
-    if (
-        typeof current[lastKey] === "object" &&
-        current[lastKey] !== null &&
-        typeof value === "object" &&
-        value !== null
-    ) {
-        current[lastKey] = {
-            ...(current[lastKey] as Record<string, unknown>),
-            ...(value as Record<string, unknown>)
-        };
-    } else {
-        current[lastKey] = value;
-    }
 }

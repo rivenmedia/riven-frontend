@@ -3,7 +3,6 @@
     import { Switch } from "$lib/components/ui/switch";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
-    import * as Select from "$lib/components/ui/select";
 
     // This component replaces anyOfField for nullable primitive types (anyOf: [type, null])
     let { config, value = $bindable() }: FieldCommonProps<SchemaValue> = $props();
@@ -14,14 +13,17 @@
     // Get field title and determine type from schema
     const fieldTitle = $derived(config.title || "Filter");
 
-    // Check what type this field expects (from the first anyOf option)
+    // Check what type this field expects (from the non-null anyOf option)
     const valueType = $derived.by(() => {
         const anyOf = config.schema.anyOf;
         if (!anyOf || !Array.isArray(anyOf)) return "number";
-        const firstOption = anyOf[0];
-        if (typeof firstOption === "object" && firstOption !== null) {
-            if (firstOption.type === "boolean") return "boolean";
-            if (firstOption.type === "integer" || firstOption.type === "number") return "number";
+        const nonNullOption = anyOf.find(
+            (s) => typeof s === "object" && s !== null && s.type !== "null"
+        );
+        if (typeof nonNullOption === "object" && nonNullOption !== null) {
+            if (nonNullOption.type === "boolean") return "boolean";
+            if (nonNullOption.type === "integer") return "integer";
+            if (nonNullOption.type === "number") return "number";
         }
         return "number";
     });
@@ -30,16 +32,7 @@
     const isEnabled = $derived(value !== null && value !== undefined);
 
     function toggleEnabled(checked: boolean) {
-        if (checked) {
-            // Enable with default value based on type
-            value = valueType === "boolean" ? false : 0;
-        } else {
-            value = null;
-        }
-    }
-
-    function updateValue(newValue: number | boolean) {
-        value = newValue;
+        value = checked ? (valueType === "boolean" ? false : 0) : null;
     }
 </script>
 
@@ -54,26 +47,31 @@
     {#if isEnabled}
         <div class="pl-9">
             {#if valueType === "boolean"}
-                <Select.Root
-                    type="single"
-                    value={value === true ? "true" : "false"}
-                    onValueChange={(v) => updateValue(v === "true")}>
-                    <Select.Trigger class="w-24">
+                <!-- Boolean value: use a second switch for Yes/No -->
+                <div class="flex items-center gap-2">
+                    <Switch
+                        id={`${fieldId}-value`}
+                        checked={value === true}
+                        onCheckedChange={(checked) => (value = checked)} />
+                    <Label for={`${fieldId}-value`} class="text-sm">
                         {value === true ? "Yes" : "No"}
-                    </Select.Trigger>
-                    <Select.Content>
-                        <Select.Item value="true">Yes</Select.Item>
-                        <Select.Item value="false">No</Select.Item>
-                    </Select.Content>
-                </Select.Root>
+                    </Label>
+                </div>
             {:else}
                 <Input
                     id={`${fieldId}-value`}
                     type="number"
+                    step={valueType === "integer" ? "1" : "any"}
                     value={value ?? ""}
                     onchange={(e) => {
-                        const result = Number.parseInt(e.currentTarget.value, 10);
-                        updateValue(Number.isNaN(result) ? 0 : result);
+                        const raw = e.currentTarget.valueAsNumber;
+                        if (Number.isNaN(raw)) {
+                            value = 0;
+                        } else if (valueType === "integer") {
+                            value = Math.round(raw);
+                        } else {
+                            value = raw;
+                        }
                     }}
                     class="h-8 w-32" />
             {/if}

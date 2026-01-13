@@ -1,9 +1,6 @@
 <script lang="ts" module>
 	import { getContext, setContext } from "svelte";
 	import type { ToggleVariants } from "$lib/components/ui/toggle/index.js";
-	export function setToggleGroupCtx(props: ToggleVariants) {
-		setContext("toggleGroup", props);
-	}
 
 	export function getToggleGroupCtx() {
 		return getContext<ToggleVariants>("toggleGroup");
@@ -23,9 +20,14 @@
 		...restProps
 	}: ToggleGroupPrimitive.RootProps & ToggleVariants = $props();
 
-	setToggleGroupCtx({
-		variant,
-		size,
+	// Create reactive context - must be set synchronously during init
+	const ctx: ToggleVariants = $state({ variant: "default", size: "default" });
+	setContext("toggleGroup", ctx);
+
+	// Keep context in sync with props (pre runs before render)
+	$effect.pre(() => {
+		ctx.variant = variant;
+		ctx.size = size;
 	});
 </script>
 
