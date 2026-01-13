@@ -54,7 +54,7 @@
         }
     });
 
-    function navigateToSearch() {
+    async function navigateToSearch() {
         clearTimeout(debounceTimer);
         // Read directly from local state
         const query = inputValue.trim();
@@ -68,7 +68,7 @@
             searchStore.syncQuery(parsed);
         }
 
-        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+        await goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: true,
             noScroll: true,
             replaceState: currentlyExplore

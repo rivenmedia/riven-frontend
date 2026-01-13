@@ -1,5 +1,6 @@
 <script lang="ts">
     import { untrack } from "svelte";
+    import { SvelteSet } from "svelte/reactivity";
     import { invalidateAll } from "$app/navigation";
     import providers from "$lib/providers";
     import type { components } from "$lib/providers/riven";
@@ -238,7 +239,7 @@
     });
     let canStartAutoScrape = $derived(Object.values(selectedOptions).some((arr) => arr.length > 0));
 
-    let selectedMagnets = $state<Set<string>>(new Set());
+    let selectedMagnets = $state<SvelteSet<string>>(new SvelteSet());
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
@@ -249,7 +250,7 @@
     let maxFilesizeOverride = $state<number | null>(null);
 
     // Season Selection State - managed by SeasonSelector component
-    let selectedSeasons = $state<Set<number>>(new Set());
+    let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
@@ -281,7 +282,7 @@
     };
 
     // Track which categories are expanded (all collapsed by default)
-    let expandedCategories = $state<Set<string>>(new Set());
+    let expandedCategories = $state<SvelteSet<string>>(new SvelteSet());
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -354,13 +355,11 @@
     });
 
     function toggleMagnetSelection(magnet: string) {
-        const newSet = new Set(selectedMagnets);
-        if (newSet.has(magnet)) {
-            newSet.delete(magnet);
+        if (selectedMagnets.has(magnet)) {
+            selectedMagnets.delete(magnet);
         } else {
-            newSet.add(magnet);
+            selectedMagnets.add(magnet);
         }
-        selectedMagnets = newSet;
     }
 
     async function handleBatchScrape() {
@@ -499,12 +498,7 @@
         error = null;
         magnetLink = "";
         streams = [];
-        loading = false;
-        error = null;
-        magnetLink = "";
-        streams = [];
         currentSessionMagnet = null;
-        sessionData = null;
         sessionData = null;
         selectedFilesMappings = [];
 
@@ -520,7 +514,7 @@
             require: [],
             exclude: []
         };
-        selectedMagnets = new Set();
+        selectedMagnets = new SvelteSet();
         activeTab = "all";
         batchProgress = null;
         searchQuery = "";
@@ -1313,8 +1307,7 @@
                                                             variant="ghost"
                                                             size="sm"
                                                             class="text-muted-foreground hover:text-foreground h-8 px-2 text-xs"
-                                                            onclick={() =>
-                                                                (selectedSeasons = new Set())}>
+                                                            onclick={() => selectedSeasons.clear()}>
                                                             Deselect All
                                                         </Button>
                                                     </div>
@@ -1332,7 +1325,7 @@
                                                 variant="ghost"
                                                 size="sm"
                                                 class="text-muted-foreground hover:text-destructive h-8 px-2 text-xs"
-                                                onclick={() => (selectedSeasons = new Set())}>
+                                                onclick={() => selectedSeasons.clear()}>
                                                 Deselect All
                                             </Button>
                                         {/if}

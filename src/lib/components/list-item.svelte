@@ -89,6 +89,7 @@
 {/snippet}
 
 {#if mediaURL}
+    <!-- svelte-ignore svelte/no-navigation-without-resolve -->
     <a href={mediaURL} class={containerClasses}>
         {@render cardContent()}
     </a>

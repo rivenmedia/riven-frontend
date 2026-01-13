@@ -7,32 +7,20 @@
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import { dev } from "$app/environment";
     import ListItem from "$lib/components/list-item.svelte";
-    import { itemsSearchSchema, typeOptions, stateOptions, sortOptions } from "$lib/schemas/items";
+    import { itemsSearchSchema, typeOptions, stateOptions } from "$lib/schemas/items";
     import Trash from "@lucide/svelte/icons/trash";
     import Search from "@lucide/svelte/icons/search";
     import X from "@lucide/svelte/icons/x";
-    import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
-    import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-    import Pause from "@lucide/svelte/icons/pause";
-    import Play from "@lucide/svelte/icons/play";
     import { Button } from "$lib/components/ui/button/index.js";
-    import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
-    import Columns2 from "@lucide/svelte/icons/columns-2";
-    import Hash from "@lucide/svelte/icons/hash";
-    import TV from "@lucide/svelte/icons/tv";
     import ListChecks from "@lucide/svelte/icons/list-checks";
     import * as Select from "$lib/components/ui/select/index.js";
-    import ArrowUpDown from "@lucide/svelte/icons/arrow-up-down";
     import { ItemStore } from "$lib/stores/library-items.svelte";
     import providers from "$lib/providers";
     import * as Pagination from "$lib/components/ui/pagination/index.js";
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
     import { goto, invalidateAll } from "$app/navigation";
-    import { Skeleton } from "$lib/components/ui/skeleton";
-    import { DELETE } from "../api/[...backendProxy]/+server";
     import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
@@ -43,7 +31,7 @@
         resetForm: false
     });
 
-    const { form: formData, enhance, message, delayed } = form;
+    const { form: formData, delayed } = form;
 
     const itemsStore = new ItemStore();
 
@@ -178,8 +166,8 @@
                             class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 rounded-lg px-4 transition-colors"
                             disabled={$delayed}
                             type="button"
-                            onclick={() => {
-                                goto("/library", { invalidateAll: true });
+                            onclick={async () => {
+                                await goto("/library", { invalidateAll: true });
                             }}>
                             <Trash class="mr-2 h-4 w-4" />
                             Clear

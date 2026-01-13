@@ -92,7 +92,7 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("movie") ?? true) as option}
+                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("movie") ?? true) as option (option.value)}
                             <Select.Item value={option.value} label={option.label}>
                                 {option.label}
                             </Select.Item>
@@ -121,6 +121,7 @@
                 </div>
             {/each}
             {#if searchStore.loading}
+                <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
                 {#each Array(6) as _, i (i)}
                     <div class="w-36 md:w-44 lg:w-48">
                         <PortraitCardSkeleton />
@@ -130,6 +131,7 @@
         </div>
     {:else if searchStore.loading}
         <div class="flex flex-wrap gap-4">
+            <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
             {#each Array(12) as _, i (i)}
                 <div class="w-36 md:w-44 lg:w-48">
                     <PortraitCardSkeleton />

@@ -143,6 +143,7 @@
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {#each collectionData.parts ?? [] as part (part.id)}
+                        <!-- svelte-ignore svelte/no-navigation-without-resolve -->
                         <a
                             href="/details/media/{part.id}/movie"
                             class="group block transition-all duration-300 hover:scale-[1.02]"

@@ -96,7 +96,8 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("tv" as any) ?? true) as option}
+                        <!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+                        {#each SORT_OPTIONS.filter((o) => o.allowedFor?.includes("tv" as any) ?? true) as option (option.value)}
                             <Select.Item value={option.value} label={option.label}>
                                 {option.label}
                             </Select.Item>
