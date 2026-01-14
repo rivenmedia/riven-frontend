@@ -91,6 +91,7 @@
         "d3-shape": "^3.2.0",
         "drizzle-orm": "^0.45.1",
         "embla-carousel-autoplay": "^8.6.0",
+        "hls.js": "^1.6.15",
         "mode-watcher": "^1.1.0",
         "nprogress": "^0.2.0",
         "openapi-fetch": "^0.15.0",
