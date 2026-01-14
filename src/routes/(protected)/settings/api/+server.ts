@@ -92,7 +92,7 @@ export const POST: RequestHandler = async ({ request, locals, fetch }) => {
         await setSettingsForPaths(section.keys, values as Record<string, unknown>, apiOptions);
         return json({ success: true, sectionId });
     } catch (err) {
-        console.error("Failed to save section:", err);
-        return error(500, "Failed to save settings");
+        console.error(`Failed to save section ${sectionId}:`, err);
+        return error(500, `Failed to save settings for section: ${sectionId}`);
     }
 };
