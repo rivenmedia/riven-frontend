@@ -134,7 +134,7 @@
             <div class="space-y-2">
                 <span class="text-sm font-medium">Genres</span>
                 <div class="flex flex-wrap gap-1">
-                    {#each availableGenres as genre}
+                    {#each availableGenres as genre (genre.id)}
                         <Toggle
                             size="sm"
                             variant="outline"
@@ -162,7 +162,7 @@
                     </Select.Trigger>
                     <Select.Content
                         class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                        {#each LANGUAGE_OPTIONS as lang}
+                        {#each LANGUAGE_OPTIONS as lang (lang.value)}
                             <Select.Item value={lang.value} label={lang.label} class="text-xs">
                                 {lang.label}
                             </Select.Item>
@@ -177,7 +177,7 @@
                 <div class="space-y-2">
                     <span class="text-sm font-medium">Content Rating</span>
                     <div class="flex flex-wrap gap-1">
-                        {#each CONTENT_RATINGS as rating}
+                        {#each CONTENT_RATINGS as rating (rating)}
                             <Toggle
                                 size="sm"
                                 variant="outline"

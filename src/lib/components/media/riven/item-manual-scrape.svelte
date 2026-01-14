@@ -1144,7 +1144,7 @@
                 </Dialog.Title>
                 <!-- Step Indicator -->
                 <div class="flex items-center gap-2">
-                    {#each [1, 2, 3] as s}
+                    {#each [1, 2, 3] as s (s)}
                         <div class="flex items-center gap-1.5">
                             <div
                                 class={`h-2 w-2 rounded-full transition-colors ${step === s || (step === 4 && s === 1) || (step === 6 && s === 3) ? "bg-primary" : step > s ? "bg-primary/50" : "bg-muted"}`}>

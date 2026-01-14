@@ -5,8 +5,8 @@
     import NotificationCenter from "$lib/components/notification-center.svelte";
     import * as Avatar from "$lib/components/ui/avatar/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import { Separator } from "$lib/components/ui/separator/index.js";
-    import { cn, getInitials } from "$lib/utils";
+    import { getInitials } from "$lib/utils";
+    import { resolve } from "$app/paths";
     import CalendarDays from "@lucide/svelte/icons/calendar-days";
     import FileClock from "@lucide/svelte/icons/file-clock";
     import Home from "@lucide/svelte/icons/home";
@@ -20,8 +20,9 @@
     import { getContext } from "svelte";
     import Tooltip from "./tooltip.svelte";
     import ThemeSwitcher from "./theme-switcher.svelte";
-    import { fade, fly } from "svelte/transition";
+    import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
+    import type { createSidebarStore } from "$lib/stores/global.svelte";
 
     const navItems = [
         { href: "/", icon: Home, label: "Home" },
@@ -32,12 +33,11 @@
         { href: "/auth", icon: User, label: "Profile" },
         { href: "/settings", icon: Settings, label: "Settings" },
         { href: "/logs", icon: FileClock, label: "Logs" }
-    ];
+    ] as const;
 
     let { user } = $props();
 
-    const SidebarStore: any = getContext("sidebarStore");
-    const isMobileStore: any = getContext("ismobilestore");
+    const SidebarStore = getContext<ReturnType<typeof createSidebarStore>>("sidebarStore");
 </script>
 
 <aside
@@ -53,11 +53,13 @@
                 {#snippet trigger()}
                     <a
                         data-sveltekit-preload-data={item.label === "Settings" ? "off" : "hover"}
-                        href={item.href}
+                        href={resolve(item.href)}
                         class="hover:bg-accent/80 group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors"
-                        class:bg-accent={page.url.pathname === item.href}
+                        class:bg-accent={page.url.pathname === resolve(item.href)}
                         aria-label={item.label}
-                        aria-current={page.url.pathname === item.href ? "page" : undefined}>
+                        aria-current={page.url.pathname === resolve(item.href)
+                            ? "page"
+                            : undefined}>
                         <item.icon class="size-5" />
                     </a>
                 {/snippet}
@@ -80,7 +82,7 @@
         {#if user}
             <Tooltip>
                 {#snippet trigger()}
-                    <a href="/auth" class="cursor-pointer" aria-label="Profile">
+                    <a href={resolve("/auth")} class="cursor-pointer" aria-label="Profile">
                         <Avatar.Root>
                             {#if user.image}
                                 <Avatar.Image src={user.image} alt={user.name} />
@@ -103,7 +105,7 @@
                     await authClient.signOut({
                         fetchOptions: {
                             onSuccess: () => {
-                                goto("/auth/login");
+                                goto(resolve("/auth/login"));
                             }
                         }
                     });
@@ -115,7 +117,7 @@
                 <LogOut class="size-5" />
             </Button>
         {:else}
-            <a href="/auth/login" class="cursor-pointer" aria-label="Login">
+            <a href={resolve("/auth/login")} class="cursor-pointer" aria-label="Login">
                 <Avatar.Root>
                     <Avatar.Fallback class="bg-primary text-primary-foreground">
                         {getInitials("Guest")}
@@ -150,7 +152,7 @@
             {#if user}
                 <div class="mb-4 flex items-center justify-between px-2">
                     <a
-                        href="/auth"
+                        href={resolve("/auth")}
                         class="flex items-center gap-3"
                         onclick={() => SidebarStore.toggle()}>
                         <Avatar.Root class="size-8">
@@ -198,13 +200,15 @@
             {/if}
 
             <nav class="flex flex-col gap-1" aria-label="Mobile Navigation">
-                {#each navItems as item}
+                {#each navItems as item (item.href)}
                     <a
-                        href={item.href}
+                        href={resolve(item.href)}
                         onclick={() => SidebarStore.toggle()}
                         class="hover:text-foreground flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/5
-						{page.url.pathname === item.href ? 'text-primary bg-white/5' : 'text-muted-foreground'}"
-                        aria-current={page.url.pathname === item.href ? "page" : undefined}>
+						{page.url.pathname === resolve(item.href) ? 'text-primary bg-white/5' : 'text-muted-foreground'}"
+                        aria-current={page.url.pathname === resolve(item.href)
+                            ? "page"
+                            : undefined}>
                         <item.icon class="size-4" />
                         <span>{item.label}</span>
                     </a>
