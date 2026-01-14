@@ -14,7 +14,16 @@ import { resolveId } from "$lib/services/resolver";
 
 const logger = createScopedLogger("media-details");
 
-async function normalizeFetch<T>(p: Promise<T>) {
+async function normalizeFetch<T>(p: Promise<T>): Promise<
+    | T
+    | {
+          data: null;
+          error: {
+              status: number;
+              message: string;
+          };
+      }
+> {
     try {
         return await p;
     } catch (e) {
@@ -24,7 +33,7 @@ async function normalizeFetch<T>(p: Promise<T>) {
                 status: 503,
                 message: e instanceof Error ? e.message : String(e)
             }
-        } as any;
+        };
     }
 }
 
@@ -77,7 +86,12 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
             return { traktSlug: null, traktRecs: null };
         }
 
-        const traktSlug = (traktSlugResp[0] as any)[mediaType]?.ids?.slug;
+        const traktSlug = (
+            traktSlugResp[0] as unknown as Record<
+                string,
+                { ids: { slug: string } | undefined } | undefined
+            >
+        )[mediaType]?.ids?.slug;
 
         if (!traktSlug) {
             return { traktSlug: null, traktRecs: null };
@@ -93,7 +107,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
                     },
                     query: {
                         extended: "images"
-                    } as any
+                    }
                 },
                 fetch: fetch
             }
@@ -321,8 +335,9 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     if (!engEpisodesError && engEpisodesData && engEpisodesData.data) {
                         const rawData = engEpisodesData as unknown as EngEpisodesResponse;
                         if (rawData.data?.episodes) {
-                            // Cast to any because details.data (inferred) expects undefined but parser allows null
-                            (details.data as any).episodes = rawData.data.episodes;
+                            // Cast to unknown first to avoid direct overlap error, then to expected structure
+                            (details.data as unknown as { episodes: EpisodeType[] }).episodes =
+                                rawData.data.episodes;
                         }
                     }
                 } catch (err) {
