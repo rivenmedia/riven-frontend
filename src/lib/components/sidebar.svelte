@@ -175,7 +175,7 @@
                                 await authClient.signOut({
                                     fetchOptions: {
                                         onSuccess: () => {
-                                            goto("/auth/login");
+                                            goto(resolve("/auth/login"));
                                         }
                                     }
                                 });

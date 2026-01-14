@@ -25,7 +25,12 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
         );
 
         if (personError) {
-            error(500, (personError as any).message || "Failed to fetch person details");
+            error(
+                500,
+                (personError as { message?: string; status_message?: string }).message ||
+                    (personError as { message?: string; status_message?: string }).status_message ||
+                    "Failed to fetch person details"
+            );
         }
 
         return {

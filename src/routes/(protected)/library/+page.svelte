@@ -21,6 +21,7 @@
     import Loading2Circle from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
     import { goto, invalidateAll } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
@@ -167,7 +168,7 @@
                             disabled={$delayed}
                             type="button"
                             onclick={async () => {
-                                await goto("/library", { invalidateAll: true });
+                                await goto(resolve("/library"), { invalidateAll: true });
                             }}>
                             <Trash class="mr-2 h-4 w-4" />
                             Clear
@@ -352,7 +353,7 @@
                         variant="outline"
                         class="mt-2 border-white/10 bg-transparent hover:bg-white/5"
                         onclick={() => {
-                            goto("/library", { invalidateAll: true });
+                            goto(resolve("/library"), { invalidateAll: true });
                         }}>
                         Clear Filters
                     </Button>

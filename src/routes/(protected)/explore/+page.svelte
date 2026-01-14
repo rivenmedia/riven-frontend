@@ -11,6 +11,7 @@
     import Info from "@lucide/svelte/icons/info";
     import { scale, fly } from "svelte/transition";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
 
     let { data } = $props();
 
@@ -58,7 +59,11 @@
         if (!data.feelingLuckyItems?.length) return;
         const randomItem =
             data.feelingLuckyItems[Math.floor(Math.random() * data.feelingLuckyItems.length)];
-        const route = `/details/media/${randomItem.id}/${randomItem.media_type}`;
+        const route = resolve(
+            `/details/media/${randomItem.id}/${randomItem.media_type}` as Parameters<
+                typeof resolve
+            >[0]
+        );
         goto(route);
     }
 
@@ -374,7 +379,7 @@
                         <ListItem data={item} indexer={item.indexer} type={item.media_type} />
                     {/each}
                     {#if searchStore.loading}
-                        {#each Array(6)}
+                        {#each Array(6) as _, i (i)}
                             <div class="aspect-[2/3] w-full">
                                 <PortraitCardSkeleton />
                             </div>
@@ -384,7 +389,7 @@
             {:else if searchStore.loading}
                 <div
                     class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
-                    {#each Array(12)}
+                    {#each Array(12) as _, i (i)}
                         <div class="aspect-[2/3] w-full">
                             <PortraitCardSkeleton />
                         </div>

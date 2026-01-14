@@ -12,6 +12,7 @@
     import { onMount } from "svelte";
     import { authClient } from "$lib/auth-client";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import { doesBrowserSupportPasskeys } from "$lib/passkeys";
     import { page } from "$app/state";
@@ -103,7 +104,7 @@
                     autoFill: true,
                     fetchOptions: {
                         async onSuccess() {
-                            await goto("/");
+                            await goto(resolve("/"));
                         },
                         onError(context) {
                             logger.debug("Passkey autofill failed:", context.error);
@@ -120,7 +121,7 @@
             await authClient.signIn.passkey({
                 fetchOptions: {
                     async onSuccess() {
-                        await goto("/");
+                        await goto(resolve("/"));
                     },
                     onError(context) {
                         toast.error(context.error.message || "Passkey authentication failed");

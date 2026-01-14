@@ -228,7 +228,7 @@
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
     <div class="space-y-1">
-        {#each day.items.slice(0, limit) as item, itemIndex (item.item_id)}
+        {#each day.items.slice(0, limit) as item (item.item_id)}
             {@render entertainmentItem(item, limit !== Infinity)}
         {/each}
 

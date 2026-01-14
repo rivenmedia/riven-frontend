@@ -137,7 +137,7 @@
                     ]} />
 
                 <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
-                    {#each heatmapLegend as item}
+                    {#each heatmapLegend as item (item.label)}
                         <div class="flex items-center gap-1.5">
                             <span
                                 class="inline-block h-3 w-3 shrink-0 rounded-sm"
