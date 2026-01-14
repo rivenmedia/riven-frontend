@@ -20,28 +20,35 @@ import { extendByRecord } from "@sjsf/form/lib/resolver";
 import { CustomRankWidget, NullableArrayWidget, NullablePrimitiveWidget } from "./widgets";
 
 export const theme = extendByRecord(baseTheme, {
-	customRankWidget: CustomRankWidget,
-	nullableArrayWidget: NullableArrayWidget,
-	nullablePrimitiveWidget: NullablePrimitiveWidget
+    customRankWidget: CustomRankWidget,
+    nullableArrayWidget: NullableArrayWidget,
+    nullablePrimitiveWidget: NullablePrimitiveWidget
 });
 
 // Validator with custom formats
 import { addFormComponents, createFormValidator } from "@sjsf/ajv8-validator";
 import addFormats from "ajv-formats";
 
+/** Matches paths starting with / or . (absolute or relative filesystem paths) */
 const PATH_FORMAT_REGEX = /^[/.].*/;
+
+/**
+ * Permissive regex for multi-host URI fields - accepts any non-empty string.
+ * Intended to allow flexible formats: single host, host:port, comma-separated hosts, etc.
+ * This is a placeholder; tighten validation here if stricter format enforcement is needed.
+ */
 const MULTI_HOST_URI_REGEX = /^.+$/;
 
 export const validator = <T>(options: ValidatorFactoryOptions) =>
-	createFormValidator<T>({
-		...options,
-		ajvPlugins: (ajv) => {
-			addFormComponents(addFormats(ajv));
-			ajv.addFormat("path", PATH_FORMAT_REGEX);
-			ajv.addFormat("multi-host-uri", MULTI_HOST_URI_REGEX);
-			return ajv;
-		}
-	});
+    createFormValidator<T>({
+        ...options,
+        ajvPlugins: (ajv) => {
+            addFormComponents(addFormats(ajv));
+            ajv.addFormat("path", PATH_FORMAT_REGEX);
+            ajv.addFormat("multi-host-uri", MULTI_HOST_URI_REGEX);
+            return ajv;
+        }
+    });
 
 // Form utilities
 export { translation } from "@sjsf/form/translations/en";

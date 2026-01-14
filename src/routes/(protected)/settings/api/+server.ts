@@ -55,16 +55,31 @@ export const GET: RequestHandler = async ({ url, locals, fetch }) => {
  * Save settings for a specific section.
  */
 export const POST: RequestHandler = async ({ request, locals, fetch }) => {
-    const body = await request.json();
-    const { sectionId, values } = body;
+    let body: unknown;
+    try {
+        body = await request.json();
+    } catch {
+        return error(400, "Invalid JSON in request body");
+    }
 
-    if (!sectionId) {
-        return error(400, "sectionId is required");
+    // Validate body shape
+    if (typeof body !== "object" || body === null) {
+        return error(400, "Request body must be an object");
+    }
+
+    const { sectionId, values } = body as Record<string, unknown>;
+
+    if (typeof sectionId !== "string" || !sectionId.trim()) {
+        return error(400, "sectionId must be a non-empty string");
+    }
+
+    if (typeof values !== "object" || values === null) {
+        return error(400, "values must be an object");
     }
 
     const section = getSectionGroupById(sectionId);
     if (!section) {
-        return error(400, "Invalid section");
+        return error(400, `Invalid section: ${sectionId}`);
     }
 
     const apiOptions = {
@@ -74,7 +89,7 @@ export const POST: RequestHandler = async ({ request, locals, fetch }) => {
     };
 
     try {
-        await setSettingsForPaths(section.keys, values, apiOptions);
+        await setSettingsForPaths(section.keys, values as Record<string, unknown>, apiOptions);
         return json({ success: true, sectionId });
     } catch (err) {
         console.error("Failed to save section:", err);

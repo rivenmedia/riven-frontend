@@ -11,6 +11,8 @@ import Separator from "./command-separator.svelte";
 import Shortcut from "./command-shortcut.svelte";
 import LinkItem from "./command-link-item.svelte";
 
+// Optional chaining guards against SSR edge cases where bits-ui primitives
+// may not be fully initialized during server-side rendering
 const Loading = CommandPrimitive?.Loading;
 
 export {

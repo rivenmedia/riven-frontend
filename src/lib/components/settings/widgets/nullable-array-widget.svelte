@@ -7,6 +7,7 @@
     import { Label } from "$lib/components/ui/label";
     import X from "@lucide/svelte/icons/x";
     import Plus from "@lucide/svelte/icons/plus";
+    import { toast } from "svelte-sonner";
 
     // Handles nullable array types (anyOf: [array, null]).
     // Supports string[] and number[] - items rendered as chips with input for adding.
@@ -42,31 +43,74 @@
     });
 
     const isEnabled = $derived(Array.isArray(value));
-    const items = $derived<(string | number)[]>(isEnabled ? (value as (string | number)[]) : []);
+
+    // Internal representation with stable IDs for proper DOM keying
+    interface ItemWithId {
+        id: string;
+        value: string | number;
+    }
+
+    let idCounter = 0;
+    const generateId = () => `item-${idCounter++}`;
+
+    // Track items with stable IDs, synced from external value
+    let itemsWithIds = $state<ItemWithId[]>([]);
+
+    // Sync internal state when external value changes
+    $effect(() => {
+        const rawItems = isEnabled ? (value as (string | number)[]) : [];
+        // Rebuild with new IDs when value changes externally
+        // This is necessary because we can't know which items changed
+        if (
+            rawItems.length !== itemsWithIds.length ||
+            rawItems.some((v, i) => itemsWithIds[i]?.value !== v)
+        ) {
+            itemsWithIds = rawItems.map((v) => ({ id: generateId(), value: v }));
+        }
+    });
 
     let newItem = $state("");
 
     function toggleEnabled(checked: boolean) {
-        value = checked ? [] : null;
+        if (checked) {
+            value = [];
+            itemsWithIds = [];
+        } else {
+            value = null;
+            itemsWithIds = [];
+        }
     }
 
     function addItem() {
         const trimmed = newItem.trim();
         if (!trimmed) return;
 
+        let newValue: string | number;
         if (isNumeric) {
             const num = Number(trimmed);
-            if (!Number.isNaN(num)) {
-                value = [...items, num];
+            if (Number.isNaN(num)) {
+                toast.error("Invalid number", {
+                    description: `"${trimmed}" is not a valid number`
+                });
+                newItem = "";
+                return;
             }
+            newValue = num;
         } else {
-            value = [...items, trimmed];
+            newValue = trimmed;
         }
+
+        // Add to internal state with stable ID
+        const newItemWithId = { id: generateId(), value: newValue };
+        itemsWithIds = [...itemsWithIds, newItemWithId];
+        // Update external form value
+        value = itemsWithIds.map((item) => item.value);
         newItem = "";
     }
 
-    function removeItem(index: number) {
-        value = items.filter((_, i) => i !== index);
+    function removeItem(id: string) {
+        itemsWithIds = itemsWithIds.filter((item) => item.id !== id);
+        value = itemsWithIds.map((item) => item.value);
     }
 
     function handleKeydown(e: KeyboardEvent) {
@@ -87,16 +131,16 @@
 
     {#if isEnabled}
         <div class="space-y-2 pl-1">
-            {#if items.length > 0}
+            {#if itemsWithIds.length > 0}
                 <div class="flex flex-wrap gap-2">
-                    {#each items as item, index (index)}
+                    {#each itemsWithIds as item (item.id)}
                         <div class="bg-muted flex items-center gap-1 rounded-md px-2 py-1 text-sm">
-                            <span>{item}</span>
+                            <span>{item.value}</span>
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                onclick={() => removeItem(index)}
+                                onclick={() => removeItem(item.id)}
                                 aria-label="Remove item"
                                 class="ml-1 h-4 w-4">
                                 <X class="h-3 w-3" />
