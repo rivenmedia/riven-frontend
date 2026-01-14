@@ -7,10 +7,8 @@
     import "@fontsource/jetbrains-mono/latin.css";
     import "@fontsource/merriweather/latin.css";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
-
-    import { afterNavigate, onNavigate, beforeNavigate } from "$app/navigation";
+    import { afterNavigate, beforeNavigate } from "$app/navigation";
     import Sidebar from "$lib/components/sidebar.svelte";
-    import { Separator } from "$lib/components/ui/separator/index.js";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
     import NProgress from "nprogress";

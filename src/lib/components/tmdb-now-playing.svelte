@@ -297,7 +297,7 @@
 
             <!-- Desktop Segmented Progress (Hidden until Large screens) -->
             <div class="hidden gap-1.5 lg:flex">
-                {#each data as _, i}
+                {#each data as _item, i (i)}
                     <button
                         class="relative h-1 w-6 cursor-pointer overflow-hidden rounded-full transition-all duration-300 {i ===
                         currentIndex

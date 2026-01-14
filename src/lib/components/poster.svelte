@@ -2,35 +2,27 @@
     import { cn } from "$lib/utils";
     import Circle from "@lucide/svelte/icons/circle";
     import type { Snippet } from "svelte";
+    import { resolve } from "$app/paths";
+    import type { ItemStore } from "$lib/stores/library-items.svelte";
 
     interface Props {
-        id: number;
         title?: string;
         riven_id?: number;
-        mediaType: string;
-        indexer: string;
         src?: string;
-        alt?: string;
         class?: string;
         isSelectable?: boolean;
-        selectStore?: any;
-        useDynamicPoster?: boolean;
+        selectStore?: ItemStore;
         mediaURL: string;
         children?: Snippet;
     }
 
     let {
-        id,
         title = undefined,
         riven_id = undefined,
-        indexer,
-        mediaType,
         src,
-        alt,
         class: className = "",
         isSelectable = false,
         selectStore = undefined,
-        useDynamicPoster = true,
         mediaURL,
         children
     }: Props = $props();
@@ -62,7 +54,8 @@
         </button>
     {/if}
 
-    <a href={mediaURL} class="absolute inset-0 z-10" aria-label={title || "View details"}></a>
+    <a href={resolve(mediaURL)} class="absolute inset-0 z-10" aria-label={title || "View details"}
+    ></a>
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">

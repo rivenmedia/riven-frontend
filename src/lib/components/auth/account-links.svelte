@@ -6,6 +6,7 @@
     import { authClient } from "$lib/auth-client";
     import { toast } from "svelte-sonner";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
 
     interface Account {
         id: string;
@@ -63,7 +64,7 @@
                                         providerId: providerId
                                     });
                                     toast.success(`${providerId} unlinked successfully.`);
-                                    await goto("/auth", { invalidateAll: true });
+                                    await goto(resolve("/auth"), { invalidateAll: true });
                                 }}>
                                 <Link2Off class="mr-2 h-4 w-4" />
                                 Unlink

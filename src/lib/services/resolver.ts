@@ -153,7 +153,7 @@ async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
             if (!error && data?.data?.id) {
                 return { id: Number(data.data.id), resolved: true };
             }
-        } catch (e) {
+        } catch {
             // Series doesn't exist with this ID, that's fine
         }
     }

@@ -1,4 +1,3 @@
-import type { operations as TMDBOperations } from "./providers/tmdb";
 import type { operations as TVDBOperations } from "./providers/tvdb";
 
 /**
@@ -181,7 +180,7 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 
         if (colonIndex > 0 && colonIndex < token.length - 1) {
             const key = token.substring(0, colonIndex).toLowerCase();
-            let value = token.substring(colonIndex + 1).replace(/^"(.*)"$/, "$1");
+            const value = token.substring(colonIndex + 1).replace(/^"(.*)"$/, "$1");
 
             const shortcut = SHORTCUTS[key];
 
@@ -192,7 +191,6 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
                     shortcut.tmdb === "without_genres" ||
                     shortcut.tvdb === "with_genres" ||
                     shortcut.tvdb === "without_genres";
-
                 // Resolve genre names to IDs if needed
                 if (isGenreParam && isNaN(Number(value))) {
                     const genreIds: number[] = [];

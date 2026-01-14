@@ -523,7 +523,7 @@
                             </div>
                         {:else if ratingsLoading}
                             <div class="flex gap-4">
-                                {#each [1, 2, 3] as _}
+                                {#each [1, 2, 3]}
                                     <div class="bg-muted h-6 w-14 animate-pulse rounded"></div>
                                 {/each}
                             </div>
@@ -922,7 +922,7 @@
                                             class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                             >Production</span>
                                         <div class="flex flex-wrap gap-2">
-                                            {#each data.mediaDetails.details.production_companies as company (company.id)}
+                                            {#each data.mediaDetails.details.production_companies as company}
                                                 <span
                                                     class="text-muted-foreground rounded border border-white/10 bg-white/5 px-2 py-1 text-xs">
                                                     {company.name}
@@ -1042,7 +1042,7 @@
                                                 class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                 >Audio</span>
                                             <div class="flex flex-wrap gap-2">
-                                                {#each meta.audio_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
+                                                {#each meta.audio_tracks as track}
                                                     <Badge
                                                         variant="secondary"
                                                         class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
@@ -1067,7 +1067,7 @@
                                                 class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                 >Subtitles</span>
                                             <div class="flex flex-wrap gap-2">
-                                                {#each meta.subtitle_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
+                                                {#each meta.subtitle_tracks as track}
                                                     <Badge
                                                         variant="secondary"
                                                         class="text-muted-foreground border border-white/10 bg-white/5 text-[10px] backdrop-blur-sm"

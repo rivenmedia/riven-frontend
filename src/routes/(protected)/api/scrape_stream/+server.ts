@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import type { RequestHandler, RequestEvent } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { produce } from "sveltekit-sse";
 import { createScopedLogger } from "$lib/logger";
