@@ -8,8 +8,10 @@ import Footer from "./sheet-footer.svelte";
 import Title from "./sheet-title.svelte";
 import Description from "./sheet-description.svelte";
 
-const Root = SheetPrimitive.Root;
-const Portal = SheetPrimitive.Portal;
+// Optional chaining guards against SSR edge cases where bits-ui primitives
+// may not be fully initialized during server-side rendering
+const Root = SheetPrimitive?.Root;
+const Portal = SheetPrimitive?.Portal;
 
 export {
 	Root,

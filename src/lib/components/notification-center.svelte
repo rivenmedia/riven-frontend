@@ -1,6 +1,7 @@
 <script lang="ts">
     import { notificationStore } from "$lib/stores/notifications.svelte";
     import { onMount, onDestroy } from "svelte";
+    import { browser } from "$app/environment";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
@@ -83,126 +84,135 @@
     });
 </script>
 
-<Popover.Root bind:open>
-    <Popover.Trigger>
-        {#snippet child({ props })}
-            <Button
-                variant="outline"
-                size="icon"
-                class="relative h-10 w-10 cursor-pointer"
-                {...props}>
-                {#if notificationStore.unreadCount > 0}
-                    <BellRing class="size-5" />
-                {:else}
-                    <Bell class="size-5" />
-                {/if}
-            </Button>
-        {/snippet}
-    </Popover.Trigger>
-    <Popover.Content class="w-96 p-0" align="end">
-        <div class="flex flex-col">
-            <div class="flex items-center justify-between p-4 pb-3">
-                <h3 class="text-sm font-semibold">Notifications</h3>
-                <div class="flex items-center gap-2">
+{#if browser}
+    <Popover.Root bind:open>
+        <Popover.Trigger>
+            {#snippet child({ props })}
+                <Button
+                    variant="outline"
+                    size="icon"
+                    class="relative h-10 w-10 cursor-pointer"
+                    {...props}>
                     {#if notificationStore.unreadCount > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleMarkAllAsRead}>
-                            <CheckCheck class="mr-1 size-3" />
-                            Mark all read
-                        </Button>
+                        <BellRing class="size-5" />
+                    {:else}
+                        <Bell class="size-5" />
                     {/if}
-                    {#if notificationStore.notifications.length > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleClearAll}>
-                            <X class="mr-1 size-3" />
-                            Clear all
-                        </Button>
-                    {/if}
-                </div>
-            </div>
-            <Separator />
-
-            <div class="max-h-100 overflow-y-auto">
-                {#if notificationStore.notifications.length === 0}
-                    <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <Bell class="text-muted-foreground/30 size-12" />
-                        <p class="text-muted-foreground mt-2 text-sm">No notifications yet</p>
-                        <p class="text-muted-foreground/70 mt-1 text-xs">
-                            You'll be notified when items complete
-                        </p>
+                </Button>
+            {/snippet}
+        </Popover.Trigger>
+        <Popover.Content class="w-96 p-0" align="end">
+            <div class="flex flex-col">
+                <div class="flex items-center justify-between p-4 pb-3">
+                    <h3 class="text-sm font-semibold">Notifications</h3>
+                    <div class="flex items-center gap-2">
+                        {#if notificationStore.unreadCount > 0}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="h-7 px-2 text-xs"
+                                onclick={handleMarkAllAsRead}>
+                                <CheckCheck class="mr-1 size-3" />
+                                Mark all read
+                            </Button>
+                        {/if}
+                        {#if notificationStore.notifications.length > 0}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="h-7 px-2 text-xs"
+                                onclick={handleClearAll}>
+                                <X class="mr-1 size-3" />
+                                Clear all
+                            </Button>
+                        {/if}
                     </div>
-                {:else}
-                    {#each notificationStore.notifications as notification (notification.id)}
-                        <div
-                            class="border-border/50 hover:bg-muted/30 border-b p-3 transition-colors {!notification.read
-                                ? 'bg-muted/10'
-                                : ''}">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <Badge
-                                            variant="secondary"
-                                            class="{getTypeColor(notification.type)} text-[10px]">
-                                            {notification.type}
-                                        </Badge>
-                                        {#if !notification.read}
-                                            <div class="size-2 rounded-full bg-blue-500"></div>
-                                        {/if}
+                </div>
+                <Separator />
+
+                <div class="max-h-100 overflow-y-auto">
+                    {#if notificationStore.notifications.length === 0}
+                        <div class="flex flex-col items-center justify-center p-8 text-center">
+                            <Bell class="text-muted-foreground/30 size-12" />
+                            <p class="text-muted-foreground mt-2 text-sm">No notifications yet</p>
+                            <p class="text-muted-foreground/70 mt-1 text-xs">
+                                You'll be notified when items complete
+                            </p>
+                        </div>
+                    {:else}
+                        {#each notificationStore.notifications as notification (notification.id)}
+                            <div
+                                class="border-border/50 hover:bg-muted/30 border-b p-3 transition-colors {!notification.read
+                                    ? 'bg-muted/10'
+                                    : ''}">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex-1 space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <Badge
+                                                variant="secondary"
+                                                class="{getTypeColor(
+                                                    notification.type
+                                                )} text-[10px]">
+                                                {notification.type}
+                                            </Badge>
+                                            {#if !notification.read}
+                                                <div class="size-2 rounded-full bg-blue-500"></div>
+                                            {/if}
+                                        </div>
+                                        <p class="text-sm leading-none font-medium">
+                                            {notification.title}
+                                        </p>
+                                        <p class="text-muted-foreground text-xs">
+                                            {notification.message}
+                                        </p>
+                                        <p class="text-muted-foreground/70 text-xs">
+                                            {formatTimestamp(notification.timestamp)}
+                                        </p>
                                     </div>
-                                    <p class="text-sm leading-none font-medium">
-                                        {notification.title}
-                                    </p>
-                                    <p class="text-muted-foreground text-xs">
-                                        {notification.message}
-                                    </p>
-                                    <p class="text-muted-foreground/70 text-xs">
-                                        {formatTimestamp(notification.timestamp)}
-                                    </p>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    {#if !notification.read}
+                                    <div class="flex flex-col gap-1">
+                                        {#if !notification.read}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="size-6"
+                                                onclick={() => handleMarkAsRead(notification.id)}>
+                                                <Check class="size-3" />
+                                            </Button>
+                                        {/if}
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             class="size-6"
-                                            onclick={() => handleMarkAsRead(notification.id)}>
-                                            <Check class="size-3" />
+                                            onclick={() => handleRemove(notification.id)}>
+                                            <X class="size-3" />
                                         </Button>
-                                    {/if}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        class="size-6"
-                                        onclick={() => handleRemove(notification.id)}>
-                                        <X class="size-3" />
-                                    </Button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {/each}
+                        {/each}
+                    {/if}
+                </div>
+
+                {#if notificationStore.connectionStatus === "error"}
+                    <div class="border-destructive/20 bg-destructive/10 border-t p-3">
+                        <p class="text-destructive text-xs">
+                            Connection error. Notifications may be delayed.
+                        </p>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="mt-2 h-6 text-xs"
+                            onclick={() => notificationStore.reconnect()}>
+                            Reconnect
+                        </Button>
+                    </div>
                 {/if}
             </div>
-
-            {#if notificationStore.connectionStatus === "error"}
-                <div class="border-destructive/20 bg-destructive/10 border-t p-3">
-                    <p class="text-destructive text-xs">
-                        Connection error. Notifications may be delayed.
-                    </p>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        class="mt-2 h-6 text-xs"
-                        onclick={() => notificationStore.reconnect()}>
-                        Reconnect
-                    </Button>
-                </div>
-            {/if}
-        </div>
-    </Popover.Content>
-</Popover.Root>
+        </Popover.Content>
+    </Popover.Root>
+{:else}
+    <!-- SSR placeholder -->
+    <Button variant="outline" size="icon" class="relative h-10 w-10">
+        <Bell class="size-5" />
+    </Button>
+{/if}

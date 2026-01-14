@@ -168,3 +168,11 @@
         transform: rotate(360deg);
     }
 }
+
+@layer components {
+    /* Settings form styling - card appearance for nested config sections.
+       :has() targets fieldsets containing nested fieldsets - requires Safari 15.4+ */
+    .settings-form fieldset:has(> fieldset) > fieldset {
+        @apply border-border bg-card/50 mb-4 rounded-lg border p-4;
+    }
+}
