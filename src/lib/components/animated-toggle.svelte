@@ -68,7 +68,7 @@
             <Button
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-foreground h-7 w-full rounded-xl px-4 text-xs font-bold transition-colors hover:bg-transparent"
+                class="text-muted-foreground hover:text-foreground h-7 w-full rounded-lg px-4 text-xs font-bold transition-colors hover:bg-transparent"
                 onclick={() => {
                     onchange(option.value);
                     updatePosition(option.value);
@@ -81,7 +81,7 @@
     <!-- Layer 2: Active State (Masked Overlay) -->
     <!-- The pill acts as a window into the "Active" world -->
     <div
-        class="bg-primary pointer-events-none absolute top-1 bottom-1 left-0 z-10 overflow-hidden rounded-xl shadow-lg"
+        class="bg-primary pointer-events-none absolute top-1 bottom-1 left-0 z-10 overflow-hidden rounded-lg shadow-lg"
         style="transform: translateX({styles.current.x}px); width: {styles.current.w}px">
         <!-- Inner Container: Inverse translation to keep text static relative to parent -->
         <div
@@ -96,7 +96,7 @@
                         variant="ghost"
                         size="sm"
                         tabindex={-1}
-                        class="text-primary-foreground hover:text-primary-foreground h-7 w-full rounded-xl px-4 text-xs font-bold hover:bg-transparent">
+                        class="text-primary-foreground hover:text-primary-foreground h-7 w-full rounded-lg px-4 text-xs font-bold hover:bg-transparent">
                         {option.label}
                     </Button>
                 </div>
