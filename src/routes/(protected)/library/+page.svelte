@@ -66,6 +66,7 @@
 
         // Reset to page 1 on search/filter change
         url.searchParams.set("page", "1");
+        $formData.page = 1;
 
         goto(url.toString(), {
             keepFocus: true,
