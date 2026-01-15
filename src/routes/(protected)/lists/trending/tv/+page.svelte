@@ -112,7 +112,7 @@
                         </Select.Trigger>
                         <Select.Content
                             class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
-                            {#each SORT_OPTIONS.filter( (o) => (o.allowedFor as unknown as string[]).includes("tv") ) as option (option.value)}
+                            {#each SORT_OPTIONS.filter( (o) => (o.allowedFor as readonly string[]).includes("tv") ) as option (option.value)}
                                 <Select.Item value={option.value} label={option.label}>
                                     {option.label}
                                 </Select.Item>
