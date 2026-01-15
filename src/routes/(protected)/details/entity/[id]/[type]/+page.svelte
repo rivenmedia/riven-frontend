@@ -360,10 +360,12 @@
                                     delay: 150,
                                     easing: cubicOut
                                 }}>
-                                <h3 class="font-heading text-foreground text-xl font-bold">Biography</h3>
+                                <h3 class="font-heading text-foreground text-xl font-bold">
+                                    Biography
+                                </h3>
                                 <div class="relative">
                                     <p
-                                        class="text-zinc-300 font-serif line-clamp-4 text-lg leading-relaxed lg:text-xl">
+                                        class="line-clamp-4 font-serif text-lg leading-relaxed text-zinc-300 lg:text-xl">
                                         {data.entity.biography}
                                     </p>
                                     {#if data.entity.biography.length > 300 && data.entity.imdb_id}
@@ -404,8 +406,10 @@
     {#if credits.length > 0}
         <section in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
             <div class="mb-6 flex items-baseline gap-3">
-                <h2 class="font-heading text-foreground text-3xl font-bold tracking-tight">{title}</h2>
-                <span class="text-zinc-400 font-mono text-lg font-medium">({credits.length})</span>
+                <h2 class="font-heading text-foreground text-3xl font-bold tracking-tight">
+                    {title}
+                </h2>
+                <span class="font-mono text-lg font-medium text-zinc-400">({credits.length})</span>
             </div>
             <div class={GRID_CLASSES}>
                 {@render creditList(credits)}
@@ -456,7 +460,7 @@
 {#snippet alsoKnownAs(titleClass = "text-sm font-semibold", colonClass = "")}
     {#if data.entity.also_known_as.length > 0}
         <div class="space-y-1">
-            <h3 class="{titleClass}">
+            <h3 class={titleClass}>
                 Also known as<span class={colonClass}>:</span>
             </h3>
             <div class="flex flex-wrap gap-2">
