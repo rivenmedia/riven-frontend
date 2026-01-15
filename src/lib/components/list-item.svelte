@@ -4,9 +4,9 @@
     import { cn } from "$lib/utils";
 
     const badgeVariantClasses: Record<string, string> = {
-        success: "bg-green-600/90 text-white",
-        error: "bg-red-600/90 text-white",
-        default: "bg-yellow-600/90 text-white"
+        success: "bg-green-600/90 text-white border-0",
+        error: "bg-red-600/90 text-white border-0",
+        default: "bg-yellow-600/90 text-white border-0"
     };
 
     let {
@@ -15,7 +15,7 @@
         type = $bindable<string | undefined>(),
         isSelectable = false,
         selectStore = undefined,
-        class: className
+        class: className = ""
     } = $props();
 
     // Normalize type for different indexers
@@ -62,7 +62,7 @@
     // Merged with passed className
     const containerClasses = $derived(
         cn(
-            "group relative block w-full opacity-80 transition-all duration-200 hover:opacity-100",
+            "group relative block w-full outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary rounded-xl",
             className
         )
     );
@@ -80,7 +80,7 @@
             {#if data.badge}
                 <Badge
                     class={cn(
-                        "px-2 py-0.5 text-[10px] backdrop-blur-sm",
+                        "border-white/10 px-2 py-0.5 text-[10px] shadow-sm backdrop-blur-md",
                         badgeVariantClasses[data.badge.variant] || badgeVariantClasses.default
                     )}>{data.badge.text}</Badge>
             {/if}

@@ -9,6 +9,8 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import { getRatings } from "$lib/stores/ratings";
+    import { Play, Info, Star } from "@lucide/svelte";
 
     export interface TMDBNowPlayingItem {
         id: number;
@@ -22,6 +24,7 @@
         original_language?: string;
         overview?: string;
         genre_ids?: number[];
+        certification?: string;
     }
 
     interface Props {
@@ -46,6 +49,9 @@
     });
 
     let currentIndex = $state(0);
+    let logos = $state<Record<number, string | null>>({});
+    let ratings = $state<Record<number, any>>({});
+    let certifications = $state<Record<number, string | null>>({});
 
     // Handle carousel API events with proper cleanup using $effect.pre
     // This is the appropriate Svelte 5 pattern for subscribing to external events
@@ -65,6 +71,83 @@
         return () => {
             api?.off("select", onSelect);
         };
+    });
+
+    async function loadItemData(item: TMDBNowPlayingItem) {
+        // Fetch Ratings (independent of logo)
+        if (ratings[item.id] === undefined) {
+            const mediaType = item.media_type === "tv" ? "tv" : "movie";
+            getRatings(item.id, mediaType)
+                .then((data) => {
+                    ratings[item.id] = data;
+                })
+                .catch(() => {
+                    ratings[item.id] = null;
+                });
+        }
+
+        // Fetch Logo & Certification
+        if (logos[item.id] !== undefined) return;
+
+        const mediaType = item.media_type === "tv" ? "tv" : "movie";
+        try {
+            const res = await fetch(`/api/tmdb/${mediaType}/${item.id}/logo`);
+            const data = await res.json();
+
+            // Set certification if available
+            if (data.certification) {
+                certifications[item.id] = data.certification;
+            } else {
+                certifications[item.id] = null;
+            }
+
+            if (data.logo) {
+                const img = new Image();
+                img.src = data.logo;
+                img.onload = () => {
+                    logos[item.id] = data.logo;
+                };
+                img.onerror = () => {
+                    logos[item.id] = null;
+                };
+            } else {
+                logos[item.id] = null;
+            }
+        } catch (e) {
+            console.error("Failed to fetch logo/cert", e);
+            logos[item.id] = null;
+        }
+    }
+
+    $effect(() => {
+        if (!data || data.length === 0) return;
+
+        // 1. Load current item immediately
+        const currentItem = data[currentIndex];
+        if (currentItem) loadItemData(currentItem);
+
+        // 2. Load next/prev items (priority)
+        const nextIndex = (currentIndex + 1) % data.length;
+        const prevIndex = (currentIndex - 1 + data.length) % data.length;
+        if (data[nextIndex]) loadItemData(data[nextIndex]);
+        if (data[prevIndex]) loadItemData(data[prevIndex]);
+
+        // 3. Load the rest in background with a slight delay/idle check
+        // Using a simple timeout to defer non-critical fetches
+        const timer = setTimeout(() => {
+            data.forEach((item, index) => {
+                if (
+                    index !== currentIndex &&
+                    index !== nextIndex &&
+                    index !== prevIndex &&
+                    logos[item.id] === undefined
+                ) {
+                    loadItemData(item);
+                }
+            });
+        }, 1000);
+
+        return () => clearTimeout(timer);
     });
 
     function getAlignmentClasses(
@@ -130,18 +213,33 @@
                                     alignment,
                                     'container'
                                 )}">
-                                <div class="w-full max-w-2xl">
-                                    <!-- Title -->
-                                    <h1
-                                        in:fly={{
-                                            y: 20,
-                                            duration: 1000,
-                                            delay: 100,
-                                            easing: cubicOut
-                                        }}
-                                        class="line-clamp-2 text-xl font-semibold tracking-tight drop-shadow-2xl md:text-4xl md:leading-tight">
-                                        {displayTitle}
-                                    </h1>
+                                <div class="w-full max-w-3xl">
+                                    <!-- Title / Logo -->
+                                    <div class="mb-4 flex h-24 items-end justify-start">
+                                        {#if logos[item.id]}
+                                            <img
+                                                src={logos[item.id]}
+                                                alt={displayTitle}
+                                                in:fly={{
+                                                    y: 20,
+                                                    duration: 1000,
+                                                    delay: 100,
+                                                    easing: cubicOut
+                                                }}
+                                                class="max-h-full max-w-[80%] object-contain object-left-bottom drop-shadow-2xl" />
+                                        {:else}
+                                            <h1
+                                                in:fly={{
+                                                    y: 20,
+                                                    duration: 1000,
+                                                    delay: 100,
+                                                    easing: cubicOut
+                                                }}
+                                                class="line-clamp-2 text-3xl font-black tracking-tighter drop-shadow-2xl md:text-5xl md:leading-[1.1] lg:text-6xl">
+                                                {displayTitle}
+                                            </h1>
+                                        {/if}
+                                    </div>
 
                                     <!-- Metadata Row -->
                                     <div
@@ -151,28 +249,60 @@
                                             delay: 200,
                                             easing: cubicOut
                                         }}
-                                        class="text-foreground/90 mt-2 flex flex-wrap items-center gap-3 text-xs md:mt-4 md:text-sm {getAlignmentClasses(
+                                        class="mt-2 flex flex-wrap items-center gap-4 text-xs font-medium text-white md:mt-4 md:text-sm {getAlignmentClasses(
                                             alignment,
                                             'flex'
                                         )}">
                                         <span
-                                            class="rounded-md border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-medium backdrop-blur-md md:text-xs">
-                                            {isTV ? "TV Show" : "Movie"}
+                                            class="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase backdrop-blur-md md:text-xs">
+                                            {isTV ? "Series" : "Movie"}
                                         </span>
-                                        <span class="text-white/40">•</span>
-                                        <span class="font-medium"
+                                        {#if certifications[item.id] || (item.certification && item.certification !== "N/A")}
+                                            <span class="text-white/40">|</span>
+                                            <span
+                                                class="rounded-sm border border-white/40 px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase md:text-xs">
+                                                {certifications[item.id] || item.certification}
+                                            </span>
+                                        {/if}
+                                        <span class="text-white/40">|</span>
+                                        <span class="text-white drop-shadow-md"
                                             >{getSeasonAndYear(
                                                 item.release_date || item.first_air_date || ""
                                             )}</span>
-                                        <span class="text-white/40">•</span>
-                                        <span class="font-medium"
-                                            >{item.vote_average
-                                                ? item.vote_average.toFixed(1)
-                                                : "N/A"}/10</span>
                                         {#if item.original_language}
-                                            <span class="text-white/40">•</span>
-                                            <span class="font-medium uppercase"
+                                            <span class="text-white/40">|</span>
+                                            <span class="text-white uppercase drop-shadow-md"
                                                 >{item.original_language}</span>
+                                        {/if}
+                                        {#if ratings[item.id]?.scores?.length}
+                                            <div class="ml-2 flex items-center gap-4">
+                                                {#each ratings[item.id].scores as score}
+                                                    <a
+                                                        href={score.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                                                        title={score.name}>
+                                                        {#if score.image}
+                                                            <img
+                                                                src="/rating-logos/{score.image}"
+                                                                alt={score.name}
+                                                                class="h-4 w-auto object-contain" />
+                                                        {/if}
+                                                        <span
+                                                            class="text-xs font-bold text-white drop-shadow-md"
+                                                            >{score.score}</span>
+                                                    </a>
+                                                {/each}
+                                            </div>
+                                        {:else if item.vote_average}
+                                            <span class="text-white/40">|</span>
+                                            <span
+                                                class="flex items-center font-bold text-white drop-shadow-md">
+                                                <Star
+                                                    class="mr-1 h-3.5 w-3.5 fill-current text-yellow-500" />
+                                                {item.vote_average.toFixed(1)}
+                                            </span>
                                         {/if}
                                     </div>
 
@@ -185,7 +315,7 @@
                                                 delay: 300,
                                                 easing: cubicOut
                                             }}
-                                            class="text-muted-foreground/80 mt-3 line-clamp-2 max-w-xl text-xs leading-relaxed md:mt-4 md:text-base">
+                                            class="mt-3 line-clamp-2 max-w-xl text-xs leading-relaxed text-white/90 drop-shadow-md md:mt-4 md:text-base">
                                             {item.overview}
                                         </p>
                                     {/if}
@@ -199,17 +329,16 @@
                                                 delay: 400,
                                                 easing: cubicOut
                                             }}
-                                            class="mt-3 flex flex-wrap gap-2 md:mt-5 {getAlignmentClasses(
+                                            class="mt-4 flex flex-wrap gap-2 md:mt-6 {getAlignmentClasses(
                                                 alignment,
                                                 'flex'
                                             )}">
                                             {#each item.genre_ids.slice(0, 4) as genreId (genreId)}
                                                 {#if TMDB_GENRES[genreId]}
-                                                    <Badge
-                                                        variant="outline"
-                                                        class="text-foreground/80 border-white/10 bg-white/5 text-[10px] backdrop-blur-md transition-colors hover:bg-white/10 md:text-xs">
+                                                    <div
+                                                        class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-md transition-colors hover:bg-white/20">
                                                         {TMDB_GENRES[genreId]}
-                                                    </Badge>
+                                                    </div>
                                                 {/if}
                                             {/each}
                                         </div>
@@ -223,25 +352,25 @@
                                             delay: 500,
                                             easing: cubicOut
                                         }}
-                                        class="mt-4 flex flex-wrap gap-3 md:mt-8 {getAlignmentClasses(
+                                        class="mt-6 flex flex-wrap gap-4 md:mt-8 {getAlignmentClasses(
                                             alignment,
                                             'flex'
                                         )}">
                                         {#if showRequestButton}
                                             <Button
                                                 href="/watch/{item.id}"
-                                                variant="secondary"
-                                                size="sm"
-                                                class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 border px-6 backdrop-blur-md transition-all hover:scale-105 md:h-11 md:px-8 md:text-base">
-                                                Request
+                                                variant="default"
+                                                size="lg"
+                                                class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 items-center justify-center rounded-md px-8 text-sm font-bold shadow-sm transition-all hover:scale-[1.02] md:h-12 md:text-base">
+                                                Play Now
                                             </Button>
                                         {/if}
                                         <Button
                                             variant="secondary"
-                                            size="sm"
+                                            size="lg"
                                             href="/details/media/{item.id}/{mediaType}"
-                                            class="text-foreground border border-white/10 bg-white/5 px-6 backdrop-blur-md transition-all hover:scale-105 hover:border-white/20 hover:bg-white/10 md:h-11 md:px-8 md:text-base">
-                                            View Details
+                                            class="flex h-10 items-center justify-center rounded-md border border-white/10 bg-white/10 px-8 text-sm font-bold text-white shadow-sm backdrop-blur-md transition-all hover:scale-[1.02] hover:bg-white/20 md:h-12 md:text-base">
+                                            More Info
                                         </Button>
                                     </div>
                                 </div>
@@ -297,7 +426,7 @@
 
             <!-- Desktop Segmented Progress (Hidden until Large screens) -->
             <div class="hidden gap-1.5 lg:flex">
-                {#each data as _item, i (i)}
+                {#each data as _, i}
                     <button
                         class="relative h-1 w-6 cursor-pointer overflow-hidden rounded-full transition-all duration-300 {i ===
                         currentIndex
