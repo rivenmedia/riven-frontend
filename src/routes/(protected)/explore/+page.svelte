@@ -59,11 +59,7 @@
         if (!data.feelingLuckyItems?.length) return;
         const randomItem =
             data.feelingLuckyItems[Math.floor(Math.random() * data.feelingLuckyItems.length)];
-        const route = resolve(
-            `/details/media/${randomItem.id}/${randomItem.media_type}` as Parameters<
-                typeof resolve
-            >[0]
-        );
+        const route = resolve(`/details/media/${randomItem.id}/${randomItem.media_type}`);
         goto(route);
     }
 
@@ -145,15 +141,21 @@
         </div>
     {:else}
         <!-- Default subtle background -->
-        <div class="fixed top-0 left-0 z-0 h-screen w-full">
+        <div class="pointer-events-none fixed inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black">
+            </div>
             <div
-                class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/20 via-zinc-950 to-zinc-950">
+                class="bg-primary/5 absolute top-[-20%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
+            </div>
+            <div
+                class="absolute right-[-5%] bottom-[-10%] h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-[100px]">
             </div>
         </div>
     {/if}
 
     <!-- Content Container -->
-    <div class="relative z-10 flex flex-col gap-6 px-4 pt-4 pb-24 md:px-8 md:pt-14 md:pb-8">
+    <div
+        class="relative z-10 mx-auto flex w-full max-w-[2400px] flex-col gap-6 px-6 pt-6 pb-24 md:px-12 md:pt-16 md:pb-12 lg:px-16">
         <!-- Header -->
         <div class="flex flex-col gap-4">
             <div class="flex flex-wrap items-center justify-between gap-4">
@@ -261,7 +263,7 @@
                                                     {#each ratings.scores as score (score.name)}
                                                         <div
                                                             title={score.name}
-                                                            class="bg-background/50 flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 backdrop-blur-md transition-transform hover:scale-105">
+                                                            class="bg-background/50 flex items-center gap-1.5 rounded-xl border border-white/10 px-2.5 py-1 backdrop-blur-md transition-transform hover:scale-105">
                                                             {#if score.image}
                                                                 <img
                                                                     src="/rating-logos/{score.image}"
@@ -279,7 +281,7 @@
                                                 </div>
                                             {:else if heroItem.vote_average}
                                                 <div
-                                                    class="bg-background/50 flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 backdrop-blur-md">
+                                                    class="bg-background/50 flex items-center gap-1.5 rounded-xl border border-white/10 px-2.5 py-1 backdrop-blur-md">
                                                     <span class="font-black text-[#01b4e4]"
                                                         >TMDB</span>
                                                     <span class="text-sm font-bold text-white">
@@ -290,7 +292,7 @@
                                         {:catch}
                                             {#if heroItem.vote_average}
                                                 <div
-                                                    class="bg-background/50 flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 backdrop-blur-md">
+                                                    class="bg-background/50 flex items-center gap-1.5 rounded-xl border border-white/10 px-2.5 py-1 backdrop-blur-md">
                                                     <span class="font-black text-[#01b4e4]"
                                                         >TMDB</span>
                                                     <span class="text-sm font-bold text-white">
@@ -311,7 +313,7 @@
                                     <div class="flex flex-wrap items-center gap-4 pt-2">
                                         <Button
                                             size="lg"
-                                            class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary rounded-full border bg-transparent font-bold shadow-xl backdrop-blur-md"
+                                            class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary rounded-xl border bg-transparent font-bold shadow-xl backdrop-blur-md"
                                             href={`/details/media/${heroItem.id}/${heroItem.media_type}`}>
                                             <Info class="mr-2 h-5 w-5" />
                                             View Details
@@ -320,7 +322,7 @@
                                             variant="outline"
                                             size="lg"
                                             onclick={handleFeelingLucky}
-                                            class="border-border text-muted-foreground hover:bg-muted/10 hover:text-foreground hover:border-border/80 group rounded-full border bg-transparent font-bold backdrop-blur-md">
+                                            class="border-border text-muted-foreground hover:bg-muted/10 hover:text-foreground hover:border-border/80 group rounded-xl border bg-transparent font-bold backdrop-blur-md">
                                             <Sparkles
                                                 class="text-primary group-hover:text-primary mr-2 h-5 w-5 transition-transform duration-500 group-hover:rotate-12" />
                                             Feeling Lucky
