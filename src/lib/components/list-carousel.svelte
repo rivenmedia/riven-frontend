@@ -14,8 +14,10 @@
         }}
         class="mt-0">
         <Carousel.Content class="-ml-3">
-            {#each data as item (item.id)}
-                <Carousel.Item class="max-w-max pl-3">
+            {#each data as item, i (item.id)}
+                <Carousel.Item
+                    class="max-w-max pl-3 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-backwards"
+                    style="animation-delay: {i * 50}ms">
                     <ListItem
                         data={item}
                         indexer={indexer || item.indexer}
