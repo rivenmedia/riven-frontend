@@ -1,5 +1,4 @@
 <script lang="ts">
-    import * as Card from "$lib/components/ui/card/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -11,8 +10,11 @@
     import { cn } from "$lib/utils";
     import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import * as dateUtils from "$lib/utils/date";
+    import * as Card from "$lib/components/ui/card/index.js";
     import { CalendarDate } from "@internationalized/date";
     import PageShell from "$lib/components/page-shell.svelte";
+    import { fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
 
     let { data }: { data: PageData } = $props();
     const isMobile = $state(new IsMobile(1280));

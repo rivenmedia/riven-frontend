@@ -6,6 +6,9 @@
     import { logStore, type LogEntry } from "$lib/stores/logs.svelte";
     import { createScopedLogger } from "$lib/logger";
     import PageShell from "$lib/components/page-shell.svelte";
+    import { cn } from "$lib/utils";
+    import { fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
 
     const logger = createScopedLogger("logs-page");
 
