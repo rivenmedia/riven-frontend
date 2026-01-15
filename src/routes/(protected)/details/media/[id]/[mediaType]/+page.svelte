@@ -219,14 +219,14 @@
             </div>
         {/if}
 
-        <div class="z-10 flex h-full w-full flex-col">
+        <div class="z-10 mx-auto flex h-full w-full max-w-[2400px] flex-col">
             <!-- Hero Banner - extends behind search bar -->
             {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
                 <div class="px-2 md:px-4">
                     <div
                         class={cn(
-                            "relative mb-6 flex h-[35vh] max-h-[500px] min-h-[300px] items-end justify-between overflow-hidden rounded-2xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-8 md:max-h-[600px]",
-                            !showTrailer && "p-6 md:p-10"
+                            "relative mb-6 flex h-[40vh] max-h-[600px] min-h-[350px] items-end justify-between overflow-hidden rounded-3xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-10",
+                            !showTrailer && "p-6 md:p-12"
                         )}
                         style="background-image: url('{data.mediaDetails?.details
                             .backdrop_path}');">
@@ -253,9 +253,9 @@
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            class="border border-white/10 bg-white/10 px-4 text-sm font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
+                                            class="border border-white/10 bg-white/10 px-6 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
                                             onclick={toggleVideoPlayer}>
-                                            <Play class="mr-1.5 h-4 w-4 fill-current md:mr-2" />
+                                            <Play class="mr-2 h-4 w-4 fill-current" />
                                             Play
                                         </Button>
                                     {/if}
@@ -263,11 +263,9 @@
                                         <Button
                                             variant="secondary"
                                             size="sm"
-                                            class="border border-white/10 bg-white/10 px-4 text-sm font-bold text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
+                                            class="border border-white/10 bg-white/10 px-6 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
                                             onclick={() => (showTrailerOverride = !showTrailer)}>
-                                            <Play
-                                                size={14}
-                                                class="mr-1.5 fill-current md:mr-2" />Trailer
+                                            <Play size={14} class="mr-2 fill-current" />Trailer
                                         </Button>
                                     {/if}
                                 </div>
@@ -294,7 +292,7 @@
             {/if}
 
             <!-- Rest of content with padding -->
-            <div class="px-4 pb-6 md:px-8 md:pb-8 lg:px-12">
+            <div class="px-8 pb-24 md:px-20 lg:px-24">
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-[auto_1fr] lg:gap-6">
                     <!-- Poster Column -->
                     <div
@@ -349,7 +347,7 @@
                                     title={data.mediaDetails?.details?.title}
                                     itemId={null}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                    mediaType={data.mediaDetails?.type}
+                                    mediaType={data.mediaDetails?.type ?? "movie"}
                                     seasons={seasonData}>
                                     <Search class="mr-1.5 h-4 w-4" />
                                     Manual Scrape
@@ -397,7 +395,7 @@
                                     title={data.mediaDetails?.details?.title}
                                     itemId={rivenId?.toString() ?? null}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                    mediaType={data.mediaDetails?.type}
+                                    mediaType={data.mediaDetails?.type ?? "movie"}
                                     seasons={seasonData}>
                                     <Search class="mr-1.5 h-4 w-4" />
                                     Manual Scrape
@@ -491,7 +489,7 @@
                                 }}>
                                 {#each data.mediaDetails?.details.genres as genre (genre.id)}
                                     <span
-                                        class="border-border bg-muted/50 text-muted-foreground rounded-full border px-3 py-1 text-sm"
+                                        class="border-border bg-muted/50 text-muted-foreground rounded-xl border px-3 py-1 text-sm"
                                         >{genre.name}</span>
                                 {/each}
                             </div>
@@ -611,7 +609,7 @@
                                                 image={season.image}
                                                 selected={selectedSeason ===
                                                     season.number?.toString()}
-                                                class="w-36 md:w-44 lg:w-48">
+                                                class="w-28 md:w-32 lg:w-36">
                                                 {#snippet topRight()}
                                                     {#if rivenSeason?.state}
                                                         <StatusBadge
@@ -657,11 +655,11 @@
                                             {/snippet}
                                             {#snippet meta()}
                                                 <span
-                                                    class="text-muted-foreground rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                                                    class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
                                                     >{episode.aired}</span>
                                                 {#if episode.runtime}
                                                     <span
-                                                        class="text-muted-foreground rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                                                        class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
                                                         >{episode.runtime} min</span>
                                                 {/if}
                                             {/snippet}
