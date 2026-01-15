@@ -187,6 +187,9 @@
                         {/snippet}
                     </Form.Control>
                 </Form.Field>
+                <!-- Hidden inputs for pagination -->
+                <input type="hidden" name="page" value={$formData.page} />
+                <input type="hidden" name="limit" value={$formData.limit} />
             </form>
         </header>
 
