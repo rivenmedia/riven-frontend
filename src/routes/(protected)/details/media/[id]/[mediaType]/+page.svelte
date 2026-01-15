@@ -9,6 +9,7 @@
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import * as Sheet from "$lib/components/ui/sheet/index.js";
     import * as Drawer from "$lib/components/ui/drawer/index.js";
     import Play from "@lucide/svelte/icons/play";
     import FileJson from "@lucide/svelte/icons/file-json";
@@ -19,6 +20,7 @@
     import Pause from "@lucide/svelte/icons/pause";
     import Download from "@lucide/svelte/icons/download";
     import { cn } from "$lib/utils";
+    import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import ItemRequest from "$lib/components/media/riven/item-request.svelte";
     import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
@@ -34,6 +36,8 @@
     import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
+
+    const isMobile = new IsMobile();
 
     const externalMeta: Record<string, { name: string; url: string }> = {
         imdb: { name: "IMDb", url: "https://www.imdb.com/title/" },
@@ -193,6 +197,167 @@
             </Carousel.Content>
         </Carousel.Root>
     </section>
+{/snippet}
+
+{#snippet episodeTrigger(episode: any, rivenEpisode: any)}
+    <LandscapeCard
+        title={episode.name}
+        episodeNumber={episode.number ?? undefined}
+        image={episode.image}
+        overview={episode.overview}
+        class="h-full transition-transform duration-300 group-hover:scale-[1.01] group-hover:shadow-lg">
+        {#snippet topRight()}
+            {#if rivenEpisode?.state}
+                <StatusBadge state={rivenEpisode.state} />
+            {/if}
+        {/snippet}
+        {#snippet meta()}
+            <span
+                class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                >{episode.aired}</span>
+            {#if episode.runtime}
+                <span
+                    class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                    >{episode.runtime} min</span>
+            {/if}
+        {/snippet}
+    </LandscapeCard>
+{/snippet}
+
+{#snippet episodeMetadata(episode: any, rivenEpisode: any)}
+    <div class="mt-2 flex flex-wrap items-center gap-2">
+        <span class="text-muted-foreground font-serif text-sm"
+            >{data.mediaDetails?.details.title}</span>
+        <span class="text-muted-foreground">•</span>
+        {#if episode.aired}<Badge variant="outline" class="font-mono text-xs"
+                >{episode.aired}</Badge
+            >{/if}
+        {#if episode.runtime}<Badge variant="outline" class="font-mono text-xs"
+                >{episode.runtime} min</Badge
+            >{/if}
+        {#if rivenEpisode}<StatusBadge class="text-xs" state={rivenEpisode.state} />{/if}
+    </div>
+{/snippet}
+
+{#snippet episodeBody(episode: any, rivenEpisode: any)}
+    <div class="mt-6 flex flex-1 flex-col gap-8 overflow-y-auto px-6 pb-36">
+        {#if episode.overview}
+            <p class="text-muted-foreground text-base leading-relaxed">
+                {episode.overview}
+            </p>
+        {/if}
+
+        {#if episode.image}
+            <div
+                class="relative w-full max-w-[640px] overflow-hidden rounded-xl shadow-lg ring-1 ring-white/10">
+                <img
+                    alt={episode.name}
+                    class="aspect-video w-full object-cover"
+                    src={episode.image}
+                    loading="lazy" />
+            </div>
+        {/if}
+
+        {#if rivenEpisode?.filesystem_entry || rivenEpisode?.media_metadata}
+            {@const meta = rivenEpisode.media_metadata}
+            {@const fs = rivenEpisode.filesystem_entry}
+            {@const video = meta?.video}
+            <div class="flex flex-col gap-6">
+                {@render sectionHeading("File Details")}
+                <div class="flex flex-col gap-4 text-sm">
+                    <!-- Filenames -->
+                    {#if meta?.filename}
+                        <div>
+                            <p
+                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider">
+                                Current Filename
+                            </p>
+                            <p class="text-muted-foreground font-mono mt-1 break-all text-xs">
+                                {meta.filename}
+                            </p>
+                        </div>
+                    {/if}
+
+                    <!-- Video -->
+                    {#if video}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                >Video</span>
+                            <div class="flex flex-wrap gap-2">
+                                {#if video.resolution_width && video.resolution_height}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs"
+                                        >{video.resolution_width}x{video.resolution_height}</Badge
+                                    >{/if}
+                                {#if video.codec}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs">{video.codec}</Badge
+                                    >{/if}
+                                {#if video.hdr_type}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs">{video.hdr_type}</Badge
+                                    >{/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Audio - Show ALL tracks -->
+                    {#if meta?.audio_tracks?.length}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                >Audio</span>
+                            <div class="flex flex-wrap gap-2">
+                                {#each meta.audio_tracks as track}
+                                    <Badge variant="outline" class="font-mono text-xs"
+                                        >{track.codec}{track.channels
+                                            ? track.channels === 8
+                                                ? " 7.1"
+                                                : track.channels === 6
+                                                  ? " 5.1"
+                                                  : ` ${track.channels}ch`
+                                            : ""}{track.language
+                                            ? ` (${track.language.toUpperCase()})`
+                                            : ""}</Badge>
+                                {/each}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Source -->
+                    {#if meta?.quality_source}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                >Source</span>
+                            <div class="flex flex-wrap gap-2">
+                                <Badge variant="outline" class="font-mono text-xs"
+                                    >{meta.quality_source}</Badge>
+                                {#if meta?.is_remux}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs">REMUX</Badge
+                                    >{/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Size -->
+                    {#if fs?.file_size}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                >Size</span>
+                            <div class="flex items-center">
+                                <span class="text-muted-foreground font-mono text-xs"
+                                    >{formatSize(fs.file_size)}</span>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    </div>
 {/snippet}
 
 <svelte:head>
@@ -640,183 +805,44 @@
                                 {@const rivenEpisode = rivenSeason?.episodes?.find(
                                     (e) => e.episode_number === episode.number
                                 )}
-                                <Drawer.Root direction="bottom">
-                                    <Drawer.Trigger class="group w-full text-left">
-                                        <LandscapeCard
-                                            title={episode.name}
-                                            episodeNumber={episode.number ?? undefined}
-                                            image={episode.image}
-                                            overview={episode.overview}
-                                            class="h-full transition-transform duration-300 group-hover:scale-[1.01] group-hover:shadow-lg">
-                                            {#snippet topRight()}
-                                                {#if rivenEpisode?.state}
-                                                    <StatusBadge state={rivenEpisode.state} />
-                                                {/if}
-                                            {/snippet}
-                                            {#snippet meta()}
-                                                <span
-                                                    class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
-                                                    >{episode.aired}</span>
-                                                {#if episode.runtime}
-                                                    <span
-                                                        class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
-                                                        >{episode.runtime} min</span>
-                                                {/if}
-                                            {/snippet}
-                                        </LandscapeCard>
-                                    </Drawer.Trigger>
-                                    <Drawer.Content class="max-h-[80vh] md:max-h-[60vh]">
-                                        <div class="mx-auto w-full max-w-4xl px-4 pb-6 md:px-6">
-                                            <Drawer.Header class="px-0 pt-2 pb-3">
-                                                <Drawer.Title class="text-lg font-bold"
-                                                    >S{episode.seasonNumber}E{episode.number} - {episode.name}</Drawer.Title>
-                                                <div class="mt-1 flex flex-wrap items-center gap-2">
-                                                    <span class="text-muted-foreground text-sm"
-                                                        >{data.mediaDetails?.details.title}</span
-                                                    ><span class="text-muted-foreground">•</span>
-                                                    {#if episode.aired}<Badge
-                                                            variant="outline"
-                                                            class="text-sm">{episode.aired}</Badge
-                                                        >{/if}
-                                                    {#if episode.runtime}<Badge
-                                                            variant="outline"
-                                                            class="text-sm"
-                                                            >{episode.runtime} min</Badge
-                                                        >{/if}
-                                                    {#if rivenEpisode}<StatusBadge
-                                                            class="text-sm"
-                                                            state={rivenEpisode.state} />{/if}
-                                                </div>
-                                                {#if episode.overview}<p
-                                                        class="text-muted-foreground mt-2 text-sm">
-                                                        {episode.overview}
-                                                    </p>{/if}
-                                            </Drawer.Header>
-                                            <div class="flex flex-col gap-4 md:flex-row md:gap-6">
-                                                {#if episode.image}<div
-                                                        class="shrink-0 overflow-hidden rounded-lg md:w-80">
-                                                        <img
-                                                            alt={episode.name}
-                                                            class="aspect-video w-full rounded-lg object-cover"
-                                                            src={episode.image}
-                                                            loading="lazy" />
-                                                    </div>{/if}
-                                                {#if rivenEpisode?.filesystem_entry || rivenEpisode?.media_metadata}
-                                                    {@const meta = rivenEpisode.media_metadata}
-                                                    {@const fs = rivenEpisode.filesystem_entry}
-                                                    {@const video = meta?.video}
-                                                    <div class="flex flex-1 flex-col gap-3 text-sm">
-                                                        <!-- Filenames -->
-                                                        {#if meta?.original_filename || fs?.original_filename}
-                                                            <div>
-                                                                <p
-                                                                    class="text-primary font-semibold">
-                                                                    Original Filename
-                                                                </p>
-                                                                <p
-                                                                    class="text-muted-foreground break-all">
-                                                                    {meta?.original_filename ||
-                                                                        fs?.original_filename}
-                                                                </p>
-                                                            </div>
-                                                        {/if}
-                                                        {#if meta?.filename}
-                                                            <div>
-                                                                <p
-                                                                    class="text-primary font-semibold">
-                                                                    Current Filename
-                                                                </p>
-                                                                <p
-                                                                    class="text-muted-foreground break-all">
-                                                                    {meta.filename}
-                                                                </p>
-                                                            </div>
-                                                        {/if}
 
-                                                        <!-- Video -->
-                                                        {#if video}
-                                                            <div class="flex items-center gap-2">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Video</span>
-                                                                {#if video.resolution_width && video.resolution_height}<Badge
-                                                                        variant="outline"
-                                                                        class="text-sm"
-                                                                        >{video.resolution_width}x{video.resolution_height}</Badge
-                                                                    >{/if}
-                                                                {#if video.codec}<Badge
-                                                                        variant="outline"
-                                                                        class="text-sm"
-                                                                        >{video.codec}</Badge
-                                                                    >{/if}
-                                                                {#if video.hdr_type}<Badge
-                                                                        variant="outline"
-                                                                        class="text-sm"
-                                                                        >{video.hdr_type}</Badge
-                                                                    >{/if}
-                                                            </div>
-                                                        {/if}
-
-                                                        <!-- Audio - Show ALL tracks -->
-                                                        {#if meta?.audio_tracks?.length}
-                                                            <div
-                                                                class="flex flex-wrap items-center gap-2">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Audio</span>
-                                                                {#each meta.audio_tracks as track}
-                                                                    <Badge
-                                                                        variant="outline"
-                                                                        class="text-sm"
-                                                                        >{track.codec}{track.channels
-                                                                            ? track.channels === 8
-                                                                                ? " 7.1"
-                                                                                : track.channels ===
-                                                                                    6
-                                                                                  ? " 5.1"
-                                                                                  : ` ${track.channels}ch`
-                                                                            : ""}{track.language
-                                                                            ? ` (${track.language.toUpperCase()})`
-                                                                            : ""}</Badge>
-                                                                {/each}
-                                                            </div>
-                                                        {/if}
-
-                                                        <!-- Source -->
-                                                        {#if meta?.quality_source}
-                                                            <div class="flex items-center gap-2">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Source</span>
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    class="text-sm"
-                                                                    >{meta.quality_source}</Badge>
-                                                                {#if meta?.is_remux}<Badge
-                                                                        variant="outline"
-                                                                        class="text-sm">REMUX</Badge
-                                                                    >{/if}
-                                                            </div>
-                                                        {/if}
-
-                                                        <!-- Size -->
-                                                        {#if fs?.file_size}
-                                                            <div class="flex items-center gap-2">
-                                                                <span
-                                                                    class="text-primary font-semibold"
-                                                                    >Size</span>
-                                                                <span class="text-muted-foreground"
-                                                                    >{formatSize(
-                                                                        fs.file_size
-                                                                    )}</span>
-                                                            </div>
-                                                        {/if}
-                                                    </div>
-                                                {/if}
+                                {#if isMobile.current}
+                                    <Drawer.Root direction="bottom">
+                                        <Drawer.Trigger class="group w-full text-left">
+                                            {@render episodeTrigger(episode, rivenEpisode)}
+                                        </Drawer.Trigger>
+                                        <Drawer.Content class="max-h-[85vh] outline-none">
+                                            <div class="mx-auto w-full max-w-4xl px-4 pb-6 md:px-6">
+                                                <Drawer.Header class="px-0 pt-2 pb-0 text-left">
+                                                    <Drawer.Title
+                                                        class="font-heading text-2xl font-bold tracking-tight">
+                                                        S{episode.seasonNumber}E{episode.number} - {episode.name}
+                                                    </Drawer.Title>
+                                                    {@render episodeMetadata(episode, rivenEpisode)}
+                                                </Drawer.Header>
+                                                {@render episodeBody(episode, rivenEpisode)}
                                             </div>
-                                        </div>
-                                    </Drawer.Content>
-                                </Drawer.Root>
+                                        </Drawer.Content>
+                                    </Drawer.Root>
+                                {:else}
+                                    <Sheet.Root>
+                                        <Sheet.Trigger class="group w-full text-left">
+                                            {@render episodeTrigger(episode, rivenEpisode)}
+                                        </Sheet.Trigger>
+                                        <Sheet.Content
+                                            side="right"
+                                            class="flex w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+                                            <Sheet.Header class="px-6 pt-6">
+                                                <Sheet.Title
+                                                    class="font-heading text-2xl font-bold tracking-tight">
+                                                    S{episode.seasonNumber}E{episode.number} - {episode.name}
+                                                </Sheet.Title>
+                                                {@render episodeMetadata(episode, rivenEpisode)}
+                                            </Sheet.Header>
+                                            {@render episodeBody(episode, rivenEpisode)}
+                                        </Sheet.Content>
+                                    </Sheet.Root>
+                                {/if}
                             {/each}
                         </div>
                     </section>
