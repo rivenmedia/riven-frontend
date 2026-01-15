@@ -69,7 +69,7 @@
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
                     </td>
                 {/if}
-                {#each w as d (d ? d.date : Math.random())}
+                {#each w as d, j (d ? d.date : `${i}-${j}`)}
                     {#if d}
                         <td
                             class="border-muted-foreground/10 h-[1em] w-[1em] border"

@@ -35,7 +35,7 @@
         resetForm: false
     });
 
-    const { form: formData, delayed } = form;
+    const { form: formData } = form;
 
     const itemsStore = new ItemStore();
 
