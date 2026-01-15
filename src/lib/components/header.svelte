@@ -93,20 +93,21 @@
 </script>
 
 <header
-    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-14 w-full items-center bg-transparent px-4 md:flex md:px-16">
-    <div class="pointer-events-auto flex w-full items-center justify-between gap-4">
-        <div class="mx-auto w-full max-w-sm">
+    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-20 w-full items-center bg-gradient-to-b from-black/50 to-transparent px-4 transition-all duration-500 md:flex md:px-16">
+    <div class="pointer-events-auto flex w-full items-center justify-between gap-6">
+        <div class="mx-auto w-full max-w-lg transition-all duration-300 focus-within:max-w-xl">
             <InputGroup.Root
-                class="bg-background/60 h-10 w-full rounded-xl backdrop-blur-md transition-all focus-within:w-full md:focus-within:max-w-md">
-                <InputGroup.Addon align="inline-start">
-                    <Search />
+                class="h-11 w-full rounded-full border border-white/5 bg-white/5 shadow-lg backdrop-blur-xl transition-all duration-300 focus-within:border-white/10 focus-within:bg-black/40 focus-within:ring-1 focus-within:ring-white/20 hover:bg-white/10">
+                <InputGroup.Addon align="inline-start" class="pl-4">
+                    <Search class="size-4 text-white/50" />
                 </InputGroup.Addon>
                 <InputGroup.Input
                     bind:ref={inputRef}
                     name="query"
-                    placeholder="Search..."
+                    placeholder="Search movies, shows, people..."
                     aria-label="Search"
                     bind:value={inputValue}
+                    class="text-sm font-medium placeholder:text-white/40"
                     oninput={handleInput}
                     onkeydown={(e) => {
                         if (e.key === "Enter") {
@@ -116,8 +117,10 @@
                     }}
                     autocomplete="off" />
                 {#if modifierKey}
-                    <InputGroup.Addon align="inline-end">
-                        <Kbd.Root>{modifierKey}K</Kbd.Root>
+                    <InputGroup.Addon align="inline-end" class="pr-4">
+                        <Kbd.Root
+                            class="h-5 min-h-0 border-white/10 bg-white/5 px-1.5 text-[10px] text-white/50"
+                            >{modifierKey}K</Kbd.Root>
                     </InputGroup.Addon>
                 {/if}
             </InputGroup.Root>

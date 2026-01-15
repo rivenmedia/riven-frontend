@@ -41,7 +41,7 @@
 </script>
 
 <aside
-    class="bg-opacity-75 top-0 left-0 z-5 hidden h-screen w-14 flex-col items-center bg-transparent backdrop-blur-sm md:flex">
+    class="bg-background/40 top-0 left-0 z-50 hidden h-screen w-14 flex-col items-center border-r border-white/5 backdrop-blur-md md:flex">
     <div class="flex h-18 w-full items-center justify-center">
         <div class="text-primary flex items-center justify-center">
             <Mountain class="size-5" />
@@ -146,9 +146,9 @@
 
     <!-- Pop-out Menu -->
     <div
-        transition:fly={{ y: 20, x: 20, duration: 300, easing: cubicOut, opacity: 0 }}
-        class="bg-popover fixed right-5 bottom-28 z-50 flex w-72 origin-bottom-right flex-col overflow-hidden rounded-2xl shadow-2xl shadow-black/50 md:hidden">
-        <div class="p-5">
+        transition:fly={{ y: 10, duration: 200, easing: cubicOut }}
+        class="fixed right-4 bottom-24 z-50 flex w-72 origin-bottom-right flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/80 shadow-2xl shadow-black/50 backdrop-blur-xl md:hidden">
+        <div class="p-3">
             {#if user}
                 <div class="mb-4 flex items-center justify-between px-2">
                     <a
@@ -204,8 +204,8 @@
                     <a
                         href={resolve(item.href)}
                         onclick={() => SidebarStore.toggle()}
-                        class="hover:text-foreground flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/5
-						{page.url.pathname === resolve(item.href) ? 'text-primary bg-white/5' : 'text-muted-foreground'}"
+                        class="hover:text-foreground flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/10
+						{page.url.pathname === resolve(item.href) ? 'text-primary bg-white/10' : 'text-muted-foreground'}"
                         aria-current={page.url.pathname === resolve(item.href)
                             ? "page"
                             : undefined}>

@@ -40,47 +40,63 @@
 
 <div
     transition:fly={{ y: 20, duration: 400, easing: cubicOut }}
-    class="from-background via-background/80 fixed right-0 bottom-0 left-0 z-[60] flex h-24 items-end justify-between gap-3 bg-gradient-to-t to-transparent px-6 pb-6 md:hidden">
-    <div class="flex-1">
-        <InputGroup.Root
-            class="text-foreground placeholder:text-muted-foreground h-10 w-full rounded-full bg-neutral-800/80 transition-all focus-within:bg-neutral-700/80 focus-within:ring-2 focus-within:ring-white/20">
-            <InputGroup.Addon align="inline-start">
-                <Search class="text-muted-foreground ml-1 size-4" />
-            </InputGroup.Addon>
-            <InputGroup.Input
-                bind:ref={inputRef}
-                name="query"
-                placeholder="Search..."
-                aria-label="Search"
-                value={$page.url.searchParams.get("query") || ""}
-                oninput={handleInput}
-                onkeydown={(e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        navigateToSearch();
-                    }
-                }}
-                class="text-foreground placeholder:text-muted-foreground/70 text-sm font-medium"
-                autocomplete="off" />
-        </InputGroup.Root>
-    </div>
+    class="fixed right-0 bottom-6 left-0 z-[60] flex justify-center px-4 md:hidden">
+    <div
+        class="flex w-full max-w-lg items-center gap-2 rounded-2xl border border-white/10 bg-zinc-950/80 p-2 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        <div class="flex-1">
+            <InputGroup.Root
+                class="text-foreground h-12 w-full rounded-xl bg-white/5 transition-all focus-within:bg-white/10 focus-within:ring-2 focus-within:ring-white/20">
+                <InputGroup.Addon align="inline-start" class="pl-3">
+                    <Search class="text-muted-foreground size-5" />
+                </InputGroup.Addon>
+                <InputGroup.Input
+                    bind:ref={inputRef}
+                    name="query"
+                    placeholder="Search movies, shows, people..."
+                    aria-label="Search"
+                    value={$page.url.searchParams.get("query") || ""}
+                    oninput={handleInput}
+                    onkeydown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            navigateToSearch();
+                        }
+                    }}
+                    class="text-foreground placeholder:text-muted-foreground/60 h-full text-base font-medium"
+                    autocomplete="off" />
+            </InputGroup.Root>
+        </div>
 
-    <div class="flex items-center gap-1">
-        <NotificationCenter
-            variant="ghost"
-            side="top"
-            align="end"
-            class="text-foreground/80 hover:text-foreground size-10 rounded-full transition-all hover:bg-white/10" />
+        <div class="flex h-12 items-center gap-1 border-l border-white/10 pl-2">
+            <NotificationCenter
+                variant="ghost"
+                side="top"
+                align="end"
+                sideOffset={20}
+                class="text-foreground/70 hover:text-foreground flex size-10 items-center justify-center rounded-xl transition-all hover:bg-white/10" />
 
-        <Button
-            variant="ghost"
-            class="text-foreground/80 hover:text-foreground size-10 rounded-full transition-all hover:bg-white/10"
-            onclick={() => SidebarStore.toggle()}>
-            {#if SidebarStore.isOpen}
-                <X class="size-5" />
-            {:else}
-                <Menu class="size-5" />
-            {/if}
-        </Button>
+            <Button
+                variant="ghost"
+                size="icon"
+                class="text-foreground/70 hover:text-foreground flex size-10 items-center justify-center rounded-xl transition-all hover:bg-white/10"
+                onclick={() => SidebarStore.toggle()}>
+                <div class="relative flex size-6 items-center justify-center">
+                    <div
+                        class="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out"
+                        class:opacity-0={SidebarStore.isOpen}
+                        class:rotate-90={SidebarStore.isOpen}
+                        class:scale-0={SidebarStore.isOpen}>
+                        <Menu class="size-6" />
+                    </div>
+                    <div
+                        class="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out"
+                        class:opacity-0={!SidebarStore.isOpen}
+                        class:-rotate-90={!SidebarStore.isOpen}
+                        class:scale-0={!SidebarStore.isOpen}>
+                        <X class="size-6" />
+                    </div>
+                </div>
+            </Button>
+        </div>
     </div>
 </div>
