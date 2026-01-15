@@ -304,20 +304,20 @@ export interface ParsedMovieDetails extends ParsedMediaDetailsBase {
 }
 
 export function transformTMDBList(
-    items: any[] | null,
+    items: unknown[] | null,
     type: "movie" | "tv" | "person" | "company" = "movie",
     backdropSize: string = "w1280"
 ) {
     return (
-        items?.map((item) => ({
+        items?.map((item: any) => ({
             id: item.id,
             title: item.title || item.name || item.original_title || item.original_name || "",
             poster_path: item.poster_path
                 ? `${TMDB_IMAGE_BASE_URL}/w500${item.poster_path}`
                 : item.profile_path
                   ? `${TMDB_IMAGE_BASE_URL}/w500${item.profile_path}`
-                  : (item as any).logo_path
-                    ? `${TMDB_IMAGE_BASE_URL}/w500${(item as any).logo_path}`
+                  : item.logo_path
+                    ? `${TMDB_IMAGE_BASE_URL}/w500${item.logo_path}`
                     : null,
             media_type: item.media_type || type,
             year:
@@ -427,14 +427,15 @@ export function transformTVDBList(items: TVDBSearchItem[] | null): TMDBTransform
 }
 
 function transformTraktRecommendations(
-    items: any[] | null,
+    items: unknown[] | null,
     isMovie: boolean = false
 ): TMDBTransformedListItem[] {
     if (!items?.length) return [];
 
     const seen = new Map<number, TMDBTransformedListItem>();
 
-    for (const item of items) {
+    for (const rawItem of items) {
+        const item = rawItem as any;
         const posterRaw = item.images?.poster?.[0];
         const poster = posterRaw
             ? posterRaw.startsWith("http")
@@ -492,7 +493,7 @@ function findTMDBBestTrailer(videos: TMDBVideoItem[] | null) {
 
 export function parseTMDBMovieDetails(
     data: TMDBMovieDetailsExtended | null,
-    traktRecs: any[] | null = null
+    traktRecs: unknown[] | null = null
 ): ParsedMovieDetails | null {
     if (!data) return null;
 
@@ -939,7 +940,7 @@ function selectArtwork(
 
 export function parseTVDBShowDetails(
     data: TVDBBaseItem | null,
-    traktRecs: any[] | null = null
+    traktRecs: unknown[] | null = null
 ): ParsedShowDetails | null {
     if (!data) return null;
 
@@ -1313,20 +1314,23 @@ function transformPersonCredit(credit: any) {
 }
 
 export function parsePersonDetails(personData: any): PersonDetails {
-    const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? [])
-        .map((credit: any) => ({
+    const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? []).map(
+        (credit: any) => ({
             ...transformPersonCredit(credit),
             character: credit.character ?? null
-        }))
-        .sort(sortByReleaseDateDesc);
+        })
+    );
 
-    const crewCredits: PersonCreditCrew[] = (personData.combined_credits?.crew ?? [])
-        .map((credit: any) => ({
+    const crewCredits: PersonCreditCrew[] = (personData.combined_credits?.crew ?? []).map(
+        (credit: any) => ({
             ...transformPersonCredit(credit),
             job: credit.job ?? null,
             department: credit.department ?? null
-        }))
-        .sort(sortByReleaseDateDesc);
+        })
+    );
+
+    castCredits.sort(sortByReleaseDateDesc);
+    crewCredits.sort(sortByReleaseDateDesc);
 
     return {
         id: personData.id ?? 0,
