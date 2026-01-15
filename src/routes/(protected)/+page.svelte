@@ -63,14 +63,16 @@
         </div>
     </div>
 
-    <div class="relative z-10 mx-auto flex w-full max-w-[2400px] flex-col gap-10 pb-24 md:gap-12">
-        <div in:fly|global={{ y: 20, duration: 400, delay: 0, easing: cubicOut }} class="w-full">
+    <div class="relative z-10 flex w-full flex-col gap-10 pb-24 md:gap-12">
+        <div
+            in:fly|global={{ y: 20, duration: 400, delay: 0, easing: cubicOut }}
+            class="w-full px-4 md:px-8">
             <TmdbNowPlaying
                 data={data.nowPlaying}
                 heightClass="h-[50vh] min-h-[500px] max-h-[800px]" />
         </div>
 
-        <div class="flex flex-col gap-12 px-6 md:px-12 lg:px-16">
+        <div class="mx-auto flex w-full max-w-[2400px] flex-col gap-12 px-6 md:px-12 lg:px-16">
             {#if recentlyAddedStore.items.length}
                 <div
                     class="flex flex-col gap-4"

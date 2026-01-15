@@ -287,7 +287,7 @@
                                                             <img
                                                                 src="/rating-logos/{score.image}"
                                                                 alt={score.name}
-                                                                class="h-4 w-auto object-contain" />
+                                                                class="h-3.5 w-auto object-contain" />
                                                         {/if}
                                                         <span
                                                             class="text-xs font-bold text-white drop-shadow-md"
