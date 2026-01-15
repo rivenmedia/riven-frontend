@@ -99,7 +99,9 @@
                 </Button>
             {/snippet}
         </Popover.Trigger>
-        <Popover.Content class="w-auto p-0" align="end">
+        <Popover.Content
+            class="w-auto rounded-2xl border border-white/10 bg-zinc-950/95 p-0 shadow-2xl shadow-black/50 backdrop-blur-2xl"
+            align="end">
             <Calendar
                 value={internalValue}
                 onValueChange={handleCalendarSelect}

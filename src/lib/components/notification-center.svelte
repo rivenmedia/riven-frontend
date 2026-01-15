@@ -86,12 +86,14 @@
         class: className,
         variant = "outline",
         side = "bottom",
-        align = "end"
+        align = "end",
+        sideOffset = 4
     } = $props<{
         class?: string;
         variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
         side?: "top" | "right" | "bottom" | "left";
         align?: "start" | "center" | "end";
+        sideOffset?: number;
     }>();
 </script>
 
@@ -112,9 +114,10 @@
         {/snippet}
     </Popover.Trigger>
     <Popover.Content
-        class="bg-popover w-96 rounded-2xl p-0 shadow-2xl shadow-black/50"
+        class="w-96 rounded-2xl border border-white/10 bg-zinc-950/95 p-0 shadow-2xl shadow-black/50 backdrop-blur-2xl"
         {side}
-        {align}>
+        {align}
+        {sideOffset}>
         <div class="flex flex-col">
             <div class="flex items-center justify-between p-4 pb-3">
                 <h3 class="text-sm font-semibold">Notifications</h3>

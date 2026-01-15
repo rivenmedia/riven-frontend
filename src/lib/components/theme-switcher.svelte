@@ -35,7 +35,7 @@
     <DropdownMenu.Content
         side="right"
         align="end"
-        class="bg-popover rounded-2xl border-none shadow-2xl shadow-black/50">
+        class="rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl shadow-black/50 backdrop-blur-2xl">
         <DropdownMenu.Group class="space-y-1 p-2">
             <DropdownMenu.Label>La Pallete</DropdownMenu.Label>
             <DropdownMenu.Separator />
