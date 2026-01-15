@@ -7,7 +7,6 @@
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
     import ArrowRight from "@lucide/svelte/icons/arrow-right";
     import { cn, deduplicateById } from "$lib/utils";
-    import PageShell from "$lib/components/page-shell.svelte";
     import TmdbNowPlaying, {
         type TMDBNowPlayingItem
     } from "$lib/components/tmdb-now-playing.svelte";
@@ -21,7 +20,7 @@
         "grid grid-cols-3 gap-4 min-[450px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9" as const;
 
     const badgeClass =
-        "border-border/50 text-muted-foreground hover:text-foreground bg-black/40 px-3 py-1 text-sm font-medium backdrop-blur-md transition-colors hover:bg-black/60";
+        "border-white/10 text-zinc-300 hover:text-white bg-white/5 px-3 py-1 text-xs font-mono font-medium backdrop-blur-md transition-colors hover:bg-white/10 rounded-xl";
 
     const CONFETTI_CONFIG = {
         colors: [
@@ -202,7 +201,7 @@
 </svelte:head>
 
 {#key data.entity.id}
-    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+    <div class="relative flex min-h-screen flex-col">
         <!-- Birthday Confetti -->
         {#if birthdayToday && !data.entity.deathday}
             <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
@@ -260,17 +259,17 @@
         <!-- Main Content -->
         {#if carouselItems.length > 0}
             <div
-                class="mb-6 px-2 md:mb-8 md:px-4"
+                class="mb-6 w-full px-4 md:mb-12 md:px-8"
                 in:fly|global={{ y: 20, duration: 400, delay: 0, easing: cubicOut }}>
                 <TmdbNowPlaying
                     data={carouselItems}
                     alignment="right"
                     showRequestButton={false}
-                    heightClass="h-[280px] sm:h-[320px] md:h-[420px]" />
+                    heightClass="h-[350px] sm:h-[400px] md:h-[500px]" />
             </div>
         {/if}
 
-        <PageShell class="mt-0">
+        <div class="z-10 flex w-full flex-col">
             <!-- Hero Content Area -->
             <div
                 class={cn(
@@ -285,7 +284,7 @@
                         <PortraitCard
                             title={data.entity.name}
                             image={data.entity.profile_path}
-                            class="group w-64 rounded-2xl shadow-2xl ring-1 ring-white/10 transition-transform duration-500 hover:scale-105"
+                            class="group w-64 rounded-xl shadow-2xl ring-1 ring-white/10 transition-transform duration-500 hover:scale-105"
                             showContent={false} />
 
                         {#if birthdayToday && !data.entity.deathday}
@@ -332,7 +331,7 @@
                                     easing: cubicOut
                                 }}>
                                 <h1
-                                    class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-7xl">
+                                    class="font-heading text-foreground text-4xl font-black tracking-tight drop-shadow-md sm:text-5xl lg:text-7xl">
                                     {data.entity.name}
                                 </h1>
 
@@ -344,7 +343,7 @@
                                 <!-- Also Known As -->
                                 <div class="lg:mt-3">
                                     {@render alsoKnownAs(
-                                        "text-xs font-semibold uppercase tracking-wide lg:text-sm lg:normal-case lg:tracking-normal",
+                                        "text-xs font-semibold uppercase tracking-wide lg:text-sm lg:normal-case lg:tracking-normal text-zinc-400",
                                         "hidden lg:inline"
                                     )}
                                 </div>
@@ -361,10 +360,10 @@
                                     delay: 150,
                                     easing: cubicOut
                                 }}>
-                                <h3 class="text-foreground text-lg font-bold">Biography</h3>
+                                <h3 class="font-heading text-foreground text-xl font-bold">Biography</h3>
                                 <div class="relative">
                                     <p
-                                        class="text-muted-foreground line-clamp-4 text-base leading-relaxed">
+                                        class="text-zinc-300 font-serif line-clamp-4 text-lg leading-relaxed lg:text-xl">
                                         {data.entity.biography}
                                     </p>
                                     {#if data.entity.biography.length > 300 && data.entity.imdb_id}
@@ -397,7 +396,7 @@
                 {@render creditsSection("TV Shows", showCredits, 250)}
                 {@render creditsSection("Crew", crewCredits, 300)}
             </div>
-        </PageShell>
+        </div>
     </div>
 {/key}
 
@@ -405,8 +404,8 @@
     {#if credits.length > 0}
         <section in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
             <div class="mb-6 flex items-baseline gap-3">
-                <h2 class="text-foreground text-3xl font-bold tracking-tight">{title}</h2>
-                <span class="text-muted-foreground text-lg font-medium">({credits.length})</span>
+                <h2 class="font-heading text-foreground text-3xl font-bold tracking-tight">{title}</h2>
+                <span class="text-zinc-400 font-mono text-lg font-medium">({credits.length})</span>
             </div>
             <div class={GRID_CLASSES}>
                 {@render creditList(credits)}
@@ -457,7 +456,7 @@
 {#snippet alsoKnownAs(titleClass = "text-sm font-semibold", colonClass = "")}
     {#if data.entity.also_known_as.length > 0}
         <div class="space-y-1">
-            <h3 class="text-muted-foreground {titleClass}">
+            <h3 class="{titleClass}">
                 Also known as<span class={colonClass}>:</span>
             </h3>
             <div class="flex flex-wrap gap-2">

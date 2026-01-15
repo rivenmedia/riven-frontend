@@ -6,7 +6,6 @@
     import Autoplay from "embla-carousel-autoplay";
     import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/providers";
     import { getSeasonAndYear } from "$lib/helpers";
-    import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { getRatings } from "$lib/stores/ratings";
@@ -157,7 +156,7 @@
         if (type === "container") {
             switch (align) {
                 case "right":
-                    return "items-end pr-8 text-right md:pr-24";
+                    return "items-end text-right";
                 case "center":
                     return "items-center text-center";
                 default:
@@ -209,13 +208,22 @@
                         <!-- Text Content with Netflix-style reveal -->
                         {#key currentIndex === index ? currentIndex : -1}
                             <div
-                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-20 pb-16 md:px-32 md:pt-32 md:pb-20 lg:right-0 lg:left-0 {getAlignmentClasses(
+                                class="absolute top-0 right-0 bottom-0 left-0 z-10 flex flex-col justify-end px-8 pt-2 pb-24 md:px-32 md:pt-8 md:pb-16 lg:right-0 lg:left-0 {getAlignmentClasses(
                                     alignment,
                                     'container'
                                 )}">
-                                <div class="w-full max-w-3xl">
+                                <div
+                                    class="flex w-full max-w-3xl flex-col {alignment === 'right'
+                                        ? 'items-end'
+                                        : alignment === 'center'
+                                          ? 'items-center'
+                                          : 'items-start'}">
                                     <!-- Title / Logo -->
-                                    <div class="mb-2 flex h-20 items-end justify-start md:mb-4 md:h-28">
+                                    <div
+                                        class="mb-4 flex h-24 items-end {getAlignmentClasses(
+                                            alignment,
+                                            'flex'
+                                        )}">
                                         {#if logos[item.id]}
                                             <img
                                                 src={logos[item.id]}
@@ -226,7 +234,12 @@
                                                     delay: 100,
                                                     easing: cubicOut
                                                 }}
-                                                class="max-h-full max-w-[80%] object-contain object-left-bottom drop-shadow-2xl" />
+                                                class="max-h-full max-w-[80%] object-contain drop-shadow-2xl {alignment ===
+                                                'right'
+                                                    ? 'object-right-bottom'
+                                                    : alignment === 'center'
+                                                      ? 'object-bottom'
+                                                      : 'object-left-bottom'}" />
                                         {:else}
                                             <h1
                                                 in:fly={{
@@ -254,13 +267,13 @@
                                             'flex'
                                         )}">
                                         <span
-                                            class="rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase backdrop-blur-md md:text-xs">
+                                            class="flex items-center justify-center rounded-md border border-white/20 bg-white/10 px-2 py-1 text-[10px] leading-none font-bold tracking-wider uppercase backdrop-blur-md md:text-xs">
                                             {isTV ? "Series" : "Movie"}
                                         </span>
                                         {#if certifications[item.id] || (item.certification && item.certification !== "N/A")}
                                             <span class="text-white/40">|</span>
                                             <span
-                                                class="rounded-sm border border-white/40 px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase md:text-xs">
+                                                class="flex items-center justify-center rounded-sm border border-white/40 px-1.5 py-1 text-[10px] leading-none font-bold tracking-wider uppercase md:text-xs">
                                                 {certifications[item.id] || item.certification}
                                             </span>
                                         {/if}
@@ -287,7 +300,7 @@
                                                             <img
                                                                 src="/rating-logos/{score.image}"
                                                                 alt={score.name}
-                                                                class="h-3.5 w-auto object-contain" />
+                                                                class="h-4 w-auto object-contain" />
                                                         {/if}
                                                         <span
                                                             class="text-xs font-bold text-white drop-shadow-md"
