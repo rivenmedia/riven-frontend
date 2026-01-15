@@ -7,7 +7,7 @@
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto, afterNavigate } from "$app/navigation";
-    import { page } from "$app/stores";
+    import { page } from "$app/state";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
     import type { SearchStore } from "$lib/services/search-store.svelte";
     import { parseSearchQuery } from "$lib/search-parser";
@@ -39,14 +39,14 @@
     });
 
     // Local input value state to decouple from URL updates while typing
-    let inputValue = $state($page.url.searchParams.get("query") || "");
+    let inputValue = $state(page.url.searchParams.get("query") || "");
     let inputRef = $state<HTMLInputElement | null>(null);
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
     // Sync external URL changes to input, but avoid overwriting while typing
     // We use afterNavigate instead of $effect to avoid state loops
     afterNavigate(() => {
-        const urlQuery = $page.url.searchParams.get("query") || "";
+        const urlQuery = page.url.searchParams.get("query") || "";
         // Only update if the value is different and we aren't focused
         // Or if we just navigated to a completely different page/query via link
         if (urlQuery !== inputValue && inputRef !== document.activeElement) {
@@ -58,7 +58,7 @@
         clearTimeout(debounceTimer);
         // Read directly from local state
         const query = inputValue.trim();
-        const currentlyExplore = $page.url.pathname === "/explore";
+        const currentlyExplore = page.url.pathname === "/explore";
 
         // Client-first search: Immediately update store if we're on the explore page
         // This avoids waiting for the server round-trip (goto -> load -> data -> effect)

@@ -5,9 +5,8 @@
     import NotificationCenter from "$lib/components/notification-center.svelte";
     import { getContext, onDestroy } from "svelte";
     import Search from "@lucide/svelte/icons/search";
-    import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto } from "$app/navigation";
-    import { page } from "$app/stores";
+    import { page } from "$app/state";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
     import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
@@ -20,7 +19,7 @@
     function navigateToSearch() {
         if (debounceTimer) clearTimeout(debounceTimer);
         const query = inputRef?.value.trim() || "";
-        const currentlyExplore = $page.url.pathname === "/explore";
+        const currentlyExplore = page.url.pathname === "/explore";
         goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: currentlyExplore,
             noScroll: true,
@@ -44,9 +43,8 @@
     <!-- Unified Pill Container -->
     <div
         class="flex h-11 w-full max-w-md items-center gap-2 rounded-full border border-white/5 bg-white/5 p-1 pl-4 shadow-lg backdrop-blur-xl transition-all duration-300 focus-within:border-white/10 focus-within:bg-black/40 focus-within:ring-1 focus-within:ring-white/20 hover:bg-white/10">
-
         <!-- Search Icon -->
-        <Search class="text-white/50 size-4 shrink-0" />
+        <Search class="size-4 shrink-0 text-white/50" />
 
         <!-- Input -->
         <input
@@ -54,7 +52,7 @@
             name="query"
             placeholder="Search..."
             aria-label="Search"
-            value={$page.url.searchParams.get("query") || ""}
+            value={page.url.searchParams.get("query") || ""}
             oninput={handleInput}
             onkeydown={(e) => {
                 if (e.key === "Enter") {
@@ -62,11 +60,11 @@
                     navigateToSearch();
                 }
             }}
-            class="text-foreground placeholder:text-white/40 h-full flex-1 bg-transparent text-sm font-medium outline-none"
+            class="text-foreground h-full flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-white/40"
             autocomplete="off" />
 
         <!-- Actions Divider -->
-        <div class="bg-white/10 h-5 w-px"></div>
+        <div class="h-5 w-px bg-white/10"></div>
 
         <!-- Actions -->
         <div class="flex items-center gap-0.5 pr-0.5">
@@ -75,12 +73,12 @@
                 side="top"
                 align="end"
                 sideOffset={20}
-                class="text-white/50 hover:text-white flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-white/10" />
+                class="flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-all hover:bg-white/10 hover:text-white" />
 
             <Button
                 variant="ghost"
                 size="icon"
-                class="text-white/50 hover:text-white flex h-9 w-9 items-center justify-center rounded-full transition-all hover:bg-white/10"
+                class="flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-all hover:bg-white/10 hover:text-white"
                 onclick={() => SidebarStore.toggle()}>
                 <div class="relative flex size-5 items-center justify-center">
                     <div

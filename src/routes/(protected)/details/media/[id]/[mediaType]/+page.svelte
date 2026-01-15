@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import { page } from "$app/stores";
+    import { page } from "$app/state";
     import { type PageProps } from "./$types";
     import type { ParsedShowDetails } from "$lib/providers/parser";
     import { fade, fly } from "svelte/transition";
@@ -79,8 +79,8 @@
     // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)
     let ratingsId = $derived(
         data.mediaDetails?.type === "tv"
-            ? (data.mediaDetails?.details.external_ids?.tmdb ?? Number($page.params.id))
-            : Number($page.params.id)
+            ? (data.mediaDetails?.details.external_ids?.tmdb ?? Number(page.params.id))
+            : Number(page.params.id)
     );
     let mediaType = $derived(data.mediaDetails?.type);
 
@@ -229,8 +229,7 @@
         <span class="text-muted-foreground font-serif text-sm"
             >{data.mediaDetails?.details.title}</span>
         <span class="text-muted-foreground">•</span>
-        {#if episode.aired}<Badge variant="outline" class="font-mono text-xs"
-                >{episode.aired}</Badge
+        {#if episode.aired}<Badge variant="outline" class="font-mono text-xs">{episode.aired}</Badge
             >{/if}
         {#if episode.runtime}<Badge variant="outline" class="font-mono text-xs"
                 >{episode.runtime} min</Badge
@@ -269,10 +268,10 @@
                     {#if meta?.filename}
                         <div>
                             <p
-                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider">
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase">
                                 Current Filename
                             </p>
-                            <p class="text-muted-foreground font-mono mt-1 break-all text-xs">
+                            <p class="text-muted-foreground mt-1 font-mono text-xs break-all">
                                 {meta.filename}
                             </p>
                         </div>
@@ -282,7 +281,7 @@
                     {#if video}
                         <div class="flex flex-col gap-2">
                             <span
-                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
                                 >Video</span>
                             <div class="flex flex-wrap gap-2">
                                 {#if video.resolution_width && video.resolution_height}<Badge
@@ -290,9 +289,8 @@
                                         class="font-mono text-xs"
                                         >{video.resolution_width}x{video.resolution_height}</Badge
                                     >{/if}
-                                {#if video.codec}<Badge
-                                        variant="outline"
-                                        class="font-mono text-xs">{video.codec}</Badge
+                                {#if video.codec}<Badge variant="outline" class="font-mono text-xs"
+                                        >{video.codec}</Badge
                                     >{/if}
                                 {#if video.hdr_type}<Badge
                                         variant="outline"
@@ -306,7 +304,7 @@
                     {#if meta?.audio_tracks?.length}
                         <div class="flex flex-col gap-2">
                             <span
-                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
                                 >Audio</span>
                             <div class="flex flex-wrap gap-2">
                                 {#each meta.audio_tracks as track}
@@ -329,7 +327,7 @@
                     {#if meta?.quality_source}
                         <div class="flex flex-col gap-2">
                             <span
-                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
                                 >Source</span>
                             <div class="flex flex-wrap gap-2">
                                 <Badge variant="outline" class="font-mono text-xs"
@@ -346,7 +344,7 @@
                     {#if fs?.file_size}
                         <div class="flex flex-col gap-2">
                             <span
-                                class="text-primary font-mono text-xs font-semibold uppercase tracking-wider"
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
                                 >Size</span>
                             <div class="flex items-center">
                                 <span class="text-muted-foreground font-mono text-xs"

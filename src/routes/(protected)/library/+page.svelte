@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tick } from "svelte";
+    import { page } from "$app/state";
     import type { PageProps } from "./$types";
     import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
@@ -7,7 +8,7 @@
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
-    import LoaderCircle from "@lucide/svelte/icons/loader-circle";
+
     import ListItem from "$lib/components/list-item.svelte";
     import { itemsSearchSchema, typeOptions, stateOptions } from "$lib/schemas/items";
     import Trash from "@lucide/svelte/icons/trash";
@@ -40,6 +41,43 @@
 
     let actionInProgress = $state(false);
     let formElement: HTMLFormElement;
+
+    // Live Search Logic
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+    function search() {
+        const url = new URL(page.url);
+
+        if ($formData.search) {
+            url.searchParams.set("search", $formData.search);
+        } else {
+            url.searchParams.delete("search");
+        }
+
+        url.searchParams.delete("type");
+        if ($formData.type?.length) {
+            $formData.type.forEach((t) => url.searchParams.append("type", t));
+        }
+
+        url.searchParams.delete("states");
+        if ($formData.states?.length) {
+            $formData.states.forEach((s) => url.searchParams.append("states", s));
+        }
+
+        // Reset to page 1 on search/filter change
+        url.searchParams.set("page", "1");
+
+        goto(url.toString(), {
+            keepFocus: true,
+            noScroll: true,
+            invalidateAll: true
+        });
+    }
+
+    function handleSearchInput() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(search, 300);
+    }
 </script>
 
 <PageShell class="bg-background relative flex min-h-screen flex-col overflow-x-hidden">
@@ -56,7 +94,7 @@
 
     <div class="relative z-10 mx-auto flex w-full max-w-[2400px] flex-col gap-8">
         <!-- Header Section -->
-        <header class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+        <header class="flex flex-col justify-between gap-6 pt-32 md:flex-row md:items-end md:pt-0">
             <div class="space-y-2">
                 <h1
                     class="font-serif text-5xl font-medium tracking-tight text-white/90 md:text-7xl">
@@ -86,6 +124,7 @@
                                     {...props}
                                     bind:value={$formData.search}
                                     placeholder="Search..."
+                                    oninput={handleSearchInput}
                                     class="h-10 rounded-xl border-transparent bg-transparent pl-9 transition-all placeholder:text-zinc-600 hover:bg-white/5 focus:bg-white/10" />
                             {/snippet}
                         </Form.Control>
@@ -101,6 +140,10 @@
                             <Select.Root
                                 type="multiple"
                                 bind:value={$formData.type}
+                                onValueChange={async () => {
+                                    await tick();
+                                    search();
+                                }}
                                 name={props.name}>
                                 <Select.Trigger
                                     {...props}
@@ -123,6 +166,10 @@
                             <Select.Root
                                 type="multiple"
                                 bind:value={$formData.states}
+                                onValueChange={async () => {
+                                    await tick();
+                                    search();
+                                }}
                                 name={props.name}>
                                 <Select.Trigger
                                     {...props}
@@ -140,35 +187,6 @@
                         {/snippet}
                     </Form.Control>
                 </Form.Field>
-
-                <div class="mx-1 hidden h-6 w-px bg-white/10 md:block"></div>
-
-                <!-- Submit / Clear -->
-                <div class="flex items-center gap-1">
-                    <Button
-                        type="submit"
-                        disabled={$delayed}
-                        size="icon"
-                        variant="ghost"
-                        class="hover:bg-primary/20 hover:text-primary h-9 w-9 rounded-xl transition-colors">
-                        {#if $delayed}
-                            <LoaderCircle class="h-4 w-4 animate-spin" />
-                        {:else}
-                            <Search class="h-4 w-4" />
-                        {/if}
-                    </Button>
-                    {#if $formData.search || $formData.type?.length || $formData.states?.length}
-                        <Button
-                            type="button"
-                            onclick={async () =>
-                                await goto(resolve("/library"), { invalidateAll: true })}
-                            size="icon"
-                            variant="ghost"
-                            class="hover:bg-destructive/20 hover:text-destructive h-9 w-9 rounded-xl transition-colors">
-                            <X class="h-4 w-4" />
-                        </Button>
-                    {/if}
-                </div>
             </form>
         </header>
 
