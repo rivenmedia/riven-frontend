@@ -64,6 +64,7 @@
         const result: Record<string, EntertainmentItem[]> = {};
 
         items.forEach((item) => {
+            if (!item?.aired_at) return;
             const date = dateUtils.parseISODate(item.aired_at);
             if (!date) return;
             const dateKey = dateUtils.toISODate(date);
