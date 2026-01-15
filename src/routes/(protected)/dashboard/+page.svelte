@@ -272,15 +272,19 @@
                             {#if status === true}
                                 <Badge
                                     variant="default"
-                                    class="bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400 rounded-xl">
+                                    class="rounded-xl bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
                                     {serviceName}
                                 </Badge>
                             {:else if status === false}
-                                <Badge variant="destructive" class="px-2 py-1 text-xs font-medium rounded-xl">
+                                <Badge
+                                    variant="destructive"
+                                    class="rounded-xl px-2 py-1 text-xs font-medium">
                                     {serviceName}
                                 </Badge>
                             {:else}
-                                <Badge variant="secondary" class="px-2 py-1 text-xs font-medium rounded-xl">
+                                <Badge
+                                    variant="secondary"
+                                    class="rounded-xl px-2 py-1 text-xs font-medium">
                                     {serviceName}
                                 </Badge>
                             {/if}
@@ -306,7 +310,7 @@
                                 ? "default"
                                 : "secondary"}
                             class={downloader.premium_status === "premium"
-                                ? "bg-amber-600/30 text-amber-300 hover:bg-amber-600/40 rounded-xl"
+                                ? "rounded-xl bg-amber-600/30 text-amber-300 hover:bg-amber-600/40"
                                 : "rounded-xl"}>
                             {downloader.premium_status === "premium" ? "Premium" : "Free"}
                         </Badge>
