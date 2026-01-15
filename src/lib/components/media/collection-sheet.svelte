@@ -94,13 +94,15 @@
     </Sheet.Trigger>
     <Sheet.Content
         side="right"
-        class="flex w-full flex-col overflow-hidden sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
-        <Sheet.Header class="px-6">
-            <Sheet.Title class="text-2xl font-bold">{collectionName}</Sheet.Title>
-            <Sheet.Description>Browse and request movies in this collection.</Sheet.Description>
+        class="flex w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+        <Sheet.Header class="px-6 pt-6">
+            <Sheet.Title class="text-3xl font-black tracking-tight drop-shadow-md"
+                >{collectionName}</Sheet.Title>
+            <Sheet.Description class="text-muted-foreground text-base"
+                >Browse and request movies in this collection.</Sheet.Description>
         </Sheet.Header>
 
-        <div class="mt-6 flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-4">
+        <div class="mt-6 flex flex-1 flex-col gap-8 overflow-y-auto px-6 pb-4">
             {#if loading}
                 <div class="flex h-40 items-center justify-center">
                     <Loader2 class="text-muted-foreground size-8 animate-spin" />
@@ -134,9 +136,9 @@
 
                 <div class="flex items-center gap-3">
                     <div
-                        class="bg-primary h-5 w-1 rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)]">
+                        class="bg-primary h-6 w-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]">
                     </div>
-                    <h3 class="text-lg font-bold tracking-tight">
+                    <h3 class="text-foreground text-xl font-bold tracking-tight drop-shadow-md">
                         {collectionData.parts?.length ?? 0} Movies
                     </h3>
                 </div>

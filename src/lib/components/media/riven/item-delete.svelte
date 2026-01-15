@@ -63,7 +63,7 @@
             </Button>
         {/snippet}
     </AlertDialog.Trigger>
-    <AlertDialog.Content>
+    <AlertDialog.Content class="border border-white/10 bg-zinc-950/95 backdrop-blur-2xl">
         <AlertDialog.Header>
             <AlertDialog.Title>
                 Deleting "{title ?? "Media Item"}"

@@ -8,6 +8,7 @@
     import SeasonSelector, { type SeasonInfo } from "./season-selector.svelte";
     import { createScopedLogger } from "$lib/logger";
     import { type Snippet } from "svelte";
+    import { SvelteSet } from "svelte/reactivity";
 
     const logger = createScopedLogger("item-request");
 
@@ -48,7 +49,7 @@
     let loading = $state(false);
 
     // State for season selection - managed by SeasonSelector component
-    let selectedSeasons = $state<Set<number>>(new Set());
+    let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
 
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
@@ -117,7 +118,7 @@
             </Button>
         {/snippet}
     </AlertDialog.Trigger>
-    <AlertDialog.Content>
+    <AlertDialog.Content class="border border-white/10 bg-zinc-950/95 backdrop-blur-2xl">
         <AlertDialog.Header>
             <AlertDialog.Title>
                 Requesting "{title ?? "Media Item"}"

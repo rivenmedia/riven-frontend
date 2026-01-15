@@ -60,14 +60,9 @@
 
 <div
     class={cn(
-        "group bg-card relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-lg transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
+        "group bg-card ring-border hover:ring-primary/30 relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-sm ring-1 transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50",
         className
     )}>
-    <!-- Inner Border Overlay with glass effect -->
-    <div
-        class="group-hover:border-primary/30 pointer-events-none absolute inset-0 z-50 rounded-xl border border-white/10 transition-colors duration-500">
-    </div>
-
     <div class="relative aspect-video w-full flex-grow overflow-hidden">
         {#if image}
             <img
@@ -76,13 +71,18 @@
                 src={image}
                 loading="lazy" />
         {:else}
-            <div class="bg-muted/20 flex h-full w-full items-center justify-center">
-                <Mountain size={32} class="opacity-50" />
+            <div
+                class="bg-muted text-muted-foreground flex h-full w-full items-center justify-center">
+                <Mountain size={32} strokeWidth={1} />
             </div>
         {/if}
 
         <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-80">
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100">
+        </div>
+        <!-- Subtle Theme Tint at the bottom -->
+        <div
+            class="from-primary/20 absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         </div>
 
         {#if topRight}
@@ -94,7 +94,7 @@
         <div class="absolute inset-0 flex flex-col justify-end">
             <div class="relative z-10 flex flex-col gap-1.5 p-3 md:p-4">
                 <h3
-                    class="text-foreground relative z-20 line-clamp-1 text-base font-extrabold drop-shadow-md md:text-lg">
+                    class="relative z-20 line-clamp-1 text-base font-extrabold text-white drop-shadow-md md:text-lg">
                     {#if episodeNumber}
                         <span class="text-primary mr-2 drop-shadow-md">{episodeNumber}.</span>
                     {/if}
@@ -122,7 +122,7 @@
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
-                                            class="text-foreground/90 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs backdrop-blur-md transition-colors hover:bg-white/20">
+                                            class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/90 backdrop-blur-md transition-colors hover:bg-white/20">
                                             {#if score.image}
                                                 <img
                                                     src="/rating-logos/{score.image}"
@@ -148,7 +148,7 @@
 
                 {#if overview}
                     <div
-                        class="text-muted-foreground grid grid-rows-[0fr] text-sm opacity-0 transition-all duration-500 ease-in-out group-hover:grid-rows-[1fr] group-hover:opacity-100">
+                        class="grid grid-rows-[0fr] text-sm text-zinc-300/90 opacity-0 transition-all duration-500 ease-in-out group-hover:grid-rows-[1fr] group-hover:opacity-100">
                         <p class="line-clamp-3 overflow-hidden">
                             {overview}
                         </p>

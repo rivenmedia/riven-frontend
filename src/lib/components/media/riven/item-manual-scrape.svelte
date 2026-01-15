@@ -244,7 +244,7 @@
     });
     let canStartAutoScrape = $derived(Object.values(selectedOptions).some((arr) => arr.length > 0));
 
-    let selectedMagnets = new SvelteSet<string>();
+    let selectedMagnets = $state(new SvelteSet<string>());
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
     let searchQuery = $state("");
@@ -255,7 +255,7 @@
     let maxFilesizeOverride = $state<number | null>(null);
 
     // Season Selection State - managed by SeasonSelector component
-    let selectedSeasons = new SvelteSet<number>();
+    let selectedSeasons = $state(new SvelteSet<number>());
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
     let preparingBatch = $state(false);
@@ -287,7 +287,7 @@
     };
 
     // Track which categories are expanded (all collapsed by default)
-    let expandedCategories = new SvelteSet<string>();
+    let expandedCategories = $state(new SvelteSet<string>());
 
     let filteredStreams = $derived.by(() => {
         let result = streams;
@@ -619,9 +619,9 @@
     }
 
     function getScrapeParams() {
-        const params: Partial<AutoScrapeRequest> = {
+        const params: AutoScrapeRequest = {
             media_type: mediaType as "movie" | "tv"
-        };
+        } as AutoScrapeRequest;
 
         if (itemId) {
             params.item_id = parseFileId(itemId);
@@ -659,7 +659,7 @@
                 selectedSeasons.size > 0 &&
                 selectedSeasons.size < seasons.length
             ) {
-                const { media_type, ...restBody } = body;
+                const { media_type: _, ...restBody } = body;
                 // Use AutoScrapeRequest
                 const seasonBody: AutoScrapeRequest = {
                     ...restBody,
@@ -1124,7 +1124,7 @@
         {/snippet}
     </Dialog.Trigger>
     <Dialog.Content
-        class="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden lg:max-w-7xl">
+        class="flex max-h-[80vh] w-full max-w-4xl flex-col overflow-hidden border border-white/10 bg-zinc-950/95 backdrop-blur-2xl lg:max-w-7xl">
         <Dialog.Header class="relative flex-shrink-0">
             <div class="flex items-center justify-between">
                 <Dialog.Title class="text-lg font-semibold">
@@ -1374,7 +1374,8 @@
                                                                         } else {
                                                                             newSet.add(category);
                                                                         }
-                                                                        expandedCategories = newSet;
+                                                                        expandedCategories =
+                                                                            new SvelteSet(newSet);
                                                                     }}>
                                                                     <div
                                                                         class="flex items-center gap-2">
