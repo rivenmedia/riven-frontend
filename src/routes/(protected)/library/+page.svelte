@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { tick } from "svelte";
+    import { tick, onDestroy } from "svelte";
     import { page } from "$app/state";
     import type { PageProps } from "./$types";
     import { fly } from "svelte/transition";
@@ -78,6 +78,11 @@
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(search, 300);
     }
+
+    onDestroy(() => {
+        clearTimeout(debounceTimer);
+        debounceTimer = undefined;
+    });
 </script>
 
 <PageShell class="bg-background relative flex min-h-screen flex-col overflow-x-hidden">
