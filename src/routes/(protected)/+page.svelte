@@ -67,7 +67,7 @@
         <div in:fly|global={{ y: 20, duration: 400, delay: 0, easing: cubicOut }} class="w-full">
             <TmdbNowPlaying
                 data={data.nowPlaying}
-                heightClass="h-[40vh] min-h-[350px] max-h-[600px]" />
+                heightClass="h-[50vh] min-h-[500px] max-h-[800px]" />
         </div>
 
         <div class="flex flex-col gap-12 px-6 md:px-12 lg:px-16">
