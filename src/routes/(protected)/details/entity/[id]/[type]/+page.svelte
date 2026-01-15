@@ -274,18 +274,18 @@
             <!-- Hero Content Area -->
             <div
                 class={cn(
-                    "px-4 pb-6 md:px-8 md:pb-8 lg:px-12",
+                    "mx-auto w-full max-w-[2400px] px-8 pb-12 md:px-20 md:pb-16 lg:px-24",
                     carouselItems.length === 0 && "pt-24 md:pt-[20vh]"
                 )}>
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr] lg:gap-8">
+                <div class="grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr] lg:gap-12">
                     <!-- Portrait Column (Desktop) -->
                     <div
-                        class="relative hidden lg:mx-0 lg:block"
+                        class="relative sticky top-24 hidden h-fit lg:mx-0 lg:block"
                         in:fly|global={{ y: 20, duration: 400, delay: 50, easing: cubicOut }}>
                         <PortraitCard
                             title={data.entity.name}
                             image={data.entity.profile_path}
-                            class="group w-48 rounded-xl shadow-2xl transition-transform duration-500 hover:scale-105 lg:w-64"
+                            class="group w-64 rounded-2xl shadow-2xl ring-1 ring-white/10 transition-transform duration-500 hover:scale-105"
                             showContent={false} />
 
                         {#if birthdayToday && !data.entity.deathday}
@@ -297,9 +297,9 @@
                     </div>
 
                     <!-- Content Column -->
-                    <div class="flex flex-col justify-end gap-5 pb-2">
+                    <div class="flex flex-col justify-end gap-6 pb-2">
                         <!-- Unified Content Wrapper -->
-                        <div class="flex gap-4 lg:block">
+                        <div class="flex gap-6 lg:block">
                             <!-- Mobile Portrait (Hidden on Desktop) -->
                             <div
                                 class="relative flex-shrink-0 lg:hidden"
@@ -312,7 +312,7 @@
                                 <PortraitCard
                                     title={data.entity.name}
                                     image={data.entity.profile_path}
-                                    class="group w-28 rounded-lg shadow-xl sm:w-32"
+                                    class="group w-32 rounded-xl shadow-xl ring-1 ring-white/10 sm:w-40"
                                     showContent={false} />
                                 {#if birthdayToday && !data.entity.deathday}
                                     <div
@@ -386,12 +386,13 @@
                 </div>
             </div>
 
-            <div class="px-4 md:px-12 lg:px-20 xl:px-24">
-                <div class="bg-border/20 my-6 h-px w-full"></div>
+            <div class="mx-auto w-full max-w-[2400px] px-8 md:px-20 lg:px-24">
+                <div class="bg-border/20 my-8 h-px w-full"></div>
             </div>
 
             <!-- Credits -->
-            <div class="flex flex-col gap-20 px-4 pb-20 md:px-12 lg:px-20 xl:px-24">
+            <div
+                class="mx-auto flex w-full max-w-[2400px] flex-col gap-20 px-8 pb-24 md:px-20 lg:px-24">
                 {@render creditsSection("Movies", movieCredits, 200)}
                 {@render creditsSection("TV Shows", showCredits, 250)}
                 {@render creditsSection("Crew", crewCredits, 300)}
