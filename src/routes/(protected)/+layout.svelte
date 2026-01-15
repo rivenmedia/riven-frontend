@@ -17,9 +17,10 @@
     import "../../app.css";
     import type { LayoutProps } from "./$types";
     import { SidebarStore, isMobileStore } from "$lib/stores/global.svelte";
-    import { setContext } from "svelte";
+    import { setContext, onMount, onDestroy } from "svelte";
     import Header from "$lib/components/header.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
+    import { mediaProgressStore } from "$lib/stores/media-progress.svelte";
 
     let { data, children }: LayoutProps = $props();
 
@@ -49,6 +50,14 @@
     setContext("sidebarStore", SidebarStore);
     setContext("ismobilestore", isMobileStore);
     setContext("searchStore", searchStore);
+
+    onMount(() => {
+        mediaProgressStore.connect();
+    });
+
+    onDestroy(() => {
+        mediaProgressStore.disconnect();
+    });
 </script>
 
 <svelte:head>
