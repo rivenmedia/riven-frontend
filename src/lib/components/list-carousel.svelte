@@ -16,7 +16,7 @@
         <Carousel.Content class="-ml-3">
             {#each data as item, i (item.id)}
                 <Carousel.Item
-                    class="max-w-max pl-3 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-backwards"
+                    class="animate-in fade-in slide-in-from-bottom-8 fill-mode-backwards max-w-max pl-3 duration-700"
                     style="animation-delay: {i * 50}ms">
                     <ListItem
                         data={item}
@@ -29,7 +29,7 @@
     </Carousel.Root>
 {:else}
     <div class="mt-1.5 flex gap-3 overflow-x-auto pb-2">
-        {#each Array(6) as i (i)}
+        {#each Array(6) as _, i (i)}
             <div class="w-36 flex-none md:w-44 lg:w-48">
                 <PortraitCardSkeleton />
             </div>
