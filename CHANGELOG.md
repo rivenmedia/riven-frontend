@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.0-beta.4](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2026-02-20)
+
+
+### Features
+
+* add HLS streaming support ([a79711b](https://github.com/rivenmedia/riven-frontend/commit/a79711bf47bdb7eb42148c873741ac5f8eb52eb0))
+* implement a modern design, extensive use of themes ([#295](https://github.com/rivenmedia/riven-frontend/issues/295)) ([4722e5d](https://github.com/rivenmedia/riven-frontend/commit/4722e5dc82d8b5bec93e2f9f2cbd0640e0533276))
+
+
+### Bug Fixes
+
+* change random avatar generator link ([d1a6b2c](https://github.com/rivenmedia/riven-frontend/commit/d1a6b2c235237128395a45ae1046b384cdbf5a4a))
+* improve logging ([38463f6](https://github.com/rivenmedia/riven-frontend/commit/38463f6da89589bc1c790c170bb5e4b6acb4614d))
+* minor log improvements ([d3778ac](https://github.com/rivenmedia/riven-frontend/commit/d3778ac851260dfdd0f0370eb5ad0eba62b17bd2))
+
+
+### Miscellaneous Chores
+
+* format ([2702e90](https://github.com/rivenmedia/riven-frontend/commit/2702e90e13893b422dd97af0f5a40ab3ad916ca8))
+
+
+### Build System and Dependencies
+
+* **deps-dev:** bump @sveltejs/kit from 2.49.2 to 2.49.5 ([#296](https://github.com/rivenmedia/riven-frontend/issues/296)) ([3477a58](https://github.com/rivenmedia/riven-frontend/commit/3477a58c2915b44dc970d9742552e506791b2a8d))
+* **deps-dev:** bump svelte from 5.46.1 to 5.46.4 ([#297](https://github.com/rivenmedia/riven-frontend/issues/297)) ([ed39458](https://github.com/rivenmedia/riven-frontend/commit/ed39458be95b5e9b0be7a70df18b091db32b7ba4))
+* update api endpoints spec ([f25f491](https://github.com/rivenmedia/riven-frontend/commit/f25f491b756141349d04a199767705021e339f0c))
+* update deps ([516c5e6](https://github.com/rivenmedia/riven-frontend/commit/516c5e60a1cdcb27c8437537ba89c66ea4d03cbb))
+* update deps ([4513a83](https://github.com/rivenmedia/riven-frontend/commit/4513a83d1e7d0eb94184045341813d6a92f52c1d))
+
 ## [1.0.0-beta.3](https://github.com/rivenmedia/riven-frontend/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2025-12-24)
 
 ### Features
