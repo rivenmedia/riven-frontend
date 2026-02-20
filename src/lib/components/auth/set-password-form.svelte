@@ -2,18 +2,16 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import type { SuperValidated, Infer } from "sveltekit-superforms";
+    import type { SuperValidated } from "sveltekit-superforms";
     import { setPasswordSchema, type SetPasswordSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import Eye from "@lucide/svelte/icons/eye";
     import EyeOff from "@lucide/svelte/icons/eye-off";
-    import SuperDebug from "sveltekit-superforms";
     import { toast } from "svelte-sonner";
     import type { FsSuperForm } from "formsnap";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import { dev } from "$app/environment";
     import { page } from "$app/state";
     import FormBase from "./form-base.svelte";
 
@@ -51,7 +49,11 @@
     });
 </script>
 
-{#snippet passwordFormField(form: FsSuperForm, name: PasswordFieldName, title: string)}
+{#snippet passwordFormField(
+    form: FsSuperForm<SetPasswordSchema>,
+    name: PasswordFieldName,
+    title: string
+)}
     <Form.Field {form} {name}>
         <Form.Control>
             {#snippet children({ props })}

@@ -62,14 +62,14 @@
         </thead>
     {/if}
     <tbody>
-        {#each calendar as w, i}
+        {#each calendar as w, i (i)}
             <tr>
                 {#if lday}
                     <td class="pr-[0.5em] text-[0.75em]">
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
                     </td>
                 {/if}
-                {#each w as d}
+                {#each w as d, j (d ? d.date : `${i}-${j}`)}
                     {#if d}
                         <td
                             class="border-muted-foreground/10 h-[1em] w-[1em] border"

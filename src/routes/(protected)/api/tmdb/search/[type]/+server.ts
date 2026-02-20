@@ -1,114 +1,20 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
-import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
+import type { paths } from "$lib/providers/tmdb";
 
 const logger = createScopedLogger("tmdb-search");
 
-/**
- * Apply server-side filters to TMDB results
- */
-function applyServerFilters(items: any[], filters: Record<string, any>): any[] {
-    if (!filters || Object.keys(filters).length === 0) {
-        return items;
-    }
-
-    return items.filter((item) => {
-        // Genre filtering
-        if (filters.with_genres) {
-            const requiredGenres = String(filters.with_genres)
-                .split(/[,|]/)
-                .map((g) => Number(g.trim()));
-            const separator = String(filters.with_genres).includes("|") ? "OR" : "AND";
-
-            if (separator === "AND") {
-                // All genres must be present
-                if (!requiredGenres.every((genreId) => item.genre_ids?.includes(genreId))) {
-                    return false;
-                }
-            } else {
-                // At least one genre must be present
-                if (!requiredGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-                    return false;
-                }
-            }
-        }
-
-        if (filters.without_genres) {
-            const excludedGenres = String(filters.without_genres)
-                .split(/[,|]/)
-                .map((g) => Number(g.trim()));
-
-            // None of the excluded genres should be present
-            if (excludedGenres.some((genreId) => item.genre_ids?.includes(genreId))) {
-                return false;
-            }
-        }
-
-        // Vote average filtering
-        if (filters["vote_average.gte"] !== undefined) {
-            if (!item.vote_average || item.vote_average < Number(filters["vote_average.gte"])) {
-                return false;
-            }
-        }
-
-        if (filters["vote_average.lte"] !== undefined) {
-            if (!item.vote_average || item.vote_average > Number(filters["vote_average.lte"])) {
-                return false;
-            }
-        }
-
-        // Vote count filtering
-        if (filters["vote_count.gte"] !== undefined) {
-            if (!item.vote_count || item.vote_count < Number(filters["vote_count.gte"])) {
-                return false;
-            }
-        }
-
-        if (filters["vote_count.lte"] !== undefined) {
-            if (!item.vote_count || item.vote_count > Number(filters["vote_count.lte"])) {
-                return false;
-            }
-        }
-
-        // Date filtering
-        const dateField = item.release_date || item.first_air_date;
-        if (dateField) {
-            if (filters["release_date.gte"] || filters["primary_release_date.gte"]) {
-                const minDate = filters["release_date.gte"] || filters["primary_release_date.gte"];
-                if (dateField < String(minDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["release_date.lte"] || filters["primary_release_date.lte"]) {
-                const maxDate = filters["release_date.lte"] || filters["primary_release_date.lte"];
-                if (dateField > String(maxDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["air_date.gte"] || filters["first_air_date.gte"]) {
-                const minDate = filters["air_date.gte"] || filters["first_air_date.gte"];
-                if (dateField < String(minDate)) {
-                    return false;
-                }
-            }
-
-            if (filters["air_date.lte"] || filters["first_air_date.lte"]) {
-                const maxDate = filters["air_date.lte"] || filters["first_air_date.lte"];
-                if (dateField > String(maxDate)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    });
-}
+// Extract query types from TMDB paths
+type SearchMovieQuery = paths["/3/search/movie"]["get"]["parameters"]["query"];
+type DiscoverMovieQuery = NonNullable<paths["/3/discover/movie"]["get"]["parameters"]["query"]>;
+type SearchTVQuery = paths["/3/search/tv"]["get"]["parameters"]["query"];
+type DiscoverTVQuery = NonNullable<paths["/3/discover/tv"]["get"]["parameters"]["query"]>;
+type SearchPersonQuery = paths["/3/search/person"]["get"]["parameters"]["query"];
+type SearchCompanyQuery = paths["/3/search/company"]["get"]["parameters"]["query"];
 
 export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     if (!locals.user || !locals.session) {
@@ -118,178 +24,164 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
     const { type } = params;
     const customFetch = createCustomFetch(fetch);
 
-    if (type !== "movie" && type !== "tv") {
-        error(400, "Invalid media type. Must be 'movie' or 'tv'");
+    if (type !== "movie" && type !== "tv" && type !== "person" && type !== "company") {
+        error(400, "Invalid media type. Must be 'movie', 'tv', 'person', or 'company'");
     }
 
     const searchMode = url.searchParams.get("searchMode") || "discover";
-    logger.info(`Searching ${type}s with mode: ${searchMode}`);
+
+    // Log incoming params for debugging
+    logger.debug(
+        `Search request: type=${type}, searchMode=${searchMode}, params=${url.searchParams.toString()}`
+    );
+
+    // Determine mode: if textual query is present (searchMode='search'|'hybrid'), use search endpoint.
+    // If only filters are present (searchMode='discover'), use discover endpoint.
+    const isSearch = searchMode === "search" || searchMode === "hybrid";
 
     try {
-        // Get all query parameters from the URL
-        const queryParams: Record<string, any> = {};
-        const clientFilters: Record<string, any> = {};
+        const parsed = parseParams(url.searchParams);
 
-        // Parameters that should be applied as client-side (server-side) filters
-        const CLIENT_FILTERABLE = new Set([
-            "with_genres",
-            "without_genres",
-            "vote_average.gte",
-            "vote_average.lte",
-            "vote_count.gte",
-            "vote_count.lte"
-        ]);
+        // Call the appropriate typed endpoint
+        const fetchResults = async () => {
+            const routeKey = `${type}-${isSearch ? "search" : "discover"}` as const;
 
-        // Convert URL search params to object
-        for (const [key, value] of url.searchParams) {
-            if (key === "searchMode") continue; // Skip our internal param
-
-            // Check if this should be a client-side filter
-            if (CLIENT_FILTERABLE.has(key)) {
-                // Handle numeric parameters
-                if (key.includes("vote_")) {
-                    const numValue = Number(value);
-                    if (!isNaN(numValue)) {
-                        clientFilters[key] = numValue;
-                    }
-                } else {
-                    clientFilters[key] = value;
+            const ROUTE_MAP = {
+                "movie-search": { endpoint: "/3/search/movie", queryKey: "searchMovieQuery" },
+                "movie-discover": { endpoint: "/3/discover/movie", queryKey: "discoverMovieQuery" },
+                "tv-search": { endpoint: "/3/search/tv", queryKey: "searchTVQuery" },
+                "tv-discover": { endpoint: "/3/discover/tv", queryKey: "discoverTVQuery" },
+                "person-search": { endpoint: "/3/search/person", queryKey: "searchPersonQuery" },
+                // Person discover doesn't exist, fallback to search
+                "person-discover": { endpoint: "/3/search/person", queryKey: "searchPersonQuery" },
+                "company-search": { endpoint: "/3/search/company", queryKey: "searchCompanyQuery" },
+                // Company discover doesn't exist, fallback to search
+                "company-discover": {
+                    endpoint: "/3/search/company",
+                    queryKey: "searchCompanyQuery"
                 }
-                continue; // Don't add to queryParams
-            }
+            } as const;
 
-            // Handle numeric parameters
-            if (
-                key.includes("year") ||
-                key.includes("vote_") ||
-                key.includes("runtime") ||
-                key === "page" ||
-                key === "with_networks" ||
-                key === "with_release_type"
-            ) {
-                const numValue = Number(value);
-                if (!isNaN(numValue)) {
-                    queryParams[key] = numValue;
+            const route = ROUTE_MAP[routeKey as keyof typeof ROUTE_MAP];
+            const query = { ...parsed[route.queryKey] };
+
+            logger.debug(`Route: ${routeKey}, endpoint: ${route.endpoint}, query:`, query);
+
+            if (routeKey === "tv-discover") {
+                const q = query as DiscoverTVQuery;
+                if (typeof q.sort_by === "string" && q.sort_by.includes("primary_release_date")) {
+                    // TMDB uses 'first_air_date' for TV shows, not 'primary_release_date'
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (query as any).sort_by = q.sort_by.replace(
+                        "primary_release_date",
+                        "first_air_date"
+                    );
                 }
             }
-            // Handle boolean parameters
-            else if (
-                key === "include_adult" ||
-                key === "include_video" ||
-                key === "include_null_first_air_dates" ||
-                key === "screened_theatrically"
-            ) {
-                queryParams[key] = value === "true" || value === "1";
-            }
-            // Handle string parameters
-            else {
-                queryParams[key] = value;
-            }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return providers.tmdb.GET(route.endpoint as any, {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                params: { query: query as any },
+                fetch: customFetch
+            });
+        };
+
+        const { data, error: apiError } = await fetchResults();
+
+        if (apiError) {
+            logger.error(`TMDB API error:`, apiError);
+            error(500, `Failed to fetch ${type}s`);
         }
 
-        // Route to appropriate endpoint based on searchMode
-        if (searchMode === "search" || searchMode === "hybrid") {
-            logger.info("Search with the following params", queryParams);
-            // Use search endpoint
-            if (type === "movie") {
-                const searchResult = await providers.tmdb.GET("/3/search/movie", {
-                    params: {
-                        query: queryParams as any
-                    },
-                    fetch: customFetch
-                });
+        const results = (data?.results as TMDBListItem[]) || [];
 
-                if (searchResult.error) {
-                    logger.error("TMDB API error:", (searchResult as any).error);
-                    error(500, "Failed to search movies");
-                }
+        const transformedResults = transformTMDBList(results, type);
 
-                const rawResults = (searchResult.data?.results as unknown as TMDBListItem[]) || [];
-                const filteredRawResults = applyServerFilters(rawResults, clientFilters);
-                const transformedResults = transformTMDBList(filteredRawResults);
-
-                return json({
-                    results: transformedResults,
-                    page: searchResult.data?.page || 1,
-                    total_pages: searchResult.data?.total_pages || 1,
-                    total_results: searchResult.data?.total_results || 0
-                });
-            } else {
-                const searchResult = await providers.tmdb.GET("/3/search/tv", {
-                    params: {
-                        query: queryParams as any
-                    },
-                    fetch: customFetch
-                });
-
-                if ((searchResult as any).error) {
-                    logger.error("TMDB API error:", (searchResult as any).error);
-                    error(500, "Failed to search TV shows");
-                }
-
-                const rawResults = (searchResult.data?.results as unknown as TMDBListItem[]) || [];
-                const filteredRawResults = applyServerFilters(rawResults, clientFilters);
-                const transformedResults = transformTMDBList(filteredRawResults, "tv");
-
-                return json({
-                    results: transformedResults,
-                    page: searchResult.data?.page || 1,
-                    total_pages: searchResult.data?.total_pages || 1,
-                    total_results: searchResult.data?.total_results || 0
-                });
-            }
-        } else {
-            // Use discover endpoint
-            if (type === "movie") {
-                const discover = await providers.tmdb.GET("/3/discover/movie", {
-                    params: {
-                        query: queryParams as any
-                    },
-                    fetch: customFetch
-                });
-
-                if ((discover as any).error) {
-                    logger.error("TMDB API error:", (discover as any).error);
-                    error(500, "Failed to discover movies");
-                }
-
-                const rawResults = (discover.data?.results as unknown as TMDBListItem[]) || [];
-                const filteredRawResults = applyServerFilters(rawResults, clientFilters);
-                const transformedResults = transformTMDBList(filteredRawResults);
-
-                return json({
-                    results: transformedResults,
-                    page: discover.data?.page || 1,
-                    total_pages: discover.data?.total_pages || 1,
-                    total_results: discover.data?.total_results || 0
-                });
-            } else {
-                const discover = await providers.tmdb.GET("/3/discover/tv", {
-                    params: {
-                        query: queryParams as any
-                    },
-                    fetch: customFetch
-                });
-
-                if ((discover as any).error) {
-                    logger.error("TMDB API error:", (discover as any).error);
-                    error(500, "Failed to discover TV shows");
-                }
-
-                const rawResults = (discover.data?.results as unknown as TMDBListItem[]) || [];
-                const filteredRawResults = applyServerFilters(rawResults, clientFilters);
-                const transformedResults = transformTMDBList(filteredRawResults, "tv");
-
-                return json({
-                    results: transformedResults,
-                    page: discover.data?.page || 1,
-                    total_pages: discover.data?.total_pages || 1,
-                    total_results: discover.data?.total_results || 0
-                });
-            }
-        }
+        return json({
+            results: transformedResults,
+            page: data?.page || 1,
+            total_pages: data?.total_pages || 1,
+            total_results: data?.total_results || 0
+        });
     } catch (err) {
         logger.error("Error searching/discovering media:", err);
         error(500, "Failed to search/discover media");
     }
 };
+
+interface ParsedParams {
+    searchMovieQuery: SearchMovieQuery;
+    discoverMovieQuery: DiscoverMovieQuery;
+    searchTVQuery: SearchTVQuery;
+    discoverTVQuery: DiscoverTVQuery;
+    searchPersonQuery: SearchPersonQuery;
+    searchCompanyQuery: SearchCompanyQuery;
+}
+
+const BOOLEAN_KEYS = new Set([
+    "include_adult",
+    "include_video",
+    "include_null_first_air_dates",
+    "screened_theatrically"
+]);
+
+const NUMERIC_KEYS = new Set([
+    "year",
+    "page",
+    "first_air_date_year",
+    "primary_release_year",
+    "vote_average.gte",
+    "vote_average.lte",
+    "vote_count.gte",
+    "vote_count.lte",
+    "with_runtime.gte",
+    "with_runtime.lte"
+]);
+
+function parseParams(searchParams: URLSearchParams): ParsedParams {
+    const queryObj: Record<string, unknown> = {};
+
+    for (const [key, value] of searchParams) {
+        if (key === "searchMode" || !value) continue;
+
+        if (BOOLEAN_KEYS.has(key)) {
+            queryObj[key] = value === "true" || value === "1";
+        } else if (key === "with_networks" || key === "with_release_type") {
+            const separator = key === "with_networks" ? "," : "|";
+            const parts = value.split(separator);
+            const nums: number[] = [];
+            for (const part of parts) {
+                const trimmed = part.trim();
+                if (trimmed) {
+                    const n = Number(trimmed);
+                    if (!isNaN(n)) nums.push(n);
+                }
+            }
+            if (nums.length > 0) {
+                // If the API expects a single number (conceptually) but supports delimited,
+                // passing an array might rely on the fetch client to serialize it back to delimited
+                // or explode it. Based on user request, we pass the numeric array.
+                queryObj[key] = nums;
+            }
+        } else if (NUMERIC_KEYS.has(key)) {
+            const trimmed = value.trim();
+            if (trimmed !== "") {
+                const n = Number(trimmed);
+                if (!isNaN(n)) queryObj[key] = n;
+            }
+        } else {
+            queryObj[key] = value;
+        }
+    }
+
+    // All query objects share the same params - TMDB ignores irrelevant ones
+    return {
+        searchMovieQuery: queryObj as SearchMovieQuery,
+        discoverMovieQuery: queryObj as DiscoverMovieQuery,
+        searchTVQuery: queryObj as SearchTVQuery,
+        discoverTVQuery: queryObj as DiscoverTVQuery,
+        searchPersonQuery: queryObj as SearchPersonQuery,
+        searchCompanyQuery: queryObj as SearchCompanyQuery
+    };
+}

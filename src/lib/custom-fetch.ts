@@ -1,4 +1,5 @@
 import { createScopedLogger } from "$lib/logger";
+import { getRateLimiterForUrl, withRateLimit } from "$lib/rate-limiter";
 
 const logger = createScopedLogger("fetch");
 
@@ -54,12 +55,6 @@ const DEFAULT_DOMAIN_CONFIGS: DomainConfig[] = [
         pattern: "api.ani.zip",
         maxAttempts: 3,
         baseDelay: 1000,
-        retryOnStatus: [429, 500, 502, 503, 504]
-    },
-    {
-        pattern: "api.imdbapi.dev",
-        maxAttempts: 2,
-        baseDelay: 500,
         retryOnStatus: [429, 500, 502, 503, 504]
     }
 ];
@@ -127,81 +122,99 @@ export function createCustomFetch(
             typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
         const retryConfig = getRetryConfigForUrl(url, options);
 
-        if (!retryConfig) {
-            return fetchFn(input, init);
-        }
-
-        let lastError: Error | null = null;
-        let lastResponse: Response | null = null;
-
-        for (let attempt = 1; attempt <= retryConfig.maxAttempts; attempt++) {
-            try {
-                const response = await fetchFn(input, init);
-
-                if (response.ok || !retryConfig.retryOnStatus.includes(response.status)) {
-                    return response;
+        // Wrap the actual fetch execution with rate limiting
+        const executeWithRateLimit = () =>
+            withRateLimit(url, async () => {
+                if (!retryConfig) {
+                    return fetchFn(input, init);
                 }
 
-                lastResponse = response;
+                let lastError: Error | null = null;
+                let lastResponse: Response | null = null;
 
-                const retryAfter = response.headers.get("Retry-After");
-                let delay = calculateDelayWithJitter(retryConfig.baseDelay, attempt - 1);
+                for (let attempt = 1; attempt <= retryConfig.maxAttempts; attempt++) {
+                    try {
+                        const response = await fetchFn(input, init);
 
-                if (retryAfter) {
-                    // Retry-After can be seconds or HTTP date per RFC 7231
-                    const retryAfterSeconds = parseInt(retryAfter, 10);
-                    if (!isNaN(retryAfterSeconds)) {
-                        delay = retryAfterSeconds * 1000 * (0.9 + Math.random() * 0.2);
-                    } else {
-                        const retryDate = new Date(retryAfter);
-                        if (!isNaN(retryDate.getTime())) {
-                            const rawDelay = Math.max(0, retryDate.getTime() - Date.now());
-                            delay = rawDelay * (0.9 + Math.random() * 0.2);
+                        if (response.ok || !retryConfig.retryOnStatus.includes(response.status)) {
+                            return response;
+                        }
+
+                        lastResponse = response;
+
+                        const retryAfter = response.headers.get("Retry-After");
+                        let delay = calculateDelayWithJitter(retryConfig.baseDelay, attempt - 1);
+
+                        if (retryAfter) {
+                            // Retry-After can be seconds or HTTP date per RFC 7231
+                            const retryAfterSeconds = parseInt(retryAfter, 10);
+                            if (!isNaN(retryAfterSeconds)) {
+                                delay = retryAfterSeconds * 1000 * (0.9 + Math.random() * 0.2);
+                            } else {
+                                const retryDate = new Date(retryAfter);
+                                if (!isNaN(retryDate.getTime())) {
+                                    const rawDelay = Math.max(0, retryDate.getTime() - Date.now());
+                                    delay = rawDelay * (0.9 + Math.random() * 0.2);
+                                }
+                            }
+                        }
+
+                        if (attempt < retryConfig.maxAttempts) {
+                            logger.warn(
+                                `Request to ${url} failed with status ${response.status}. ` +
+                                    `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                            );
+                            if (response.status === 429) {
+                                const limiter = getRateLimiterForUrl(url);
+                                if (limiter) {
+                                    // Make sure we pause GLOBAL execution for this domain
+                                    // delay is already calculated from Retry-After or backoff
+                                    limiter.pauseUntil(Date.now() + delay);
+                                }
+                            }
+
+                            await sleep(delay);
+                        }
+                    } catch (error) {
+                        lastError = error instanceof Error ? error : new Error(String(error));
+
+                        if (attempt < retryConfig.maxAttempts) {
+                            const delay = calculateDelayWithJitter(
+                                retryConfig.baseDelay,
+                                attempt - 1
+                            );
+                            logger.warn(
+                                `Request to ${url} failed with error: ${lastError.message}. ` +
+                                    `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                            );
+                            await sleep(delay);
                         }
                     }
                 }
 
-                if (attempt < retryConfig.maxAttempts) {
-                    logger.warn(
-                        `Request to ${url} failed with status ${response.status}. ` +
-                            `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                if (lastResponse) {
+                    logger.error(
+                        `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
+                            `with status ${lastResponse.status}`
                     );
-                    await sleep(delay);
+                    return lastResponse;
                 }
-            } catch (error) {
-                lastError = error instanceof Error ? error : new Error(String(error));
 
-                if (attempt < retryConfig.maxAttempts) {
-                    const delay = calculateDelayWithJitter(retryConfig.baseDelay, attempt - 1);
-                    logger.warn(
-                        `Request to ${url} failed with error: ${lastError.message}. ` +
-                            `Retrying in ${Math.round(delay)}ms (attempt ${attempt}/${retryConfig.maxAttempts})`
+                if (lastError) {
+                    logger.error(
+                        `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
+                            `with error: ${lastError.message}`
                     );
-                    await sleep(delay);
+                    throw lastError;
                 }
-            }
-        }
 
-        if (lastResponse) {
-            logger.error(
-                `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
-                    `with status ${lastResponse.status}`
-            );
-            return lastResponse;
-        }
+                // TypeScript requires this unreachable throw
+                throw new Error(
+                    `[custom-fetch] Request to ${url} failed after ${retryConfig.maxAttempts} attempts for unknown reasons`
+                );
+            });
 
-        if (lastError) {
-            logger.error(
-                `Request to ${url} failed after ${retryConfig.maxAttempts} attempts ` +
-                    `with error: ${lastError.message}`
-            );
-            throw lastError;
-        }
-
-        // TypeScript requires this unreachable throw
-        throw new Error(
-            `[custom-fetch] Request to ${url} failed after ${retryConfig.maxAttempts} attempts for unknown reasons`
-        );
+        return executeWithRateLimit();
     };
 }
 

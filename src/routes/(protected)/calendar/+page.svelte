@@ -1,5 +1,4 @@
 <script lang="ts">
-    import * as Card from "$lib/components/ui/card/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Checkbox } from "$lib/components/ui/checkbox/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
@@ -11,7 +10,11 @@
     import { cn } from "$lib/utils";
     import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import * as dateUtils from "$lib/utils/date";
+    import * as Card from "$lib/components/ui/card/index.js";
     import { CalendarDate } from "@internationalized/date";
+    import PageShell from "$lib/components/page-shell.svelte";
+    import { fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
 
     let { data }: { data: PageData } = $props();
     const isMobile = $state(new IsMobile(1280));
@@ -53,12 +56,15 @@
 
     const itemsByDate = $derived.by(() => {
         const items: EntertainmentItem[] = data.calendar?.data
-            ? (Object.values(data.calendar.data) as EntertainmentItem[])
+            ? Object.values(data.calendar.data).flatMap((dateItems) =>
+                  Object.values(dateItems as unknown as Record<string, EntertainmentItem>)
+              )
             : [];
 
         const result: Record<string, EntertainmentItem[]> = {};
 
         items.forEach((item) => {
+            if (!item || !item.aired_at) return;
             const date = dateUtils.parseISODate(item.aired_at);
             if (!date) return;
             const dateKey = dateUtils.toISODate(date);
@@ -225,7 +231,7 @@
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
     <div class="space-y-1">
-        {#each day.items.slice(0, limit) as item, itemIndex (item.item_id)}
+        {#each day.items.slice(0, limit) as item (item.item_id)}
             {@render entertainmentItem(item, limit !== Infinity)}
         {/each}
 
@@ -297,7 +303,7 @@
     </div>
 {/snippet}
 
-<div class="mt-14 h-full w-full p-6 md:p-8 md:px-16">
+<PageShell class="h-full w-full">
     <Card.Root class="mb-4 md:mb-6">
         <Card.Header class="pb-4">
             <div class="flex items-center justify-between">
@@ -390,4 +396,4 @@
             {/if}
         </Card.Content>
     </Card.Root>
-</div>
+</PageShell>

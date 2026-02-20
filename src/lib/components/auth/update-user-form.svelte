@@ -1,13 +1,12 @@
 <script lang="ts">
     import * as Form from "$lib/components/ui/form/index.js";
-    import type { SuperValidated, Infer } from "sveltekit-superforms";
+    import type { SuperValidated } from "sveltekit-superforms";
     import { changeUserDataSchema, type ChangeUserDataSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import { toast } from "svelte-sonner";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import { dev } from "$app/environment";
     import { page } from "$app/state";
     import FormBase from "./form-base.svelte";
 

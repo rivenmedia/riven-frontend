@@ -1,933 +1,1199 @@
 <script lang="ts">
+    import { browser } from "$app/environment";
+    import { page } from "$app/state";
     import { type PageProps } from "./$types";
-    import Tooltip from "$lib/components/tooltip.svelte";
-    import ListCarousel from "$lib/components/list-carousel.svelte";
+    import type { ParsedShowDetails } from "$lib/providers/parser";
+    import { fade, fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
+    import * as Carousel from "$lib/components/ui/carousel/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
-    import Play from "@lucide/svelte/icons/play";
     import { Button } from "$lib/components/ui/button/index.js";
-    import X from "@lucide/svelte/icons/x";
-    import Mountain from "@lucide/svelte/icons/mountain";
-    import Video from "@lucide/svelte/icons/video";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import * as Sheet from "$lib/components/ui/sheet/index.js";
+    import * as Drawer from "$lib/components/ui/drawer/index.js";
+    import Play from "@lucide/svelte/icons/play";
+    import FileJson from "@lucide/svelte/icons/file-json";
+    import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
+    import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+    import Trash2 from "@lucide/svelte/icons/trash-2";
+    import Search from "@lucide/svelte/icons/search";
+    import Pause from "@lucide/svelte/icons/pause";
+    import Download from "@lucide/svelte/icons/download";
     import { cn } from "$lib/utils";
-    import VideoPlayer from "$lib/components/media/video-player.svelte";
+    import { IsMobile } from "$lib/hooks/is-mobile.svelte";
+    import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import ItemRequest from "$lib/components/media/riven/item-request.svelte";
     import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
     import ItemPause from "$lib/components/media/riven/item-pause.svelte";
     import ItemReset from "$lib/components/media/riven/item-reset.svelte";
     import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
     import ItemManualScrape from "$lib/components/media/riven/item-manual-scrape.svelte";
-    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import CollectionSheet from "$lib/components/media/collection-sheet.svelte";
+    import LandscapeCard from "$lib/components/media/landscape-card.svelte";
+    import StatusBadge from "$lib/components/media/status-badge.svelte";
+    import VideoPlayer from "$lib/components/media/video-player.svelte";
     import { toast } from "svelte-sonner";
+    import X from "@lucide/svelte/icons/x";
 
     let { data }: PageProps = $props();
 
-    const externalMetaData: Record<string, { name: string; baseUrl: string }> = {
-        imdb: {
-            name: "IMDb",
-            baseUrl: "https://www.imdb.com/title/"
-        },
-        facebook: {
-            name: "Facebook",
-            baseUrl: "https://www.facebook.com/"
-        },
-        instagram: {
-            name: "Instagram",
-            baseUrl: "https://www.instagram.com/"
-        },
-        twitter: {
-            name: "Twitter",
-            baseUrl: "https://www.twitter.com/"
-        },
-        reddit: {
-            name: "Reddit",
-            baseUrl: "https://www.reddit.com/r/"
-        },
-        "themoviedb.com": {
-            name: "TMDB",
-            baseUrl: "https://www.themoviedb.org/tv/"
-        },
-        eidr: {
-            name: "EIDR",
-            baseUrl: "https://ui.eidr.org/view/content?id="
-        }
+    const isMobile = new IsMobile();
+
+    const externalMeta: Record<string, { name: string; url: string }> = {
+        imdb: { name: "IMDb", url: "https://www.imdb.com/title/" },
+        facebook: { name: "Facebook", url: "https://www.facebook.com/" },
+        instagram: { name: "Instagram", url: "https://www.instagram.com/" },
+        twitter: { name: "Twitter", url: "https://www.twitter.com/" },
+        reddit: { name: "Reddit", url: "https://www.reddit.com/r/" },
+        "themoviedb.com": { name: "TMDB", url: "https://www.themoviedb.org/tv/" },
+        eidr: { name: "EIDR", url: "https://ui.eidr.org/view/content?id=" }
     };
+    const getExternal = (key: string) => externalMeta[key.replace("_id", "")];
 
-    function normalizeExternalIdKey(key: string): string {
-        // Convert TMDB key format to standard format
-        if (key.endsWith("_id")) {
-            return key.replace("_id", "");
-        }
-        return key;
-    }
-
-    function getExternalMetadata(key: string) {
-        const normalizedKey = normalizeExternalIdKey(key);
-        return externalMetaData[normalizedKey];
-    }
-
-    let showTrailer = $state(
-        !data.mediaDetails?.details.backdrop_path && !!data.mediaDetails?.details.trailer
-    );
-
-    function toggleTrailer() {
-        showTrailer = !showTrailer;
-    }
+    let showTrailerOverride = $state(false);
+    const showTrailer = $derived(showTrailerOverride && data.mediaDetails?.details?.trailer);
 
     let showVideoPlayer = $state(false);
-
     function toggleVideoPlayer() {
         showVideoPlayer = !showVideoPlayer;
     }
 
-    let selectedSeason: string | undefined = $state("1");
+    function getInitialSeason() {
+        if (data.mediaDetails?.type !== "tv") return "1";
+        const details = data.mediaDetails?.details as ParsedShowDetails;
+        if (!details?.seasons?.length) return "1";
+
+        const hasSeason1 = details.seasons.some((s) => s.number === 1);
+        return hasSeason1 ? "1" : (details.seasons[0].number?.toString() ?? "1");
+    }
+
+    let selectedSeason: string | undefined = $state(getInitialSeason());
+
+    $effect(() => {
+        // Track ID changes to reset selected season
+        selectedSeason = getInitialSeason();
+    });
+
     let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+
+    // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)
+    let ratingsId = $derived(
+        data.mediaDetails?.type === "tv"
+            ? (data.mediaDetails?.details.external_ids?.tmdb ?? Number(page.params.id))
+            : Number(page.params.id)
+    );
+    let mediaType = $derived(data.mediaDetails?.type);
+
+    let ratingsData = $state<{
+        scores: Array<{ name: string; image?: string; score: string; url: string }>;
+    } | null>(null);
+    let ratingsLoading = $state(false);
+
+    $effect(() => {
+        if (!browser || !ratingsId || !mediaType) {
+            ratingsLoading = false;
+            ratingsData = null;
+            return;
+        }
+
+        const controller = new AbortController();
+        ratingsLoading = true;
+
+        fetch(`/api/ratings/${ratingsId}?type=${mediaType}`, { signal: controller.signal })
+            .then(async (r) => {
+                if (r.ok) {
+                    ratingsData = await r.json();
+                } else {
+                    ratingsData = null;
+                }
+                ratingsLoading = false;
+            })
+            .catch((e) => {
+                if (e.name !== "AbortError") {
+                    ratingsLoading = false;
+                    ratingsData = null;
+                }
+            });
+
+        return () => controller.abort();
+    });
+
+    const seasonData = $derived.by(() => {
+        if (data.mediaDetails?.type !== "tv" || !data.mediaDetails?.details?.seasons) return [];
+        const details = data.mediaDetails.details as ParsedShowDetails;
+        return details.seasons.map((s) => ({
+            id: s.id,
+            season_number: s.number ?? 0,
+            episode_count:
+                details.episodes?.filter((ep) => ep.seasonNumber === s.number).length ?? 0,
+            name: `Season ${s.number}`,
+            status:
+                data.riven?.seasons?.find((rs) => rs.season_number === s.number)?.state ===
+                "Completed"
+                    ? "Available"
+                    : undefined
+        }));
+    });
+
+    const formatCurrency = (n: number) =>
+        new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0
+        }).format(n);
+    const formatSize = (b: number) => `${(b / 1073741824).toFixed(2)} GB`;
+
+    const details = $derived(
+        [
+            data.mediaDetails?.details.year,
+            data.mediaDetails?.details.formatted_runtime,
+            data.mediaDetails?.details.original_language?.toUpperCase(),
+            data.mediaDetails?.details.certification,
+            data.mediaDetails?.details.status
+        ].filter(Boolean)
+    );
 </script>
+
+{#snippet sectionHeading(title: string)}
+    <div class="mb-4 flex items-center gap-3">
+        <div class="bg-primary h-6 w-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]">
+        </div>
+        <h2 class="text-foreground text-xl font-bold tracking-tight drop-shadow-md">
+            {title}
+        </h2>
+    </div>
+{/snippet}
+
+{#snippet mediaCarousel(
+    items: Array<{
+        id: number;
+        title: string;
+        poster_path: string | null;
+        media_type: string;
+        year?: number | string | null;
+    }>,
+    title: string,
+    delay: number = 600
+)}
+    <section
+        class="mt-8 md:mt-12"
+        in:fly|global={{ y: 20, duration: 400, delay, easing: cubicOut }}>
+        {@render sectionHeading(title)}
+        <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
+            <Carousel.Content class="-ml-3">
+                {#each items as item (item.id)}
+                    <Carousel.Item class="basis-auto pl-3">
+                        <a
+                            href="/details/media/{item.id}/{item.media_type}"
+                            class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
+                            <PortraitCard
+                                title={item.title}
+                                subtitle={`${item.media_type === "tv" ? "TV" : "Movie"}${item.year ? ` • ${item.year}` : ""}`}
+                                image={item.poster_path}
+                                class="w-36 md:w-44 lg:w-48" />
+                        </a>
+                    </Carousel.Item>
+                {/each}
+            </Carousel.Content>
+        </Carousel.Root>
+    </section>
+{/snippet}
+
+{#snippet episodeTrigger(episode: any, rivenEpisode: any)}
+    <LandscapeCard
+        title={episode.name}
+        episodeNumber={episode.number ?? undefined}
+        image={episode.image}
+        overview={episode.overview}
+        class="h-full transition-transform duration-300 group-hover:scale-[1.01] group-hover:shadow-lg">
+        {#snippet topRight()}
+            {#if rivenEpisode?.state}
+                <StatusBadge state={rivenEpisode.state} />
+            {/if}
+        {/snippet}
+        {#snippet meta()}
+            <span
+                class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                >{episode.aired}</span>
+            {#if episode.runtime}
+                <span
+                    class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
+                    >{episode.runtime} min</span>
+            {/if}
+        {/snippet}
+    </LandscapeCard>
+{/snippet}
+
+{#snippet episodeMetadata(episode: any, rivenEpisode: any)}
+    <div class="mt-2 flex flex-wrap items-center gap-2">
+        <span class="text-muted-foreground font-serif text-sm"
+            >{data.mediaDetails?.details.title}</span>
+        <span class="text-muted-foreground">•</span>
+        {#if episode.aired}<Badge variant="outline" class="font-mono text-xs">{episode.aired}</Badge
+            >{/if}
+        {#if episode.runtime}<Badge variant="outline" class="font-mono text-xs"
+                >{episode.runtime} min</Badge
+            >{/if}
+        {#if rivenEpisode}<StatusBadge class="text-xs" state={rivenEpisode.state} />{/if}
+    </div>
+{/snippet}
+
+{#snippet episodeBody(episode: any, rivenEpisode: any)}
+    <div class="mt-6 flex flex-1 flex-col gap-8 overflow-y-auto px-6 pb-36">
+        {#if episode.overview}
+            <p class="text-muted-foreground text-base leading-relaxed">
+                {episode.overview}
+            </p>
+        {/if}
+
+        {#if episode.image}
+            <div
+                class="relative w-full max-w-[640px] overflow-hidden rounded-xl shadow-lg ring-1 ring-white/10">
+                <img
+                    alt={episode.name}
+                    class="aspect-video w-full object-cover"
+                    src={episode.image}
+                    loading="lazy" />
+            </div>
+        {/if}
+
+        {#if rivenEpisode?.filesystem_entry || rivenEpisode?.media_metadata}
+            {@const meta = rivenEpisode.media_metadata}
+            {@const fs = rivenEpisode.filesystem_entry}
+            {@const video = meta?.video}
+            <div class="flex flex-col gap-6">
+                {@render sectionHeading("File Details")}
+                <div class="flex flex-col gap-4 text-sm">
+                    <!-- Filenames -->
+                    {#if meta?.filename}
+                        <div>
+                            <p
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase">
+                                Current Filename
+                            </p>
+                            <p class="text-muted-foreground mt-1 font-mono text-xs break-all">
+                                {meta.filename}
+                            </p>
+                        </div>
+                    {/if}
+
+                    <!-- Video -->
+                    {#if video}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
+                                >Video</span>
+                            <div class="flex flex-wrap gap-2">
+                                {#if video.resolution_width && video.resolution_height}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs"
+                                        >{video.resolution_width}x{video.resolution_height}</Badge
+                                    >{/if}
+                                {#if video.codec}<Badge variant="outline" class="font-mono text-xs"
+                                        >{video.codec}</Badge
+                                    >{/if}
+                                {#if video.hdr_type}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs">{video.hdr_type}</Badge
+                                    >{/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Audio - Show ALL tracks -->
+                    {#if meta?.audio_tracks?.length}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
+                                >Audio</span>
+                            <div class="flex flex-wrap gap-2">
+                                {#each meta.audio_tracks as track}
+                                    <Badge variant="outline" class="font-mono text-xs"
+                                        >{track.codec}{track.channels
+                                            ? track.channels === 8
+                                                ? " 7.1"
+                                                : track.channels === 6
+                                                  ? " 5.1"
+                                                  : ` ${track.channels}ch`
+                                            : ""}{track.language
+                                            ? ` (${track.language.toUpperCase()})`
+                                            : ""}</Badge>
+                                {/each}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Source -->
+                    {#if meta?.quality_source}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
+                                >Source</span>
+                            <div class="flex flex-wrap gap-2">
+                                <Badge variant="outline" class="font-mono text-xs"
+                                    >{meta.quality_source}</Badge>
+                                {#if meta?.is_remux}<Badge
+                                        variant="outline"
+                                        class="font-mono text-xs">REMUX</Badge
+                                    >{/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <!-- Size -->
+                    {#if fs?.file_size}
+                        <div class="flex flex-col gap-2">
+                            <span
+                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
+                                >Size</span>
+                            <div class="flex items-center">
+                                <span class="text-muted-foreground font-mono text-xs"
+                                    >{formatSize(fs.file_size)}</span>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    </div>
+{/snippet}
 
 <svelte:head>
     <title>{data.mediaDetails?.details.title} ({data.mediaDetails?.details.year}) - Riven</title>
 </svelte:head>
 
-<div class="relative flex flex-col">
-    {#if data.mediaDetails?.details.backdrop_path}
-        <div class="fixed bottom-0 left-0 z-1 h-screen w-full">
-            <span>
+{#key data.mediaDetails?.details.id}
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden">
+        {#if data.mediaDetails?.details.backdrop_path}
+            <div class="fixed top-0 left-0 z-0 h-screen w-full">
                 <img
-                    alt={data.mediaDetails?.details.id?.toString()}
-                    class="h-full w-full object-cover opacity-50 blur-2xl"
+                    alt=""
+                    in:fade={{ duration: 1000, easing: cubicOut }}
+                    class="h-full w-full object-cover opacity-30 blur-3xl transition-opacity duration-1000"
                     src={data.mediaDetails?.details.backdrop_path}
                     loading="lazy" />
-                <div class="bg-background/70 absolute right-0 bottom-0 left-0 h-full w-full"></div>
+                <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
                 <div
-                    class="to-background absolute right-0 bottom-0 left-0 h-full w-full bg-linear-to-b from-transparent to-100%">
+                    class="to-background absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent">
                 </div>
-            </span>
-        </div>
-    {/if}
-    <div class="z-1 mt-14 flex h-full w-full flex-col gap-0 space-y-0 p-8 md:px-16">
-        {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
-            <div
-                class={cn(
-                    "relative flex h-96 items-end justify-between overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat lg:h-120 xl:h-128 2xl:h-136",
-                    !showTrailer && "p-8"
-                )}
-                style="background-image: url('{data.mediaDetails?.details.backdrop_path}');">
-                {#if !showTrailer}
-                    {#if data.mediaDetails?.details.logo}
-                        <div>
-                            <img
-                                alt="Movie logo"
-                                class="h-8 w-full object-contain drop-shadow-lg md:h-10 lg:h-12"
-                                src={data.mediaDetails?.details.logo}
-                                loading="lazy" />
-                        </div>
-                    {:else}
-                        <!-- Empty div to maintain layout when no logo -->
-                        <div></div>
-                    {/if}
-
-                    <div class="flex gap-2">
-                        {#if data.riven && data.riven.state === "Completed"}
-                            <Button
-                                variant="ghost"
-                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                                onclick={toggleVideoPlayer}
-                                aria-label="Play Video">
-                                <Video size={18} />
-                                <span class="hidden md:block">Play</span>
-                            </Button>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.trailer}
-                            <Button
-                                variant="ghost"
-                                class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-lg transition-all hover:scale-105"
-                                onclick={toggleTrailer}
-                                aria-label="Play Trailer">
-                                <Play size={18} />
-                                <span class="hidden md:block">Trailer</span>
-                            </Button>
-                        {/if}
-                    </div>
-                {:else}
-                    <div class="relative h-full w-full">
-                        <iframe
-                            class="h-full w-full"
-                            src="https://www.youtube-nocookie.com/embed/{data.mediaDetails?.details
-                                .trailer
-                                ?.key}?autoplay=1&controls=1&mute=0&disablekb=1&loop=1&rel=0&modestbranding=1&playsinline=1"
-                            title={data.mediaDetails?.details.trailer?.name ||
-                                data.mediaDetails?.details.title + " Trailer"}
-                            allow="autoplay"
-                            allowfullscreen></iframe>
-
-                        <div class="absolute top-4 right-4">
-                            <Button
-                                variant="ghost"
-                                class="rounded-full bg-black/60 p-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-black/80"
-                                onclick={toggleTrailer}
-                                aria-label="Close Trailer">
-                                <X size={16} />
-                            </Button>
-                        </div>
-                    </div>
-                {/if}
+                <div
+                    class="to-background absolute inset-0 bg-gradient-to-b from-zinc-950/20 via-transparent to-transparent">
+                </div>
             </div>
         {/if}
 
-        <div class="md:px-8 lg:px-16">
-            <div
-                class="border-border mt-6 flex flex-row rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                <img
-                    alt={data.mediaDetails?.details.title}
-                    class="mr-6 hidden h-48 w-32 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-64 sm:w-44 md:block md:h-72 md:w-48 lg:h-80 lg:w-52"
-                    src={data.mediaDetails?.details.poster_path
-                        ? data.mediaDetails?.details.poster_path
-                        : "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg"}
-                    loading="lazy" />
+        <div class="z-10 mx-auto flex h-full w-full max-w-[2400px] flex-col">
+            <!-- Hero Banner - extends behind search bar -->
+            {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
+                <div class="px-2 md:px-4">
+                    <div
+                        class={cn(
+                            "relative mb-6 flex h-[40vh] max-h-[600px] min-h-[350px] items-end justify-between overflow-hidden rounded-3xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-10",
+                            !showTrailer && "p-6 md:p-12"
+                        )}
+                        style="background-image: url('{data.mediaDetails?.details
+                            .backdrop_path}');">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                        </div>
+                        <!-- Border Overlay to prevent bright edge glitch -->
+                        <div
+                            class="border-border/10 pointer-events-none absolute inset-0 rounded-2xl border">
+                        </div>
 
-                <div class="flex flex-col">
-                    <h1 class="mb-2 text-xl font-bold drop-shadow-md">
-                        {data.mediaDetails?.details.title}
-                    </h1>
+                        {#if !showTrailer}
+                            <div class="relative z-10 flex w-full items-end justify-between">
+                                {#if data.mediaDetails?.details.logo}
+                                    <img
+                                        alt="Logo"
+                                        class="max-h-16 max-w-[60%] object-contain drop-shadow-2xl md:max-h-28 lg:max-h-36"
+                                        src={data.mediaDetails?.details.logo}
+                                        loading="lazy" />
+                                {:else}<div></div>{/if}
 
-                    <div class="mb-2 flex flex-wrap gap-2">
-                        {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
-                            <ItemRequest
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []}
-                                mediaType={data.mediaDetails?.type}
-                                seasons={data.mediaDetails?.type === "tv" &&
-                                data.mediaDetails?.details?.seasons
-                                    ? data.mediaDetails.details.seasons.map((s) => ({
-                                          id: s.id,
-                                          season_number: s.number ?? 0,
-                                          episode_count:
-                                              (data.mediaDetails?.details as any)?.episodes?.filter(
-                                                  (ep: any) => ep.seasonNumber === s.number
-                                              ).length ?? 0,
-                                          name: `Season ${s.number}`,
-                                          status:
-                                              data.riven?.seasons?.find(
-                                                  (rs) => rs.season_number === s.number
-                                              )?.state === "Completed"
-                                                  ? "Available"
-                                                  : undefined
-                                      }))
-                                    : []} />
+                                <div class="flex gap-2 md:gap-4">
+                                    {#if data.riven?.state === "Completed"}
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            class="border border-white/10 bg-white/10 px-6 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
+                                            onclick={toggleVideoPlayer}>
+                                            <Play class="mr-2 h-4 w-4 fill-current" />
+                                            Play
+                                        </Button>
+                                    {/if}
+                                    {#if data.mediaDetails?.details.trailer}
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            class="border border-white/10 bg-white/10 px-6 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
+                                            onclick={() => (showTrailerOverride = !showTrailer)}>
+                                            <Play size={14} class="mr-2 fill-current" />Trailer
+                                        </Button>
+                                    {/if}
+                                </div>
+                            </div>
+                        {:else}
+                            <iframe
+                                class="absolute inset-0 h-full w-full"
+                                src="https://www.youtube-nocookie.com/embed/{data.mediaDetails
+                                    ?.details.trailer
+                                    ?.key}?autoplay=1&controls=1&mute=0&rel=0&modestbranding=1&playsinline=1"
+                                title="Trailer"
+                                allow="autoplay"
+                                allowfullscreen></iframe>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="bg-background/60 text-foreground hover:bg-background/80 absolute top-4 right-4 z-20"
+                                onclick={() => (showTrailerOverride = false)}>
+                                <X class="h-6 w-6" />
+                            </Button>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
 
-                            <ItemManualScrape
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details?.title}
-                                itemId={null}
-                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                mediaType={data.mediaDetails?.type}
-                                seasons={data.mediaDetails?.type === "tv" &&
-                                data.mediaDetails?.details?.seasons
-                                    ? data.mediaDetails.details.seasons.map((s) => ({
-                                          id: s.id,
-                                          season_number: s.number ?? 0,
-                                          episode_count:
-                                              (data.mediaDetails?.details as any)?.episodes?.filter(
-                                                  (ep: any) => ep.seasonNumber === s.number
-                                              ).length ?? 0,
-                                          name: `Season ${s.number}`,
-                                          status:
-                                              data.riven?.seasons?.find(
-                                                  (rs) => rs.season_number === s.number
-                                              )?.state === "Completed"
-                                                  ? "Available"
-                                                  : undefined
-                                      }))
-                                    : []} />
-                        {:else if data.riven?.id != null}
-                            <ItemDelete
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []}
-                                variant="destructive" />
+            <!-- Rest of content with padding -->
+            <div class="px-8 pb-24 md:px-20 lg:px-24">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-[auto_1fr] lg:gap-6">
+                    <!-- Poster Column -->
+                    <div
+                        class="hidden lg:mx-0 lg:block"
+                        in:fly|global={{ y: 20, duration: 400, delay: 50, easing: cubicOut }}>
+                        <PortraitCard
+                            title={data.mediaDetails?.details.title ?? ""}
+                            image={data.mediaDetails?.details.poster_path ||
+                                "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/default.jpg"}
+                            class="group w-48 rounded-xl shadow-2xl lg:w-64"
+                            showContent={false} />
+                    </div>
 
-                            <ItemReset
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []} />
-
-                            {#if data.riven.state !== "Completed"}
-                                <ItemPause
-                                    class="bg-white/10"
-                                    title={data.mediaDetails?.details.title}
-                                    isPaused={data.riven.state === "Paused"}
-                                    ids={rivenId ? [rivenId.toString()] : []} />
+                    <!-- Content Column -->
+                    <div class="flex flex-col gap-5">
+                        <!-- Title + Status Row -->
+                        <div
+                            class="flex flex-wrap items-center gap-3"
+                            in:fly|global={{ y: 20, duration: 400, delay: 100, easing: cubicOut }}>
+                            <h1
+                                class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-5xl">
+                                {data.mediaDetails?.details.title}
+                            </h1>
+                            {#if data.riven?.state}
+                                <StatusBadge
+                                    class="px-3 py-1.5 text-sm font-medium"
+                                    state={data.riven.state} />
                             {/if}
-                            <ItemRetry
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details.title}
-                                ids={rivenId ? [rivenId.toString()] : []} />
+                        </div>
 
-                            {#if data.mediaDetails?.type === "tv"}
+                        <!-- Actions - Right under title -->
+                        <div
+                            class="flex flex-wrap items-center gap-2"
+                            in:fly|global={{ y: 20, duration: 400, delay: 150, easing: cubicOut }}>
+                            {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
                                 <ItemRequest
-                                    class="bg-white/10"
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
                                     ids={rivenId ? [rivenId.toString()] : []}
                                     mediaType={data.mediaDetails?.type}
-                                    buttonLabel="Request More"
-                                    externalId={data.mediaDetails?.details?.id?.toString()}
-                                    seasons={data.mediaDetails?.details?.seasons
-                                        ? data.mediaDetails.details.seasons.map((s) => ({
-                                              id: s.id,
-                                              season_number: s.number ?? 0,
-                                              episode_count:
-                                                  (
-                                                      data.mediaDetails?.details as any
-                                                  )?.episodes?.filter(
-                                                      (ep: any) => ep.seasonNumber === s.number
-                                                  ).length ?? 0,
-                                              name: `Season ${s.number}`,
-                                              status:
-                                                  data.riven?.seasons?.find(
-                                                      (rs) => rs.season_number === s.number
-                                                  )?.state === "Completed"
-                                                      ? "Available"
-                                                      : undefined
-                                          }))
-                                        : []} />
-                            {/if}
+                                    externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                    seasons={seasonData}>
+                                    <Download class="mr-1.5 h-4 w-4" />
+                                    Request
+                                </ItemRequest>
+                                <ItemManualScrape
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                    title={data.mediaDetails?.details?.title}
+                                    itemId={null}
+                                    externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                    mediaType={data.mediaDetails?.type ?? "movie"}
+                                    seasons={seasonData}>
+                                    <Search class="mr-1.5 h-4 w-4" />
+                                    Manual Scrape
+                                </ItemManualScrape>
+                            {:else if data.riven?.id != null}
+                                <ItemReset
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                    title={data.mediaDetails?.details.title}
+                                    ids={rivenId ? [rivenId.toString()] : []}>
+                                    <RotateCcw class="mr-1.5 h-4 w-4" />
+                                    Reset
+                                </ItemReset>
+                                <ItemRetry
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                    title={data.mediaDetails?.details.title}
+                                    ids={rivenId ? [rivenId.toString()] : []}>
+                                    <RefreshCw class="mr-1.5 h-4 w-4" />
+                                    Retry
+                                </ItemRetry>
 
-                            <ItemManualScrape
-                                class="bg-white/10"
-                                title={data.mediaDetails?.details?.title}
-                                itemId={rivenId?.toString() ?? null}
-                                externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                mediaType={data.mediaDetails?.type}
-                                seasons={data.mediaDetails?.type === "tv" &&
-                                data.mediaDetails?.details?.seasons
-                                    ? data.mediaDetails.details.seasons.map((s) => ({
-                                          id: s.id,
-                                          season_number: s.number ?? 0,
-                                          episode_count:
-                                              (data.mediaDetails?.details as any)?.episodes?.filter(
-                                                  (ep: any) => ep.seasonNumber === s.number
-                                              ).length ?? 0,
-                                          name: `Season ${s.number}`,
-                                          status:
-                                              data.riven?.seasons?.find(
-                                                  (rs) => rs.season_number === s.number
-                                              )?.state === "Completed"
-                                                  ? "Available"
-                                                  : undefined
-                                      }))
-                                    : []} />
+                                {#if data.mediaDetails?.type === "tv"}
+                                    <ItemRequest
+                                        size="default"
+                                        variant="secondary"
+                                        class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-4"
+                                        title={data.mediaDetails?.details.title}
+                                        ids={rivenId ? [rivenId.toString()] : []}
+                                        mediaType={data.mediaDetails?.type}
+                                        externalId={data.mediaDetails?.details?.id?.toString() ??
+                                            ""}
+                                        seasons={seasonData}>
+                                        <Download class="mr-1.5 h-4 w-4" />
+                                        Request More
+                                    </ItemRequest>
+                                {/if}
 
-                            <Dialog.Root>
-                                <Dialog.Trigger>
-                                    {#snippet child({ props })}
-                                        <Button variant="ghost" class="bg-white/10" {...props}>
-                                            JSON
-                                        </Button>
-                                    {/snippet}
-                                </Dialog.Trigger>
-                                <Dialog.Content class="w-full max-w-4xl!">
-                                    <Dialog.Header>
-                                        <Dialog.Title>Raw Riven Data</Dialog.Title>
+                                <ItemManualScrape
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                    title={data.mediaDetails?.details?.title}
+                                    itemId={rivenId?.toString() ?? null}
+                                    externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
+                                    mediaType={data.mediaDetails?.type ?? "movie"}
+                                    seasons={seasonData}>
+                                    <Search class="mr-1.5 h-4 w-4" />
+                                    Manual Scrape
+                                </ItemManualScrape>
+
+                                {#if data.riven.state !== "Completed"}
+                                    <ItemPause
+                                        size="default"
+                                        variant="secondary"
+                                        class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                        title={data.mediaDetails?.details.title}
+                                        isPaused={data.riven.state === "Paused"}
+                                        ids={rivenId ? [rivenId.toString()] : []}>
+                                        {#if data.riven.state === "Paused"}
+                                            <Play class="mr-1.5 h-4 w-4" /> Resume
+                                        {:else}
+                                            <Pause class="mr-1.5 h-4 w-4" /> Pause
+                                        {/if}
+                                    </ItemPause>
+                                {/if}
+
+                                <ItemDelete
+                                    size="default"
+                                    variant="secondary"
+                                    class="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive border bg-transparent px-4"
+                                    title={data.mediaDetails?.details.title}
+                                    ids={rivenId ? [rivenId.toString()] : []}>
+                                    <Trash2 class="mr-1.5 h-4 w-4" />
+                                    Delete
+                                </ItemDelete>
+
+                                <Dialog.Root>
+                                    <Dialog.Trigger>
+                                        {#snippet child({ props })}
+                                            <Button
+                                                variant="secondary"
+                                                size="default"
+                                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
+                                                {...props}>
+                                                <FileJson class="mr-1.5 h-4 w-4" />
+                                                Raw Data
+                                            </Button>
+                                        {/snippet}
+                                    </Dialog.Trigger>
+                                    <Dialog.Content
+                                        class="border-border bg-background w-full max-w-4xl">
+                                        <Dialog.Header>
+                                            <Dialog.Title>Raw Riven Data</Dialog.Title>
+                                        </Dialog.Header>
+                                        <div
+                                            class="bg-muted/50 max-h-100 overflow-auto rounded-lg p-4">
+                                            <pre
+                                                class="font-mono text-xs break-all whitespace-pre-wrap text-green-400">{JSON.stringify(
+                                                    data.riven,
+                                                    null,
+                                                    2
+                                                )}</pre>
+                                        </div>
                                         <Button
                                             variant="outline"
                                             onclick={() => {
                                                 navigator.clipboard.writeText(
                                                     JSON.stringify(data.riven, null, 2)
                                                 );
-                                                toast.success("Riven data copied to clipboard!");
-                                            }}>
-                                            Copy
-                                        </Button>
-                                    </Dialog.Header>
-                                    <div
-                                        class="mt-4 max-h-100 overflow-auto rounded bg-zinc-800 p-2">
-                                        <pre
-                                            class="text-sm break-all whitespace-pre-wrap">{JSON.stringify(
-                                                data.riven,
-                                                null,
-                                                2
-                                            )}</pre>
-                                    </div>
-                                </Dialog.Content>
-                            </Dialog.Root>
-                        {/if}
-                    </div>
+                                                toast.success("Copied!");
+                                            }}>Copy JSON</Button>
+                                    </Dialog.Content>
+                                </Dialog.Root>
+                            {/if}
+                        </div>
 
-                    {#if data.riven?.state}
-                        <Badge
-                            class={cn(
-                                "mb-2",
-                                data.riven.state === "Completed"
-                                    ? "bg-green-600"
-                                    : data.riven.state === "Unknown"
-                                      ? "bg-red-600"
-                                      : "bg-yellow-600"
-                            )}>
-                            {data.riven.state}
-                        </Badge>
-                    {/if}
-
-                    {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.status === "Continuing" && data.mediaDetails?.details.airing}
-                        <p class="text-muted-foreground mb-2 text-sm">
-                            Airs {data.mediaDetails?.details.airing.days.join(", ")} at {data
-                                .mediaDetails?.details.airing.time}
-                        </p>
-                    {/if}
-
-                    {#if data.mediaDetails?.details.tagline}
-                        <p class="text-muted-foreground mb-2 text-sm font-semibold italic">
-                            {data.mediaDetails?.details.tagline}
-                        </p>
-                    {/if}
-
-                    <div class="mb-3 flex flex-wrap gap-1.5 text-sm font-semibold">
-                        {#key [data.mediaDetails?.details.year, data.mediaDetails?.details.formatted_runtime, data.mediaDetails?.details.original_language, data.mediaDetails?.details.status, data.mediaDetails?.details.certification]}
-                            {@const details = [
-                                data.mediaDetails?.details.year,
-                                data.mediaDetails?.details.formatted_runtime,
-                                data.mediaDetails?.details.original_language
-                                    ? data.mediaDetails?.details.original_language.toUpperCase()
-                                    : null,
-                                data.mediaDetails?.details.certification,
-                                data.mediaDetails?.details.status
-                            ].filter(Boolean)}
-
+                        <!-- Metadata -->
+                        <div
+                            class="text-muted-foreground flex items-center gap-x-2.5 text-sm"
+                            in:fly|global={{ y: 20, duration: 400, delay: 200, easing: cubicOut }}>
                             {#each details as detail, i}
                                 <span>{detail}</span>
-                                {#if i < details.length - 1}
-                                    <span>•</span>
-                                {/if}
-                            {/each}
-                        {/key}
-                    </div>
-
-                    {#if data.mediaDetails?.details.genres && data.mediaDetails?.details.genres.length > 0}
-                        <div class="mb-3 flex flex-wrap gap-2">
-                            {#each data.mediaDetails?.details.genres as genre (genre.id)}
-                                <Badge variant="outline" class="border-primary">
-                                    {genre.name}
-                                </Badge>
+                                {#if i < details.length - 1}<span class="text-border">•</span>{/if}
                             {/each}
                         </div>
-                    {/if}
 
-                    <div class="flex flex-col gap-4">
-                        <p class="max-w-max text-sm leading-relaxed">
-                            {data.mediaDetails?.details.overview}
-                        </p>
-
-                        <div class="flex flex-wrap gap-4">
-                            {#each data.mediaDetails?.details.cast as cast, index (cast.id)}
-                                {#if index < 8}
-                                    <div class="flex flex-col items-center">
-                                        <Tooltip>
-                                            {#snippet trigger()}
-                                                <a href="/details/person/{cast.id}">
-                                                    <img
-                                                        alt={cast.name}
-                                                        class="mb-1 size-16 rounded-full object-cover object-center shadow-md ring-2 ring-white/10 transition-transform duration-300 hover:scale-110 hover:ring-white/30"
-                                                        src={cast.profile_path
-                                                            ? cast.profile_path
-                                                            : "https://i.pravatar.cc/200"}
-                                                        loading="lazy" />
-                                                </a>
-                                            {/snippet}
-
-                                            {#snippet content()}
-                                                <p class="text-center text-sm font-medium">
-                                                    {cast.name} as {cast.character}
-                                                </p>
-                                            {/snippet}
-                                        </Tooltip>
-                                    </div>
-                                {/if}
-                            {/each}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.collection}
-                <h2 class="mt-8 mb-4 text-lg font-bold">Part of the collection</h2>
-                <div class="relative">
-                    <img
-                        alt={data.mediaDetails?.details.collection.name}
-                        class="h-28 w-full rounded-lg object-cover object-center shadow-lg"
-                        src={data.mediaDetails?.details.collection.backdrop_path}
-                        loading="lazy" />
-                    <div class="bg-background/70 absolute right-0 bottom-0 left-0 h-full w-full">
-                    </div>
-
-                    <div class="absolute inset-0 flex items-center justify-center p-4">
-                        <a
-                            href={`/details/collection/${data.mediaDetails?.details.collection.id}`}
-                            class="text-center text-lg font-bold underline drop-shadow-lg transition-all duration-200 hover:scale-105">
-                            {data.mediaDetails?.details.collection.name}
-                        </a>
-                    </div>
-                </div>
-            {/if}
-
-            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.seasons}
-                <section>
-                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Seasons</h2>
-
-                    <div
-                        class="border-border flex flex-wrap gap-4 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                        {#each data.mediaDetails?.details.seasons as season (season.id)}
-                            <button onclick={() => (selectedSeason = season.number?.toString())}>
-                                <div
-                                    class={cn(
-                                        "relative",
-                                        selectedSeason !== season.number?.toString() && "opacity-50"
-                                    )}>
-                                    {#if season.image}
-                                        <img
-                                            alt={season.id.toString()}
-                                            class="h-32 w-20 rounded-lg object-cover object-center shadow-md transition-transform duration-300 hover:scale-105 sm:h-48 sm:w-32"
-                                            src={season.image}
-                                            loading="lazy" />
-                                    {:else}
-                                        <div
-                                            class="flex h-32 w-20 flex-col items-center justify-center rounded-lg border border-white/30 bg-white/20 shadow-md backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:h-48 sm:w-32">
-                                            <Mountain size={24} class="opacity-70 sm:size-8" />
-                                            <span class="mt-2 text-center text-xs font-medium"
-                                                >Season {season.number}</span>
-                                        </div>
-                                    {/if}
-
-                                    {#if data.riven && data.riven.seasons && data.riven.seasons.some((s) => s.season_number === season.number)}
-                                        {@const rivenSeason = data.riven.seasons.find(
-                                            (s) => s.season_number === season.number
-                                        )}
-                                        {#if rivenSeason && rivenSeason.state}
-                                            <Badge
-                                                class={cn(
-                                                    "absolute bottom-1 left-1 text-xs",
-                                                    rivenSeason.state === "Completed"
-                                                        ? "bg-green-600"
-                                                        : rivenSeason.state === "Unknown"
-                                                          ? "bg-red-600"
-                                                          : "bg-yellow-600"
-                                                )}>
-                                                {rivenSeason.state}
-                                            </Badge>
-                                        {/if}
-                                    {/if}
-                                </div>
-                            </button>
-                        {/each}
-                    </div>
-                </section>
-            {/if}
-
-            {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.episodes}
-                <section>
-                    <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">Episodes</h2>
-
-                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
+                        <!-- Genres -->
+                        {#if data.mediaDetails?.details.genres?.length}
                             <div
-                                class="border-border flex flex-col overflow-hidden rounded-lg border bg-white/10 shadow-lg sm:flex-row">
-                                <div class="w-full sm:w-1/3">
-                                    {#if episode.image}
-                                        <img
-                                            alt={episode.name}
-                                            class="h-48 w-full object-cover object-center sm:h-full"
-                                            src={episode.image}
-                                            loading="lazy" />
-                                    {:else}
-                                        <div
-                                            class="flex h-48 w-full flex-col items-center justify-center bg-white/20 backdrop-blur-md sm:h-full">
-                                            <Mountain size={32} class="opacity-70" />
-                                            <span class="mt-2 text-xs font-medium"
-                                                >Episode {episode.number}</span>
-                                        </div>
-                                    {/if}
-                                </div>
-                                <div class="flex w-full flex-col p-4 sm:w-2/3">
-                                    <h3 class="text-sm font-bold">
-                                        {episode.number}. {episode.name}
-                                    </h3>
-                                    <p class="text-muted-foreground mb-2 text-xs">
-                                        {episode.aired} • {episode.runtime} min
-                                    </p>
-
-                                    {#if data.riven && data.riven.seasons}
-                                        {@const rivenSeason = data.riven.seasons.find(
-                                            (s) => s.season_number === Number(selectedSeason)
-                                        )}
-                                        {#if rivenSeason && rivenSeason.episodes}
-                                            {@const rivenEpisode = rivenSeason.episodes.find(
-                                                (e) => e.episode_number === episode.number
-                                            )}
-                                            {#if rivenEpisode && rivenEpisode.state}
-                                                <Badge
-                                                    class={cn(
-                                                        "mb-2 text-xs",
-                                                        rivenEpisode.state === "Completed"
-                                                            ? "bg-green-600"
-                                                            : rivenEpisode.state === "Unknown"
-                                                              ? "bg-red-600"
-                                                              : "bg-yellow-600"
-                                                    )}>
-                                                    {rivenEpisode.state}
-                                                </Badge>
-                                            {/if}
-                                        {/if}
-                                    {/if}
-
-                                    <p class="line-clamp-3 text-xs">{episode.overview}</p>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </section>
-            {/if}
-
-            <section>
-                <h2 class="mt-8 mb-4 text-lg font-bold drop-shadow-md">More Details</h2>
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div
-                        class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.budget}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Budget</p>
-                                <p class="text-sm font-medium">
-                                    {data.mediaDetails?.details.budget
-                                        ? new Intl.NumberFormat("en-US", {
-                                              style: "currency",
-                                              currency: "USD",
-                                              maximumFractionDigits: 0
-                                          }).format(data.mediaDetails?.details.budget)
-                                        : "N/A"}
-                                </p>
+                                class="flex flex-wrap items-center gap-2"
+                                in:fly|global={{
+                                    y: 20,
+                                    duration: 400,
+                                    delay: 250,
+                                    easing: cubicOut
+                                }}>
+                                {#each data.mediaDetails?.details.genres as genre (genre.id)}
+                                    <span
+                                        class="border-border bg-muted/50 text-muted-foreground rounded-xl border px-3 py-1 text-sm"
+                                        >{genre.name}</span>
+                                {/each}
                             </div>
                         {/if}
 
-                        {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.revenue}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Revenue</p>
-                                <p class="text-sm font-medium">
-                                    {data.mediaDetails?.details.revenue
-                                        ? new Intl.NumberFormat("en-US", {
-                                              style: "currency",
-                                              currency: "USD",
-                                              maximumFractionDigits: 0
-                                          }).format(data.mediaDetails?.details.revenue)
-                                        : "N/A"}
-                                </p>
-                            </div>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.homepage}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Homepage</p>
-                                {#if data.mediaDetails?.details.homepage}
+                        <!-- Ratings -->
+                        {#if ratingsData?.scores?.length}
+                            <div
+                                class="flex items-center gap-5"
+                                in:fly|global={{
+                                    y: 20,
+                                    duration: 400,
+                                    delay: 300,
+                                    easing: cubicOut
+                                }}>
+                                {#each ratingsData.scores as score (score.name)}
                                     <a
-                                        href={data.mediaDetails?.details.homepage}
+                                        href={score.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="text-sm font-medium underline hover:opacity-80">
-                                        Visit Website
+                                        class="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 transition-colors">
+                                        {#if score.image}<img
+                                                src="/rating-logos/{score.image}"
+                                                alt={score.name}
+                                                class="h-6 w-6 object-contain" />{/if}
+                                        <span class="text-base font-semibold">{score.score}</span>
                                     </a>
+                                {/each}
+                            </div>
+                        {:else if ratingsLoading}
+                            <div class="flex gap-4">
+                                {#each [1, 2, 3] as _, i (i)}
+                                    <div class="bg-muted h-6 w-14 animate-pulse rounded"></div>
+                                {/each}
+                            </div>
+                        {/if}
+
+                        <!-- Description -->
+                        <p
+                            class="text-muted-foreground max-w-4xl text-base leading-relaxed"
+                            in:fly|global={{ y: 20, duration: 400, delay: 350, easing: cubicOut }}>
+                            {data.mediaDetails?.details.overview}
+                        </p>
+                    </div>
+                </div>
+
+                {#if data.mediaDetails?.type === "movie"}
+                    {@const movieDetails = data.mediaDetails.details}
+                    {#if movieDetails.collection}
+                        <section
+                            class="mt-8 md:mt-12"
+                            in:fly|global={{ y: 20, duration: 400, delay: 400, easing: cubicOut }}>
+                            {@render sectionHeading("Collection")}
+                            <CollectionSheet
+                                collectionId={movieDetails.collection.id}
+                                collectionName={movieDetails.collection.name}>
+                                {#snippet trigger({ props })}
+                                    <button
+                                        {...props}
+                                        class="group border-border/50 relative block min-h-[6rem] w-full overflow-hidden rounded-xl border text-left shadow-lg transition-all duration-300 md:min-h-[9rem]">
+                                        <!-- Background Layer -->
+                                        <div class="absolute inset-0">
+                                            <img
+                                                alt={movieDetails.collection?.name}
+                                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                src={movieDetails.collection?.backdrop_path}
+                                                loading="lazy" />
+                                            <div
+                                                class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
+                                            </div>
+                                        </div>
+
+                                        <!-- Content Layer -->
+                                        <div
+                                            class="relative flex flex-col justify-center p-4 md:p-8">
+                                            <span
+                                                class="text-foreground text-xl font-black drop-shadow-lg md:text-3xl"
+                                                >{movieDetails.collection?.name}</span>
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                class="border-border text-muted-foreground hover:bg-muted hover:text-foreground mt-3 w-fit border bg-transparent backdrop-blur-md"
+                                                >View</Button>
+                                        </div>
+                                    </button>
+                                {/snippet}
+                            </CollectionSheet>
+                        </section>
+                    {/if}
+                {/if}
+
+                {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.seasons}
+                    <section
+                        class="mt-8 md:mt-12"
+                        in:fly|global={{ y: 20, duration: 400, delay: 450, easing: cubicOut }}>
+                        {@render sectionHeading("Seasons")}
+                        <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
+                            <Carousel.Content>
+                                {#each data.mediaDetails?.details.seasons as season (season.id)}
+                                    {@const rivenSeason = data.riven?.seasons?.find(
+                                        (s) => s.season_number === season.number
+                                    )}
+                                    <Carousel.Item class="basis-auto">
+                                        <button
+                                            onclick={() =>
+                                                (selectedSeason = season.number?.toString())}
+                                            class={cn(
+                                                "group relative block transition-all",
+                                                selectedSeason === season.number?.toString()
+                                                    ? ""
+                                                    : "opacity-60 hover:opacity-90"
+                                            )}>
+                                            <PortraitCard
+                                                title={season.number === 0
+                                                    ? "Specials"
+                                                    : `Season ${season.number}`}
+                                                image={season.image}
+                                                selected={selectedSeason ===
+                                                    season.number?.toString()}
+                                                class="w-28 md:w-32 lg:w-36">
+                                                {#snippet topRight()}
+                                                    {#if rivenSeason?.state}
+                                                        <StatusBadge
+                                                            state={rivenSeason.state}
+                                                            size="default" />
+                                                    {/if}
+                                                {/snippet}
+                                            </PortraitCard>
+                                        </button>
+                                    </Carousel.Item>
+                                {/each}
+                            </Carousel.Content>
+                        </Carousel.Root>
+                    </section>
+                {/if}
+
+                {#if data.mediaDetails?.type === "tv" && data.mediaDetails?.details.episodes}
+                    <section
+                        class="mt-8 md:mt-12"
+                        in:fly|global={{ y: 20, duration: 400, delay: 500, easing: cubicOut }}>
+                        {@render sectionHeading("Episodes")}
+                        <div
+                            class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+                            {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
+                                {@const rivenSeason = data.riven?.seasons?.find(
+                                    (s) => s.season_number === Number(selectedSeason)
+                                )}
+                                {@const rivenEpisode = rivenSeason?.episodes?.find(
+                                    (e) => e.episode_number === episode.number
+                                )}
+
+                                {#if isMobile.current}
+                                    <Drawer.Root direction="bottom">
+                                        <Drawer.Trigger class="group w-full text-left">
+                                            {@render episodeTrigger(episode, rivenEpisode)}
+                                        </Drawer.Trigger>
+                                        <Drawer.Content class="max-h-[85vh] outline-none">
+                                            <div class="mx-auto w-full max-w-4xl px-4 pb-6 md:px-6">
+                                                <Drawer.Header class="px-0 pt-2 pb-0 text-left">
+                                                    <Drawer.Title
+                                                        class="font-heading text-2xl font-bold tracking-tight">
+                                                        S{episode.seasonNumber}E{episode.number} - {episode.name}
+                                                    </Drawer.Title>
+                                                    {@render episodeMetadata(episode, rivenEpisode)}
+                                                </Drawer.Header>
+                                                {@render episodeBody(episode, rivenEpisode)}
+                                            </div>
+                                        </Drawer.Content>
+                                    </Drawer.Root>
                                 {:else}
-                                    <p class="text-sm font-medium">N/A</p>
+                                    <Sheet.Root>
+                                        <Sheet.Trigger class="group w-full text-left">
+                                            {@render episodeTrigger(episode, rivenEpisode)}
+                                        </Sheet.Trigger>
+                                        <Sheet.Content
+                                            side="right"
+                                            class="flex w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+                                            <Sheet.Header class="px-6 pt-6">
+                                                <Sheet.Title
+                                                    class="font-heading text-2xl font-bold tracking-tight">
+                                                    S{episode.seasonNumber}E{episode.number} - {episode.name}
+                                                </Sheet.Title>
+                                                {@render episodeMetadata(episode, rivenEpisode)}
+                                            </Sheet.Header>
+                                            {@render episodeBody(episode, rivenEpisode)}
+                                        </Sheet.Content>
+                                    </Sheet.Root>
+                                {/if}
+                            {/each}
+                        </div>
+                    </section>
+                {/if}
+
+                <!-- Cast -->
+                {#if data.mediaDetails?.details.cast?.length}
+                    <section
+                        class="mt-8 md:mt-12"
+                        in:fly|global={{ y: 20, duration: 400, delay: 550, easing: cubicOut }}>
+                        {@render sectionHeading("Cast")}
+                        <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
+                            <Carousel.Content class="-ml-3">
+                                {#each data.mediaDetails.details.cast as member (member.id)}
+                                    <Carousel.Item class="basis-auto pl-3">
+                                        <a
+                                            href="/details/entity/{member.id}/person"
+                                            class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
+                                            <PortraitCard
+                                                title={member.name}
+                                                subtitle={member.character}
+                                                image={member.profile_path}
+                                                class="w-32 md:w-36 lg:w-40" />
+                                        </a>
+                                    </Carousel.Item>
+                                {/each}
+                            </Carousel.Content>
+                        </Carousel.Root>
+                    </section>
+                {/if}
+
+                <!-- Details Section - Side by Side -->
+                <section
+                    class="mt-8 md:mt-12"
+                    in:fly|global={{ y: 20, duration: 400, delay: 600, easing: cubicOut }}>
+                    <div class="flex max-w-7xl flex-col gap-8 lg:flex-row lg:gap-12">
+                        <!-- More Details Column -->
+                        <div class="min-w-0 flex-1">
+                            {@render sectionHeading("More Details")}
+                            <div class="flex flex-col gap-6 text-sm">
+                                <!-- Financials Row -->
+                                {#if data.mediaDetails?.type === "movie" && (data.mediaDetails?.details.budget || data.mediaDetails?.details.revenue)}
+                                    <div class="flex flex-wrap gap-12">
+                                        {#if data.mediaDetails.details.budget}
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Budget</span>
+                                                <span class="text-foreground font-mono"
+                                                    >{formatCurrency(
+                                                        data.mediaDetails.details.budget
+                                                    )}</span>
+                                            </div>
+                                        {/if}
+                                        {#if data.mediaDetails.details.revenue}
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Revenue</span>
+                                                <span class="text-foreground font-mono"
+                                                    >{formatCurrency(
+                                                        data.mediaDetails.details.revenue
+                                                    )}</span>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/if}
+
+                                <!-- Region & Language Row -->
+                                {#if data.mediaDetails?.details.origin_country?.length || data.mediaDetails?.details.spoken_languages?.length}
+                                    <div class="flex flex-wrap gap-12">
+                                        {#if data.mediaDetails?.details.origin_country?.length}
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Origin</span>
+                                                <span class="text-foreground"
+                                                    >{data.mediaDetails.details.origin_country.join(
+                                                        ", "
+                                                    )}</span>
+                                            </div>
+                                        {/if}
+                                        {#if data.mediaDetails?.details.spoken_languages?.length}
+                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Languages</span>
+                                                <span class="text-foreground"
+                                                    >{data.mediaDetails.details.spoken_languages
+                                                        .map((l) => l.english_name)
+                                                        .join(", ")}</span>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/if}
+
+                                <!-- Production Companies -->
+                                {#if data.mediaDetails?.details.production_companies?.length}
+                                    <div class="flex flex-col gap-2">
+                                        <span
+                                            class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                            >Production</span>
+                                        <div class="flex flex-wrap gap-2">
+                                            {#each data.mediaDetails.details.production_companies as company (company.id)}
+                                                <span
+                                                    class="text-muted-foreground rounded border border-white/10 bg-white/5 px-2 py-1 text-xs">
+                                                    {company.name}
+                                                </span>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                <!-- External Links -->
+                                {#if data.mediaDetails?.details.homepage || data.mediaDetails?.details.imdb_id || data.mediaDetails?.details.external_ids}
+                                    <div class="flex flex-col gap-2">
+                                        <span
+                                            class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                            >Links</span>
+                                        <div class="flex flex-wrap gap-2">
+                                            {#if data.mediaDetails?.details.homepage}
+                                                <a
+                                                    href={data.mediaDetails.details.homepage}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
+                                                    >Website</a>
+                                            {/if}
+                                            {#if data.mediaDetails?.details.imdb_id}
+                                                <a
+                                                    href="https://www.imdb.com/title/{data
+                                                        .mediaDetails.details
+                                                        .imdb_id}/parentalguide/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
+                                                    >Parental Guide</a>
+                                            {/if}
+                                            {#if data.mediaDetails?.details.external_ids}
+                                                {@const validLinks = Object.entries(
+                                                    data.mediaDetails.details.external_ids
+                                                ).filter(
+                                                    ([key, value]) => value && getExternal(key)
+                                                )}
+                                                {#each validLinks as [key, value]}
+                                                    <a
+                                                        href="{getExternal(key).url}{value}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
+                                                        >{getExternal(key).name}</a>
+                                                {/each}
+                                            {/if}
+                                        </div>
+                                    </div>
                                 {/if}
                             </div>
-                        {/if}
+                        </div>
 
-                        {#if data.mediaDetails?.details.origin_country && data.mediaDetails?.details.origin_country.length > 0}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Origin Country</p>
-                                <p class="text-sm font-medium">
-                                    {data.mediaDetails?.details.origin_country.length > 0
-                                        ? data.mediaDetails?.details.origin_country.join(", ")
-                                        : "N/A"}
-                                </p>
-                            </div>
-                        {/if}
+                        <!-- File Information Column (movies only) -->
+                        {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
+                            {@const meta = data.riven.media_metadata}
+                            {@const fs = data.riven.filesystem_entry}
+                            {@const video = meta?.video}
+                            <div class="min-w-0 flex-1">
+                                {@render sectionHeading("File Information")}
+                                <div class="flex flex-col gap-6 text-sm">
+                                    <!-- Filenames -->
+                                    {#if meta?.filename}
+                                        <div class="flex flex-col gap-1">
+                                            <p
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                                                Current Filename
+                                            </p>
+                                            <p class="text-foreground font-mono text-xs break-all">
+                                                {meta.filename}
+                                            </p>
+                                        </div>
+                                    {/if}
 
-                        {#if data.mediaDetails?.details.production_companies && data.mediaDetails?.details.production_companies.length > 0}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Production Companies</p>
-                                <div class="flex flex-row flex-wrap">
-                                    {#if data.mediaDetails?.type === "movie"}
-                                        {#each data.mediaDetails?.details.production_companies as company, index (company.id)}
-                                            <Tooltip>
-                                                {#snippet trigger()}
-                                                    <div class="mr-2 mb-2 inline-block">
-                                                        <img
-                                                            alt={company.name}
-                                                            class="h-6 w-auto rounded object-contain object-center shadow-md transition-transform duration-300 hover:scale-105"
-                                                            src={company.logo_path
-                                                                ? company.logo_path
-                                                                : "https://i.pravatar.cc/200"}
-                                                            loading="lazy" />
+                                    <!-- Video -->
+                                    {#if video}
+                                        <div class="flex flex-col gap-2">
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Video</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                {#if video.resolution_width && video.resolution_height}<Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.resolution_width}x{video.resolution_height}</Badge
+                                                    >{/if}
+                                                {#if video.codec}<Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.codec}</Badge
+                                                    >{/if}
+                                                {#if video.bit_depth}<Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.bit_depth}-bit</Badge
+                                                    >{/if}
+                                                {#if video.hdr_type}<Badge
+                                                        variant="secondary"
+                                                        class="border border-purple-500/20 bg-purple-500/10 font-mono text-xs text-purple-200 backdrop-blur-sm"
+                                                        >{video.hdr_type}</Badge
+                                                    >{/if}
+                                                {#if video.frame_rate}<Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{video.frame_rate} FPS</Badge
+                                                    >{/if}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    <!-- Audio - Show ALL tracks -->
+                                    {#if meta?.audio_tracks?.length}
+                                        <div class="flex flex-col gap-2">
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Audio</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                {#each meta.audio_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
+                                                    <Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                        >{track.codec}{track.channels
+                                                            ? track.channels === 8
+                                                                ? " 7.1"
+                                                                : track.channels === 6
+                                                                  ? " 5.1"
+                                                                  : ` ${track.channels}ch`
+                                                            : ""}{track.language
+                                                            ? ` (${track.language.toUpperCase()})`
+                                                            : ""}</Badge>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    <!-- Subtitles - Show ALL tracks -->
+                                    {#if meta?.subtitle_tracks?.length}
+                                        <div class="flex flex-col gap-2">
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Subtitles</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                {#each meta.subtitle_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
+                                                    <Badge
+                                                        variant="secondary"
+                                                        class="text-muted-foreground border border-white/10 bg-white/5 text-[10px] backdrop-blur-sm"
+                                                        >{track.language
+                                                            ? track.language.toUpperCase()
+                                                            : "Unknown"}</Badge>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    <!-- Source -->
+                                    {#if meta?.quality_source}
+                                        <div class="flex flex-col gap-2">
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Source</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                <Badge
+                                                    variant="secondary"
+                                                    class="border border-blue-500/20 bg-blue-500/10 text-xs font-bold text-blue-200 backdrop-blur-sm"
+                                                    >{meta.quality_source}</Badge>
+                                                {#if meta?.is_remux}<Badge
+                                                        variant="secondary"
+                                                        class="border border-amber-500/20 bg-amber-500/10 text-xs font-bold text-amber-200 backdrop-blur-sm"
+                                                        >REMUX</Badge
+                                                    >{/if}
+                                                {#if meta?.is_proper}<Badge
+                                                        variant="secondary"
+                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                        >PROPER</Badge
+                                                    >{/if}
+                                                {#if meta?.is_repack}<Badge
+                                                        variant="secondary"
+                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                        >REPACK</Badge
+                                                    >{/if}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    <!-- Size & Bitrate -->
+                                    {#if fs?.file_size || meta?.bitrate}
+                                        <div class="flex flex-col gap-2">
+                                            <span
+                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                >Metrics</span>
+                                            <div class="flex flex-wrap gap-4">
+                                                {#if fs?.file_size}
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-muted-foreground text-xs"
+                                                            >Size</span>
+                                                        <span class="text-foreground font-mono"
+                                                            >{formatSize(fs.file_size)}</span>
                                                     </div>
-                                                {/snippet}
-
-                                                {#snippet content()}
-                                                    <p class="text-center text-sm font-medium">
-                                                        {company.name}
-                                                    </p>
-                                                {/snippet}
-                                            </Tooltip>
-                                        {/each}
-                                    {:else if data.mediaDetails?.type === "tv"}
-                                        <p class="text-sm font-medium">
-                                            {data.mediaDetails?.details.production_companies
-                                                .map((company) => company.name)
-                                                .join(", ")}
-                                        </p>
+                                                {/if}
+                                                {#if meta?.bitrate}
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-muted-foreground text-xs"
+                                                            >Bitrate</span>
+                                                        <span class="text-foreground font-mono"
+                                                            >{Math.round(meta.bitrate / 1000000)} Mbps</span>
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </div>
                                     {/if}
                                 </div>
-                            </div>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.spoken_languages && data.mediaDetails?.details.spoken_languages.length > 0}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Spoken Languages</p>
-                                <p class="text-sm font-medium">
-                                    {data.mediaDetails?.details.spoken_languages.length > 0
-                                        ? data.mediaDetails?.details.spoken_languages
-                                              .map((lang) => lang.english_name)
-                                              .join(", ")
-                                        : "N/A"}
-                                </p>
-                            </div>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.external_ids}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">External Links</p>
-
-                                <div class="flex flex-row flex-wrap items-center">
-                                    {#each Object.entries(data.mediaDetails?.details.external_ids) as [key, value] (key)}
-                                        {#if value && getExternalMetadata(key)}
-                                            {@const metadata = getExternalMetadata(key)}
-                                            <a
-                                                href={`${metadata.baseUrl}${value}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="mr-4 text-sm font-medium underline hover:opacity-80">
-                                                {metadata.name}
-                                            </a>
-                                        {/if}
-                                    {/each}
-                                </div>
-                            </div>
-                        {/if}
-
-                        {#if data.mediaDetails?.details.imdb_id && getExternalMetadata("imdb")}
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Parental Guide</p>
-                                <a
-                                    href={`${getExternalMetadata("imdb").baseUrl}${data.mediaDetails?.details.imdb_id}/parentalguide/`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="mr-4 text-sm font-medium underline hover:opacity-80">
-                                    IMDB Parental Guide
-                                </a>
                             </div>
                         {/if}
                     </div>
+                </section>
 
-                    {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
-                        <div
-                            class="border-border flex flex-col gap-2 rounded-lg border bg-white/10 px-6 py-4 shadow-lg">
-                            <h3 class="text-base font-semibold">File Information</h3>
-
-                            {#if data.riven.media_metadata?.original_filename || data.riven.filesystem_entry?.original_filename}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Original Filename</p>
-                                    <p class="text-sm font-medium break-all">
-                                        {data.riven.media_metadata?.original_filename ||
-                                            data.riven.filesystem_entry?.original_filename}
-                                    </p>
-                                </div>
-                            {/if}
-
-                            {#if data.riven.media_metadata?.filename}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Current Filename</p>
-                                    <p class="text-sm font-medium break-all">
-                                        {data.riven.media_metadata.filename}
-                                    </p>
-                                </div>
-                            {/if}
-
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Video</p>
-                                <div class="flex flex-wrap gap-x-2 text-sm">
-                                    {#if data.riven.media_metadata?.video?.resolution_width && data.riven.media_metadata?.video?.resolution_height}
-                                        <Badge variant="outline">
-                                            {data.riven.media_metadata.video.resolution_width}x{data
-                                                .riven.media_metadata.video.resolution_height}
-                                        </Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.video?.codec}
-                                        <Badge variant="outline">
-                                            {data.riven.media_metadata.video.codec.toUpperCase()}
-                                        </Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.video?.bit_depth}
-                                        <Badge variant="outline">
-                                            {data.riven.media_metadata.video.bit_depth}-bit
-                                        </Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.video?.hdr_type}
-                                        <Badge variant="outline"
-                                            >{data.riven.media_metadata.video.hdr_type}</Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.bitrate}
-                                        <Badge variant="outline">
-                                            {Math.round(
-                                                data.riven.media_metadata.bitrate / 1000000
-                                            )} Mbps
-                                        </Badge>
-                                    {/if}
-
-                                    {#if data.riven.media_metadata?.video?.frame_rate}
-                                        <Badge variant="outline">
-                                            {data.riven.media_metadata.video.frame_rate} FPS
-                                        </Badge>
-                                    {/if}
-                                </div>
-                            </div>
-
-                            {#if data.riven.media_metadata?.audio_tracks && data.riven.media_metadata.audio_tracks.length > 0}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Audio</p>
-                                    <div class="flex flex-wrap gap-x-2 text-sm">
-                                        {#each data.riven.media_metadata.audio_tracks as audioTrack}
-                                            <Badge variant="outline">
-                                                {audioTrack.codec}
-                                                {audioTrack.channels
-                                                    ? audioTrack.channels === 8
-                                                        ? "7.1"
-                                                        : audioTrack.channels === 6
-                                                          ? "5.1"
-                                                          : audioTrack.channels + "ch"
-                                                    : ""}
-                                                {audioTrack.language
-                                                    ? `(${audioTrack.language.toUpperCase()})`
-                                                    : ""}
-                                            </Badge>
-                                        {/each}
-                                    </div>
-                                </div>
-                            {/if}
-
-                            {#if data.riven.media_metadata?.subtitle_tracks && data.riven.media_metadata.subtitle_tracks.length > 0}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Subtitles</p>
-                                    <div class="flex flex-wrap gap-x-2 text-sm">
-                                        {#each data.riven.media_metadata.subtitle_tracks as subtitle}
-                                            <Badge variant="outline">
-                                                {subtitle.codec === "subrip"
-                                                    ? "SRT"
-                                                    : subtitle.codec === "hdmv_pgs_subtitle"
-                                                      ? "PGS"
-                                                      : subtitle.codec?.toUpperCase() || "Unknown"}
-                                                {subtitle.language
-                                                    ? `(${subtitle.language.toUpperCase()})`
-                                                    : ""}
-                                            </Badge>
-                                        {/each}
-                                    </div>
-                                </div>
-                            {/if}
-
-                            <div class="flex flex-col gap-1">
-                                <p class="text-primary text-xs">Source</p>
-                                <div class="flex flex-wrap gap-x-2 text-sm">
-                                    {#if data.riven.media_metadata?.quality_source}
-                                        <Badge variant="outline"
-                                            >{data.riven.media_metadata.quality_source}</Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.container_format && data.riven.media_metadata.container_format.length > 0}
-                                        {#each data.riven.media_metadata.container_format as container}
-                                            <Badge variant="outline"
-                                                >{container.toUpperCase()}</Badge>
-                                        {/each}
-                                    {/if}
-                                    {#if data.riven.media_metadata?.is_remux}
-                                        <Badge variant="outline">REMUX</Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.is_proper}
-                                        <Badge variant="outline">PROPER</Badge>
-                                    {/if}
-                                    {#if data.riven.media_metadata?.is_repack}
-                                        <Badge variant="outline">REPACK</Badge>
-                                    {/if}
-                                </div>
-                            </div>
-
-                            {#if data.riven.filesystem_entry?.file_size}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">File Size</p>
-                                    <p class="text-sm font-medium">
-                                        {(
-                                            data.riven.filesystem_entry.file_size / 1073741824
-                                        ).toFixed(2)} GB
-                                    </p>
-                                </div>
-                            {/if}
-
-                            {#if data.riven.media_metadata?.duration}
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-primary text-xs">Duration</p>
-                                    <p class="text-sm font-medium">
-                                        {Math.floor(data.riven.media_metadata.duration / 3600)}h
-                                        {Math.floor(
-                                            (data.riven.media_metadata.duration % 3600) / 60
-                                        )}m
-                                        {Math.floor(data.riven.media_metadata.duration % 60)}s
-                                    </p>
-                                </div>
-                            {/if}
-                        </div>
-                    {/if}
-                </div>
-            </section>
-
-            {#if data.mediaDetails?.details.recommendations && data.mediaDetails?.details.recommendations.length > 0}
-                <div class="mt-8 flex flex-col">
-                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">Recommendations</h2>
-                    <ListCarousel data={data.mediaDetails?.details.recommendations} />
-                </div>
-            {/if}
-
-            {#if data.mediaDetails?.details.similar && data.mediaDetails?.details.similar.length > 0}
-                <div class="mt-8 flex flex-col">
-                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">Similar Movies</h2>
-                    <ListCarousel data={data.mediaDetails?.details.similar} />
-                </div>
-            {/if}
-
-            {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations && data.mediaDetails?.details.trakt_recommendations.length > 0}
-                <div class="mt-8 flex flex-col">
-                    <h2 class="mb-4 text-lg font-bold drop-shadow-md">More Like This (Trakt)</h2>
-                    <ListCarousel data={data.mediaDetails?.details.trakt_recommendations} />
-                </div>
-            {/if}
+                {#if data.mediaDetails?.details.recommendations?.length}{@render mediaCarousel(
+                        data.mediaDetails.details.recommendations,
+                        "Recommendations",
+                        600
+                    )}{/if}
+                {#if data.mediaDetails?.details.similar?.length}{@render mediaCarousel(
+                        data.mediaDetails.details.similar,
+                        "Similar",
+                        650
+                    )}{/if}
+                {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations?.length}{@render mediaCarousel(
+                        data.mediaDetails.details.trakt_recommendations,
+                        "More Like This",
+                        700
+                    )}{/if}
+            </div>
         </div>
     </div>
-</div>
 
-{#if data.riven && data.riven.state === "Completed"}
+    <!-- Video Player Dialog -->
     <Dialog.Root bind:open={showVideoPlayer}>
-        <Dialog.Content class="max-w-7xl">
-            <Dialog.Header>
-                <Dialog.Title>{data.mediaDetails?.details.title}</Dialog.Title>
+        <Dialog.Content class="border-border/50 max-w-5xl overflow-hidden bg-black p-0">
+            <Dialog.Header class="sr-only">
+                <Dialog.Title>Video Player</Dialog.Title>
+                <Dialog.Description>Playing {data.mediaDetails?.details.title}</Dialog.Description>
             </Dialog.Header>
-            <div class="mt-4 aspect-video w-full">
+            <div class="aspect-video w-full">
                 {#if showVideoPlayer && rivenId}
                     <VideoPlayer itemId={rivenId} class="h-full w-full" />
                 {/if}
             </div>
         </Dialog.Content>
     </Dialog.Root>
-{/if}
+{/key}

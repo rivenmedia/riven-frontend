@@ -40,6 +40,8 @@ function extractItems<T>(data: unknown): T[] {
         const obj = data as Record<string, unknown>;
         if (Array.isArray(obj.results)) {
             items = obj.results;
+        } else if (Array.isArray(obj.items)) {
+            items = obj.items;
         } else if (obj.data && typeof obj.data === "object") {
             const pageData = obj.data as Record<string, unknown>;
             if (pageData.Page && typeof pageData.Page === "object") {
@@ -73,6 +75,7 @@ export class MediaListStore<T = unknown> {
     readonly #apiPath: string;
     readonly #supportsTimeWindow: boolean;
     readonly #defaultTimeWindow: "day" | "week";
+    readonly #noCache: boolean;
 
     // Use PersistedState for time window preference (persists across sessions)
     #timeWindowState: PersistedState<MediaListState> | null = null;
@@ -85,11 +88,17 @@ export class MediaListStore<T = unknown> {
     #hasMore = $state(true);
     #initialized = $state(false);
 
-    constructor(key: string, apiPath: string, initialTimeWindow: "day" | "week" | null = null) {
+    constructor(
+        key: string,
+        apiPath: string,
+        initialTimeWindow: "day" | "week" | null = null,
+        options: { noCache?: boolean; initialData?: T[] } = {}
+    ) {
         this.#key = key;
         this.#apiPath = apiPath;
         this.#supportsTimeWindow = initialTimeWindow !== null;
         this.#defaultTimeWindow = initialTimeWindow ?? "day";
+        this.#noCache = options.noCache ?? false;
 
         if (browser && this.#supportsTimeWindow) {
             this.#timeWindowState = new PersistedState<MediaListState>(
@@ -99,8 +108,17 @@ export class MediaListStore<T = unknown> {
             );
         }
 
-        // Eagerly load data on construction in browser
-        if (browser) {
+        // Initialize with initialData if provided, otherwise empty
+        if (options.initialData && options.initialData.length > 0) {
+            this.#items = options.initialData;
+            this.#initialized = true;
+            // Optionally cache it if we want persistence across soft reloads,
+            // but usually server data is fresh enough.
+            if (!this.#noCache) {
+                this.#setCachedData(options.initialData);
+            }
+        } else if (browser) {
+            // Only auto-load if no initial data
             this.load();
         }
     }
@@ -142,7 +160,7 @@ export class MediaListStore<T = unknown> {
     }
 
     #getCachedData(): CachedData<T> | null {
-        if (!browser) return null;
+        if (!browser || this.#noCache) return null;
 
         try {
             const stored = sessionStorage.getItem(this.#getStorageKey());
@@ -164,7 +182,7 @@ export class MediaListStore<T = unknown> {
     }
 
     #setCachedData(items: T[]): void {
-        if (!browser) return;
+        if (!browser || this.#noCache) return;
 
         try {
             const cached: CachedData<T> = {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { notificationStore } from "$lib/stores/notifications.svelte";
+    import { notificationStore, type Notification } from "$lib/stores/notifications.svelte";
     import { onMount, onDestroy } from "svelte";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -9,16 +9,28 @@
     import BellRing from "@lucide/svelte/icons/bell-ring";
     import Check from "@lucide/svelte/icons/check";
     import CheckCheck from "@lucide/svelte/icons/check-check";
-    import X from "@lucide/svelte/icons/x";
+    import Trash2 from "@lucide/svelte/icons/trash-2";
+    import Tooltip from "./tooltip.svelte";
     import { toast } from "svelte-sonner";
+    import { cn } from "$lib/utils";
 
     let open = $state(false);
 
+    // Show toast when a new notification is added (callback pattern instead of $effect)
+    function handleNewNotification(notification: Notification) {
+        toast.success(notification.title, {
+            description: notification.message,
+            duration: 5000
+        });
+    }
+
     onMount(() => {
+        notificationStore.onNotificationAdded = handleNewNotification;
         notificationStore.connect();
     });
 
     onDestroy(() => {
+        notificationStore.onNotificationAdded = null;
         notificationStore.disconnect();
     });
 
@@ -70,59 +82,77 @@
         notificationStore.remove(id);
     }
 
-    // Watch for new notifications and show toast
-    $effect(() => {
-        const notifications = notificationStore.notifications;
-        if (notifications.length > 0 && !notifications[0].read) {
-            const latest = notifications[0];
-            toast.success(latest.title, {
-                description: latest.message,
-                duration: 5000
-            });
-        }
-    });
+    let {
+        class: className,
+        variant = "outline",
+        side = "bottom",
+        align = "end",
+        sideOffset = 4
+    } = $props<{
+        class?: string;
+        variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+        side?: "top" | "right" | "bottom" | "left";
+        align?: "start" | "center" | "end";
+        sideOffset?: number;
+    }>();
 </script>
 
 <Popover.Root bind:open>
     <Popover.Trigger>
         {#snippet child({ props })}
             <Button
-                variant="outline"
+                {variant}
                 size="icon"
-                class="relative h-10 w-10 cursor-pointer"
+                class={cn("h-10 w-10 cursor-pointer", className)}
                 {...props}>
                 {#if notificationStore.unreadCount > 0}
-                    <BellRing class="size-5" />
+                    <BellRing class="text-primary fill-primary/10 size-5" />
                 {:else}
                     <Bell class="size-5" />
                 {/if}
             </Button>
         {/snippet}
     </Popover.Trigger>
-    <Popover.Content class="w-96 p-0" align="end">
+    <Popover.Content
+        class="w-96 rounded-2xl border border-white/10 bg-zinc-950/95 p-0 shadow-2xl shadow-black/50 backdrop-blur-2xl"
+        {side}
+        {align}
+        {sideOffset}>
         <div class="flex flex-col">
             <div class="flex items-center justify-between p-4 pb-3">
                 <h3 class="text-sm font-semibold">Notifications</h3>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1">
                     {#if notificationStore.unreadCount > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleMarkAllAsRead}>
-                            <CheckCheck class="mr-1 size-3" />
-                            Mark all read
-                        </Button>
+                        <Tooltip>
+                            {#snippet trigger()}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-muted-foreground hover:text-foreground h-7 w-7"
+                                    onclick={handleMarkAllAsRead}>
+                                    <CheckCheck class="size-3.5" />
+                                </Button>
+                            {/snippet}
+                            {#snippet content()}
+                                <p>Mark all as read</p>
+                            {/snippet}
+                        </Tooltip>
                     {/if}
                     {#if notificationStore.notifications.length > 0}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            class="h-7 px-2 text-xs"
-                            onclick={handleClearAll}>
-                            <X class="mr-1 size-3" />
-                            Clear all
-                        </Button>
+                        <Tooltip>
+                            {#snippet trigger()}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-muted-foreground hover:text-destructive h-7 w-7"
+                                    onclick={handleClearAll}>
+                                    <Trash2 class="size-3.5" />
+                                </Button>
+                            {/snippet}
+                            {#snippet content()}
+                                <p>Clear all notifications</p>
+                            {/snippet}
+                        </Tooltip>
                     {/if}
                 </div>
             </div>
@@ -131,8 +161,11 @@
             <div class="max-h-100 overflow-y-auto">
                 {#if notificationStore.notifications.length === 0}
                     <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <Bell class="text-muted-foreground/30 size-12" />
-                        <p class="text-muted-foreground mt-2 text-sm">No notifications yet</p>
+                        <div
+                            class="bg-muted/20 mb-4 flex items-center justify-center rounded-full p-4">
+                            <Bell class="text-muted-foreground/50 size-8" />
+                        </div>
+                        <p class="text-foreground text-sm font-medium">No notifications yet</p>
                         <p class="text-muted-foreground/70 mt-1 text-xs">
                             You'll be notified when items complete
                         </p>
@@ -167,21 +200,36 @@
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     {#if !notification.read}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            class="size-6"
-                                            onclick={() => handleMarkAsRead(notification.id)}>
-                                            <Check class="size-3" />
-                                        </Button>
+                                        <Tooltip>
+                                            {#snippet trigger()}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    class="text-muted-foreground hover:text-primary size-6"
+                                                    onclick={() =>
+                                                        handleMarkAsRead(notification.id)}>
+                                                    <Check class="size-3" />
+                                                </Button>
+                                            {/snippet}
+                                            {#snippet content()}
+                                                <p>Mark as read</p>
+                                            {/snippet}
+                                        </Tooltip>
                                     {/if}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        class="size-6"
-                                        onclick={() => handleRemove(notification.id)}>
-                                        <X class="size-3" />
-                                    </Button>
+                                    <Tooltip>
+                                        {#snippet trigger()}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="text-muted-foreground hover:text-destructive size-6"
+                                                onclick={() => handleRemove(notification.id)}>
+                                                <Trash2 class="size-3" />
+                                            </Button>
+                                        {/snippet}
+                                        {#snippet content()}
+                                            <p>Remove</p>
+                                        {/snippet}
+                                    </Tooltip>
                                 </div>
                             </div>
                         </div>

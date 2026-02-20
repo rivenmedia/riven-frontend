@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as Form from "$lib/components/ui/form/index.js";
-    import type { SuperValidated, Infer } from "sveltekit-superforms";
+    import type { SuperValidated } from "sveltekit-superforms";
     import { emailChangeSchema, type EmailChangeSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";

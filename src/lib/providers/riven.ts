@@ -720,7 +720,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/scrape": {
+    "/api/v1/scrape": {
         parameters: {
             query?: never;
             header?: never;
@@ -729,75 +729,11 @@ export interface paths {
         };
         /**
          * Get streams for an item
-         * @description Get streams for an item by any supported ID (item_id, tmdb_id, tvdb_id, imdb_id)
+         * @description Get streams for an item. Set stream=true for SSE streaming as scrapers complete.
          */
         get: operations["scrape_item"];
         put?: never;
-        /**
-         * Scrape Item
-         * @description Get streams for an item by any supported ID (item_id, tmdb_id, tvdb_id, imdb_id)
-         */
-        post: operations["scrape_item_api_v1_scrape_scrape_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/scrape/scrape_stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Stream scraping results via SSE
-         * @description Stream scraping results via SSE.
-         */
-        get: operations["scrape_item_stream"];
-        put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/scrape/seasons": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Scrape specific seasons of a show
-         * @description Scrape specific seasons of a show and pause unselected ones.
-         */
-        post: operations["scrape_seasons"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/scrape/scrape_stream/auto": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Stream auto scraping results via SSE
-         * @description Stream auto scraping results via SSE.
-         */
-        post: operations["auto_scrape_item_stream"];
         delete?: never;
         options?: never;
         head?: never;
@@ -821,24 +757,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/select_files/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Select files for torrent id, for this to be instant it requires files to be one of /manual/instant_availability response containers */
-        post: operations["manual_select"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/scrape/update_attributes/{session_id}": {
+    "/api/v1/scrape/session/{session_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -848,29 +767,23 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Match container files to item
-         * @description Apply selected file attributes from a scraping session to the referenced media item(s).
+         * Perform an action on a scraping session
+         * @description Perform an action on a scraping session.
          *
-         *     Locate the media item referenced by the given scraping session, create or reuse a staging FilesystemEntry for the provided file data, attach the file as the item's active stream (or attach to matching episodes for TV items), persist the changes to the database, and enqueue post-processing events for affected items.
-         *
-         *     Parameters:
-         *         session_id (str): Identifier of the scraping session containing item and torrent context.
-         *         data (DebridFile | ShowFileData): File metadata for a single movie (`DebridFile`) or a mapping of seasons/episodes to file metadata (`ShowFileData`) for TV content.
-         *
-         *     Returns:
-         *         dict: A message indicating which item(s) were updated, including the item's log string.
-         *
-         *     Raises:
-         *         HTTPException: 404 if the session or target item cannot be found; 500 if the session lacks an associated item ID.
+         *     Actions:
+         *     - select_files: Select files from the torrent (requires `files` in body)
+         *     - update_attributes: Apply file attributes to media item (requires `file_data` in body)
+         *     - abort: Cancel the session and clean up
+         *     - complete: Finalize the session
          */
-        post: operations["manual_update_attributes"];
+        post: operations["session_action"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/abort_session/{session_id}": {
+    "/api/v1/scrape/auto": {
         parameters: {
             query?: never;
             header?: never;
@@ -879,25 +792,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Abort a manual scraping session */
-        post: operations["abort_manual_session"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/scrape/complete_session/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Complete a manual scraping session */
-        post: operations["complete_manual_session"];
+        /**
+         * Trigger auto scraping for an item or specific seasons
+         * @description Trigger auto scraping. For TV shows, optionally provide season_numbers to scrape specific seasons.
+         */
+        post: operations["auto_scrape"];
         delete?: never;
         options?: never;
         head?: never;
@@ -941,28 +840,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/scrape/auto": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Auto scrape an item with resolution overrides
-         * @description Auto scrape an item with specific resolution overrides.
-         *     This performs a one-time scrape using the provided resolutions
-         *     and triggers the downloader if new streams are found.
-         */
-        post: operations["auto_scrape_item"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/settings/schema": {
         parameters: {
             query?: never;
@@ -975,6 +852,23 @@ export interface paths {
          * @description Get the JSON schema for the settings.
          */
         get: operations["get_settings_schema"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/schema/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings Schema For Keys */
+        get: operations["get_settings_schema_for_keys"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1068,7 +962,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/settings/set": {
+    "/api/v1/settings/set/{paths}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1166,10 +1060,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stream/hls/{item_id}/index.m3u8": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Hls Playlist */
+        get: operations["get_hls_playlist_api_v1_stream_hls__item_id__index_m3u8_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stream/hls/{item_id}/segment/{seq}.ts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Hls Segment */
+        get: operations["get_hls_segment_api_v1_stream_hls__item_id__segment__seq__ts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AIOStreamsConfig */
+        AIOStreamsConfig: {
+            /**
+             * Enabled
+             * @description Enable AIOStreams scraper
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Url
+             * @description AIOStreams instance URL
+             * @default http://localhost:8000
+             */
+            url: string;
+            /**
+             * Timeout
+             * @description Request timeout in seconds
+             * @default 30
+             */
+            timeout: number;
+            /**
+             * Retries
+             * @description Number of retries for failed requests
+             * @default 1
+             */
+            retries: number;
+            /**
+             * Ratelimit
+             * @description Enable rate limiting
+             * @default true
+             */
+            ratelimit: boolean;
+            /**
+             * Proxy Url
+             * @description Proxy URL for AIOStreams requests
+             * @default
+             */
+            proxy_url: string;
+            /**
+             * Uuid
+             * @description User UUID for AIOStreams authentication
+             * @default
+             */
+            uuid: string;
+            /**
+             * Password
+             * @description User password for AIOStreams authentication
+             * @default
+             */
+            password: string;
+        };
         /** AddMediaItemPayload */
         AddMediaItemPayload: {
             /**
@@ -1305,35 +1284,31 @@ export interface components {
             surround?: components["schemas"]["CustomRank"];
             truehd?: components["schemas"]["CustomRank"];
         };
-        /** AutoScrapeRequestPayload */
-        AutoScrapeRequestPayload: {
-            /**
-             * Item Id
-             * @description The ID of the media item
-             */
-            item_id?: number | null;
-            /**
-             * Tmdb Id
-             * @description The TMDB ID of the media item
-             */
-            tmdb_id?: string | null;
-            /**
-             * Tvdb Id
-             * @description The TVDB ID of the media item
-             */
-            tvdb_id?: string | null;
-            /**
-             * Imdb Id
-             * @description The IMDB ID of the media item
-             */
-            imdb_id?: string | null;
+        /** AutoScrapeRequest */
+        AutoScrapeRequest: {
             /**
              * Media Type
-             * @description The media type
+             * @enum {string}
              */
-            media_type?: ("movie" | "tv") | null;
-            /** @description Ranking overrides for the media item */
-            ranking_overrides?: components["schemas"]["RankingOverrides"] | null;
+            media_type: "movie" | "tv";
+            /** Item Id */
+            item_id?: number | null;
+            /** Tmdb Id */
+            tmdb_id?: string | null;
+            /** Tvdb Id */
+            tvdb_id?: string | null;
+            /** Imdb Id */
+            imdb_id?: string | null;
+            /** Ranking Overrides */
+            ranking_overrides?: {
+                [key: string]: string[];
+            } | null;
+            /** Season Numbers */
+            season_numbers?: number[] | null;
+            /** Min Filesize Override */
+            min_filesize_override?: number | null;
+            /** Max Filesize Override */
+            max_filesize_override?: number | null;
         };
         /** BackupResponse */
         BackupResponse: {
@@ -2438,200 +2413,20 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
-        /**
-         * ParsedData
-         * @description Parsed data model for a torrent title.
-         */
-        ParsedData: {
-            /** Raw Title */
-            raw_title: string;
-            /**
-             * Parsed Title
-             * @default
-             */
-            parsed_title: string;
-            /**
-             * Normalized Title
-             * @default
-             */
-            normalized_title: string;
-            /**
-             * Trash
-             * @default false
-             */
-            trash: boolean;
-            /**
-             * Adult
-             * @default false
-             */
-            adult: boolean;
-            /** Year */
-            year?: number | null;
-            /**
-             * Resolution
-             * @default unknown
-             */
-            resolution: string;
-            /**
-             * Seasons
-             * @default []
-             */
-            seasons: number[];
-            /**
-             * Episodes
-             * @default []
-             */
-            episodes: number[];
-            /**
-             * Complete
-             * @default false
-             */
-            complete: boolean;
-            /**
-             * Volumes
-             * @default []
-             */
-            volumes: number[];
-            /**
-             * Languages
-             * @default []
-             */
-            languages: string[];
-            /** Quality */
-            quality?: string | null;
-            /**
-             * Hdr
-             * @default []
-             */
-            hdr: string[];
-            /** Codec */
-            codec?: string | null;
-            /**
-             * Audio
-             * @default []
-             */
-            audio: string[];
-            /**
-             * Channels
-             * @default []
-             */
-            channels: string[];
-            /**
-             * Dubbed
-             * @default false
-             */
-            dubbed: boolean;
-            /**
-             * Subbed
-             * @default false
-             */
-            subbed: boolean;
-            /** Date */
-            date?: string | null;
-            /** Group */
-            group?: string | null;
-            /** Edition */
-            edition?: string | null;
-            /** Bit Depth */
-            bit_depth?: string | null;
-            /** Bitrate */
-            bitrate?: string | null;
-            /** Network */
-            network?: string | null;
-            /**
-             * Extended
-             * @default false
-             */
-            extended: boolean;
-            /**
-             * Converted
-             * @default false
-             */
-            converted: boolean;
-            /**
-             * Hardcoded
-             * @default false
-             */
-            hardcoded: boolean;
-            /** Region */
-            region?: string | null;
-            /**
-             * Ppv
-             * @default false
-             */
-            ppv: boolean;
-            /** Site */
-            site?: string | null;
-            /** Size */
-            size?: string | null;
-            /**
-             * Proper
-             * @default false
-             */
-            proper: boolean;
-            /**
-             * Repack
-             * @default false
-             */
-            repack: boolean;
-            /**
-             * Retail
-             * @default false
-             */
-            retail: boolean;
-            /**
-             * Upscaled
-             * @default false
-             */
-            upscaled: boolean;
-            /**
-             * Remastered
-             * @default false
-             */
-            remastered: boolean;
-            /**
-             * Unrated
-             * @default false
-             */
-            unrated: boolean;
-            /**
-             * Uncensored
-             * @default false
-             */
-            uncensored: boolean;
-            /**
-             * Documentary
-             * @default false
-             */
-            documentary: boolean;
-            /**
-             * Commentary
-             * @default false
-             */
-            commentary: boolean;
-            /** Episode Code */
-            episode_code?: string | null;
-            /** Country */
-            country?: string | null;
-            /** Container */
-            container?: string | null;
-            /** Extension */
-            extension?: string | null;
-            /**
-             * Extras
-             * @default []
-             */
-            extras: string[];
-            /**
-             * Torrent
-             * @default false
-             */
-            torrent: boolean;
-            /**
-             * Scene
-             * @default false
-             */
-            scene: boolean;
+        /** ParsedFile */
+        ParsedFile: {
+            /** File Id */
+            file_id: number;
+            /** Filename */
+            filename: string;
+            /** Filesize */
+            filesize: number;
+            /** Download Url */
+            download_url?: string | null;
+            /** Parsed Metadata */
+            parsed_metadata: {
+                [key: string]: unknown;
+            };
         };
         /** PauseResponse */
         PauseResponse: {
@@ -2796,27 +2591,6 @@ export interface components {
             languages?: components["schemas"]["LanguagesConfig"];
             /** @description Custom ranking configurations for specific attributes */
             custom_ranks?: components["schemas"]["CustomRanksConfig"];
-        };
-        /** RankingOverrides */
-        RankingOverrides: {
-            /** Resolutions */
-            resolutions?: string[] | null;
-            /** Quality */
-            quality?: string[] | null;
-            /** Rips */
-            rips?: string[] | null;
-            /** Hdr */
-            hdr?: string[] | null;
-            /** Audio */
-            audio?: string[] | null;
-            /** Extras */
-            extras?: string[] | null;
-            /** Trash */
-            trash?: string[] | null;
-            /** Require */
-            require?: string[] | null;
-            /** Exclude */
-            exclude?: string[] | null;
         };
         /** RarbgConfig */
         RarbgConfig: {
@@ -2983,26 +2757,6 @@ export interface components {
             /** Version */
             version: string;
         };
-        /** ScrapeItemResponse */
-        ScrapeItemResponse: {
-            /** Message */
-            message: string;
-            /** Streams */
-            streams: {
-                [key: string]: components["schemas"]["Stream"];
-            };
-        };
-        /** ScrapeSeasonsRequest */
-        ScrapeSeasonsRequest: {
-            /** Tvdb Id */
-            tvdb_id?: string | null;
-            /** Tmdb Id */
-            tmdb_id?: string | null;
-            /** Imdb Id */
-            imdb_id?: string | null;
-            /** Season Numbers */
-            season_numbers: number[];
-        };
         /** ScraperModel */
         ScraperModel: {
             /**
@@ -3063,6 +2817,8 @@ export interface components {
             comet?: components["schemas"]["CometConfig"];
             /** @description RARBG configuration */
             rarbg?: components["schemas"]["RarbgConfig"];
+            /** @description AIOStreams configuration */
+            aiostreams?: components["schemas"]["AIOStreamsConfig"];
         };
         /** SelectFilesResponse */
         SelectFilesResponse: {
@@ -3074,12 +2830,19 @@ export interface components {
              */
             download_type: "cached" | "uncached";
         };
-        /** SetSettings */
-        SetSettings: {
-            /** Key */
-            key: string;
-            /** Value */
-            value: unknown;
+        /**
+         * SessionActionRequest
+         * @description Unified request body for session actions.
+         */
+        SessionActionRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "select_files" | "update_attributes" | "abort" | "complete";
+            files?: components["schemas"]["Container"] | null;
+            /** File Data */
+            file_data?: components["schemas"]["DebridFile"] | components["schemas"]["ShowFileData"] | null;
         };
         /**
          * ShowFileData
@@ -3112,10 +2875,22 @@ export interface components {
             message: string;
             /** Session Id */
             session_id: string;
+            /** Item Id */
+            item_id: number;
+            /** Media Type */
+            media_type?: ("movie" | "tv") | null;
+            /** Tmdb Id */
+            tmdb_id?: string | null;
+            /** Tvdb Id */
+            tvdb_id?: string | null;
+            /** Imdb Id */
+            imdb_id?: string | null;
             /** Torrent Id */
             torrent_id: string | number;
             torrent_info: components["schemas"]["TorrentInfo"];
             containers: components["schemas"]["TorrentContainer"] | null;
+            /** Parsed Files */
+            parsed_files?: components["schemas"]["ParsedFile"][] | null;
             /** Expires At */
             expires_at: string;
         };
@@ -3176,27 +2951,6 @@ export interface components {
             media_year_releases: {
                 [key: string]: number | null;
             }[];
-        };
-        /** Stream */
-        Stream: {
-            /** Infohash */
-            infohash: string;
-            /** Raw Title */
-            raw_title: string;
-            /** Parsed Title */
-            parsed_title: string;
-            parsed_data: components["schemas"]["ParsedData"];
-            /** Rank */
-            rank: number;
-            /** Lev Ratio */
-            lev_ratio: number;
-            /**
-             * Is Cached
-             * @default false
-             */
-            is_cached: boolean;
-            /** Resolution */
-            resolution?: string | null;
         };
         /** StreamModel */
         StreamModel: {
@@ -4413,8 +4167,6 @@ export interface operations {
                 search?: string | null;
                 /** @description Include extended item details */
                 extended?: boolean;
-                /** @description Only return the count of items */
-                count_only?: boolean;
                 api_key?: string | null;
             };
             header?: never;
@@ -5095,10 +4847,18 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
-                /** @description Custom title to use for scraping */
+                /** @description Custom title to use for scraping (not persisted) */
                 custom_title?: string | null;
-                /** @description Custom IMDB ID to use for scraping */
+                /** @description Custom IMDB ID to use for scraping (not persisted) */
                 custom_imdb_id?: string | null;
+                /** @description JSON-encoded ranking overrides, e.g. {"resolutions": ["1080p"]} */
+                ranking_overrides?: string | null;
+                /** @description If true, stream results via SSE as scrapers complete */
+                stream?: boolean;
+                /** @description Minimum filesize in MB */
+                min_filesize_override?: number | null;
+                /** @description Maximum filesize in MB */
+                max_filesize_override?: number | null;
                 api_key?: string | null;
             };
             header?: never;
@@ -5106,166 +4866,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ScrapeItemResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    scrape_item_api_v1_scrape_scrape_post: {
-        parameters: {
-            query?: {
-                /** @description The ID of the media item */
-                item_id?: number | null;
-                /** @description The TMDB ID of the media item */
-                tmdb_id?: string | null;
-                /** @description The TVDB ID of the media item */
-                tvdb_id?: string | null;
-                /** @description The IMDB ID of the media item */
-                imdb_id?: string | null;
-                /** @description The media type */
-                media_type?: ("movie" | "tv") | null;
-                /** @description Custom title to use for scraping */
-                custom_title?: string | null;
-                /** @description Custom IMDB ID to use for scraping */
-                custom_imdb_id?: string | null;
-                api_key?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ScrapeItemResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    scrape_item_stream: {
-        parameters: {
-            query?: {
-                /** @description The ID of the media item */
-                item_id?: number | null;
-                /** @description The TMDB ID of the media item */
-                tmdb_id?: string | null;
-                /** @description The TVDB ID of the media item */
-                tvdb_id?: string | null;
-                /** @description The IMDB ID of the media item */
-                imdb_id?: string | null;
-                /** @description The media type */
-                media_type?: ("movie" | "tv") | null;
-                /** @description Custom title to use for scraping */
-                custom_title?: string | null;
-                /** @description Custom IMDB ID to use for scraping */
-                custom_imdb_id?: string | null;
-                api_key?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    scrape_seasons: {
-        parameters: {
-            query?: {
-                api_key?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ScrapeSeasonsRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ScrapeItemResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    auto_scrape_item_stream: {
-        parameters: {
-            query?: {
-                api_key?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AutoScrapeRequestPayload"];
-            };
-        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5291,6 +4891,10 @@ export interface operations {
         parameters: {
             query: {
                 magnet: string;
+                /** @description Minimum filesize in MB */
+                min_filesize_override?: number | null;
+                /** @description Maximum filesize in MB */
+                max_filesize_override?: number | null;
                 /** @description The ID of the media item */
                 item_id?: number | null;
                 /** @description The TMDB ID of the media item */
@@ -5301,8 +4905,6 @@ export interface operations {
                 imdb_id?: string | null;
                 /** @description The media type */
                 media_type?: ("movie" | "tv") | null;
-                /** @description Disable filesize check */
-                disable_filesize_check?: boolean;
                 api_key?: string | null;
             };
             header?: never;
@@ -5331,21 +4933,21 @@ export interface operations {
             };
         };
     };
-    manual_select: {
+    session_action: {
         parameters: {
             query?: {
                 api_key?: string | null;
             };
             header?: never;
             path: {
-                /** @description Identifier of the scraping session containing item and torrent context. */
+                /** @description Identifier of the scraping session */
                 session_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Container"];
+                "application/json": components["schemas"]["SessionActionRequest"];
             };
         };
         responses: {
@@ -5355,7 +4957,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SelectFilesResponse"];
+                    "application/json": components["schemas"]["MessageResponse"] | components["schemas"]["SelectFilesResponse"];
                 };
             };
             /** @description Validation Error */
@@ -5369,91 +4971,20 @@ export interface operations {
             };
         };
     };
-    manual_update_attributes: {
+    auto_scrape: {
         parameters: {
             query?: {
                 api_key?: string | null;
             };
             header?: never;
-            path: {
-                /** @description Identifier of the scraping session containing item and torrent context. */
-                session_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DebridFile"] | components["schemas"]["ShowFileData"];
+                "application/json": components["schemas"]["AutoScrapeRequest"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    abort_manual_session: {
-        parameters: {
-            query?: {
-                api_key?: string | null;
-            };
-            header?: never;
-            path: {
-                /** @description Identifier of the scraping session containing item and torrent context. */
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    complete_manual_session: {
-        parameters: {
-            query?: {
-                api_key?: string | null;
-            };
-            header?: never;
-            path: {
-                /** @description Identifier of the scraping session containing item and torrent context. */
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -5545,7 +5076,7 @@ export interface operations {
             };
         };
     };
-    auto_scrape_item: {
+    get_settings_schema: {
         parameters: {
             query?: {
                 api_key?: string | null;
@@ -5554,11 +5085,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AutoScrapeRequestPayload"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -5566,8 +5093,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["MessageResponse"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5580,9 +5116,13 @@ export interface operations {
             };
         };
     };
-    get_settings_schema: {
+    get_settings_schema_for_keys: {
         parameters: {
-            query?: {
+            query: {
+                /** @description Comma-separated list of top-level keys to get schema for (e.g., 'version,api_key,updaters') */
+                keys: string;
+                /** @description Title of the schema */
+                title?: string;
                 api_key?: string | null;
             };
             header?: never;
@@ -5827,12 +5367,17 @@ export interface operations {
                 api_key?: string | null;
             };
             header?: never;
-            path?: never;
+            path: {
+                /** @description Comma-separated list of settings paths to update */
+                paths: string;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SetSettings"][];
+                "application/json": {
+                    [key: string]: unknown;
+                };
             };
         };
         responses: {
@@ -5988,6 +5533,95 @@ export interface operations {
             header?: never;
             path: {
                 item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_hls_playlist_api_v1_stream_hls__item_id__index_m3u8_get: {
+        parameters: {
+            query?: {
+                pix_fmt?: string | null;
+                profile?: string | null;
+                level?: string | null;
+                resolution?: string | null;
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_hls_segment_api_v1_stream_hls__item_id__segment__seq__ts_get: {
+        parameters: {
+            query?: {
+                pix_fmt?: string | null;
+                profile?: string | null;
+                level?: string | null;
+                resolution?: string | null;
+                api_key?: string | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+                seq: number;
             };
             cookie?: never;
         };

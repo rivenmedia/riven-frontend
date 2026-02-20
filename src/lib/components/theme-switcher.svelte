@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { setTheme, theme, themeStorageKey } from "mode-watcher";
+    import { setTheme, theme } from "mode-watcher";
     import Pallete from "@lucide/svelte/icons/palette";
+    import Check from "@lucide/svelte/icons/check";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 
@@ -18,7 +19,8 @@
         mochamousse: "Mocha Mousse",
         mono: "Mono",
         neobrutalism: "Neo Brutalism",
-        solardusk: "Solar Dusk"
+        solardusk: "Solar Dusk",
+        "t3-chat": "T3 Chat"
     };
 </script>
 
@@ -30,19 +32,25 @@
             </Button>
         {/snippet}
     </DropdownMenu.Trigger>
-    <DropdownMenu.Content>
+    <DropdownMenu.Content
+        side="right"
+        align="end"
+        class="rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl shadow-black/50 backdrop-blur-2xl">
         <DropdownMenu.Group class="space-y-1 p-2">
             <DropdownMenu.Label>La Pallete</DropdownMenu.Label>
             <DropdownMenu.Separator />
             {#each Object.entries(themes) as [key, name] (key)}
                 <DropdownMenu.Item
-                    class={theme.current === key
-                        ? "bg-accent/80 hover:bg-accent/90"
-                        : "hover:bg-accent/80"}
+                    class="flex items-center justify-between {theme.current === key
+                        ? 'bg-accent/80 hover:bg-accent/90'
+                        : 'hover:bg-accent/80'}"
                     onclick={() => {
                         setTheme(key);
                     }}>
-                    {name}
+                    <span>{name}</span>
+                    {#if theme.current === key}
+                        <Check class="ml-2 size-4" />
+                    {/if}
                 </DropdownMenu.Item>
             {/each}
         </DropdownMenu.Group>

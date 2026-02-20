@@ -49,7 +49,7 @@
         crossorigin="anonymous" />
 </svelte:head>
 
-<ModeWatcher defaultMode={"dark"} defaultTheme={"darkmatter"} />
+<ModeWatcher defaultMode="dark" defaultTheme="darkmatter" />
 <Toaster richColors closeButton />
 
 <div class="bg-background h-screen overflow-hidden">

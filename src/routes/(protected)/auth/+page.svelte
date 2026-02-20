@@ -10,6 +10,9 @@
     import AccountLinks from "$lib/components/auth/account-links.svelte";
     import UpdateUserForm from "$lib/components/auth/update-user-form.svelte";
     import * as dateUtils from "$lib/utils/date";
+    import { getInitials } from "$lib/utils";
+    import * as Avatar from "$lib/components/ui/avatar/index.js";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     let { data }: PageProps = $props();
 
@@ -22,15 +25,19 @@
     <title>Profile - Riven</title>
 </svelte:head>
 
-<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
+<PageShell>
     <h1 class="text-3xl font-bold tracking-tight">{data.user.name}'s Profile</h1>
 
     <div class="mt-4 flex flex-col gap-4">
         <div class="flex flex-row items-center gap-4">
-            <img
-                src={data.user.image || "https://i.pravatar.cc/200"}
-                alt={data.user.name}
-                class="h-16 w-16 rounded-full object-cover" />
+            <Avatar.Root class="h-16 w-16 text-xl">
+                {#if data.user.image}
+                    <Avatar.Image src={data.user.image} alt={data.user.name} />
+                {/if}
+                <Avatar.Fallback class="bg-primary text-primary-foreground font-semibold">
+                    {getInitials(data.user.name)}
+                </Avatar.Fallback>
+            </Avatar.Root>
             <div>
                 <p class="text-lg font-semibold">{data.user.name}</p>
                 <p class="text-muted-foreground text-sm">{data.user.email}</p>
@@ -102,4 +109,4 @@
             Logout
         </Button>
     </div>
-</div>
+</PageShell>

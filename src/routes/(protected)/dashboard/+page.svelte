@@ -1,4 +1,5 @@
 <script lang="ts">
+    import PageShell from "$lib/components/page-shell.svelte";
     import type { PageData } from "./$types";
     import { cn } from "$lib/utils";
     import * as Card from "$lib/components/ui/card/index.js";
@@ -9,6 +10,8 @@
     import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
     import Heatmap from "$lib/components/heatmap.svelte";
     import { curveCatmullRom } from "d3-shape";
+    import { fly } from "svelte/transition";
+    import { cubicOut } from "svelte/easing";
 
     let { data }: { data: PageData } = $props();
 
@@ -33,6 +36,20 @@
             { key: "Seasons", value: data.statistics.total_seasons, c: "#60a5fa" },
             { key: "Episodes", value: data.statistics.total_episodes, c: "#f59e0b" }
         ];
+    });
+
+    const completionRate = $derived.by(() => {
+        if (
+            !data.statistics ||
+            data.statistics.total_items === 0 ||
+            data.statistics.states.Completed === undefined
+        ) {
+            return "0%";
+        }
+        return (
+            ((data.statistics.states.Completed / data.statistics.total_items) * 100).toFixed(2) +
+            "%"
+        );
     });
 
     const heatmapLegend = [
@@ -78,7 +95,7 @@
     </Card.Root>
 {/snippet}
 
-<div class="mt-14 flex flex-col p-6 md:p-8 md:px-16">
+<PageShell>
     <h1 class="mb-8 text-3xl font-bold tracking-tight">Media Library Statistics</h1>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -100,15 +117,7 @@
         })}
         {@render KPICard({
             title: "Completion Rate",
-            value:
-                data.statistics &&
-                data.statistics.total_items > 0 &&
-                data.statistics.states.Completed !== undefined
-                    ? (
-                          (data.statistics.states.Completed / data.statistics.total_items) *
-                          100
-                      ).toFixed(2) + "%"
-                    : "0%",
+            value: completionRate,
             sub: "Completed / Total"
         })}
     </section>
@@ -130,7 +139,7 @@
                     ]} />
 
                 <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
-                    {#each heatmapLegend as item}
+                    {#each heatmapLegend as item (item.label)}
                         <div class="flex items-center gap-1.5">
                             <span
                                 class="inline-block h-3 w-3 shrink-0 rounded-sm"
@@ -263,15 +272,19 @@
                             {#if status === true}
                                 <Badge
                                     variant="default"
-                                    class="bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
+                                    class="rounded-xl bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
                                     {serviceName}
                                 </Badge>
                             {:else if status === false}
-                                <Badge variant="destructive" class="px-2 py-1 text-xs font-medium">
+                                <Badge
+                                    variant="destructive"
+                                    class="rounded-xl px-2 py-1 text-xs font-medium">
                                     {serviceName}
                                 </Badge>
                             {:else}
-                                <Badge variant="secondary" class="px-2 py-1 text-xs font-medium">
+                                <Badge
+                                    variant="secondary"
+                                    class="rounded-xl px-2 py-1 text-xs font-medium">
                                     {serviceName}
                                 </Badge>
                             {/if}
@@ -285,7 +298,7 @@
     </section>
 
     <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {#each data.downloaderInfo?.services as downloader (downloader.service)}
+        {#each data.downloaderInfo?.services || [] as downloader (downloader.service)}
             <Card.Root class="bg-card border bg-linear-to-br">
                 <Card.Header class="pb-3">
                     <div class="flex items-center justify-between">
@@ -297,8 +310,8 @@
                                 ? "default"
                                 : "secondary"}
                             class={downloader.premium_status === "premium"
-                                ? "bg-amber-600/30 text-amber-300 hover:bg-amber-600/40"
-                                : ""}>
+                                ? "rounded-xl bg-amber-600/30 text-amber-300 hover:bg-amber-600/40"
+                                : "rounded-xl"}>
                             {downloader.premium_status === "premium" ? "Premium" : "Free"}
                         </Badge>
                     </div>
@@ -372,4 +385,4 @@
             </Card.Root>
         {/each}
     </section>
-</div>
+</PageShell>

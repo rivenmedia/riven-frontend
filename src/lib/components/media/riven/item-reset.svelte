@@ -8,6 +8,8 @@
 
     const logger = createScopedLogger("item-reset");
 
+    import { type Snippet } from "svelte";
+
     interface Props {
         title: string | null | undefined;
         ids: (string | null | undefined)[];
@@ -21,8 +23,9 @@
             | undefined;
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
+        children?: Snippet;
     }
-    let { title, ids, variant = "ghost", size = "sm", ...restProps }: Props = $props();
+    let { title, ids, variant = "ghost", size = "sm", children, ...restProps }: Props = $props();
 
     async function resetMediaItem(ids: (string | null | undefined)[]) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
@@ -48,10 +51,16 @@
 <AlertDialog.Root bind:open>
     <AlertDialog.Trigger>
         {#snippet child({ props })}
-            <Button {variant} {size} {...restProps} {...props}>Reset</Button>
+            <Button {variant} {size} {...restProps} {...props}>
+                {#if children}
+                    {@render children()}
+                {:else}
+                    Reset
+                {/if}
+            </Button>
         {/snippet}
     </AlertDialog.Trigger>
-    <AlertDialog.Content>
+    <AlertDialog.Content class="border border-white/10 bg-zinc-950/95 backdrop-blur-2xl">
         <AlertDialog.Header>
             <AlertDialog.Title>
                 Resetting "{title ?? "Media Item"}"

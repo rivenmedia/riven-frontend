@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import type { RequestHandler, RequestEvent } from "@sveltejs/kit";
+import type { RequestHandler } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { produce } from "sveltekit-sse";
 import { createScopedLogger } from "$lib/logger";
@@ -26,7 +26,18 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         const abortController = new AbortController();
 
         try {
-            const targetUrl = `${backendUrl}/api/v1/scrape/scrape_stream${url.search}`;
+            // Use consolidated endpoint with stream=true param
+            const searchParams = new URLSearchParams(url.searchParams);
+            searchParams.set("stream", "true");
+            // Ensure backendUrl doesn't have a trailing slash and target the correct /scrape endpoint
+            const baseUrl = backendUrl.replace(/\/$/, "");
+            const targetUrl = `${baseUrl}/api/v1/scrape?${searchParams.toString()}`;
+
+            // Sanitize log URL
+            const logUrl = new URL(targetUrl);
+            logUrl.search = ""; // Redact all query params
+            logger.info(`Scrape stream proxy: forwarding to ${logUrl.toString()}`);
+
             const response = await fetch(targetUrl, {
                 method: "GET",
                 headers: {
@@ -40,6 +51,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             if (!response.ok) {
                 const text = await response.text();
                 logger.error(`Scrape stream proxy error ${response.status}: ${text}`);
+                // Emit error event to client before closing
+                emit(
+                    "message",
+                    JSON.stringify({
+                        event: "error",
+                        message: `An internal server error occurred (${response.status})`
+                    })
+                );
                 lock.set(false);
                 return function stop() {
                     abortController.abort();

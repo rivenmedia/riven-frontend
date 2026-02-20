@@ -5,44 +5,79 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import providers from "$lib/providers";
 import { superValidate } from "sveltekit-superforms";
 import * as dateUtils from "$lib/utils/date";
-// import { message, fail, setError } from "sveltekit-superforms";
+import { createScopedLogger } from "$lib/logger";
 
-function extractYear(airedAt: string | null): number | string {
+const logger = createScopedLogger("library-page-server");
+
+const VALID_ITEM_TYPES = ["movie", "show", "season", "episode"] as const;
+type ValidItemType = (typeof VALID_ITEM_TYPES)[number];
+type ItemType = ValidItemType | "unknown";
+
+interface RivenLibraryItem {
+    id: number;
+    type: string;
+    title: string;
+    tmdb_id?: string | null;
+    tvdb_id?: string | null;
+    parent_ids?: {
+        tmdb_id?: string | null;
+        tvdb_id?: string | null;
+    } | null;
+    poster_path?: string | null;
+    aired_at?: string | null;
+}
+
+function getItemType(type: string): ItemType {
+    return VALID_ITEM_TYPES.includes(type as ValidItemType) ? (type as ValidItemType) : "unknown";
+}
+
+function extractYear(airedAt: string | null | undefined): number | string {
     if (!airedAt) return "N/A";
     const year = dateUtils.getYearFromISO(airedAt);
     return year ?? "N/A";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function transformItems(items: any[]) {
-    return items.map((item) => ({
-        id:
-            item.type === "movie"
-                ? item.tmdb_id
-                : item.type === "show"
-                  ? item.tvdb_id
-                  : item.type === "season"
-                    ? item.parent_ids.tvdb_id
-                    : item.type === "episode"
-                      ? item.parent_ids.tvdb_id
-                      : null,
-        title: item.title,
-        poster_path: item.poster_path,
-        media_type: item.type,
-        year: extractYear(item.aired_at),
-        indexer: item.type === "movie" ? "tmdb" : "tvdb",
-        type:
-            item.type === "movie"
-                ? "movie"
-                : item.type === "show"
-                  ? "show"
-                  : item.type === "season"
-                    ? "season"
-                    : item.type === "episode"
-                      ? "episode"
-                      : "unknown",
-        riven_id: item.id
-    }));
+function transformItems(items: RivenLibraryItem[]) {
+    return items
+        .map((item) => {
+            // Determine ID and indexer for navigation
+            // Movies use TMDB, Shows use TVDB (skip resolution)
+            let id: string | number | null = null;
+            let indexer: "tmdb" | "tvdb" = "tmdb";
+
+            if (item.type === "movie") {
+                id = item.tmdb_id ?? null;
+                indexer = "tmdb";
+            } else if (item.type === "show") {
+                // Shows use TVDB directly - skip TMDB->TVDB resolution
+                id = item.tvdb_id ?? null;
+                indexer = "tvdb";
+            } else if (item.type === "season" || item.type === "episode") {
+                // Seasons/episodes use parent's TVDB ID
+                id = item.parent_ids?.tvdb_id ?? null;
+                indexer = "tvdb";
+            }
+
+            // Skip items without valid navigation IDs
+            if (!id || id === "") {
+                logger.warn(
+                    `Skipping item "${item.title}" (riven_id: ${item.id}, type: ${item.type}): missing required ID field`
+                );
+                return null;
+            }
+
+            return {
+                id,
+                title: item.title,
+                poster_path: item.poster_path,
+                media_type: item.type,
+                year: extractYear(item.aired_at),
+                indexer,
+                type: getItemType(item.type),
+                riven_id: item.id
+            };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 export const load: PageServerLoad = async (event) => {
@@ -68,7 +103,9 @@ export const load: PageServerLoad = async (event) => {
     }
 
     return {
-        items: itemsResponse.data ? transformItems(itemsResponse.data.items) : [],
+        items: itemsResponse.data
+            ? transformItems(itemsResponse.data.items as unknown as RivenLibraryItem[])
+            : [],
         page: itemsResponse.data ? itemsResponse.data.page : 1,
         totalPages: itemsResponse.data ? itemsResponse.data.total_pages : 1,
         limit: itemsResponse.data ? itemsResponse.data.limit : 20,

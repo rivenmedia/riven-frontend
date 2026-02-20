@@ -2,7 +2,7 @@
     import * as Form from "$lib/components/ui/form/index.js";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
-    import type { SuperValidated, Infer } from "sveltekit-superforms";
+    import type { SuperValidated } from "sveltekit-superforms";
     import { passwordChangeSchema, type PasswordChangeSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
     import { zod4Client } from "sveltekit-superforms/adapters";
@@ -52,7 +52,11 @@
     });
 </script>
 
-{#snippet passwordFormField(form: FsSuperForm, name: PasswordFieldName, title: string)}
+{#snippet passwordFormField(
+    form: FsSuperForm<PasswordChangeSchema>,
+    name: PasswordFieldName,
+    title: string
+)}
     <Form.Field {form} {name}>
         <Form.Control>
             {#snippet children({ props })}

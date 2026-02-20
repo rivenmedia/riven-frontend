@@ -8,6 +8,8 @@
 
     const logger = createScopedLogger("item-pause");
 
+    import { type Snippet } from "svelte";
+
     interface Props {
         title: string | null | undefined;
         ids: (string | null | undefined)[];
@@ -22,6 +24,7 @@
             | undefined;
         size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg" | undefined;
         class?: string;
+        children?: Snippet;
     }
     let {
         title,
@@ -29,6 +32,7 @@
         isPaused = false,
         variant = "ghost",
         size = "sm",
+        children,
         ...restProps
     }: Props = $props();
 
@@ -63,11 +67,15 @@
     <AlertDialog.Trigger>
         {#snippet child({ props })}
             <Button {variant} {size} {...restProps} {...props}>
-                {isPaused ? "Resume" : "Pause"}
+                {#if children}
+                    {@render children()}
+                {:else}
+                    {isPaused ? "Resume" : "Pause"}
+                {/if}
             </Button>
         {/snippet}
     </AlertDialog.Trigger>
-    <AlertDialog.Content>
+    <AlertDialog.Content class="border border-white/10 bg-zinc-950/95 backdrop-blur-2xl">
         <AlertDialog.Header>
             <AlertDialog.Title>
                 {isPaused ? "Resume" : "Pause"} "{title ?? "Media Item"}"

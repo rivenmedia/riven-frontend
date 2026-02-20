@@ -5,6 +5,7 @@
     import { toast } from "svelte-sonner";
     import { logStore, type LogEntry } from "$lib/stores/logs.svelte";
     import { createScopedLogger } from "$lib/logger";
+    import PageShell from "$lib/components/page-shell.svelte";
 
     const logger = createScopedLogger("logs-page");
 
@@ -85,7 +86,7 @@
                     "Failed to copy logs link. Make sure you are using https or localhost."
                 );
             }
-        } catch (e: any) {
+        } catch (e) {
             logger.error("Failed to upload logs:", e);
         }
     }
@@ -163,7 +164,7 @@
     </div>
 {/snippet}
 
-<div class="mt-14 flex h-full flex-col p-6 md:p-8 md:px-16">
+<PageShell class="h-full">
     {#if error && connectionStatus === "error" && reconnectAttempts >= maxReconnectAttempts}
         <div class="bg-destructive/10 border-destructive/20 rounded-lg border p-6">
             <h3 class="text-destructive mb-3 text-lg font-semibold">Connection Failed</h3>
@@ -226,7 +227,7 @@
                 <div class="min-h-0 flex-1 overflow-y-auto">
                     {#if activeTab === "live"}
                         {#if logs.length > 0}
-                            {#each logs.slice().reverse() as log}
+                            {#each logs.slice().reverse() as log, i (i)}
                                 {@render logEntry(log)}
                             {/each}
                         {:else if connectionStatus === "connecting"}
@@ -241,7 +242,7 @@
                             )}
                         </div>
                     {:else if historicalLogs.length > 0}
-                        {#each historicalLogs.slice().reverse() as log}
+                        {#each historicalLogs.slice().reverse() as log, i (i)}
                             {@render logEntry(log)}
                         {/each}
                     {:else}
@@ -265,4 +266,4 @@
             </div>
         </div>
     {/if}
-</div>
+</PageShell>

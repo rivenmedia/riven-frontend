@@ -1,4 +1,3 @@
-import type { operations as TMDBOperations } from "./providers/tmdb";
 import type { operations as TVDBOperations } from "./providers/tvdb";
 
 /**
@@ -74,15 +73,15 @@ const SHORTCUTS: Record<string, { tmdb?: string; tvdb?: string }> = {
     remote_id: { tvdb: "remote_id" },
     imdb: { tvdb: "remote_id" },
 
-    // TMDB-specific shortcuts
-    g: { tmdb: "with_genres" },
-    genre: { tmdb: "with_genres" },
-    genres: { tmdb: "with_genres" },
-    with_genres: { tmdb: "with_genres" },
-    eg: { tmdb: "without_genres" },
-    exclude_genres: { tmdb: "without_genres" },
-    without_genres: { tmdb: "without_genres" },
+    g: { tmdb: "with_genres", tvdb: "with_genres" },
+    genre: { tmdb: "with_genres", tvdb: "with_genres" },
+    genres: { tmdb: "with_genres", tvdb: "with_genres" },
+    with_genres: { tmdb: "with_genres", tvdb: "with_genres" },
+    eg: { tmdb: "without_genres", tvdb: "without_genres" },
+    exclude_genres: { tmdb: "without_genres", tvdb: "without_genres" },
+    without_genres: { tmdb: "without_genres", tvdb: "without_genres" },
 
+    // TMDB-specific shortcuts
     k: { tmdb: "with_keywords" },
     keywords: { tmdb: "with_keywords" },
     with_keywords: { tmdb: "with_keywords" },
@@ -181,50 +180,54 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
 
         if (colonIndex > 0 && colonIndex < token.length - 1) {
             const key = token.substring(0, colonIndex).toLowerCase();
-            let value = token.substring(colonIndex + 1).replace(/^"(.*)"$/, "$1");
+            const value = token.substring(colonIndex + 1).replace(/^"(.*)"$/, "$1");
 
             const shortcut = SHORTCUTS[key];
 
             if (shortcut) {
+                let processedValue = value;
+                const isGenreParam =
+                    shortcut.tmdb === "with_genres" ||
+                    shortcut.tmdb === "without_genres" ||
+                    shortcut.tvdb === "with_genres" ||
+                    shortcut.tvdb === "without_genres";
+                // Resolve genre names to IDs if needed
+                if (isGenreParam && isNaN(Number(value))) {
+                    const genreIds: number[] = [];
+                    const genreNames = value.split(/[,|]/);
+
+                    for (const name of genreNames) {
+                        const normalized = name.trim().toLowerCase();
+                        const genreId = GENRE_MAP[normalized];
+                        if (genreId) genreIds.push(genreId);
+                    }
+
+                    if (genreIds.length > 0) {
+                        const separator = value.includes("|") ? "|" : ",";
+                        processedValue = genreIds.join(separator);
+                    }
+                }
+
                 // Add to TMDB params
                 if (shortcut.tmdb) {
                     const paramName = shortcut.tmdb;
 
-                    // Handle genre names for TMDB
-                    if (
-                        (paramName === "with_genres" || paramName === "without_genres") &&
-                        isNaN(Number(value))
-                    ) {
-                        const genreIds: number[] = [];
-                        const genreNames = value.split(/[,|]/);
-
-                        for (const name of genreNames) {
-                            const normalized = name.trim().toLowerCase();
-                            const genreId = GENRE_MAP[normalized];
-                            if (genreId) genreIds.push(genreId);
-                        }
-
-                        if (genreIds.length > 0) {
-                            const separator = value.includes("|") ? "|" : ",";
-                            const genreString = genreIds.join(separator);
-                            tmdbParams[paramName] = genreString;
-                        }
-                    }
                     // Handle numeric parameters
-                    else if (
+                    if (
                         paramName.includes("year") ||
-                        paramName.includes("vote_") ||
+                        (paramName.includes("vote_") && !paramName.includes("average")) || // vote_count
                         paramName.includes("runtime") ||
-                        paramName === "with_networks"
+                        paramName === "with_networks" ||
+                        paramName.includes("vote_average") // decimals allowed
                     ) {
                         const numValue = Number(value);
                         if (!isNaN(numValue)) {
                             tmdbParams[paramName] = numValue;
                         }
                     }
-                    // Handle string parameters
+                    // Handle string parameters (including processed genres)
                     else {
-                        tmdbParams[paramName] = value;
+                        tmdbParams[paramName] = processedValue;
                     }
                 }
 
@@ -241,7 +244,7 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
                     }
                     // All other TVDB params are strings
                     else {
-                        (tvdbParams as any)[paramName] = value;
+                        (tvdbParams as any)[paramName] = processedValue;
                     }
                 }
 
