@@ -2,7 +2,8 @@
     "packages": {
         ".": {
             "release-type": "node",
-            "prerelease": true
+            "prerelease": true,
+            "component": ""
         }
     },
     "include-v-in-tag": true

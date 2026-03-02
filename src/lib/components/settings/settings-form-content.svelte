@@ -59,6 +59,8 @@
 
     const isDirty = $derived(form?.isChanged ?? false);
     const isNavigating = $derived(Boolean($navigating));
+    // Defensive check: $page.data.tabs can be temporarily undefined during client-side
+    // navigation transitions before the load function reconciles data into the store.
     const activeTab = $derived(
         $page.data.tabs?.find(
             (t: { id: string; label: string; restartRequired?: boolean }) =>
