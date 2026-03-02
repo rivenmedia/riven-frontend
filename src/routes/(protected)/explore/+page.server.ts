@@ -49,7 +49,8 @@ function getDeterministicPage(rng: () => number): number {
 
 async function loadExploreLandingData(
     customFetch: typeof fetch,
-    seedBucket: number
+    seedBucket: number,
+    signal?: AbortSignal
 ): Promise<ExploreLandingData> {
     const rng = seededRandom(seedBucket);
 
@@ -73,38 +74,44 @@ async function loadExploreLandingData(
                     path: { time_window: "week" },
                     query: { language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             }),
             providers.tmdb.GET("/3/trending/tv/{time_window}", {
                 params: {
                     path: { time_window: "week" },
                     query: { language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             }),
             providers.tmdb.GET("/3/movie/popular", {
                 params: {
                     query: { page: randomPagePopMovie, language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             }),
             providers.tmdb.GET("/3/tv/popular", {
                 params: {
                     query: { page: randomPagePopTV, language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             }),
             providers.tmdb.GET("/3/movie/top_rated", {
                 params: {
                     query: { page: randomPageTopMovie, language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             }),
             providers.tmdb.GET("/3/tv/top_rated", {
                 params: {
                     query: { page: randomPageTopTV, language: "en-US" }
                 },
-                fetch: customFetch
+                fetch: customFetch,
+                signal
             })
         ]);
 
@@ -151,7 +158,7 @@ async function loadExploreLandingData(
     };
 }
 
-export const load: PageServerLoad = async ({ url, fetch }) => {
+export const load: PageServerLoad = async ({ url, fetch, request }) => {
     const loadMark = startPerfMark("explore.page.load", {
         route: "/explore"
     });
@@ -194,7 +201,11 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
                 searchExamples = exploreLandingCache.searchExamples;
             } else {
                 perfCount("explore.landing.cache.miss");
-                const landingData = await loadExploreLandingData(customFetch, seedBucket);
+                const landingData = await loadExploreLandingData(
+                    customFetch,
+                    seedBucket,
+                    request.signal
+                );
 
                 heroItems = landingData.heroItems;
                 feelingLuckyItems = landingData.feelingLuckyItems;

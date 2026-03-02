@@ -7,7 +7,7 @@ import { createScopedLogger } from "$lib/logger";
 
 const logger = createScopedLogger("home");
 
-export const load: PageServerLoad = async ({ locals, fetch }) => {
+export const load: PageServerLoad = async ({ locals, fetch, request }) => {
     if (!locals.user || !locals.session) redirect(302, "/auth/login");
 
     try {
@@ -16,10 +16,11 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
             params: {
                 path: { time_window: "day" },
                 query: { language: "en-US" }
-            }
+            },
+            signal: request.signal
         });
 
-        const recentlyAddedRes = await fetch("/api/library/recent");
+        const recentlyAddedRes = await fetch("/api/library/recent", { signal: request.signal });
         const recentlyAddedJson = recentlyAddedRes.ok
             ? await recentlyAddedRes.json()
             : { items: [] };

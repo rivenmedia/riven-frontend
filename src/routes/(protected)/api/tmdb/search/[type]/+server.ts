@@ -20,7 +20,7 @@ type DiscoverTVQuery = NonNullable<paths["/3/discover/tv"]["get"]["parameters"][
 type SearchPersonQuery = paths["/3/search/person"]["get"]["parameters"]["query"];
 type SearchCompanyQuery = paths["/3/search/company"]["get"]["parameters"]["query"];
 
-export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
+export const GET: RequestHandler = async ({ fetch, params, locals, url, request }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
@@ -110,7 +110,8 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
             return providers.tmdb.GET(route.endpoint as any, {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 params: { query: query as any },
-                fetch: customFetch
+                fetch: customFetch,
+                signal: request.signal
             });
         };
 

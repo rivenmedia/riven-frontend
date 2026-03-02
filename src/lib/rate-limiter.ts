@@ -36,9 +36,27 @@ class RateLimiter {
      * Returns a promise that resolves when it's safe to proceed.
      * Call release() when the request completes.
      */
-    async acquire(): Promise<void> {
+    async acquire(signal?: AbortSignal): Promise<void> {
+        if (signal?.aborted) {
+            throw signal.reason || new Error("Aborted");
+        }
+
         return new Promise((resolve, reject) => {
-            this.queue.push({ resolve, reject });
+            const request: QueuedRequest = { resolve, reject };
+
+            const onAbort = () => {
+                const index = this.queue.indexOf(request);
+                if (index !== -1) {
+                    this.queue.splice(index, 1);
+                    reject(signal?.reason || new Error("Aborted"));
+                }
+            };
+
+            if (signal) {
+                signal.addEventListener("abort", onAbort, { once: true });
+            }
+
+            this.queue.push(request);
             this.processQueue();
         });
     }
@@ -171,11 +189,11 @@ export function getRateLimiterForUrl(url: string): RateLimiter | null {
     }
 }
 
-export async function withRateLimit<T>(url: string, fn: () => Promise<T>): Promise<T> {
+export async function withRateLimit<T>(url: string, fn: () => Promise<T>, signal?: AbortSignal): Promise<T> {
     const limiter = getRateLimiterForUrl(url);
     if (!limiter) return fn();
 
-    await limiter.acquire();
+    await limiter.acquire(signal);
     try {
         return await fn();
     } finally {
