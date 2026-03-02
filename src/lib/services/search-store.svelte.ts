@@ -677,11 +677,23 @@ export class SearchStore {
         try {
             response = await fetch(endpoint, { signal });
         } catch (error) {
+            const isAbort = error instanceof Error && error.name === "AbortError";
+            const isTimeout = error instanceof Error && error.name === "TimeoutError";
+
+            logger.error(`fetch failed for ${type} search`, {
+                endpoint,
+                error: error instanceof Error ? error.message : String(error),
+                isAbort,
+                isTimeout
+            });
+
             endPerfMark(fetchMark, {
                 type,
                 page,
                 ok: false,
-                failed: true
+                failed: true,
+                isAbort,
+                isTimeout
             });
             throw error;
         }
@@ -695,12 +707,23 @@ export class SearchStore {
 
         if (!response.ok) {
             let errorDetail = response.statusText;
+            let errorBody = "";
             try {
                 const errorJson = await response.json();
                 errorDetail = errorJson.message || errorJson.error || errorDetail;
+                errorBody = JSON.stringify(errorJson);
             } catch {
-                // Not JSON, probably a redirect or HTML error page
+                // Not JSON
             }
+
+            logger.warn(`Search API returned non-OK status: ${response.status}`, {
+                type,
+                page,
+                endpoint,
+                errorDetail,
+                errorBody
+            });
+
             throw new Error(`Failed to fetch ${type}: ${errorDetail} (${response.status})`);
         }
 

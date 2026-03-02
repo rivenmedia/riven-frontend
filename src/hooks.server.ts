@@ -55,6 +55,15 @@ const configureLocals: Handle = async ({ event, resolve }) => {
 };
 
 const handleTVDBCookie: Handle = async ({ event, resolve }) => {
+    // Skip for static assets and internal SvelteKit requests
+    if (
+        event.url.pathname.startsWith("/_app/") ||
+        event.url.pathname.startsWith("/favicon.ico") ||
+        event.url.pathname.includes(".")
+    ) {
+        return resolve(event);
+    }
+
     const tvdbCookie = event.cookies.get("tvdb_cookie");
 
     if (!tvdbCookie) {
@@ -67,16 +76,23 @@ const handleTVDBCookie: Handle = async ({ event, resolve }) => {
         });
 
         if (tvdbLogin.error) {
-            error(500, "Failed to login to TVDB: " + tvdbLogin.error);
+            logger.error("Failed to login to TVDB", { error: tvdbLogin.error });
+            // Don't block the whole request if TVDB is down, just continue without the cookie
+            // Routes that strictly need it will fail gracefully later
+            return resolve(event);
         } else {
+            const isSecure =
+                event.url.protocol === "https:" ||
+                event.request.headers.get("x-forwarded-proto") === "https";
+
             event.cookies.set("tvdb_cookie", tvdbLogin.data?.data?.token || "", {
                 path: "/",
                 httpOnly: true,
                 sameSite: "lax",
-                secure: !dev,
+                secure: isSecure,
                 maxAge: 60 * 60 * 24 * 30 // 30 days
             });
-            logger.info("Set TVDB cookie");
+            logger.info("Set TVDB cookie", { secure: isSecure });
         }
     }
 
