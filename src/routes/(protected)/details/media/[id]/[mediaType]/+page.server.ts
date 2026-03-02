@@ -281,7 +281,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
             let { data: episodesData, error: episodesError, status: episodesStatus } = tvdbEpisodesResult;
             const { data: translationsData, error: translationsError } = tvdbTranslationsResult;
 
-            // HAIL MARY Fallback: if indexer=tvdb failed with 404, maybe it's a TMDB ID?
+            // HAIL MARY Fallback: if indexer=tvdb failed with 404, the ID might be for an Episode, Season, or actually a TMDB ID
             if (episodesStatus === 404 && isAlreadyTvdbId) {
                 const cacheKey = `tv:${id}`;
                 const cachedExpiry = failedResolutionCache.get(cacheKey);
@@ -291,10 +291,54 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 }
 
                 logger.info(`Initiating Hail Mary resolution for failing TVDB ID: ${id}`);
+
+                // 1. Try resolving as an Episode ID
+                try {
+                    const { data: episodeData } = await providers.tvdb.GET("/episodes/{id}", {
+                        params: { path: { id: Number(id) } },
+                        headers: { Authorization: `Bearer ${tvdbToken}` },
+                        fetch: customFetch
+                    });
+
+                    if (episodeData?.data?.seriesId) {
+                        logger.info(`Resolved TVDB Episode ID ${id} to Series ID ${episodeData.data.seriesId}`);
+                        const newUrl = new URL(url);
+                        newUrl.pathname = `/details/media/${episodeData.data.seriesId}/tv`;
+                        newUrl.searchParams.delete("indexer");
+                        // Add/Update season and episode params if they aren't already there (or let them be overwritten)
+                        if (episodeData.data.seasonNumber != null) newUrl.searchParams.set("season", String(episodeData.data.seasonNumber));
+                        if (episodeData.data.number != null) newUrl.searchParams.set("episode", String(episodeData.data.number));
+                        throw redirect(307, newUrl.pathname + newUrl.search);
+                    }
+                } catch (e: any) {
+                    if (e?.status === 307 || e?.status === 308) throw e;
+                }
+
+                // 2. Try resolving as a Season ID
+                try {
+                    const { data: seasonData } = await providers.tvdb.GET("/seasons/{id}", {
+                        params: { path: { id: Number(id) } },
+                        headers: { Authorization: `Bearer ${tvdbToken}` },
+                        fetch: customFetch
+                    });
+
+                    if (seasonData?.data?.seriesId) {
+                        logger.info(`Resolved TVDB Season ID ${id} to Series ID ${seasonData.data.seriesId}`);
+                        const newUrl = new URL(url);
+                        newUrl.pathname = `/details/media/${seasonData.data.seriesId}/tv`;
+                        newUrl.searchParams.delete("indexer");
+                        if (seasonData.data.number != null) newUrl.searchParams.set("season", String(seasonData.data.number));
+                        throw redirect(307, newUrl.pathname + newUrl.search);
+                    }
+                } catch (e: any) {
+                    if (e?.status === 307 || e?.status === 308) throw e;
+                }
+
+                // 3. Fallback: Check if it's a TMDB ID mistakenly marked as indexer=tvdb
                 const resolved = await resolveId({
                     from: "tmdb",
                     to: "tvdb",
-                    id, // Cross-check as if it were TMDB
+                    id,
                     mediaType: "tv",
                     tvdbToken,
                     customFetch
@@ -306,11 +350,11 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     newUrl.pathname = `/details/media/${resolved.id}/tv`;
                     newUrl.searchParams.delete("indexer");
                     throw redirect(307, newUrl.pathname + newUrl.search);
-                } else {
-                    logger.warn(`Hail Mary resolution failed or redundant for TVDB ID: ${id}`);
-                    failedResolutionCache.set(cacheKey, Date.now() + 5 * 60 * 1000); // 5 min TTL
-                    error(404, "The requested TV show could not be found.");
                 }
+
+                logger.warn(`Hail Mary resolution failed for TVDB ID: ${id}`);
+                failedResolutionCache.set(cacheKey, Date.now() + 5 * 60 * 1000); // 5 min TTL
+                error(404, "The requested TV show could not be found.");
             }
 
             // Use episodes result as base

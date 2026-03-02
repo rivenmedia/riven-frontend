@@ -137,7 +137,10 @@ function mergeAbortSignals(
     return controller.signal;
 }
 
-function createFetchWithTimeout(timeoutMs: number = SETTINGS_FETCH_TIMEOUT_MS): typeof fetch {
+function createFetchWithTimeout(
+    fetchFn: typeof fetch,
+    timeoutMs: number = SETTINGS_FETCH_TIMEOUT_MS
+): typeof fetch {
     return async (input: RequestInfo | URL, init?: RequestInit) => {
         const timeoutController = new AbortController();
         let didTimeout = false;
@@ -148,7 +151,7 @@ function createFetchWithTimeout(timeoutMs: number = SETTINGS_FETCH_TIMEOUT_MS): 
 
         try {
             const signal = mergeAbortSignals(timeoutController.signal, init?.signal);
-            return await fetch(input, { ...init, signal });
+            return await fetchFn(input, { ...init, signal });
         } catch (e) {
             if (didTimeout) {
                 throw new SettingsFetchTimeoutError(timeoutMs);
@@ -168,6 +171,7 @@ function isTimeoutError(e: unknown): boolean {
 }
 
 async function loadSettingsDataWithRetry(
+    fetchFn: typeof fetch,
     backendUrl: string,
     apiKey: string,
     keys: string,
@@ -178,7 +182,7 @@ async function loadSettingsDataWithRetry(
     for (let attempt = 1; attempt <= SETTINGS_FETCH_MAX_ATTEMPTS; attempt++) {
         const timeoutMs =
             attempt === 1 ? SETTINGS_FETCH_TIMEOUT_MS : SETTINGS_FETCH_RETRY_TIMEOUT_MS;
-        const fetchWithTimeout = createFetchWithTimeout(timeoutMs);
+        const fetchWithTimeout = createFetchWithTimeout(fetchFn, timeoutMs);
         const attemptStartedAt = Date.now();
 
         logger.info("Loading settings data attempt started", {
@@ -252,6 +256,8 @@ export const load: PageServerLoad = async ({
         keyCount: keys.split(",").filter(Boolean).length,
         pathCount: paths.split(",").filter(Boolean).length,
         referer: request.headers.get("referer"),
+        // Note: 'purpose' or 'sec-purpose' is used for preloads/prefetches 
+        // but is not 100% consistent across all browsers/SvelteKit versions.
         purpose: request.headers.get("purpose") ?? request.headers.get("sec-purpose"),
         secFetchMode: request.headers.get("sec-fetch-mode"),
         secFetchDest: request.headers.get("sec-fetch-dest")
@@ -262,6 +268,7 @@ export const load: PageServerLoad = async ({
 
     try {
         [schema, initialValue] = await loadSettingsDataWithRetry(
+            fetch,
             locals.backendUrl,
             locals.apiKey,
             keys,
@@ -280,7 +287,12 @@ export const load: PageServerLoad = async ({
                 "Settings request timed out after retry. Backend may be slow or temporarily unreachable."
             );
         }
-        throw e;
+
+        // Fail visibly on all backend-related load failures to prevent 
+        // accidental saves of empty/default state.
+        error(503, {
+            message: "Failed to load settings from backend. Please check connectivity."
+        });
     }
 
     const props = (schema.properties ?? {}) as Record<string, unknown>;
