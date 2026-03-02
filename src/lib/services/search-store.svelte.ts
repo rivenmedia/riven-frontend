@@ -266,15 +266,18 @@ export class SearchStore {
 
         if (!queryChanged && !filtersChanged) {
             perfCount("search.sync_query.noop", 1, { queryLength: newQuery.length });
+            logger.info(`syncQuery: no changes detected for "${newQuery}"`);
+            // Ensure rawSearchString is synced even if no effective change for UI display
+            this.rawSearchString = newQuery;
             return;
         }
 
-        perfCount("search.sync_query.execute", 1, {
-            queryLength: newQuery.length,
+        logger.info(`syncQuery: executing search for "${newQuery}"`, {
             queryChanged,
             filtersChanged
         });
 
+        this.rawSearchString = newQuery;
         this.setSearch(newQuery, parsed);
         this.search();
     }
@@ -327,6 +330,7 @@ export class SearchStore {
             hasFilters: Object.keys(this.filterParams).length > 0
         });
 
+        logger.info(`Starting search: query="${this.searchQuery}", mediaType=${this.mediaType}`);
         this.cancelPendingRequests();
 
         this.abortController = new AbortController();
@@ -417,12 +421,10 @@ export class SearchStore {
                     runFetchWithTrace("company")
                 ]);
 
-                const movieFailed = outcomes.some(
-                    (outcome) => outcome.type === "movie" && !outcome.ok && !outcome.aborted
-                );
-                const tvFailed = outcomes.some(
-                    (outcome) => outcome.type === "tv" && !outcome.ok && !outcome.aborted
-                );
+                logger.info("Universal search outcomes:", outcomes);
+
+                const movieFailed = outcomes.find((o) => o.type === "movie")?.ok === false;
+                const tvFailed = outcomes.find((o) => o.type === "tv")?.ok === false;
 
                 if (!signal.aborted && movieFailed && tvFailed) {
                     this.error = "Failed to fetch movie and TV results";

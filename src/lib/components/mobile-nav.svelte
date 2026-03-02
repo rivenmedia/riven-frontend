@@ -10,30 +10,78 @@
     import type { createSidebarStore } from "$lib/stores/global.svelte";
     import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
+    import type { SearchStore } from "$lib/services/search-store.svelte";
+    import { parseSearchQuery } from "$lib/search-parser";
+    import { perfCount } from "$lib/perf";
+    import { afterNavigate } from "$app/navigation";
 
     const SidebarStore = getContext<createSidebarStore>("sidebarStore");
+    const searchStore = getContext<SearchStore>("searchStore");
 
     let inputRef = $state<HTMLInputElement | null>(null);
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let inputValue = $state("");
+    let localSearchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+    let urlNavigationDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-    function navigateToSearch() {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        const query = inputRef?.value.trim() || "";
+    const LOCAL_SEARCH_DEBOUNCE_MS = 150;
+    const URL_NAVIGATION_DEBOUNCE_MS = 600;
+
+    // Sync URL changes to input
+    afterNavigate(() => {
+        const urlQuery = page.url.searchParams.get("query") || "";
+        if (urlQuery !== inputValue && inputRef !== document.activeElement) {
+            inputValue = urlQuery;
+        }
+    });
+
+    function applyLocalSearch(query: string) {
         const currentlyExplore = page.url.pathname === "/explore";
-        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
-            keepFocus: currentlyExplore,
+        if (currentlyExplore) {
+            const parsed = parseSearchQuery(query);
+            searchStore.syncQuery(parsed);
+            perfCount("explore.search.local_sync.mobile", 1, { queryLength: query.length });
+        }
+    }
+
+    async function navigateToSearch(force = false) {
+        clearTimeout(localSearchDebounceTimer);
+        clearTimeout(urlNavigationDebounceTimer);
+
+        const query = inputValue.trim();
+        const currentlyExplore = page.url.pathname === "/explore";
+        const currentQuery = page.url.searchParams.get("query") || "";
+
+        applyLocalSearch(query);
+
+        if (!force && currentlyExplore && query === currentQuery) {
+            return;
+        }
+
+        await goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+            keepFocus: true,
             noScroll: true,
             replaceState: currentlyExplore
         });
     }
 
     function handleInput() {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(navigateToSearch, 300);
+        clearTimeout(localSearchDebounceTimer);
+        clearTimeout(urlNavigationDebounceTimer);
+
+        const query = inputValue.trim();
+
+        localSearchDebounceTimer = setTimeout(() => {
+            applyLocalSearch(query);
+        }, LOCAL_SEARCH_DEBOUNCE_MS);
+
+        urlNavigationDebounceTimer = setTimeout(() => {
+            void navigateToSearch(false);
+        }, URL_NAVIGATION_DEBOUNCE_MS);
     }
 
     onDestroy(() => {
-        if (debounceTimer) clearTimeout(debounceTimer);
+        clearTimeout(localSearchDebounceTimer);
+        clearTimeout(urlNavigationDebounceTimer);
     });
 </script>
 
@@ -52,12 +100,12 @@
             name="query"
             placeholder="Search..."
             aria-label="Search"
-            value={page.url.searchParams.get("query") || ""}
+            bind:value={inputValue}
             oninput={handleInput}
             onkeydown={(e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
-                    navigateToSearch();
+                    void navigateToSearch(true);
                 }
             }}
             class="text-foreground h-full flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-white/40"

@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url, request 
     const hasTextQuery = Boolean(url.searchParams.get("query")?.trim());
 
     if (isDebugLoggingEnabled) {
-        logger.debug(
+        logger.info(
             `Search request: type=${type}, searchMode=${searchMode}, params=${url.searchParams.toString()}`
         );
     }
@@ -115,12 +115,18 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url, request 
             });
         };
 
-        const { data, error: apiError } = await fetchResults();
+        const { data, error: apiError, response } = await fetchResults();
 
         if (apiError) {
-            logger.error(`TMDB API error:`, apiError);
+            logger.error(`TMDB API error for ${type} search:`, {
+                apiError,
+                status: response?.status,
+                statusText: response?.statusText
+            });
             error(500, `Failed to fetch ${type}s`);
         }
+
+        logger.info(`TMDB search successful for ${type}: ${data?.results?.length ?? 0} results`);
 
         const results = (data?.results as TMDBListItem[]) || [];
 

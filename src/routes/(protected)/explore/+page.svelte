@@ -20,7 +20,9 @@
     let currentExampleIndex = $state(0);
     let currentHeroIndex = $state(0);
     let showEmptyState = $derived(
-        !searchStore.rawSearchString && Object.keys(searchStore.filterParams).length === 0
+        !searchStore.rawSearchString &&
+            !searchStore.searchQuery &&
+            Object.keys(searchStore.filterParams).length === 0
     );
     let hasResults = $derived(Array.isArray(searchStore.results) && searchStore.results.length > 0);
 

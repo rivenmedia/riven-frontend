@@ -167,6 +167,7 @@ export const load: PageServerLoad = async ({ url, fetch, request }) => {
     const form = await superValidate(url.searchParams, zod4(searchSchema));
     const parsed = parseSearchQuery(form.data.query || "");
 
+    logger.info(`Explore load: query="${form.data.query || ""}", parsedQuery="${parsed.query}", searchMode=${parsed.searchMode}`);
     // Merge any other parameters from the URL that aren't 'query' or 'type'
     // into tmdbParams so they are correctly synced to the SearchStore
     const { query: _, type: __, ...filters } = form.data;
