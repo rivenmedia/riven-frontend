@@ -7,32 +7,47 @@ import type {
     TVDBBaseItem
 } from "$lib/providers/parser";
 import type { RivenMediaItem } from "$lib/types/riven";
-import { error } from "@sveltejs/kit";
+import { error, redirect } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
 import { resolveId, type ResolveResult } from "$lib/services/resolver";
 
 const logger = createScopedLogger("media-details");
 
-async function normalizeFetch<T>(p: Promise<T>): Promise<
-    | T
-    | {
-          data: null;
-          error: {
-              status: number;
-              message: string;
-          };
-      }
-> {
+/**
+ * Cache for failed ID resolutions to prevent hitting APIs repeatedly for unresolvable content.
+ * Keyed by "mediaType:id" (e.g., "tv:12345"). Stores expiry timestamp.
+ * Note: This is in-memory and per-process.
+ */
+const failedResolutionCache = new Map<string, number>();
+
+async function fetchWithStatus<T>(p: Promise<T>): Promise<{
+    data: any | null;
+    error: any | null;
+    status: number;
+}> {
     try {
-        return await p;
-    } catch (e) {
+        const result = (await p) as any;
+        // openapi-fetch returns { data, error, response }
+        if (result && typeof result === "object" && "response" in result) {
+            return {
+                data: result.data || null,
+                error: result.error || null,
+                status: result.response?.status || 200
+            };
+        }
+        // Fallback for non-openapi-fetch promises
+        return {
+            data: result,
+            error: null,
+            status: 200
+        };
+    } catch (e: any) {
+        // Capture status from error object if present, otherwise 0 for network/DNS errors
         return {
             data: null,
-            error: {
-                status: 503,
-                message: e instanceof Error ? e.message : String(e)
-            }
+            error: e,
+            status: e?.status || 0
         };
     }
 }
@@ -150,7 +165,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
 
             // Fetch TMDB details and Trakt data in parallel
             const [tmdbResult, traktResult, rivenData] = await Promise.all([
-                normalizeFetch(
+                fetchWithStatus(
                     providers.tmdb.GET(`/3/movie/{movie_id}`, {
                         params: {
                             path: {
@@ -168,11 +183,14 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 rivenPromise
             ]);
 
-            const { data: details, error: detailsError } = tmdbResult;
+            const { data: details, error: detailsError, status: detailsStatus } = tmdbResult;
 
             if (detailsError) {
                 logger.error("TMDB movie details fetch failed:", detailsError);
-                error(503, "Unable to connect to TMDB. Please try again later.");
+                if (detailsStatus === 404) {
+                    error(404, "The requested movie could not be found.");
+                }
+                error(503, "Something went wrong while fetching movie details. Please try again later.");
             }
 
             const parsedDetails = providers.parser.parseTMDBMovieDetails(
@@ -201,7 +219,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 tvdbId = Number(id);
             } else {
                 // Resolve TMDB ID to TVDB ID
-                const resolvedRaw = await normalizeFetch(
+                const { data: resolved, error: resolveError } = await fetchWithStatus(
                     resolveId({
                         from: "tmdb",
                         to: "tvdb",
@@ -212,10 +230,8 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     })
                 );
 
-                const resolved =
-                    resolvedRaw && "resolved" in resolvedRaw ? (resolvedRaw as ResolveResult) : null;
-                if (!resolved?.resolved) {
-                    logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`);
+                if (resolveError || !resolved?.resolved) {
+                    logger.error(`Failed to resolve TMDB ID ${id} to TVDB ID`, resolveError);
                     error(502, "Unable to resolve TV show ID. Please try again later.");
                 }
 
@@ -238,7 +254,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
             // Fetch TVDB details (episodes + translations separately), Trakt data, and Riven data in parallel
             const [tvdbEpisodesResult, tvdbTranslationsResult, traktResult, rivenData] =
                 await Promise.all([
-                    normalizeFetch(
+                    fetchWithStatus(
                         providers.tvdb.GET(`/series/{id}/extended`, {
                             params: {
                                 path: { id: tvdbId },
@@ -248,7 +264,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             fetch: customFetch
                         })
                     ),
-                    normalizeFetch(
+                    fetchWithStatus(
                         providers.tvdb.GET(`/series/{id}/extended`, {
                             params: {
                                 path: { id: tvdbId },
@@ -262,8 +278,40 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     rivenPromise
                 ]);
 
-            const { data: episodesData, error: episodesError } = tvdbEpisodesResult;
+            let { data: episodesData, error: episodesError, status: episodesStatus } = tvdbEpisodesResult;
             const { data: translationsData, error: translationsError } = tvdbTranslationsResult;
+
+            // HAIL MARY Fallback: if indexer=tvdb failed with 404, maybe it's a TMDB ID?
+            if (episodesStatus === 404 && isAlreadyTvdbId) {
+                const cacheKey = `tv:${id}`;
+                const cachedExpiry = failedResolutionCache.get(cacheKey);
+                if (cachedExpiry && Date.now() < cachedExpiry) {
+                    logger.info(`Hail Mary skipped (cached failure) for TVDB ID: ${id}`);
+                    error(404, "The requested TV show could not be found.");
+                }
+
+                logger.info(`Initiating Hail Mary resolution for failing TVDB ID: ${id}`);
+                const resolved = await resolveId({
+                    from: "tmdb",
+                    to: "tvdb",
+                    id, // Cross-check as if it were TMDB
+                    mediaType: "tv",
+                    tvdbToken,
+                    customFetch
+                });
+
+                if (resolved.resolved && String(resolved.id) !== String(id)) {
+                    logger.info(`Resolved TVDB ID ${id} to TMDB-originated ID ${resolved.id}. Redirecting via 307.`);
+                    const newUrl = new URL(url);
+                    newUrl.pathname = `/details/media/${resolved.id}/tv`;
+                    newUrl.searchParams.delete("indexer");
+                    throw redirect(307, newUrl.pathname + newUrl.search);
+                } else {
+                    logger.warn(`Hail Mary resolution failed or redundant for TVDB ID: ${id}`);
+                    failedResolutionCache.set(cacheKey, Date.now() + 5 * 60 * 1000); // 5 min TTL
+                    error(404, "The requested TV show could not be found.");
+                }
+            }
 
             // Use episodes result as base
             const detailsError = episodesError;
@@ -282,12 +330,15 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 details.data.translations = translationsData.data.translations;
             }
 
-            if (detailsError) {
+            if (episodesError) {
                 logger.error(
                     `TVDB show details fetch failed for ID ${tvdbId} (Original: ${id}):`,
-                    detailsError
+                    episodesError
                 );
-                error(503, "Unable to connect to TVDB. Please try again later.");
+                if (episodesStatus === 404) {
+                    error(404, "The requested TV show could not be found.");
+                }
+                error(503, "Something went wrong while fetching TV show details. Please try again later.");
             }
 
             if (!details) {
@@ -303,7 +354,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 languagesToCheck.includes(details.data.originalLanguage)
             ) {
                 try {
-                    const { data: engEpisodesData, error: engEpisodesError } = await normalizeFetch(
+                    const { data: engEpisodesData, error: engEpisodesError } = await fetchWithStatus(
                         providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
                             params: {
                                 path: {
