@@ -60,7 +60,10 @@
     const isDirty = $derived(form?.isChanged ?? false);
     const isNavigating = $derived(Boolean($navigating));
     const activeTab = $derived(
-        $page.data.tabs.find((t: { id: string; label: string; restartRequired?: boolean }) => t.id === $page.data.activeTabId)
+        $page.data.tabs?.find(
+            (t: { id: string; label: string; restartRequired?: boolean }) =>
+                t.id === $page.data.activeTabId
+        )
     );
 
     $effect(() => {
@@ -78,6 +81,97 @@
         (formEl as HTMLFormElement)?.requestSubmit();
     }
 </script>
+
+<Card.Root class="bg-card border-border/80 shadow-sm">
+    <Card.Header class="space-y-3 pb-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <Card.Title class="text-base font-semibold text-neutral-100 md:text-lg">
+                    {activeTab?.label ?? "Settings"}
+                </Card.Title>
+                {#if activeTab?.restartRequired}
+                    <Badge
+                        class="border-amber-500/30 bg-amber-500/20 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                        Restart required
+                    </Badge>
+                {/if}
+            </div>
+
+            <div class="flex items-center gap-2" aria-live="polite">
+                {#if isNavigating}
+                    <Badge variant="outline" class="text-[11px] font-medium">
+                        <Loader2 class="size-3.5 animate-spin" />
+                        Saving
+                    </Badge>
+                {:else if saveStatus === "success" && !isDirty}
+                    <Badge
+                        class="border-emerald-500/30 bg-emerald-500/20 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                        <Check class="size-3.5" />
+                        Saved
+                    </Badge>
+                {:else if saveStatus === "error"}
+                    <Badge
+                        class="border-red-500/30 bg-red-500/20 text-[11px] font-medium text-red-600 dark:text-red-400">
+                        <AlertCircle class="size-3.5" />
+                        Save failed
+                    </Badge>
+                {:else if isDirty}
+                    <Badge variant="outline" class="text-[11px] font-medium">Draft</Badge>
+                {:else}
+                    <Badge variant="outline" class="text-[11px] font-medium">Current</Badge>
+                {/if}
+            </div>
+        </div>
+
+        <div class="flex items-start gap-2">
+            <Card.Description class="text-muted-foreground text-xs md:text-sm">
+                Edit this section and save to persist changes to backend settings.
+            </Card.Description>
+            <Tooltip.Root>
+                <Tooltip.Trigger>
+                    <HelpCircle
+                        class="text-muted-foreground hover:text-foreground mt-0.5 size-4 shrink-0 cursor-help"
+                        aria-label="Help" />
+                </Tooltip.Trigger>
+                <Tooltip.Content side="right" class="max-w-xs text-balance">
+                    Changes are scoped to this section. Save only after reviewing all edited values.
+                </Tooltip.Content>
+            </Tooltip.Root>
+        </div>
+
+        {#if saveStatus === "error"}
+            <Alert variant="destructive" class="py-2">
+                <AlertCircle class="size-4" />
+                <AlertTitle>Save failed</AlertTitle>
+                <AlertDescription>
+                    Settings were not persisted. Review form errors and retry.
+                </AlertDescription>
+            </Alert>
+        {/if}
+    </Card.Header>
+    <Card.Content class="space-y-5">
+        <BasicForm {form} method="POST" class="settings-form" />
+    </Card.Content>
+    <Card.Footer
+        class="border-border/70 bg-muted/20 flex flex-row items-center justify-between gap-2 border-t px-5 py-3 md:px-6">
+        <span class="text-muted-foreground text-xs"
+            >{isDirty ? "Unsaved changes" : "No pending changes"}</span>
+        <Button
+            type="button"
+            onclick={submitForm}
+            disabled={!isDirty || isNavigating}
+            class="min-w-[10rem]">
+            {#if isNavigating}
+                <Loader2 class="size-4 animate-spin" />
+                Saving...
+            {:else if isDirty}
+                Save changes
+            {:else}
+                Up to date
+            {/if}
+        </Button>
+    </Card.Footer>
+</Card.Root>
 
 <style>
     :global(.settings-form) {
@@ -120,86 +214,3 @@
         margin-top: 0.25rem;
     }
 </style>
-
-<Card.Root class="bg-card border-border/80 shadow-sm">
-    <Card.Header class="space-y-3 pb-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-                <Card.Title class="text-base font-semibold text-neutral-100 md:text-lg">
-                    {activeTab?.label ?? "Settings"}
-                </Card.Title>
-                {#if activeTab?.restartRequired}
-                    <Badge class="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[11px] font-medium">
-                        Restart required
-                    </Badge>
-                {/if}
-            </div>
-
-            <div class="flex items-center gap-2" aria-live="polite">
-                {#if isNavigating}
-                    <Badge variant="outline" class="text-[11px] font-medium">
-                        <Loader2 class="size-3.5 animate-spin" />
-                        Saving
-                    </Badge>
-                {:else if saveStatus === "success" && !isDirty}
-                    <Badge class="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[11px] font-medium">
-                        <Check class="size-3.5" />
-                        Saved
-                    </Badge>
-                {:else if saveStatus === "error"}
-                    <Badge class="bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30 text-[11px] font-medium">
-                        <AlertCircle class="size-3.5" />
-                        Save failed
-                    </Badge>
-                {:else if isDirty}
-                    <Badge variant="outline" class="text-[11px] font-medium">Draft</Badge>
-                {:else}
-                    <Badge variant="outline" class="text-[11px] font-medium">Current</Badge>
-                {/if}
-            </div>
-        </div>
-
-        <div class="flex items-start gap-2">
-            <Card.Description class="text-muted-foreground text-xs md:text-sm">
-                Edit this section and save to persist changes to backend settings.
-            </Card.Description>
-            <Tooltip.Root>
-                <Tooltip.Trigger>
-                    <HelpCircle
-                        class="text-muted-foreground hover:text-foreground mt-0.5 size-4 shrink-0 cursor-help"
-                        aria-label="Help"
-                    />
-                </Tooltip.Trigger>
-                <Tooltip.Content side="right" class="max-w-xs text-balance">
-                    Changes are scoped to this section. Save only after reviewing all edited values.
-                </Tooltip.Content>
-            </Tooltip.Root>
-        </div>
-
-        {#if saveStatus === "error"}
-            <Alert variant="destructive" class="py-2">
-                <AlertCircle class="size-4" />
-                <AlertTitle>Save failed</AlertTitle>
-                <AlertDescription>
-                    Settings were not persisted. Review form errors and retry.
-                </AlertDescription>
-            </Alert>
-        {/if}
-    </Card.Header>
-    <Card.Content class="space-y-5">
-        <BasicForm {form} method="POST" class="settings-form" />
-    </Card.Content>
-    <Card.Footer class="flex flex-row items-center justify-between gap-2 border-t border-border/70 bg-muted/20 px-5 py-3 md:px-6">
-        <span class="text-muted-foreground text-xs">{isDirty ? "Unsaved changes" : "No pending changes"}</span>
-        <Button type="button" onclick={submitForm} disabled={!isDirty || isNavigating} class="min-w-[10rem]">
-            {#if isNavigating}
-                <Loader2 class="size-4 animate-spin" />
-                Saving...
-            {:else if isDirty}
-                Save changes
-            {:else}
-                Up to date
-            {/if}
-        </Button>
-    </Card.Footer>
-</Card.Root>

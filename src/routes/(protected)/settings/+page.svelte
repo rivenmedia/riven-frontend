@@ -66,7 +66,10 @@
     const isDirty = $derived(form?.isChanged ?? false);
     const isNavigating = $derived(Boolean($navigating));
     const activeTab = $derived(
-        $page.data.tabs.find((t: { id: string; label: string; restartRequired?: boolean }) => t.id === $page.data.activeTabId)
+        $page.data.tabs?.find(
+            (t: { id: string; label: string; restartRequired?: boolean }) =>
+                t.id === $page.data.activeTabId
+        )
     );
     const saveButtonLabel = $derived(
         isNavigating ? "Saving..." : isDirty ? "Save changes" : "All changes saved"
@@ -80,33 +83,36 @@
 <PageShell class="h-full">
     <Tooltip.Provider>
         <div class="mx-auto max-w-6xl px-4 md:px-6">
-            <header class="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-start md:justify-between">
+            <header
+                class="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-start md:justify-between">
                 <div>
                     <p class="text-muted-foreground text-sm font-medium">Admin</p>
                     <div class="mt-1 flex flex-wrap items-center gap-2">
                         <h1 class="text-3xl font-bold tracking-tight text-neutral-50">Settings</h1>
                         {#if activeTab}
-                            <Badge variant="outline" class="text-xs font-medium">{activeTab.label}</Badge>
+                            <Badge variant="outline" class="text-xs font-medium"
+                                >{activeTab.label}</Badge>
                         {/if}
                         {#if activeTab?.restartRequired}
-                            <Badge class="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 text-xs font-medium">
+                            <Badge
+                                class="border-amber-500/30 bg-amber-500/20 text-xs font-medium text-amber-600 dark:text-amber-400">
                                 Restart required section
                             </Badge>
                         {/if}
                     </div>
                     <p class="text-muted-foreground mt-2 max-w-3xl text-sm md:text-[0.92rem]">
-                        Configure backend behavior with production-safe defaults. Keep changes focused,
-                        then save once to apply the current section.
+                        Configure backend behavior with production-safe defaults. Keep changes
+                        focused, then save once to apply the current section.
                     </p>
                 </div>
                 <div class="mt-2 flex items-center gap-2 md:mt-0">
                     {#if isDirty}
-                        <div class="text-amber-500 flex items-center gap-1.5 text-xs font-medium">
+                        <div class="flex items-center gap-1.5 text-xs font-medium text-amber-500">
                             <AlertCircle class="size-3.5" />
                             Unsaved changes
                         </div>
                     {:else}
-                        <div class="text-emerald-500 flex items-center gap-1.5 text-xs font-medium">
+                        <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-500">
                             <Check class="size-3.5" />
                             All changes saved
                         </div>
@@ -150,7 +156,7 @@
                             <span>{tab.label}</span>
                             {#if tab.restartRequired}
                                 <span
-                                    class="bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded px-1.5 py-0.5 text-[10px] font-medium"
+                                    class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400"
                                     title="Changes require restart">Restart</span>
                             {/if}
                         </button>
@@ -158,8 +164,10 @@
                 </nav>
 
                 <!-- Right: form - keyed by activeTabId so form remounts and loads correct schema when tab changes -->
-                <div class="relative min-w-0 flex-1 rounded-xl border border-border/70 bg-card/35 p-3 md:p-4">
-                    <div class="mb-3 flex items-center justify-between gap-2 border-b border-border/60 pb-3">
+                <div
+                    class="border-border/70 bg-card/35 relative min-w-0 flex-1 rounded-xl border p-3 md:p-4">
+                    <div
+                        class="border-border/60 mb-3 flex items-center justify-between gap-2 border-b pb-3">
                         <div class="flex items-center gap-1.5 text-sm font-medium text-neutral-200">
                             <RefreshCw class={cn("size-3.5", isNavigating && "animate-spin")} />
                             {activeTab?.label ?? "Settings"} configuration
@@ -170,9 +178,10 @@
                     </div>
                     {#if $navigating}
                         <div
-                            class="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px]"
+                            class="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-xl backdrop-blur-[1px]"
                             aria-live="polite">
-                            <span class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                            <span
+                                class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                                 <Loader2 class="size-4 animate-spin" />
                                 Loading section…
                             </span>
@@ -192,10 +201,16 @@
                     aria-live="polite">
                     <div class="min-w-0">
                         <span class="text-sm font-medium text-amber-500">Unsaved changes</span>
-                        <p class="text-muted-foreground truncate text-xs">Review and save this section to persist updates.</p>
+                        <p class="text-muted-foreground truncate text-xs">
+                            Review and save this section to persist updates.
+                        </p>
                     </div>
                     <div class="flex gap-2">
-                        <Button variant="outline" size="sm" onclick={() => form?.reset()} disabled={isNavigating}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onclick={() => form?.reset()}
+                            disabled={isNavigating}>
                             Discard
                         </Button>
                         <Button size="sm" onclick={submitSettingsForm} disabled={isNavigating}>
@@ -221,7 +236,8 @@
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onclick={cancelTabSwitch}>Stay</AlertDialogCancel>
-                    <AlertDialogAction onclick={confirmDiscardAndSwitch}>Discard and switch</AlertDialogAction>
+                    <AlertDialogAction onclick={confirmDiscardAndSwitch}
+                        >Discard and switch</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
