@@ -5,6 +5,5 @@
             "prerelease": true,
             "component": ""
         }
-    },
-    "include-v-in-tag": true
+    }
 }

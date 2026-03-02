@@ -9,10 +9,6 @@ permissions:
     contents: write
     pull-requests: write
 
-concurrency:
-    group: release-${{ github.ref }}
-    cancel-in-progress: true
-
 jobs:
     release-please:
         runs-on: ubuntu-latest
@@ -20,7 +16,9 @@ jobs:
             - name: Checkout Code
               uses: actions/checkout@v4
 
-            - uses: googleapis/release-please-action@v4.4.0
+            - uses: googleapis/release-please-action@v4
               id: release
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
+                  manifest-file: .release-please-manifest.json
+                  config-file: release-please-config.json
