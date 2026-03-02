@@ -145,6 +145,10 @@ async function handleGeneralRequest(request: Request, url: URL): Promise<Respons
 }
 
 function shouldCacheResponse(url: URL, response: Response): boolean {
+    if (url.pathname.includes("/api/")) {
+        return false;
+    }
+
     if (ASSETS.includes(url.pathname)) {
         return true;
     }

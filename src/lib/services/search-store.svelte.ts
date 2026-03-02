@@ -77,63 +77,27 @@ export class SearchStore {
     // For request cancellation
     abortController: AbortController | null = null;
 
-    #mergedSortedResults = $state<TMDBTransformedListItem[]>([]);
-    #mergedMovieRef: TMDBTransformedListItem[] | null = null;
-    #mergedTvRef: TMDBTransformedListItem[] | null = null;
-    #mergedPersonRef: TMDBTransformedListItem[] | null = null;
-    #mergedCompanyRef: TMDBTransformedListItem[] | null = null;
+    results = $derived.by(() => {
+        // Explicitly access state to ensure Svelte 5 tracking
+        const mr = this.movieResults;
+        const tr = this.tvResults;
+        const pr = this.personResults;
+        const cr = this.companyResults;
+        const mt = this.mediaType;
 
-    private ensureMergedSortedResults(): void {
-        if (
-            this.#mergedMovieRef === this.movieResults &&
-            this.#mergedTvRef === this.tvResults &&
-            this.#mergedPersonRef === this.personResults &&
-            this.#mergedCompanyRef === this.companyResults
-        ) {
-            return;
+        if (mt === "both") {
+            const merged = [...mr, ...tr, ...pr, ...cr];
+            merged.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+            return merged;
         }
-
-        this.#mergedMovieRef = this.movieResults;
-        this.#mergedTvRef = this.tvResults;
-        this.#mergedPersonRef = this.personResults;
-        this.#mergedCompanyRef = this.companyResults;
-
-        const merged = [
-            ...this.movieResults,
-            ...this.tvResults,
-            ...this.personResults,
-            ...this.companyResults
-        ];
-
-        merged.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
-        this.#mergedSortedResults = merged;
-    }
-
-    private canFetchMediaType(type: "movie" | "tv" | "person" | "company"): boolean {
-        if (type === "person" || type === "company") {
-            const hasTextQuery = Boolean(this.parsedSearch?.query?.trim());
-            if (!hasTextQuery) {
-                logger.debug(`Skipping ${type} fetch because text query is empty`);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    get results() {
-        if (this.mediaType === "both") {
-            this.ensureMergedSortedResults();
-            return this.#mergedSortedResults;
-        }
-        if (this.mediaType === "movie") return this.movieResults;
-        if (this.mediaType === "tv") return this.tvResults;
-        if (this.mediaType === "person") return this.personResults;
-        if (this.mediaType === "company") return this.companyResults;
+        if (mt === "movie") return mr;
+        if (mt === "tv") return tr;
+        if (mt === "person") return pr;
+        if (mt === "company") return cr;
         return [];
-    }
+    });
 
-    get unfilteredResultsCount() {
+    unfilteredResultsCount = $derived.by(() => {
         if (this.mediaType === "both") {
             return (
                 this.movieResults.length +
@@ -147,9 +111,9 @@ export class SearchStore {
         if (this.mediaType === "person") return this.personResults.length;
         if (this.mediaType === "company") return this.companyResults.length;
         return 0;
-    }
+    });
 
-    get totalResults() {
+    totalResults = $derived.by(() => {
         if (this.mediaType === "both") {
             return (
                 this.totalResultsMovie +
@@ -163,9 +127,9 @@ export class SearchStore {
         if (this.mediaType === "person") return this.totalResultsPerson;
         if (this.mediaType === "company") return this.totalResultsCompany;
         return 0;
-    }
+    });
 
-    get hasMore() {
+    hasMore = $derived.by(() => {
         if (this.mediaType === "both") {
             return this.movieHasMore || this.tvHasMore || this.personHasMore || this.companyHasMore;
         }
@@ -174,6 +138,18 @@ export class SearchStore {
         if (this.mediaType === "person") return this.personHasMore;
         if (this.mediaType === "company") return this.companyHasMore;
         return false;
+    });
+
+    private canFetchMediaType(type: "movie" | "tv" | "person" | "company"): boolean {
+        if (type === "person" || type === "company") {
+            const hasTextQuery = Boolean(this.parsedSearch?.query?.trim());
+            if (!hasTextQuery) {
+                logger.debug(`Skipping ${type} fetch because text query is empty`);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     async setMediaType(type: "movie" | "tv" | "person" | "company" | "both") {
@@ -467,6 +443,16 @@ export class SearchStore {
         } finally {
             if (!signal.aborted) {
                 this.loading = false;
+
+                // DIAGNOSTIC RELAY: Support debugging mobile issues
+                if (this.results.length === 0) {
+                    this.relayDiagnostic("info", "Search finished with 0 results", {
+                        query: this.searchQuery,
+                        mediaType: this.mediaType,
+                        filterCount: Object.keys(this.filterParams).length,
+                        hasError: Boolean(this.error)
+                    });
+                }
             }
 
             endPerfMark(searchMark, {
@@ -474,6 +460,24 @@ export class SearchStore {
                 totalResults: this.totalResults,
                 hasError: Boolean(this.error)
             });
+        }
+    }
+
+    private async relayDiagnostic(mode: "info" | "error", message: string, data: any) {
+        if (!browser) return;
+        try {
+            await fetch("/api/logs/client", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    tag: "search-store",
+                    message,
+                    data,
+                    userAgent: navigator.userAgent
+                })
+            });
+        } catch (e) {
+            // Silently fail diagnostic relay
         }
     }
 
@@ -730,13 +734,25 @@ export class SearchStore {
         }
 
         try {
-            return await response.json();
+            const json = await response.json();
+            if (Array.isArray(json.results) && json.results.length === 0) {
+                logger.debug(`fetchSearchResults: received empty results array for ${type}`, { status: response.status });
+            }
+            return json;
         } catch (err) {
+            const rawBodySnippet = "Unavailable"; // In browser we can't easily peek text() then json()
             logger.error(`Failed to parse JSON for ${type} search result`, {
                 status: response.status,
                 contentType: response.headers.get("content-type"),
                 error: err instanceof Error ? err.message : String(err)
             });
+
+            this.relayDiagnostic("error", `Failed to parse ${type} search results`, {
+                status: response.status,
+                contentType: response.headers.get("content-type"),
+                error: err instanceof Error ? err.message : String(err)
+            });
+
             throw new Error(`Failed to parse ${type} search results. Received non-JSON response.`);
         }
     }
@@ -774,6 +790,10 @@ export class SearchStore {
         if (signal?.aborted) return;
 
         const items = (result.results || []) as TMDBTransformedListItem[];
+        logger.info(`fetchMedia: got ${items.length} items for ${type}`, {
+            page,
+            total_results: result.total_results
+        });
 
         if (page === 1) {
             const uniqueItems = this.deduplicateItems(items);

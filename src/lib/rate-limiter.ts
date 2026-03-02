@@ -151,8 +151,8 @@ class RateLimiter {
 const rateLimiters: Record<string, RateLimiter> = {
     "api.themoviedb.org": new RateLimiter({
         name: "TMDB",
-        maxConcurrent: 10,
-        maxRPS: 35 // Slightly under 40 allow
+        maxConcurrent: 40,
+        maxRPS: 40
     }),
     "api4.thetvdb.com": new RateLimiter({
         name: "TVDB",
