@@ -21,7 +21,7 @@ function extractId(data: unknown, field: string): string | number | null {
 }
 
 export type Indexer = "tmdb" | "tvdb" | "imdb" | "anilist" | "riven";
-export type MediaType = "movie" | "tv";
+export type MediaType = "movie" | "tv" | "person";
 
 export interface ResolveOptions {
     from: Indexer;
@@ -50,7 +50,8 @@ const resolvers: Record<string, Resolver> = {
     "anilist->tvdb": (opts) => anilistToExternal(opts, "tvdb"),
     "anilist->tmdb": (opts) => anilistToExternal(opts, "tmdb"),
     "riven->tvdb": (opts) => rivenToExternal(opts, "tvdb"),
-    "riven->tmdb": (opts) => rivenToExternal(opts, "tmdb")
+    "riven->tmdb": (opts) => rivenToExternal(opts, "tmdb"),
+    "tvdb->tmdb": tvdbToTmdb
 };
 
 /**
@@ -163,6 +164,70 @@ async function tmdbToTvdb(options: ResolveOptions): Promise<ResolveResult> {
 }
 
 /**
+ * TVDB -> TMDB resolution
+ */
+async function tvdbToTmdb(options: ResolveOptions): Promise<ResolveResult> {
+    const { id, mediaType, customFetch, tvdbToken } = options;
+
+    if (mediaType === "person") {
+        if (!tvdbToken) {
+            logger.warn("TVDB token required for person resolution");
+            return { id, resolved: false };
+        }
+
+        try {
+            // 1. Get person details from TVDB to get IMDB ID
+            const { data: tvdbPerson, error: tvdbError } = await providers.tvdb.GET(
+                "/people/{id}/extended",
+                {
+                    params: { path: { id: Number(id) } },
+                    headers: { Authorization: `Bearer ${tvdbToken}` },
+                    fetch: customFetch
+                }
+            );
+
+            if (tvdbError || !tvdbPerson?.data) {
+                logger.warn(`Failed to fetch TVDB person ${id}:`, tvdbError);
+                return { id, resolved: false };
+            }
+
+            // Find IMDB ID in remoteIds
+            const imdbId = (tvdbPerson.data as any).remoteIds?.find(
+                (r: any) => r.sourceName?.toLowerCase() === "imdb" || r.type === 2
+            )?.id;
+
+            if (!imdbId) {
+                logger.warn(`No IMDB ID found for TVDB person ${id}`);
+                return { id, resolved: false };
+            }
+
+            // 2. Use TMDB find endpoint with IMDB ID
+            const { data: tmdbFind, error: tmdbError } = await providers.tmdb.GET("/3/find/{external_id}", {
+                params: {
+                    path: { external_id: imdbId },
+                    query: { external_source: "imdb_id" }
+                },
+                fetch: customFetch
+            });
+
+            if (tmdbError || !tmdbFind) {
+                logger.warn(`TMDB find failed for IMDB ID ${imdbId}:`, tmdbError);
+                return { id, resolved: false };
+            }
+
+            const personMatch = (tmdbFind as any).person_results?.[0];
+            if (personMatch?.id) {
+                return { id: personMatch.id, resolved: true };
+            }
+        } catch (e) {
+            logger.error(`Error resolving TVDB person ${id} to TMDB:`, e);
+        }
+    }
+
+    return { id, resolved: false };
+}
+
+/**
  * TMDB -> IMDB
  */
 async function tmdbToImdb(options: ResolveOptions): Promise<ResolveResult> {
@@ -259,7 +324,7 @@ async function rivenToExternal(
         const { data, error } = await providers.riven.GET("/api/v1/items/{id}", {
             params: {
                 path: { id: String(id) },
-                query: { media_type: mediaType }
+                query: { media_type: mediaType as any }
             },
             baseUrl: rivenBaseUrl,
             headers: { "x-api-key": rivenApiKey },
