@@ -73,8 +73,17 @@
 
     function itemUrl(item: EntertainmentItem): string | undefined {
         const mediaType = item.item_type === "movie" ? "movie" : "tv";
-        if (item.tmdb_id) return resolve(`/details/media/${item.tmdb_id}/${mediaType}`);
-        if (item.tvdb_id) return resolve(`/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`);
+        if (mediaType === "tv") {
+            // For TV items, prefer TVDB ID to skip TMDB→TVDB resolution
+            if (item.tvdb_id)
+                return resolve(`/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`);
+            if (item.tmdb_id) return resolve(`/details/media/${item.tmdb_id}/${mediaType}`);
+        } else {
+            // For movies, prefer TMDB ID
+            if (item.tmdb_id) return resolve(`/details/media/${item.tmdb_id}/${mediaType}`);
+            if (item.tvdb_id)
+                return resolve(`/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`);
+        }
         return undefined;
     }
 
@@ -332,7 +341,8 @@
                         <Checkbox
                             id={opt.id}
                             checked={filters[opt.type]}
-                            onCheckedChange={(checked: boolean) => (filters[opt.type] = !!checked)} />
+                            onCheckedChange={(checked: boolean) =>
+                                (filters[opt.type] = !!checked)} />
                         <label
                             for={opt.id}
                             class="flex cursor-pointer items-center gap-2 text-sm font-medium">
