@@ -22,12 +22,20 @@
     interface EntertainmentItem {
         item_id: number;
         tvdb_id: string;
+        tmdb_id: string;
         show_title: string;
         item_type: string;
         aired_at: string;
         season?: number;
         episode?: number;
         last_state?: string;
+    }
+
+    function itemUrl(item: EntertainmentItem): string | undefined {
+        const mediaType = item.item_type === "movie" ? "movie" : "tv";
+        if (item.tmdb_id) return `/details/media/${item.tmdb_id}/${mediaType}`;
+        if (item.tvdb_id) return `/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`;
+        return undefined;
     }
 
     const monthNames = [
@@ -167,64 +175,62 @@
     {/if}
 {/snippet}
 
-{#snippet entertainmentItem(item: EntertainmentItem, compact = false)}
-    <div
-        class={cn(
-            "flex items-center rounded transition-colors",
-            compact ? "gap-1 truncate p-1" : "gap-3 p-2",
-            item.item_type === "episode"
-                ? [
-                      "border border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30",
-                      compact && "text-blue-300"
-                  ]
-                : item.item_type === "show"
-                  ? [
-                        "border border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/30",
-                        compact && "text-purple-300"
-                    ]
-                  : item.item_type === "season"
-                    ? [
-                          "border border-green-500/30 bg-green-500/20 hover:bg-green-500/30",
-                          compact && "text-green-300"
-                      ]
-                    : [
-                          "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
-                          compact && "text-orange-300"
-                      ],
-            item.last_state === "Completed" && "line-through opacity-60"
-        )}
-        title={compact
-            ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
-            : undefined}>
-        {@render itemIcon(item, compact ? 3 : 4)}
-
-        <div class="min-w-0 flex-1">
-            <div class={cn(compact && "truncate", `text-${compact ? "xs" : "xs font-medium"}`)}>
-                {item.show_title}
-                {#if item.season && compact}
-                    S{item.season}
-                    {#if item.episode}
-                        E{item.episode}
-                    {/if}
-                {/if}
-            </div>
-            {#if item.season && !compact}
-                <div class="text-muted-foreground text-xs">
-                    {#if compact}
-                        S{item.season}
-                        {#if item.episode}
-                            E{item.episode}
-                        {/if}
-                    {:else}
-                        Season {item.season}
-                        {#if item.episode}
-                            , Episode {item.episode}
-                        {/if}
-                    {/if}
-                </div>
+{#snippet itemContent(item: EntertainmentItem, compact: boolean)}
+    {@render itemIcon(item, compact ? 3 : 4)}
+    <div class="min-w-0 flex-1">
+        <div class={cn(compact && "truncate", `text-${compact ? "xs" : "xs font-medium"}`)}>
+            {item.show_title}
+            {#if item.season && compact}
+                S{item.season}{#if item.episode}E{item.episode}{/if}
             {/if}
         </div>
+        {#if item.season && !compact}
+            <div class="text-muted-foreground text-xs">
+                Season {item.season}{#if item.episode}, Episode {item.episode}{/if}
+            </div>
+        {/if}
     </div>
+{/snippet}
+
+{#snippet entertainmentItem(item: EntertainmentItem, compact = false)}
+    {@const href = itemUrl(item)}
+    {@const classes = cn(
+        "flex items-center rounded transition-colors",
+        compact ? "gap-1 truncate p-1" : "gap-3 p-2",
+        item.item_type === "episode"
+            ? [
+                  "border border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30",
+                  compact && "text-blue-300"
+              ]
+            : item.item_type === "show"
+              ? [
+                    "border border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/30",
+                    compact && "text-purple-300"
+                ]
+              : item.item_type === "season"
+                ? [
+                      "border border-green-500/30 bg-green-500/20 hover:bg-green-500/30",
+                      compact && "text-green-300"
+                  ]
+                : [
+                      "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
+                      compact && "text-orange-300"
+                  ],
+        item.last_state === "Completed" && "line-through opacity-60",
+        href && "no-underline"
+    )}
+    {@const title = compact
+        ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
+        : undefined}
+    {#if href}
+        <a {href} class={classes} {title}>
+            {@render itemContent(item, compact)}
+        </a>
+    {:else}
+        <div class={classes} {title}>
+            {@render itemContent(item, compact)}
+        </div>
+    {/if}
 {/snippet}
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
