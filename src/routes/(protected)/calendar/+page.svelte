@@ -13,8 +13,7 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import { CalendarDate } from "@internationalized/date";
     import PageShell from "$lib/components/page-shell.svelte";
-    import { fly } from "svelte/transition";
-    import { cubicOut } from "svelte/easing";
+    import { resolve } from "$app/paths";
 
     let { data }: { data: PageData } = $props();
     const isMobile = $state(new IsMobile(1280));
@@ -22,12 +21,70 @@
     interface EntertainmentItem {
         item_id: number;
         tvdb_id: string;
+        tmdb_id: string;
         show_title: string;
         item_type: string;
         aired_at: string;
         season?: number;
         episode?: number;
         last_state?: string;
+    }
+
+    const typeStyles: Record<
+        string,
+        { border: string; bg: string; hover: string; compact: string; icon: string }
+    > = {
+        episode: {
+            border: "border-blue-500/30",
+            bg: "bg-blue-500/20",
+            hover: "hover:bg-blue-500/30",
+            compact: "text-blue-300",
+            icon: "text-blue-400"
+        },
+        show: {
+            border: "border-purple-500/30",
+            bg: "bg-purple-500/20",
+            hover: "hover:bg-purple-500/30",
+            compact: "text-purple-300",
+            icon: "text-purple-400"
+        },
+        season: {
+            border: "border-green-500/30",
+            bg: "bg-green-500/20",
+            hover: "hover:bg-green-500/30",
+            compact: "text-green-300",
+            icon: "text-green-400"
+        },
+        movie: {
+            border: "border-orange-500/30",
+            bg: "bg-orange-500/20",
+            hover: "hover:bg-orange-500/30",
+            compact: "text-orange-300",
+            icon: "text-orange-400"
+        }
+    };
+
+    const filterOptions = [
+        { id: "movies", label: "Movies", type: "movie", icon: Film },
+        { id: "episodes", label: "Episodes", type: "episode", icon: Tv },
+        { id: "shows", label: "Shows", type: "show", icon: Tv },
+        { id: "seasons", label: "Seasons", type: "season", icon: Tv }
+    ];
+
+    function itemUrl(item: EntertainmentItem): string | undefined {
+        const mediaType = item.item_type === "movie" ? "movie" : "tv";
+        if (mediaType === "tv") {
+            // For TV items, prefer TVDB ID to skip TMDB→TVDB resolution
+            if (item.tvdb_id)
+                return resolve(`/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`);
+            if (item.tmdb_id) return resolve(`/details/media/${item.tmdb_id}/${mediaType}`);
+        } else {
+            // For movies, prefer TMDB ID
+            if (item.tmdb_id) return resolve(`/details/media/${item.tmdb_id}/${mediaType}`);
+            if (item.tvdb_id)
+                return resolve(`/details/media/${item.tvdb_id}/${mediaType}?indexer=tvdb`);
+        }
+        return undefined;
     }
 
     const monthNames = [
@@ -44,52 +101,39 @@
         "November",
         "December"
     ];
-
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    const todayDate = dateUtils.getToday();
-    let currentDate = $state<CalendarDate>(todayDate);
-    let showMovies = $state(true);
-    let showEpisodes = $state(true);
-    let showShows = $state(true);
-    let showSeasons = $state(true);
+    const today = dateUtils.getToday();
+    const todayKey = dateUtils.toISODate(today);
+    let currentDate = $state<CalendarDate>(today);
+    let filters = $state<Record<string, boolean>>({
+        movie: true,
+        episode: true,
+        show: true,
+        season: true
+    });
 
     const itemsByDate = $derived.by(() => {
-        const items: EntertainmentItem[] = data.calendar?.data
-            ? Object.values(data.calendar.data).flatMap((dateItems) =>
-                  Object.values(dateItems as unknown as Record<string, EntertainmentItem>)
-              )
+        const items = data.calendar?.data
+            ? (Object.values(data.calendar.data) as unknown as EntertainmentItem[])
             : [];
 
         const result: Record<string, EntertainmentItem[]> = {};
-
-        items.forEach((item) => {
-            if (!item || !item.aired_at) return;
+        for (const item of items) {
+            if (!item?.aired_at) continue;
             const date = dateUtils.parseISODate(item.aired_at);
-            if (!date) return;
+            if (!date) continue;
             const dateKey = dateUtils.toISODate(date);
-            if (!result[dateKey]) {
-                result[dateKey] = [];
-            }
-            result[dateKey].push(item);
-        });
-
+            (result[dateKey] ??= []).push(item);
+        }
         return result;
     });
 
     const filteredItemsByDate = $derived.by(() => {
         const result: Record<string, EntertainmentItem[]> = {};
-
         for (const [dateKey, items] of Object.entries(itemsByDate)) {
-            result[dateKey] = items.filter((item) => {
-                if (item.item_type === "episode" && !showEpisodes) return false;
-                if (item.item_type === "movie" && !showMovies) return false;
-                if (item.item_type === "show" && !showShows) return false;
-                if (item.item_type === "season" && !showSeasons) return false;
-                return true;
-            });
+            result[dateKey] = items.filter((item) => filters[item.item_type] !== false);
         }
-
         return result;
     });
 
@@ -98,54 +142,42 @@
         dateKey: string;
         isCurrentMonth: boolean;
         items: EntertainmentItem[];
-        day: number;
-        dayOfWeek: number;
     }
 
     const calendarDays: CalendarDay[] = $derived.by(() => {
-        const year = currentDate.year;
-        const month = currentDate.month;
-
+        const { year, month } = currentDate;
         const firstDay = dateUtils.getFirstDayOfMonth(year, month);
         const lastDay = dateUtils.getLastDayOfMonth(year, month);
-
         const startOffset = dateUtils.getDayOfWeek(firstDay);
         const totalDays = startOffset + lastDay.day + (6 - dateUtils.getDayOfWeek(lastDay));
-        const rows = Math.ceil(totalDays / 7);
-        const daysToShow = rows * 7;
+        const daysToShow = Math.ceil(totalDays / 7) * 7;
 
         const days: CalendarDay[] = [];
-
         for (let i = 0; i < daysToShow; i++) {
-            const dayNum = 1 - startOffset + i;
-            const currentDay = dateUtils.addDays(firstDay, dayNum - 1);
+            const currentDay = dateUtils.addDays(firstDay, i - startOffset);
             const dateKey = dateUtils.toISODate(currentDay);
-            const isCurrentMonth = currentDay.month === month;
-            const items = filteredItemsByDate[dateKey] || [];
-
             days.push({
                 date: currentDay,
                 dateKey,
-                isCurrentMonth,
-                items,
-                day: currentDay.day,
-                dayOfWeek: dateUtils.getDayOfWeek(currentDay)
+                isCurrentMonth: currentDay.month === month,
+                items: filteredItemsByDate[dateKey] ?? []
             });
         }
-
         return days;
     });
 
     function navigateMonth(direction: "prev" | "next") {
-        if (direction === "prev") {
-            const newMonth = currentDate.month === 1 ? 12 : currentDate.month - 1;
-            const newYear = currentDate.month === 1 ? currentDate.year - 1 : currentDate.year;
-            currentDate = new CalendarDate(newYear, newMonth, 1);
-        } else {
-            const newMonth = currentDate.month === 12 ? 1 : currentDate.month + 1;
-            const newYear = currentDate.month === 12 ? currentDate.year + 1 : currentDate.year;
-            currentDate = new CalendarDate(newYear, newMonth, 1);
+        const delta = direction === "prev" ? -1 : 1;
+        let newMonth = currentDate.month + delta;
+        let newYear = currentDate.year;
+        if (newMonth < 1) {
+            newMonth = 12;
+            newYear--;
+        } else if (newMonth > 12) {
+            newMonth = 1;
+            newYear++;
         }
+        currentDate = new CalendarDate(newYear, newMonth, 1);
     }
 
     function formatDayTitle(date: CalendarDate) {
@@ -158,75 +190,57 @@
 </svelte:head>
 
 {#snippet itemIcon(item: EntertainmentItem, size = 4)}
-    {#if item.item_type === "episode"}
-        <Tv class={`h-${size} w-${size} shrink-0 text-blue-400`} />
-    {:else if item.item_type === "show"}
-        <Tv class={`h-${size} w-${size} shrink-0 text-purple-400`} />
-    {:else if item.item_type === "season"}
-        <Tv class={`h-${size} w-${size} shrink-0 text-green-400`} />
+    {@const s = typeStyles[item.item_type] ?? typeStyles.movie}
+    {@const cls = `h-${size} w-${size} shrink-0 ${s.icon}`}
+    {#if item.item_type === "movie"}
+        <Film class={cls} />
     {:else}
-        <Film class={`h-${size} w-${size} shrink-0 text-orange-400`} />
+        <Tv class={cls} />
     {/if}
 {/snippet}
 
-{#snippet entertainmentItem(item: EntertainmentItem, compact = false)}
-    <div
-        class={cn(
-            "flex items-center rounded transition-colors",
-            compact ? "gap-1 truncate p-1" : "gap-3 p-2",
-            item.item_type === "episode"
-                ? [
-                      "border border-blue-500/30 bg-blue-500/20 hover:bg-blue-500/30",
-                      compact && "text-blue-300"
-                  ]
-                : item.item_type === "show"
-                  ? [
-                        "border border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/30",
-                        compact && "text-purple-300"
-                    ]
-                  : item.item_type === "season"
-                    ? [
-                          "border border-green-500/30 bg-green-500/20 hover:bg-green-500/30",
-                          compact && "text-green-300"
-                      ]
-                    : [
-                          "border border-orange-500/30 bg-orange-500/20 hover:bg-orange-500/30",
-                          compact && "text-orange-300"
-                      ],
-            item.last_state === "Completed" && "line-through opacity-60"
-        )}
-        title={compact
-            ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
-            : undefined}>
-        {@render itemIcon(item, compact ? 3 : 4)}
-
-        <div class="min-w-0 flex-1">
-            <div class={cn(compact && "truncate", `text-${compact ? "xs" : "xs font-medium"}`)}>
-                {item.show_title}
-                {#if item.season && compact}
-                    S{item.season}
-                    {#if item.episode}
-                        E{item.episode}
-                    {/if}
-                {/if}
-            </div>
-            {#if item.season && !compact}
-                <div class="text-muted-foreground text-xs">
-                    {#if compact}
-                        S{item.season}
-                        {#if item.episode}
-                            E{item.episode}
-                        {/if}
-                    {:else}
-                        Season {item.season}
-                        {#if item.episode}
-                            , Episode {item.episode}
-                        {/if}
-                    {/if}
-                </div>
+{#snippet itemContent(item: EntertainmentItem, compact: boolean)}
+    {@render itemIcon(item, compact ? 3 : 4)}
+    <div class="min-w-0 flex-1">
+        <div class={cn("text-xs", compact ? "truncate" : "font-medium")}>
+            {item.show_title}
+            {#if item.season && compact}
+                S{item.season}{#if item.episode}E{item.episode}{/if}
             {/if}
         </div>
+        {#if item.season && !compact}
+            <div class="text-muted-foreground text-xs">
+                Season {item.season}{#if item.episode}, Episode {item.episode}{/if}
+            </div>
+        {/if}
     </div>
+{/snippet}
+
+{#snippet entertainmentItem(item: EntertainmentItem, compact = false)}
+    {@const href = itemUrl(item)}
+    {@const s = typeStyles[item.item_type] ?? typeStyles.movie}
+    {@const classes = cn(
+        "flex items-center rounded border transition-colors",
+        compact ? "gap-1 truncate p-1" : "gap-3 p-2",
+        s.border,
+        s.bg,
+        s.hover,
+        compact && s.compact,
+        item.last_state === "Completed" && "line-through opacity-60",
+        href && "no-underline"
+    )}
+    {@const title = compact
+        ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
+        : undefined}
+    {#if href}
+        <a {href} class={classes} {title}>
+            {@render itemContent(item, compact)}
+        </a>
+    {:else}
+        <div class={classes} {title}>
+            {@render itemContent(item, compact)}
+        </div>
+    {/if}
 {/snippet}
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
@@ -238,10 +252,13 @@
         {#if showMore && day.items.length > limit}
             <Dialog.Root>
                 <Dialog.Trigger>
-                    <p
-                        class="text-muted-foreground hover:text-foreground cursor-pointer text-xs transition-colors">
-                        +{day.items.length - limit} more
-                    </p>
+                    {#snippet child({ props })}
+                        <p
+                            {...props}
+                            class="text-muted-foreground hover:text-foreground cursor-pointer text-xs transition-colors">
+                            +{day.items.length - limit} more
+                        </p>
+                    {/snippet}
                 </Dialog.Trigger>
                 <Dialog.Content class="max-w-md">
                     <Dialog.Header>
@@ -264,8 +281,6 @@
 {/snippet}
 
 {#snippet calendarDayCard(day: CalendarDay)}
-    {@const today = dateUtils.getToday()}
-    {@const todayKey = dateUtils.toISODate(today)}
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
@@ -276,15 +291,13 @@
             isToday && "ring-primary ring-offset-background ring-2 ring-offset-2"
         )}>
         <div class={cn("mb-2 text-base font-medium", isToday && "text-primary")}>
-            {day.day}
+            {day.date.day}
         </div>
         {@render dayItemsList(day, 3, true)}
     </div>
 {/snippet}
 
 {#snippet mobileDayCard(day: CalendarDay)}
-    {@const today = dateUtils.getToday()}
-    {@const todayKey = dateUtils.toISODate(today)}
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
@@ -322,54 +335,22 @@
             </div>
             <div
                 class="mt-4 flex flex-wrap items-center justify-center gap-4 border-t pt-4 md:gap-6">
-                <div class="flex items-center space-x-2">
-                    <Checkbox
-                        id="movies"
-                        checked={showMovies}
-                        onCheckedChange={(checked) => (showMovies = !!checked)} />
-                    <label
-                        for="movies"
-                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                        <Film class="h-4 w-4 text-orange-400" />
-                        Movies
-                    </label>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <Checkbox
-                        id="episodes"
-                        checked={showEpisodes}
-                        onCheckedChange={(checked) => (showEpisodes = !!checked)} />
-                    <label
-                        for="episodes"
-                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                        <Tv class="h-4 w-4 text-blue-400" />
-                        Episodes
-                    </label>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <Checkbox
-                        id="shows"
-                        checked={showShows}
-                        onCheckedChange={(checked) => (showShows = !!checked)} />
-                    <label
-                        for="shows"
-                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                        <Tv class="h-4 w-4 text-purple-400" />
-                        Shows
-                    </label>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <Checkbox
-                        id="seasons"
-                        checked={showSeasons}
-                        onCheckedChange={(checked) => (showSeasons = !!checked)} />
-                    <label
-                        for="seasons"
-                        class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                        <Tv class="h-4 w-4 text-green-400" />
-                        Seasons
-                    </label>
-                </div>
+                {#each filterOptions as opt (opt.id)}
+                    {@const Icon = opt.icon}
+                    <div class="flex items-center space-x-2">
+                        <Checkbox
+                            id={opt.id}
+                            checked={filters[opt.type]}
+                            onCheckedChange={(checked: boolean) =>
+                                (filters[opt.type] = !!checked)} />
+                        <label
+                            for={opt.id}
+                            class="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                            <Icon class={cn("h-4 w-4", typeStyles[opt.type].icon)} />
+                            {opt.label}
+                        </label>
+                    </div>
+                {/each}
             </div>
         </Card.Header>
 
@@ -382,7 +363,7 @@
                 </div>
             {:else}
                 <div class="mb-4 grid grid-cols-7 gap-2">
-                    {#each dayNames as day}
+                    {#each dayNames as day (day)}
                         <div class="text-muted-foreground py-2 text-center text-base font-semibold">
                             {day}
                         </div>
