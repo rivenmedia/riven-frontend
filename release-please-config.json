@@ -2,8 +2,7 @@
     "packages": {
         ".": {
             "release-type": "node",
-            "prerelease": true,
-            "component": ""
+            "prerelease": true
         }
     }
 }

@@ -1,12 +1,5 @@
 # Changelog
 
-## [1.1.0-beta.4](https://github.com/S0lidByte/triven-frontend/compare/v1.1.0-beta.3...v1.1.0-beta.4) (2026-03-01)
-
-
-### Miscellaneous Chores
-
-* **main:** release 1.2.0-beta.0 ([#29](https://github.com/S0lidByte/triven-frontend/issues/29)) ([90739de](https://github.com/S0lidByte/triven-frontend/commit/90739deac15a7f2d36c3f8d165d64520f6f89a6e))
-
 ## [1.2.0-beta.0](https://github.com/S0lidByte/triven-frontend/compare/v1.1.1-beta.0...v1.2.0-beta.0) (2026-03-01)
 
 
