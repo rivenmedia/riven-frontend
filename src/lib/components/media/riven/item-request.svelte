@@ -96,23 +96,8 @@
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
                 }
-            } else if (validIds.length > 0) {
-                // Item already exists in Riven — use /retry so it immediately
-                // re-queues all missing episodes (clears scraped_at cooldowns recursively).
-                // Calling /items/add on an existing item is a no-op due to deduplication.
-                const response = await providers.riven.POST("/api/v1/items/retry", {
-                    body: { ids: validIds }
-                });
-
-                if (response.data) {
-                    toast.success("Retry requested successfully!");
-                    open = false;
-                } else {
-                    logger.error("Error response:", response.error);
-                    toast.error("Failed to retry media item.");
-                }
             } else {
-                // Fallback: item not yet in Riven — add it fresh
+                // Item not yet in Riven — add it fresh
                 const extIds = externalId ? [externalId] : validIds;
 
                 const response = await providers.riven.POST("/api/v1/items/add", {

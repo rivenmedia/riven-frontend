@@ -97,8 +97,12 @@
         return `${seasonNumber}-${episodeNumber}`;
     }
 
-    const deepLinkSeason = $derived.by(() => parsePositiveIntParam(page.url.searchParams.get("season")));
-    const deepLinkEpisode = $derived.by(() => parsePositiveIntParam(page.url.searchParams.get("episode")));
+    const deepLinkSeason = $derived.by(() =>
+        parsePositiveIntParam(page.url.searchParams.get("season"))
+    );
+    const deepLinkEpisode = $derived.by(() =>
+        parsePositiveIntParam(page.url.searchParams.get("episode"))
+    );
 
     let highlightedEpisodeKey = $state<string | null>(null);
     let highlightResetTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -641,7 +645,7 @@
                                     Retry
                                 </ItemRetry>
 
-                                {#if data.mediaDetails?.type === "tv"}
+                                {#if data.mediaDetails?.type === "tv" && seasonData.some((s) => s.status !== "Available")}
                                     <ItemRequest
                                         size="default"
                                         variant="secondary"
@@ -909,9 +913,17 @@
                                 {@const rivenEpisode = rivenSeason?.episodes?.find(
                                     (e) => e.episode_number === episode.number
                                 )}
-                                {@const episodeDeepLinkKey = getEpisodeDeepLinkKey(episode.seasonNumber, episode.number)}
-                                {@const isEpisodeDeepLinked = episodeDeepLinkKey !== null && highlightedEpisodeKey === episodeDeepLinkKey}
-                                {@const episodeDomId = getEpisodeCardDomId(episode.seasonNumber, episode.number)}
+                                {@const episodeDeepLinkKey = getEpisodeDeepLinkKey(
+                                    episode.seasonNumber,
+                                    episode.number
+                                )}
+                                {@const isEpisodeDeepLinked =
+                                    episodeDeepLinkKey !== null &&
+                                    highlightedEpisodeKey === episodeDeepLinkKey}
+                                {@const episodeDomId = getEpisodeCardDomId(
+                                    episode.seasonNumber,
+                                    episode.number
+                                )}
 
                                 {#if isMobile.current}
                                     <Drawer.Root direction="bottom">
@@ -920,7 +932,7 @@
                                             class={cn(
                                                 "rounded-xl transition-all duration-500",
                                                 isEpisodeDeepLinked &&
-                                                    "ring-primary ring-offset-background shadow-primary/20 ring-2 ring-offset-2 shadow-lg"
+                                                    "ring-primary ring-offset-background shadow-primary/20 shadow-lg ring-2 ring-offset-2"
                                             )}>
                                             <Drawer.Trigger class="group w-full text-left">
                                                 {@render episodeTrigger(episode, rivenEpisode)}
@@ -946,7 +958,7 @@
                                             class={cn(
                                                 "rounded-xl transition-all duration-500",
                                                 isEpisodeDeepLinked &&
-                                                    "ring-primary ring-offset-background shadow-primary/20 ring-2 ring-offset-2 shadow-lg"
+                                                    "ring-primary ring-offset-background shadow-primary/20 shadow-lg ring-2 ring-offset-2"
                                             )}>
                                             <Sheet.Trigger class="group w-full text-left">
                                                 {@render episodeTrigger(episode, rivenEpisode)}
