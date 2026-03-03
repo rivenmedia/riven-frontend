@@ -11,6 +11,7 @@ import { error, redirect } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
 import { resolveId, type ResolveResult } from "$lib/services/resolver";
+import { calculateSimilarity } from "$lib/utils/string";
 
 const logger = createScopedLogger("media-details");
 
@@ -334,22 +335,57 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     if (e?.status === 307 || e?.status === 308) throw e;
                 }
 
-                // 3. Fallback: Check if it's a TMDB ID mistakenly marked as indexer=tvdb
-                const resolved = await resolveId({
-                    from: "tmdb",
-                    to: "tvdb",
-                    id,
-                    mediaType: "tv",
-                    tvdbToken,
-                    customFetch
-                });
+                // 4. Try title search + year fallback from TMDB
+                try {
+                    const tmdbData = await providers.tmdb.GET("/3/tv/{series_id}", {
+                        params: { path: { series_id: Number(id) } },
+                        fetch: customFetch
+                    });
 
-                if (resolved.resolved && String(resolved.id) !== String(id)) {
-                    logger.info(`Resolved TVDB ID ${id} to TMDB-originated ID ${resolved.id}. Redirecting via 307.`);
-                    const newUrl = new URL(url);
-                    newUrl.pathname = `/details/media/${resolved.id}/tv`;
-                    newUrl.searchParams.delete("indexer");
-                    throw redirect(307, newUrl.pathname + newUrl.search);
+                    if (tmdbData.data?.name) {
+                        const title = tmdbData.data.name;
+                        const year = tmdbData.data.first_air_date
+                            ? new Date(tmdbData.data.first_air_date).getFullYear()
+                            : undefined;
+
+                        logger.info(
+                            `Attempting TVDB title search for "${title}" (${year}) as part of Hail Mary`
+                        );
+
+                        const { data: searchResults } = await providers.tvdb.GET("/search", {
+                            params: { query: { query: title, type: "series", year } },
+                            headers: { Authorization: `Bearer ${tvdbToken}` },
+                            fetch: customFetch
+                        });
+
+                        if (searchResults?.data && searchResults.data.length > 0) {
+                            // Find highest similarity match with > 0.9 confidence
+                            let bestMatch: (typeof searchResults.data)[0] | null = null;
+                            let maxSim = 0;
+
+                            for (const result of searchResults.data) {
+                                if (!result.name) continue;
+                                const sim = calculateSimilarity(title, result.name);
+                                if (sim > maxSim) {
+                                    maxSim = sim;
+                                    bestMatch = result;
+                                }
+                            }
+
+                            if (bestMatch && maxSim > 0.9 && bestMatch.tvdb_id) {
+                                logger.info(
+                                    `Hail Mary title search match: "${bestMatch.name}" (TVDB:${bestMatch.tvdb_id}, Similarity:${maxSim.toFixed(2)})`
+                                );
+                                const newUrl = new URL(url);
+                                newUrl.pathname = `/details/media/${bestMatch.tvdb_id}/tv`;
+                                newUrl.searchParams.delete("indexer");
+                                throw redirect(307, newUrl.pathname + newUrl.search);
+                            }
+                        }
+                    }
+                } catch (e: any) {
+                    if (e?.status === 307 || e?.status === 308) throw e;
+                    logger.warn(`Hail Mary title search failed or no match found:`, e);
                 }
 
                 logger.warn(`Hail Mary resolution failed for TVDB ID: ${id}`);
@@ -380,6 +416,16 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     episodesError
                 );
                 if (episodesStatus === 404) {
+                    // If we haven't already tried a Hail Mary (e.g., it was resolveId that set tvdbId),
+                    // then we should retry with a redirect to trigger the Hail Mary block.
+                    if (!isAlreadyTvdbId) {
+                        logger.info(`TVDB ID ${tvdbId} 404'd. Re-triggering as Hail Mary via indexer=tvdb`);
+                        const newUrl = new URL(url);
+                        newUrl.searchParams.set("indexer", "tvdb");
+                        // Set ID to the failing ID to force resolution search
+                        newUrl.pathname = `/details/media/${tvdbId}/tv`;
+                        throw redirect(307, newUrl.pathname + newUrl.search);
+                    }
                     error(404, "The requested TV show could not be found.");
                 }
                 error(503, "Something went wrong while fetching TV show details. Please try again later.");
