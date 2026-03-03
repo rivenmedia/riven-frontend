@@ -5,6 +5,7 @@ import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
 import { resolveId } from "$lib/services/resolver";
 import * as dateUtils from "$lib/utils/date";
+import { normalizeTitle } from "$lib/utils/string";
 
 const logger = createScopedLogger("ratings");
 
@@ -105,15 +106,7 @@ function jaroSimilarity(s1: string, s2: string): number {
     );
 }
 
-/**
- * Normalize title for comparison - lowercase and strip non-alphanumeric (unicode-aware)
- */
-function normalizeTitle(s: string): string {
-    return s
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N} ]/gu, "")
-        .trim();
-}
+// normalizeTitle is imported from $lib/utils/string
 
 /**
  * Calculate title similarity with inexact matching penalty
@@ -197,19 +190,19 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
         const tmdbData =
             mediaType === "movie"
                 ? await providers.tmdb.GET("/3/movie/{movie_id}", {
-                      params: {
-                          path: { movie_id: Number(tmdbId) },
-                          query: { append_to_response: "external_ids" }
-                      },
-                      fetch: customFetch
-                  })
+                    params: {
+                        path: { movie_id: Number(tmdbId) },
+                        query: { append_to_response: "external_ids" }
+                    },
+                    fetch: customFetch
+                })
                 : await providers.tmdb.GET("/3/tv/{series_id}", {
-                      params: {
-                          path: { series_id: Number(tmdbId) },
-                          query: { append_to_response: "external_ids" }
-                      },
-                      fetch: customFetch
-                  });
+                    params: {
+                        path: { series_id: Number(tmdbId) },
+                        query: { append_to_response: "external_ids" }
+                    },
+                    fetch: customFetch
+                });
 
         if (tmdbData.data) {
             const data = tmdbData.data as Record<string, unknown>;

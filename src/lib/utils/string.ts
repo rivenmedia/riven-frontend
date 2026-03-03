@@ -1,4 +1,14 @@
 /**
+ * Normalize a title for comparison — lowercase and strip non-alphanumeric (unicode-aware).
+ */
+export function normalizeTitle(s: string): string {
+    return s
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N} ]/gu, "")
+        .trim();
+}
+
+/**
  * Calculates the Levenshtein distance between two strings.
  */
 export function levenshtein(s1: string, s2: string): number {
@@ -25,10 +35,11 @@ export function levenshtein(s1: string, s2: string): number {
 
 /**
  * Calculates the similarity between two strings as a percentage (0 to 1).
+ * Uses normalizeTitle for unicode-aware comparison (strips punctuation/special chars).
  */
 export function calculateSimilarity(s1: string, s2: string): number {
-    const str1 = s1.toLowerCase().trim();
-    const str2 = s2.toLowerCase().trim();
+    const str1 = normalizeTitle(s1);
+    const str2 = normalizeTitle(s2);
 
     if (str1 === str2) return 1;
     if (str1.length === 0 || str2.length === 0) return 0;

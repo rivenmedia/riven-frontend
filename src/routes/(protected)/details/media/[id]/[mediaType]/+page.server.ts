@@ -12,6 +12,7 @@ import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
 import { resolveId, type ResolveResult } from "$lib/services/resolver";
 import { calculateSimilarity } from "$lib/utils/string";
+import * as dateUtils from "$lib/utils/date";
 
 const logger = createScopedLogger("media-details");
 
@@ -305,7 +306,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                         logger.info(`Resolved TVDB Episode ID ${id} to Series ID ${episodeData.data.seriesId}`);
                         const newUrl = new URL(url);
                         newUrl.pathname = `/details/media/${episodeData.data.seriesId}/tv`;
-                        newUrl.searchParams.delete("indexer");
+                        newUrl.searchParams.delete("indexer"); // new URL(url) copies existing params; strip indexer for clean redirect
                         // Add/Update season and episode params if they aren't already there (or let them be overwritten)
                         if (episodeData.data.seasonNumber != null) newUrl.searchParams.set("season", String(episodeData.data.seasonNumber));
                         if (episodeData.data.number != null) newUrl.searchParams.set("episode", String(episodeData.data.number));
@@ -327,7 +328,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                         logger.info(`Resolved TVDB Season ID ${id} to Series ID ${seasonData.data.seriesId}`);
                         const newUrl = new URL(url);
                         newUrl.pathname = `/details/media/${seasonData.data.seriesId}/tv`;
-                        newUrl.searchParams.delete("indexer");
+                        newUrl.searchParams.delete("indexer"); // new URL(url) copies existing params; strip indexer for clean redirect
                         if (seasonData.data.number != null) newUrl.searchParams.set("season", String(seasonData.data.number));
                         throw redirect(307, newUrl.pathname + newUrl.search);
                     }
@@ -335,7 +336,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     if (e?.status === 307 || e?.status === 308) throw e;
                 }
 
-                // 4. Try title search + year fallback from TMDB
+                // 3. Try title search + year fallback from TMDB
                 try {
                     const tmdbData = await providers.tmdb.GET("/3/tv/{series_id}", {
                         params: { path: { series_id: Number(id) } },
@@ -344,9 +345,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
 
                     if (tmdbData.data?.name) {
                         const title = tmdbData.data.name;
-                        const year = tmdbData.data.first_air_date
-                            ? new Date(tmdbData.data.first_air_date).getFullYear()
-                            : undefined;
+                        const year = dateUtils.getYearFromISO(tmdbData.data.first_air_date as string) ?? undefined;
 
                         logger.info(
                             `Attempting TVDB title search for "${title}" (${year}) as part of Hail Mary`
@@ -373,12 +372,20 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             }
 
                             if (bestMatch && maxSim > 0.9 && bestMatch.tvdb_id) {
+                                // Prefer year-matching result if multiple high-similarity candidates exist
+                                if (year) {
+                                    const yearMatch = searchResults.data.find(
+                                        (r) => r.name && calculateSimilarity(title, r.name) > 0.9
+                                            && r.year && String(r.year) === String(year)
+                                    );
+                                    if (yearMatch?.tvdb_id) bestMatch = yearMatch;
+                                }
                                 logger.info(
                                     `Hail Mary title search match: "${bestMatch.name}" (TVDB:${bestMatch.tvdb_id}, Similarity:${maxSim.toFixed(2)})`
                                 );
                                 const newUrl = new URL(url);
                                 newUrl.pathname = `/details/media/${bestMatch.tvdb_id}/tv`;
-                                newUrl.searchParams.delete("indexer");
+                                newUrl.searchParams.delete("indexer"); // new URL(url) copies existing params; strip indexer for clean redirect
                                 throw redirect(307, newUrl.pathname + newUrl.search);
                             }
                         }
@@ -418,10 +425,12 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 if (episodesStatus === 404) {
                     // If we haven't already tried a Hail Mary (e.g., it was resolveId that set tvdbId),
                     // then we should retry with a redirect to trigger the Hail Mary block.
-                    if (!isAlreadyTvdbId) {
-                        logger.info(`TVDB ID ${tvdbId} 404'd. Re-triggering as Hail Mary via indexer=tvdb`);
+                    const retryCount = Number(url.searchParams.get("_retry") || "0");
+                    if (!isAlreadyTvdbId && retryCount < 2) {
+                        logger.info(`TVDB ID ${tvdbId} 404'd. Re-triggering as Hail Mary via indexer=tvdb (retry ${retryCount + 1})`);
                         const newUrl = new URL(url);
                         newUrl.searchParams.set("indexer", "tvdb");
+                        newUrl.searchParams.set("_retry", String(retryCount + 1));
                         // Set ID to the failing ID to force resolution search
                         newUrl.pathname = `/details/media/${tvdbId}/tv`;
                         throw redirect(307, newUrl.pathname + newUrl.search);
