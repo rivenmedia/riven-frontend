@@ -894,7 +894,7 @@
                                                     ? "Specials"
                                                     : `Season ${season.number}`}
                                                 image={season.image}
-                                                selected={selectedSeason ===
+                                                isSelected={selectedSeason ===
                                                     season.number?.toString()}
                                                 class="w-28 md:w-32 lg:w-36">
                                                 {#snippet topRight()}
