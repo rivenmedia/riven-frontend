@@ -123,7 +123,7 @@
                                             rel="noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
                                             class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/90 backdrop-blur-md transition-colors hover:bg-white/20">
-                                            {#if score.name.toLowerCase() === "imdb"}
+                                            {#if score.image}
                                                 <img
                                                     src="/rating-logos/{score.image}"
                                                     alt={score.name}

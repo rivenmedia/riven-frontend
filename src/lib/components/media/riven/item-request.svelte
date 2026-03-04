@@ -74,6 +74,15 @@
 
     const hasRequestableSeasons = $derived(requestableSeasons.length > 0);
 
+    /**
+     * Requests a media item via the Riven backend.
+     *
+     * For TV shows with selected seasons, calls `/api/v1/scrape/auto` which may return
+     * either `{ data }` or `{ message }` on success. Both must be checked to avoid
+     * silently dropping valid success responses.
+     *
+     * For movies (or TV without season selection), calls `/api/v1/items/add`.
+     */
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
@@ -96,7 +105,7 @@
                 type PostFn = (
                     path: string,
                     options: { body: object }
-                ) => Promise<{ data?: unknown; error?: unknown }>;
+                ) => Promise<{ data?: unknown; error?: unknown; message?: string }>;
                 const response = await (providers.riven.POST as unknown as PostFn)(
                     "/api/v1/scrape/auto",
                     {
@@ -104,7 +113,7 @@
                     }
                 );
 
-                if (response.data) {
+                if (response.data || response.message) {
                     // adjust check based on actual response
                     toast.success("Media item requested successfully!");
                     open = false;
