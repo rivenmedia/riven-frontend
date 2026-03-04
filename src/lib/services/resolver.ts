@@ -192,7 +192,9 @@ async function tvdbToTmdb(options: ResolveOptions): Promise<ResolveResult> {
             }
 
             // Find IMDB ID in remoteIds
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const imdbId = (tvdbPerson.data as any).remoteIds?.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (r: any) => r.sourceName?.toLowerCase() === "imdb" || r.type === 2
             )?.id;
 
@@ -218,6 +220,7 @@ async function tvdbToTmdb(options: ResolveOptions): Promise<ResolveResult> {
                 return { id, resolved: false };
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const personMatch = (tmdbFind as any).person_results?.[0];
             if (personMatch?.id) {
                 return { id: personMatch.id, resolved: true };
@@ -327,6 +330,7 @@ async function rivenToExternal(
         const { data, error } = await providers.riven.GET("/api/v1/items/{id}", {
             params: {
                 path: { id: String(id) },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 query: { media_type: mediaType as any }
             },
             baseUrl: rivenBaseUrl,

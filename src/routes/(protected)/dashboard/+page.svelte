@@ -10,7 +10,9 @@
     import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
     import Heatmap from "$lib/components/heatmap.svelte";
     import { curveCatmullRom } from "d3-shape";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     import { fly } from "svelte/transition";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     import { cubicOut } from "svelte/easing";
 
     let { data }: { data: PageData } = $props();

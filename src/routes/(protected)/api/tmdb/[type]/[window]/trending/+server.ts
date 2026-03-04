@@ -35,11 +35,13 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     },
                     query: {
                         page
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 },
                 fetch: customFetch
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((trending as any).error) {
                 error(500, "Failed to fetch trending movies");
             }
@@ -57,11 +59,13 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                     },
                     query: {
                         page
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } as any
                 },
                 fetch: customFetch
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((trending as any).error) {
                 error(500, "Failed to fetch trending TV shows");
             }

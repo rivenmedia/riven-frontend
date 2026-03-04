@@ -8,7 +8,6 @@
         title: string;
         subtitle?: string | null;
         image: string | null;
-        selected?: boolean;
         isSelectable?: boolean;
         isSelected?: boolean;
         onSelectToggle?: () => void;
@@ -21,7 +20,6 @@
         title,
         subtitle = null,
         image,
-        selected = false,
         isSelectable = false,
         isSelected = false,
         onSelectToggle,

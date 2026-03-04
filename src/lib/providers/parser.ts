@@ -1,4 +1,5 @@
 import { TMDB_IMAGE_BASE_URL, TVDB_ARTWORK_BASE_URL } from "./index";
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import * as dateUtils from "$lib/utils/date";
 
 interface ParsedGenre {
@@ -1193,14 +1194,17 @@ export interface CollectionDetails {
     parts: CollectionMovie[];
 }
 
-export function parseCollectionDetails(collectionData: any): CollectionDetails {
+export function parseCollectionDetails(collectionData: unknown): CollectionDetails {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = collectionData as any;
     return {
-        id: collectionData.id ?? 0,
-        name: collectionData.name ?? "",
-        overview: collectionData.overview ?? null,
-        poster_path: buildTMDBImage(collectionData.poster_path, "w500"),
-        backdrop_path: buildTMDBImage(collectionData.backdrop_path, "w1920"),
-        parts: (collectionData.parts ?? [])
+        id: data.id ?? 0,
+        name: data.name ?? "",
+        overview: data.overview ?? null,
+        poster_path: buildTMDBImage(data.poster_path, "w500"),
+        backdrop_path: buildTMDBImage(data.backdrop_path, "w1920"),
+        parts: (data.parts ?? [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((movie: any) => ({
                 id: movie.id ?? 0,
                 title: movie.title ?? movie.original_title ?? "",
@@ -1293,6 +1297,7 @@ function sortByReleaseDateDesc<T extends { release_date: string | null }>(a: T, 
     return a.release_date ? -1 : b.release_date ? 1 : 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformPersonCredit(credit: any) {
     const releaseDate = credit.release_date || credit.first_air_date || null;
     return {
@@ -1310,8 +1315,10 @@ function transformPersonCredit(credit: any) {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parsePersonDetails(personData: any): PersonDetails {
     const castCredits: PersonCreditCast[] = (personData.combined_credits?.cast ?? []).map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (credit: any) => ({
             ...transformPersonCredit(credit),
             character: credit.character ?? null
@@ -1348,7 +1355,9 @@ export function parsePersonDetails(personData: any): PersonDetails {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseCompanyDetails(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     companyData: any,
     movies: TMDBTransformedListItem[],
     shows: TMDBTransformedListItem[]

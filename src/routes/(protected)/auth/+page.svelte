@@ -2,6 +2,7 @@
     import type { PageProps } from "./$types";
     import { authClient } from "$lib/auth-client";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import { Button } from "$lib/components/ui/button/index.js";
     import Passkeys from "$lib/components/auth/passkeys.svelte";
     import PasswordChangeForm from "$lib/components/auth/password-change-form.svelte";
@@ -16,6 +17,7 @@
 
     let { data }: PageProps = $props();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function hasCredentialProvider(providers: any[]): boolean {
         return providers.some((provider) => provider.providerId === "credential");
     }
@@ -86,7 +88,7 @@
                 await authClient.deleteUser({
                     fetchOptions: {
                         onSuccess: () => {
-                            goto("/auth/login");
+                            goto(resolve("/auth/login"));
                         }
                     }
                 });
@@ -101,7 +103,7 @@
                 await authClient.signOut({
                     fetchOptions: {
                         onSuccess: () => {
-                            goto("/auth/login");
+                            goto(resolve("/auth/login"));
                         }
                     }
                 });

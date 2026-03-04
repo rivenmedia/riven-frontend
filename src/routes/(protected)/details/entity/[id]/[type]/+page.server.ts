@@ -28,6 +28,7 @@ export const load: PageServerLoad = async ({ fetch, params, cookies }) => {
         );
 
         // If TMDB returns 404, it might be a TVDB ID
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (personError && (personError as any).status === 404) {
             const resolved = await resolveId({
                 from: "tvdb",

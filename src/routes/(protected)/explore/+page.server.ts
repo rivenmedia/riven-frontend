@@ -172,10 +172,14 @@ export const load: PageServerLoad = async ({ url, fetch, request }) => {
     );
     // Merge any other parameters from the URL that aren't 'query' or 'type'
     // into tmdbParams so they are correctly synced to the SearchStore
-    const { query: _, type: __, ...filters } = form.data;
+    // Extract `query` and `type` from form data and collect the remaining URL filter params
+    // to forward to the search store's TMDB params. The `_query` and `_type` are intentionally
+    // unused — we only want `filters` to forwarded to the store.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { query: _query, type: _type, ...filters } = form.data;
     for (const [key, value] of Object.entries(filters)) {
         if (value !== undefined && value !== null && value !== "") {
-            (parsed.tmdbParams as any)[key] = value;
+            (parsed.tmdbParams as Record<string, unknown>)[key] = value;
         }
     }
 

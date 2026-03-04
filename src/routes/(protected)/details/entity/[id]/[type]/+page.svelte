@@ -124,6 +124,10 @@
     }
 </script>
 
+\n\n<!-- eslint-disable svelte/no-navigation-without-resolve -->
+
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
+
 <svelte:head>
     <title>{data.entity.name} - Riven</title>
 
@@ -205,6 +209,7 @@
         <!-- Birthday Confetti -->
         {#if birthdayToday && !data.entity.deathday}
             <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+                <!-- eslint-disable-next-line svelte/require-each-key -->
                 {#each Array(20) as i}
                     <div
                         class="confetti {CONFETTI_CONFIG.shapes[i % CONFETTI_CONFIG.shapes.length]}"
@@ -420,6 +425,7 @@
 
 {#snippet creditList(credits: typeof movieCredits)}
     {#each credits as credit, index (`${credit.id}-${index}`)}
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
         <a
             href="/details/media/{credit.id}/{credit.media_type}"
             class="group relative block opacity-80 transition-all duration-300 hover:scale-105 hover:opacity-100">
@@ -464,6 +470,7 @@
                 Also known as<span class={colonClass}>:</span>
             </h3>
             <div class="flex flex-wrap gap-2">
+                <!-- eslint-disable-next-line svelte/require-each-key -->
                 {#each data.entity.also_known_as as alias}
                     <Badge variant="outline" class={badgeClass}>
                         {alias}

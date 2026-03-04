@@ -206,7 +206,7 @@ export async function withRateLimit<T>(
 }
 
 export function getAllRateLimiterStats() {
-    const stats: Record<string, any> = {};
+    const stats: Record<string, unknown> = {};
     for (const [domain, limiter] of Object.entries(rateLimiters)) {
         stats[domain] = limiter.getStats();
     }

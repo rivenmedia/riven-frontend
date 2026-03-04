@@ -32,9 +32,10 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
                     `Backend lookup failed for id=${params.id} (Status ${res.status}), falling back to movie`
                 );
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
             logger.warn(
-                `Backend fetch error for id=${params.id} (${e.message}), falling back to movie`
+                `Backend fetch error for id=${params.id} (${message}), falling back to movie`
             );
         }
     }

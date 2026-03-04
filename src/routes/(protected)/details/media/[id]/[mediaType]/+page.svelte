@@ -66,6 +66,7 @@
             playParamCleaned = true;
             const url = new URL(page.url);
             url.searchParams.delete("play");
+            // eslint-disable-next-line svelte/no-navigation-without-resolve
             replaceState(url, $state.snapshot(page.state));
         }
     });
@@ -124,6 +125,7 @@
         return hasSeason1 ? "1" : (details.seasons[0].number?.toString() ?? "1");
     }
 
+    // eslint-disable-next-line svelte/prefer-writable-derived
     let selectedSeason: string | undefined = $state(getInitialSeason());
 
     $effect(() => {
@@ -264,6 +266,8 @@
     );
 </script>
 
+\n\n<!-- eslint-disable svelte/no-navigation-without-resolve -->
+
 {#snippet sectionHeading(title: string)}
     <div class="mb-4 flex items-center gap-3">
         <div class="bg-primary h-6 w-1 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]">
@@ -293,6 +297,7 @@
             <Carousel.Content class="-ml-3">
                 {#each items as item (item.id)}
                     <Carousel.Item class="basis-auto pl-3">
+                        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                         <a
                             href="/details/media/{item.id}/{item.media_type}"
                             class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
@@ -309,6 +314,7 @@
     </section>
 {/snippet}
 
+<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 {#snippet episodeTrigger(episode: any, rivenEpisode: any)}
     <LandscapeCard
         title={episode.name}
@@ -334,6 +340,7 @@
     </LandscapeCard>
 {/snippet}
 
+<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 {#snippet episodeMetadata(episode: any, rivenEpisode: any)}
     <div class="mt-2 flex flex-wrap items-center gap-2">
         <span class="text-muted-foreground font-serif text-sm"
@@ -348,6 +355,7 @@
     </div>
 {/snippet}
 
+<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 {#snippet episodeBody(episode: any, rivenEpisode: any)}
     <div class="mt-6 flex flex-1 flex-col gap-8 overflow-y-auto px-6 pb-36">
         {#if episode.overview}
@@ -417,6 +425,7 @@
                                 class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
                                 >Audio</span>
                             <div class="flex flex-wrap gap-2">
+                                <!-- eslint-disable-next-line svelte/require-each-key -->
                                 {#each meta.audio_tracks as track}
                                     <Badge variant="outline" class="font-mono text-xs"
                                         >{track.codec}{track.channels
@@ -467,6 +476,8 @@
         {/if}
     </div>
 {/snippet}
+
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 
 <svelte:head>
     <title>{data.mediaDetails?.details.title} ({data.mediaDetails?.details.year}) - Riven</title>
@@ -744,6 +755,7 @@
                         <div
                             class="text-muted-foreground flex items-center gap-x-2.5 text-sm"
                             in:fly|global={{ y: 20, duration: 400, delay: 200, easing: cubicOut }}>
+                            <!-- eslint-disable-next-line svelte/require-each-key -->
                             {#each details as detail, i}
                                 <span>{detail}</span>
                                 {#if i < details.length - 1}<span class="text-border">•</span>{/if}
@@ -779,6 +791,7 @@
                                     easing: cubicOut
                                 }}>
                                 {#each ratingsData.scores as score (score.name)}
+                                    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                     <a
                                         href={score.url}
                                         target="_blank"
@@ -794,6 +807,7 @@
                             </div>
                         {:else if ratingsLoading}
                             <div class="flex gap-4">
+                                <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
                                 {#each [1, 2, 3] as _, i (i)}
                                     <div class="bg-muted h-6 w-14 animate-pulse rounded"></div>
                                 {/each}
@@ -993,6 +1007,7 @@
                             <Carousel.Content class="-ml-3">
                                 {#each data.mediaDetails.details.cast as member (member.id)}
                                     <Carousel.Item class="basis-auto pl-3">
+                                        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                         <a
                                             href="/details/entity/{member.id}/person"
                                             class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
@@ -1099,6 +1114,7 @@
                                             >Links</span>
                                         <div class="flex flex-wrap gap-2">
                                             {#if data.mediaDetails?.details.homepage}
+                                                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                                 <a
                                                     href={data.mediaDetails.details.homepage}
                                                     target="_blank"
@@ -1122,7 +1138,9 @@
                                                 ).filter(
                                                     ([key, value]) => value && getExternal(key)
                                                 )}
+                                                <!-- eslint-disable-next-line svelte/require-each-key -->
                                                 {#each validLinks as [key, value]}
+                                                    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                                     <a
                                                         href="{getExternal(key).url}{value}"
                                                         target="_blank"

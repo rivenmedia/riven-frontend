@@ -9,7 +9,7 @@
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { getRatings } from "$lib/stores/ratings";
-    import { Play, Info, Star } from "@lucide/svelte";
+    import { Star } from "@lucide/svelte";
 
     export interface TMDBNowPlayingItem {
         id: number;
@@ -49,7 +49,13 @@
 
     let currentIndex = $state(0);
     let logos = $state<Record<number, string | null>>({});
-    let ratings = $state<Record<number, any>>({});
+    /** Rating data keyed by TMDB item ID. Shape is provider-specific and fetched lazily. */
+    let ratings = $state<
+        Record<
+            number,
+            { scores?: { name: string; score: string; url: string; image?: string }[] } | null
+        >
+    >({});
     let certifications = $state<Record<number, string | null>>({});
 
     // Handle carousel API events with proper cleanup using $effect.pre
@@ -175,6 +181,10 @@
     }
 </script>
 
+\n\n<!-- eslint-disable svelte/no-navigation-without-resolve -->
+
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
+
 {#if Array.isArray(data) && data.length > 0}
     <div class="border-border/50 relative overflow-hidden rounded-2xl border shadow-2xl">
         <Carousel.Root
@@ -289,7 +299,8 @@
                                         {/if}
                                         {#if ratings[item.id]?.scores?.length}
                                             <div class="ml-2 flex items-center gap-4">
-                                                {#each ratings[item.id].scores as score}
+                                                {#each ratings[item.id]!.scores! as score (score.name)}
+                                                    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                                     <a
                                                         href={score.url}
                                                         target="_blank"
@@ -439,7 +450,8 @@
 
             <!-- Desktop Segmented Progress (Hidden until Large screens) -->
             <div class="hidden gap-1.5 lg:flex">
-                {#each data as _, i}
+                <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                {#each data as _item, i (i)}
                     <button
                         class="relative h-1 w-6 cursor-pointer overflow-hidden rounded-full transition-all duration-300 {i ===
                         currentIndex

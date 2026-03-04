@@ -1,0 +1,50 @@
+
+> riven-frontend@1.2.0-beta.1 lint
+> prettier --check . && eslint .
+
+Checking formatting...
+[warn] .github/workflows/release-please.yml
+[warn] .release-please-manifest.json
+[warn] CHANGELOG.md
+[warn] DEPENDENCY_UPDATES.md
+[warn] eslint-out.json
+[warn] eslint.config.js
+[warn] package.json
+[warn] preinstall.js
+[warn] release-please-config.json
+[warn] src/lib/components/auth/set-password-form.svelte
+[warn] src/lib/components/auth/update-user-form.svelte
+[warn] src/lib/components/poster.svelte
+[warn] src/lib/components/settings/api-key-widget.svelte
+[warn] src/lib/components/settings/sections.ts
+[warn] src/lib/custom-fetch.ts
+[warn] src/lib/providers/parser.ts
+[warn] src/lib/rate-limiter.ts
+[warn] src/lib/server/sse-proxy.ts
+[warn] src/lib/services/resolver.ts
+[warn] src/lib/services/search-store.svelte.ts
+[warn] src/lib/stores/logs.svelte.ts
+[warn] src/routes/(protected)/+page.svelte
+[warn] src/routes/(protected)/api/[...backendProxy]/+server.ts
+[warn] src/routes/(protected)/api/logs/+server.ts
+[warn] src/routes/(protected)/api/logs/client/+server.ts
+[warn] src/routes/(protected)/api/notifications/+server.ts
+[warn] src/routes/(protected)/api/ratings/[tmdbId]/+server.ts
+[warn] src/routes/(protected)/api/scrape_stream/+server.ts
+[warn] src/routes/(protected)/api/tmdb/[type]/[window]/trending/+server.ts
+[warn] src/routes/(protected)/calendar/+page.svelte
+[warn] src/routes/(protected)/details/entity/[id]/[type]/+page.server.ts
+[warn] src/routes/(protected)/details/media/[id]/[mediaType]/+page.server.ts
+[error] src/routes/(protected)/details/media/[id]/[mediaType]/+page.svelte: expected_token: Expected token >
+[error] https://svelte.dev/e/expected_token
+[error] 521:                                 {#each ratingsData.scores as score (score.name)}
+[error] 522:                                     <a
+[error] 523:                                         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+[error]                                                                                   ^
+[error] 524:                                         href={score.url}
+[error] 525:                                         target="_blank"
+[warn] src/routes/(protected)/explore/+page.server.ts
+[warn] src/routes/(protected)/settings/+page.server.ts
+[warn] src/routes/(public)/watch/[id]/+server.ts
+[warn] tsconfig.json
+Error occurred when checking code style in the above file.

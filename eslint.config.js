@@ -11,7 +11,14 @@ const gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));
 
 export default ts.config(
     includeIgnoreFile(gitignorePath),
-    { ignores: ["src/lib/api/**", "src/lib/components/ui/**"] },
+    {
+        ignores: [
+            "src/lib/api/**",
+            "src/lib/components/ui/**",
+            // Auto-generated OpenAPI spec file — do not lint
+            "src/lib/providers/trakt.ts"
+        ]
+    },
     js.configs.recommended,
     ...ts.configs.recommended,
     ...svelte.configs.recommended,
@@ -22,16 +29,7 @@ export default ts.config(
             globals: { ...globals.browser, ...globals.node }
         },
         rules: {
-            "no-undef": "off",
-            "@typescript-eslint/no-unused-vars": "warn",
-            "svelte/no-navigation-without-resolve": "warn",
-            "@typescript-eslint/no-explicit-any": "warn",
-            "svelte/no-unnecessary-state-wrap": "warn",
-            "@typescript-eslint/ban-ts-comment": "warn",
-            "svelte/require-each-key": "warn",
-            "svelte/prefer-svelte-reactivity": "warn",
-            "svelte/prefer-writable-derived": "warn",
-            "svelte/no-unused-svelte-ignore": "warn"
+            "no-undef": "off"
         }
     },
     {

@@ -103,6 +103,7 @@ export function createSseProxy({ locals, path, eventName, logScope }: SseProxyOp
                 }
             }
         } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const err = e as any;
             if (err?.name === "AbortError") {
                 // Expected abort, ignore

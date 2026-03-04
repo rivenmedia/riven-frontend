@@ -115,15 +115,15 @@
                                 {/if}
                             {:then ratingsData}
                                 {#if ratingsData?.scores?.length}
+                                    <!-- eslint-disable svelte/no-navigation-without-resolve -->
                                     {#each ratingsData.scores as score (score.name)}
-                                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                                         <a
                                             href={score.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
                                             class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/90 backdrop-blur-md transition-colors hover:bg-white/20">
-                                            {#if score.image}
+                                            {#if score.name.toLowerCase() === "imdb"}
                                                 <img
                                                     src="/rating-logos/{score.image}"
                                                     alt={score.name}
@@ -132,6 +132,7 @@
                                             <span class="font-medium">{score.score}</span>
                                         </a>
                                     {/each}
+                                    <!-- eslint-enable svelte/no-navigation-without-resolve -->
                                 {:else if initialRating}
                                     {@render ratingBadge(initialRating)}
                                 {/if}

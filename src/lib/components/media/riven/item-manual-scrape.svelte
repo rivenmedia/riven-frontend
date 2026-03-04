@@ -244,6 +244,7 @@
     });
     let canStartAutoScrape = $derived(Object.values(selectedOptions).some((arr) => arr.length > 0));
 
+    // eslint-disable-next-line svelte/no-unnecessary-state-wrap -- $state() is required here because selectedMagnets is reassigned in resetFlow()
     let selectedMagnets = $state(new SvelteSet<string>());
     let activeTab = $state("all");
     let batchProgress = $state<{ current: number; total: number; message: string } | null>(null);
@@ -255,6 +256,7 @@
     let maxFilesizeOverride = $state<number | null>(null);
 
     // Season Selection State - managed by SeasonSelector component
+    // eslint-disable-next-line svelte/no-unnecessary-state-wrap -- $state() is required here because selectedSeasons is reassigned in resetFlow()
     let selectedSeasons = $state(new SvelteSet<number>());
     let isManualMagnet = $state(false);
     let batchSessions = $state<BatchSession[]>([]);
@@ -287,6 +289,7 @@
     };
 
     // Track which categories are expanded (all collapsed by default)
+    // eslint-disable-next-line svelte/no-unnecessary-state-wrap -- $state() is required here because expandedCategories is reassigned during view reset
     let expandedCategories = $state(new SvelteSet<string>());
 
     let filteredStreams = $derived.by(() => {
@@ -659,7 +662,9 @@
                 selectedSeasons.size > 0 &&
                 selectedSeasons.size < seasons.length
             ) {
-                const { media_type: _, ...restBody } = body;
+                // Extract all body properties except media_type to build the typed season request
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { media_type: _mediaType, ...restBody } = body;
                 // Use AutoScrapeRequest
                 const seasonBody: AutoScrapeRequest = {
                     ...restBody,
@@ -699,7 +704,7 @@
                 })
                 .then(({ error: err }) => {
                     if (err) {
-                        // @ts-ignore
+                        // @ts-expect-error - API error shape may have .message or .detail but is not strictly typed
                         const errorMsg = err.message || err.detail || "Failed to start auto scrape";
                         toast.error(errorMsg);
                     }
@@ -824,11 +829,9 @@
         });
 
         if (customTitle) {
-            // @ts-ignore
             params.set("custom_title", customTitle);
         }
         if (customImdbId) {
-            // @ts-ignore
             params.set("custom_imdb_id", customImdbId);
         }
 

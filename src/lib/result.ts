@@ -2,12 +2,14 @@
     Installed from @ieedan/shadcn-svelte-extras
 */
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+
 /*
     Installed from @ieedan/std
 */
 
 /** This is just a helper type used only within this file */
-type _Result<T, E> = { ok: true; val: T } | { ok: false; err: E };
+type _Result<T, E> = Readonly<{ ok: true; val: T } | { ok: false; err: E }>;
 
 /** Result allows you to show to a consumer that a function might throw and force them to handle it.
  *

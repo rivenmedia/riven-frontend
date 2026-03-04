@@ -463,7 +463,7 @@ export class SearchStore {
         }
     }
 
-    private async relayDiagnostic(mode: "info" | "error", message: string, data: any) {
+    private async relayDiagnostic(mode: "info" | "error", message: string, data: unknown) {
         if (!browser) return;
         try {
             await fetch("/api/logs/client", {
@@ -476,8 +476,8 @@ export class SearchStore {
                     userAgent: navigator.userAgent
                 })
             });
-        } catch (e) {
-            // Silently fail diagnostic relay
+        } catch {
+            // Silently fail diagnostic relay — this is best-effort telemetry
         }
     }
 
@@ -485,6 +485,7 @@ export class SearchStore {
         newItems: TMDBTransformedListItem[],
         existingItems: TMDBTransformedListItem[] = []
     ): TMDBTransformedListItem[] {
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const seenIds = new Set(existingItems.map((i) => i.id));
         const uniqueItems: TMDBTransformedListItem[] = [];
 
@@ -653,6 +654,7 @@ export class SearchStore {
             }
         }
 
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const searchParams = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) {
             if (value !== undefined && value !== null && value !== "") {
@@ -742,7 +744,6 @@ export class SearchStore {
             }
             return json;
         } catch (err) {
-            const rawBodySnippet = "Unavailable"; // In browser we can't easily peek text() then json()
             logger.error(`Failed to parse JSON for ${type} search result`, {
                 status: response.status,
                 contentType: response.headers.get("content-type"),

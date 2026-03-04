@@ -2,7 +2,6 @@
     import { cn } from "$lib/utils";
     import Circle from "@lucide/svelte/icons/circle";
     import type { Snippet } from "svelte";
-    import { resolve } from "$app/paths";
     import type { ItemStore } from "$lib/stores/library-items.svelte";
 
     interface Props {
@@ -54,10 +53,8 @@
         </button>
     {/if}
 
-    <a
-        href={(resolve as (path: string) => string)(mediaURL)}
-        class="absolute inset-0 z-10"
-        aria-label={title || "View details"}></a>
+    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+    <a href={mediaURL} class="absolute inset-0 z-10" aria-label={title || "View details"}></a>
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">

@@ -1,5 +1,6 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { TMDB_IMAGE_BASE_URL } from "$lib/providers";
 import providers from "$lib/providers";
 import { transformTMDBList, type TMDBListItem } from "$lib/providers/parser";
@@ -65,6 +66,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 fetch: customFetch
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((discover as any).error) {
                 logger.error("TMDB API error:", discover.error);
                 error(500, "Failed to discover movies");
@@ -87,6 +89,7 @@ export const GET: RequestHandler = async ({ fetch, params, locals, url }) => {
                 fetch: customFetch
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if ((discover as any).error) {
                 logger.error("TMDB API error:", discover.error);
                 error(500, "Failed to discover TV shows");

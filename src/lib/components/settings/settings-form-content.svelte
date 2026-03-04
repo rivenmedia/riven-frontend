@@ -21,7 +21,7 @@
     import { getTabById } from "./sections";
 
     interface Props {
-        formStore: { set: (f: FormState<any>) => void };
+        formStore: { set: (f: FormState<unknown>) => void };
     }
     let { formStore }: Props = $props();
 

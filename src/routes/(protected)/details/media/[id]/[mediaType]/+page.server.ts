@@ -10,6 +10,7 @@ import type { RivenMediaItem } from "$lib/types/riven";
 import { error, redirect } from "@sveltejs/kit";
 import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { resolveId, type ResolveResult } from "$lib/services/resolver";
 import { calculateSimilarity } from "$lib/utils/string";
 import * as dateUtils from "$lib/utils/date";
@@ -24,11 +25,14 @@ const logger = createScopedLogger("media-details");
 const failedResolutionCache = new Map<string, number>();
 
 async function fetchWithStatus<T>(p: Promise<T>): Promise<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: any | null;
     status: number;
 }> {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = (await p) as any;
         // openapi-fetch returns { data, error, response }
         if (result && typeof result === "object" && "response" in result) {
@@ -44,6 +48,7 @@ async function fetchWithStatus<T>(p: Promise<T>): Promise<{
             error: null,
             status: 200
         };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
         // Capture status from error object if present, otherwise 0 for network/DNS errors
         return {
@@ -326,6 +331,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             newUrl.searchParams.set("episode", String(episodeData.data.number));
                         throw redirect(307, newUrl.pathname + newUrl.search);
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (e: any) {
                     if (e?.status === 307 || e?.status === 308) throw e;
                 }
@@ -349,6 +355,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             newUrl.searchParams.set("season", String(seasonData.data.number));
                         throw redirect(307, newUrl.pathname + newUrl.search);
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (e: any) {
                     if (e?.status === 307 || e?.status === 308) throw e;
                 }
@@ -412,6 +419,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             }
                         }
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (e: any) {
                     if (e?.status === 307 || e?.status === 308) throw e;
                     logger.warn(`Hail Mary title search failed or no match found:`, e);
@@ -423,6 +431,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
             }
 
             // Use episodes result as base
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const detailsError = episodesError;
             const details = episodesData;
 

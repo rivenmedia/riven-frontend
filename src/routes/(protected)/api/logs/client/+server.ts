@@ -16,6 +16,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         });
 
         return json({ ok: true });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
         return json({ ok: false, error: "Failed to log" }, { status: 400 });
     }

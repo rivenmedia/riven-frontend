@@ -57,11 +57,13 @@
             return;
         }
 
+        /* eslint-disable svelte/no-navigation-without-resolve */
         await goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
             keepFocus: true,
             noScroll: true,
             replaceState: currentlyExplore
         });
+        /* eslint-enable svelte/no-navigation-without-resolve */
     }
 
     function handleInput() {

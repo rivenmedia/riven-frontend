@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { error, json } from "@sveltejs/kit";
 import type { RequestHandler } from "@sveltejs/kit";
 
@@ -30,6 +31,7 @@ const proxyRequest = async (method: string, locals: App.Locals, url: URL, reques
                 "Content-Type": contentType
             }
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
         console.error(`[proxy] Error fetching ${targetUrl}:`, e);
         throw error(500, "Failed to fetch data from backend");

@@ -5,7 +5,6 @@ import { building } from "$app/environment";
 import { sequence } from "@sveltejs/kit/hooks";
 import { env } from "$env/dynamic/private";
 import providers from "$lib/providers";
-import { dev } from "$app/environment";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "$lib/server/db";
 import { createCustomFetch } from "$lib/custom-fetch";

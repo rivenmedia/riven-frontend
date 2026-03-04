@@ -18,6 +18,7 @@
     import SettingsFormContent from "$lib/components/settings/settings-form-content.svelte";
     import { cn } from "$lib/utils";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import { navigating, page } from "$app/stores";
     import { writable } from "svelte/store";
     import Loader2 from "@lucide/svelte/icons/loader-2";
@@ -26,7 +27,7 @@
     import RefreshCw from "@lucide/svelte/icons/refresh-cw";
 
     /** Form ref from keyed SettingsFormContent - updates when tab changes (remount) */
-    const formStore = writable<FormState<any> | null>(null);
+    const formStore = writable<FormState<Record<string, unknown>> | null>(null);
     const form = $derived($formStore);
 
     let tabSwitchTarget: string | null = null;
@@ -44,14 +45,14 @@
             tabSwitchTarget = tabId;
             showDiscardConfirm = true;
         } else {
-            goto(`/settings?tab=${tabId}`);
+            goto(resolve(`/settings?tab=${tabId}`));
         }
     }
 
     function confirmDiscardAndSwitch() {
         if (tabSwitchTarget) {
             form?.reset();
-            goto(`/settings?tab=${tabSwitchTarget}`);
+            goto(resolve(`/settings?tab=${tabSwitchTarget}`));
             tabSwitchTarget = null;
         }
         showDiscardConfirm = false;
@@ -144,7 +145,7 @@
                 <nav
                     class="flex shrink-0 flex-row flex-wrap gap-1 lg:flex-col lg:flex-nowrap lg:gap-0.5"
                     aria-label="Settings sections">
-                    {#each $page.data.tabs as tab}
+                    {#each $page.data.tabs as tab (tab.id)}
                         <button
                             type="button"
                             class={cn(

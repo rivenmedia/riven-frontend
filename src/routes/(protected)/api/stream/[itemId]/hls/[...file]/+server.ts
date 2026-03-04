@@ -22,6 +22,7 @@ export const GET: RequestHandler = async ({ params, locals, fetch, url }) => {
     try {
         const response = await fetch(backendUrl, {
             headers,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore - Required for streaming
             duplex: "half"
         });

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tick, onDestroy } from "svelte";
+    import type { Component } from "svelte";
     import { page } from "$app/state";
     import type { PageProps } from "./$types";
     import { fly } from "svelte/transition";
@@ -85,12 +86,14 @@
         url.searchParams.set("page", "1");
         $formData.page = 1;
 
-        await goto(url.toString(), {
+        /* eslint-disable svelte/no-navigation-without-resolve */
+        await goto((url.pathname + url.search) as Parameters<typeof goto>[0], {
             keepFocus: true,
             noScroll: true,
             replaceState: true,
             invalidate: [(target) => target.pathname === page.url.pathname]
         });
+        /* eslint-enable svelte/no-navigation-without-resolve */
 
         endPerfMark(mark, {
             reason,
@@ -193,7 +196,7 @@
                                     {$formData.type?.length ? $formData.type.join(", ") : "Type"}
                                 </Select.Trigger>
                                 <Select.Content class="border-zinc-800 bg-zinc-900">
-                                    {#each Object.keys(typeOptions) as option}
+                                    {#each Object.keys(typeOptions) as option (option)}
                                         <Select.Item value={option} label={option} />
                                     {/each}
                                 </Select.Content>
@@ -221,7 +224,7 @@
                                         : "State"}
                                 </Select.Trigger>
                                 <Select.Content class="border-zinc-800 bg-zinc-900">
-                                    {#each Object.keys(stateOptions) as option}
+                                    {#each Object.keys(stateOptions) as option (option)}
                                         <Select.Item value={option} label={option} />
                                     {/each}
                                 </Select.Content>
@@ -341,7 +344,8 @@
                 <div class="flex items-center gap-1">
                     {#snippet actionButton(
                         label: string,
-                        icon: any,
+                        /** Svelte 5 component object passed as { component: SomeComponent } */
+                        icon: { component: Component },
                         onClick: () => Promise<void>,
                         variant: "default" | "destructive" = "default"
                     )}

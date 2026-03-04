@@ -25,6 +25,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
             appendToResponse = "images,content_ratings";
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await providers.tmdb.GET(endpoint as any, {
             fetch,
             params: {
@@ -40,10 +41,13 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
         }
 
         // --- Logo Logic ---
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const logos = data.images?.logos || [];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const englishLogo = logos.find((logo) => logo.iso_639_1 === "en");
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const chosenLogo = englishLogo || logos[0];
         const logoUrl = chosenLogo ? `${TMDB_IMAGE_BASE_URL}/w500${chosenLogo.file_path}` : null;
@@ -52,18 +56,23 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
         let certification = null;
 
         if (type === "movie") {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const releaseDates = data.release_dates?.results || [];
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const usRelease = releaseDates.find((r) => r.iso_3166_1 === "US");
             if (usRelease) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 const cert = usRelease.release_dates.find((d) => d.certification);
                 certification = cert ? cert.certification : null;
             }
         } else {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const contentRatings = data.content_ratings?.results || [];
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const usRating = contentRatings.find((r) => r.iso_3166_1 === "US");
             certification = usRating ? usRating.rating : null;

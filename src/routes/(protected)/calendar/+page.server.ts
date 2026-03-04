@@ -31,11 +31,12 @@ export const load = (async ({ fetch, locals, url }) => {
     const calendar = await providers.riven.GET("/api/v1/calendar", {
         baseUrl: locals.backendUrl,
         params: {
-            // Use type assertion since the client types might not have these params defined yet if not generated
+            // The generated API types for this endpoint may not yet include start_date/end_date
+            // in their query param schema. Cast through unknown to avoid compile error until spec regen.
             query: {
                 start_date: startISO,
                 end_date: endISO
-            } as any
+            } as unknown as Record<string, string>
         },
         headers: {
             "x-api-key": locals.apiKey

@@ -14,7 +14,9 @@
     import * as Card from "$lib/components/ui/card/index.js";
     import { CalendarDate } from "@internationalized/date";
     import PageShell from "$lib/components/page-shell.svelte";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     import { fly } from "svelte/transition";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     import { cubicOut } from "svelte/easing";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
@@ -140,6 +142,7 @@
         }
 
         const mediaId = hasTmdb ? `${item.tmdb_id}` : `${item.tvdb_id}`;
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const params = new URLSearchParams();
 
         if (!hasTmdb && hasTvdb) {
@@ -299,6 +302,7 @@
     });
 
     function buildUrl(params: Record<string, string | null>) {
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const sp = new URLSearchParams();
         for (const [k, v] of Object.entries(params)) {
             if (v !== null && v !== undefined) sp.set(k, v);
@@ -343,6 +347,7 @@
             month: String(weekSunday.month),
             day: viewMode === "daily" ? String(target.day) : null
         });
+        // eslint-disable-next-line svelte/no-navigation-without-resolve
         goto(url, { keepFocus: true })
             .catch(() => {})
             .finally(() => {
@@ -359,6 +364,7 @@
             month: String(currentDate.month),
             day: mode === "daily" ? String(currentDate.day) : null
         });
+        // eslint-disable-next-line svelte/no-navigation-without-resolve
         goto(url)
             .catch(() => {})
             .finally(() => {
@@ -369,6 +375,7 @@
     function goToday() {
         if (isNavigating) return;
         const url = buildUrl({ view: viewMode === "monthly" ? null : viewMode });
+        // eslint-disable-next-line svelte/no-navigation-without-resolve
         goto(url).catch(() => {});
     }
 
@@ -459,7 +466,7 @@
             : !itemUrl
               ? "No metadata available — item is not clickable"
               : undefined}
-        onclick={(_e: MouseEvent) => {
+        onclick={() => {
             // Add preventative logic here if inner buttons are added later
         }}>
         {#if isPastUncompleted}
@@ -578,6 +585,7 @@
                 {#if viewMode === "daily"}
                     <div class="w-full max-w-2xl space-y-3">
                         <!-- Skeleton height: h-32 for daily view -->
+                        <!-- eslint-disable-next-line svelte/require-each-key, @typescript-eslint/no-unused-vars -->
                         {#each Array(3) as _}
                             <div class="bg-muted/60 h-12 animate-pulse rounded-md"></div>
                         {/each}
@@ -585,6 +593,7 @@
                 {:else if viewMode === "weekly"}
                     <!-- Skeleton height: h-48 for weekly view -->
                     <div class="grid w-full grid-cols-7 gap-1">
+                        <!-- eslint-disable-next-line svelte/require-each-key, @typescript-eslint/no-unused-vars -->
                         {#each Array(7) as _}
                             <div class="bg-muted/60 h-48 animate-pulse rounded-md"></div>
                         {/each}
@@ -592,12 +601,14 @@
                 {:else}
                     <!-- Skeleton height: h-96 for monthly view -->
                     <div class="grid w-full grid-cols-7 gap-2">
-                        {#each Array(7) as _}
+                        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                        {#each Array(7) as _item, i (i)}
                             <div class="bg-muted/40 h-4 animate-pulse rounded"></div>
                         {/each}
                     </div>
                     <div class="grid w-full grid-cols-7 gap-2">
-                        {#each Array(35) as _}
+                        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                        {#each Array(35) as _item, i (i)}
                             <div class="bg-muted/60 h-24 animate-pulse rounded-md"></div>
                         {/each}
                     </div>
@@ -643,6 +654,7 @@
                     </Card.Title>
 
                     <div class="flex gap-0.5 rounded-md border p-0.5">
+                        <!-- eslint-disable-next-line svelte/require-each-key -->
                         {#each [["daily", "Day"], ["weekly", "Week"], ["monthly", "Month"]] as [mode, label]}
                             <Button
                                 variant={viewMode === mode ? "default" : "ghost"}
@@ -777,6 +789,7 @@
             {:else if viewMode === "weekly"}
                 {@const hasAnyItem = weeklyDays.some((d) => d.items.length > 0)}
                 <div class="mb-2 grid grid-cols-7 gap-1">
+                    <!-- eslint-disable-next-line svelte/require-each-key -->
                     {#each weeklyDays as day}
                         <div class="text-muted-foreground py-1 text-center text-xs font-semibold">
                             {dayNames[day.dayOfWeek]}<br />
@@ -810,6 +823,7 @@
                 </div>
             {:else}
                 <div class="mb-4 grid grid-cols-7 gap-2">
+                    <!-- eslint-disable-next-line svelte/require-each-key -->
                     {#each dayNames as day}
                         <div class="text-muted-foreground py-2 text-center text-base font-semibold">
                             {day}

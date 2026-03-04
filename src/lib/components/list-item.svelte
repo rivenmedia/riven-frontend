@@ -107,7 +107,7 @@
 {/snippet}
 
 {#if mediaURL}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve - mediaURL is a dynamic prop -->
     <a href={mediaURL} class={containerClasses}>
         {@render cardContent()}
     </a>

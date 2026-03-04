@@ -61,8 +61,7 @@
         if (!data.feelingLuckyItems?.length) return;
         const randomItem =
             data.feelingLuckyItems[Math.floor(Math.random() * data.feelingLuckyItems.length)];
-        const route = resolve(`/details/media/${randomItem.id}/${randomItem.media_type}`);
-        goto(route);
+        goto(resolve(`/details/media/${randomItem.id}/${randomItem.media_type}`));
     }
 
     onMount(() => {
@@ -229,7 +228,7 @@
                     class="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-yellow-600 dark:text-yellow-500">
                     <p class="font-semibold">Warnings</p>
                     <ul class="mt-1 list-disc pl-5 text-sm">
-                        {#each searchStore.warnings as warning}
+                        {#each searchStore.warnings as warning (warning)}
                             <li>{warning}</li>
                         {/each}
                     </ul>
@@ -383,7 +382,8 @@
                         <ListItem data={item} indexer={item.indexer} type={item.media_type} />
                     {/each}
                     {#if searchStore.loading}
-                        {#each Array(6) as _, i (i)}
+                        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                        {#each Array(6) as _item, i (i)}
                             <div class="aspect-[2/3] w-full">
                                 <PortraitCardSkeleton />
                             </div>
@@ -393,7 +393,8 @@
             {:else if searchStore.loading}
                 <div
                     class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
-                    {#each Array(12) as _, i (i)}
+                    <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                    {#each Array(12) as _item, i (i)}
                         <div class="aspect-[2/3] w-full">
                             <PortraitCardSkeleton />
                         </div>

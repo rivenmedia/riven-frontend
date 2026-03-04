@@ -49,7 +49,14 @@
     let loading = $state(false);
 
     // State for season selection - managed by SeasonSelector component
-    let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
+    /**
+     * Set of selected season numbers for TV show requests.
+     * Needs $state() because it is reassigned when the dialog resets.
+     *
+     * @see https://svelte.dev/docs/svelte/$state
+     */
+    // eslint-disable-next-line svelte/no-unnecessary-state-wrap -- $state() required because selectedSeasons is reassigned on dialog close
+    let selectedSeasons = $state(new SvelteSet<number>());
 
     const sortedSelectedSeasonNumbers = $derived.by(() =>
         Array.from(selectedSeasons)
@@ -83,12 +90,21 @@
                     season_numbers: sortedSelectedSeasonNumbers
                 };
 
-                // Use consolidated /auto endpoint with season_numbers
-                const response = await (providers.riven as any).POST("/api/v1/scrape/auto", {
-                    body: body
-                });
+                // The /auto endpoint accepts season_numbers but the generated OpenAPI type
+                // for this path does not include season_numbers. Cast through unknown to avoid
+                // unsolvable generic constraint errors from openapi-fetch internals.
+                type PostFn = (
+                    path: string,
+                    options: { body: object }
+                ) => Promise<{ data?: unknown; error?: unknown }>;
+                const response = await (providers.riven.POST as unknown as PostFn)(
+                    "/api/v1/scrape/auto",
+                    {
+                        body: body
+                    }
+                );
 
-                if (response.data || response.message) {
+                if (response.data) {
                     // adjust check based on actual response
                     toast.success("Media item requested successfully!");
                     open = false;

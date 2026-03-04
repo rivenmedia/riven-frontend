@@ -10,6 +10,7 @@ const logger = createScopedLogger("tvdb-search");
 /**
  * Apply server-side filters to TVDB results
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyServerFilters(items: any[], filters: Record<string, any>): any[] {
     if (!filters || Object.keys(filters).length === 0) {
         return items;
@@ -86,6 +87,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
     const offset = (page - 1) * limit;
 
     // Extract client-side filters
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const clientFilters: Record<string, any> = {};
     const CLIENT_FILTERABLE = new Set([
         "vote_average.gte",
@@ -142,6 +144,7 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         // Make search request to TVDB using the provider client
         const searchResult = await providers.tvdb.GET("/search", {
             params: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 query: searchParams as any
             },
             headers: {
@@ -156,7 +159,9 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         }
 
         const transformedResults = (searchResult.data?.data || [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .filter((item: any) => item.type === "series")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((item: any) => ({
                 id: item.tvdb_id,
                 title: item.translations?.eng || item.name || "Unknown",

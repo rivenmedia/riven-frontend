@@ -370,11 +370,16 @@ export const actions = {
             tab.keys
         );
 
+        // The @sjsf form handler requires `any` because JSON schema types are inherently dynamic
+        // and cannot be typed more narrowly without re-implementing the entire package's generics.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handleForm = createFormHandler<any, true>({
             ...defaults,
             schema,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             uiSchema: uiSchema as any,
             sendData: true
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as FormHandlerOptions<any, true>);
 
         const [form] = await handleForm(request.signal, requestFormData);

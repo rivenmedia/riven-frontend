@@ -28,12 +28,14 @@ export const load: PageServerLoad = async ({ locals, fetch, request }) => {
 
         // Filter to only movies and TV shows with backdrops
         const filtered = (data?.results ?? []).filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (item: any) =>
                 (item.media_type === "movie" || item.media_type === "tv") && item.backdrop_path
         );
 
         return {
             nowPlaying: transformTMDBList(filtered as TMDBListItem[], "movie", "original"),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recentlyAdded: (recentlyAdded || []) as any[]
         };
     } catch (err) {

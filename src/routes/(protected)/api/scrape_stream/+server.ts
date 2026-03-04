@@ -99,6 +99,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                 }
             }
         } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const err = e as any;
             if (err?.name === "AbortError") {
                 // Expected abort, ignore

@@ -244,6 +244,7 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
                     }
                     // All other TVDB params are strings
                     else {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (tvdbParams as any)[paramName] = processedValue;
                     }
                 }
