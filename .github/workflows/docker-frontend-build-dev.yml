@@ -152,14 +152,15 @@ jobs:
             - name: Create manifest list and push
               working-directory: ${{ runner.temp }}/digests
               run: |
-                  docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+                  # Push GHCR manifest first (only GHCR tags, Docker Hub is handled separately below)
+                  docker buildx imagetools create $(jq -cr '.tags | map(select(startswith("ghcr.io"))) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
                     $(printf '${{ env.REGISTRY_IMAGE_GHCR }}@sha256:%s ' *)
 
                   # Push to Docker Hub with retry logic
                   for attempt in {1..3}; do
                     echo "Attempt $attempt of 3: Pushing to Docker Hub..."
-                    if docker buildx imagetools create $(jq -cr '.tags | map(gsub("ghcr.io/s0lidbyte/triven-frontend"; "coldspirit/triven-frontend") | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-                       $(printf '${{ env.REGISTRY_IMAGE_DOCKERHUB }}@sha256:%s ' *); then
+                    if docker buildx imagetools create $(jq -cr '.tags | map(select(startswith("ghcr.io") | not)) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+                       $(printf '${{ env.REGISTRY_IMAGE_GHCR }}@sha256:%s ' *); then
                       echo "Successfully pushed to Docker Hub"
                       break
                     else
