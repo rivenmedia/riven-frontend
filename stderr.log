@@ -1,8 +1,0 @@
-[error] src/routes/(protected)/details/media/[id]/[mediaType]/+page.svelte: expected_token: Expected token >
-[error] https://svelte.dev/e/expected_token
-[error] 521:                                 {#each ratingsData.scores as score (score.name)}
-[error] 522:                                     <a
-[error] 523:                                         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-[error]                                                                                   ^
-[error] 524:                                         href={score.url}
-[error] 525:                                         target="_blank"

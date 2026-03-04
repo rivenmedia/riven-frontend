@@ -1,7 +1,0 @@
-E:\Dev\Triven_riven-fork\Triven_frontend\src\lib\components\tmdb-now-playing.svelte:301 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\entity\[id]\[type]\+page.svelte:426 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\media\[id]\[mediaType]\+page.svelte:300 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\media\[id]\[mediaType]\+page.svelte:792 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\media\[id]\[mediaType]\+page.svelte:1008 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\media\[id]\[mediaType]\+page.svelte:1115 [svelte/no-navigation-without-resolve]
-E:\Dev\Triven_riven-fork\Triven_frontend\src\routes\(protected)\details\media\[id]\[mediaType]\+page.svelte:1141 [svelte/no-navigation-without-resolve]
