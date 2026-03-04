@@ -33,10 +33,13 @@
     // Get count of toggleable (non-locked) seasons
     $effect(() => {
         if (open && seasons.length > 0 && !hasInitialized) {
-            // Select all seasons by default
+            // Select only requestable seasons by default.
+            // Already available seasons are locked and should not be part of the selection payload.
             selectedSeasons.clear();
             for (const s of seasons) {
-                selectedSeasons.add(s.season_number);
+                if (!isSeasonLocked(s)) {
+                    selectedSeasons.add(s.season_number);
+                }
             }
             hasInitialized = true;
         }

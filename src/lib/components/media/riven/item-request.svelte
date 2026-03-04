@@ -96,22 +96,6 @@
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
                 }
-            } else if (mediaType === "movie" && validIds.length > 0) {
-                const body = {
-                    media_type: "movie",
-                    item_id: parseInt(validIds[0])
-                };
-                const response = await (providers.riven as any).POST("/api/v1/scrape/auto", {
-                    body: body
-                });
-
-                if (response.data || response.message) {
-                    toast.success("Media item requested successfully!");
-                    open = false;
-                } else {
-                    logger.error("Error response:", response.error);
-                    toast.error("Failed to request media item.");
-                }
             } else if (validIds.length > 0) {
                 // Item already exists in Riven — use /retry so it immediately
                 // re-queues all missing episodes (clears scraped_at cooldowns recursively).
