@@ -256,7 +256,7 @@ export const load: PageServerLoad = async ({
         keyCount: keys.split(",").filter(Boolean).length,
         pathCount: paths.split(",").filter(Boolean).length,
         referer: request.headers.get("referer"),
-        // Note: 'purpose' or 'sec-purpose' is used for preloads/prefetches 
+        // Note: 'purpose' or 'sec-purpose' is used for preloads/prefetches
         // but is not 100% consistent across all browsers/SvelteKit versions.
         purpose: request.headers.get("purpose") ?? request.headers.get("sec-purpose"),
         secFetchMode: request.headers.get("sec-fetch-mode"),
@@ -288,7 +288,7 @@ export const load: PageServerLoad = async ({
             );
         }
 
-        // Fail visibly on all backend-related load failures to prevent 
+        // Fail visibly on all backend-related load failures to prevent
         // accidental saves of empty/default state.
         error(503, {
             message: "Failed to load settings from backend. Please check connectivity."

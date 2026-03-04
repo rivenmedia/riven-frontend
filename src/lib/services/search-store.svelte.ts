@@ -573,8 +573,8 @@ export class SearchStore {
         const parsedSearchMode = this.parsedSearch?.searchMode;
         const normalizedParsedSearchMode =
             parsedSearchMode === "search" ||
-                parsedSearchMode === "discover" ||
-                parsedSearchMode === "hybrid"
+            parsedSearchMode === "discover" ||
+            parsedSearchMode === "hybrid"
                 ? parsedSearchMode
                 : "discover";
 
@@ -736,7 +736,9 @@ export class SearchStore {
         try {
             const json = await response.json();
             if (Array.isArray(json.results) && json.results.length === 0) {
-                logger.debug(`fetchSearchResults: received empty results array for ${type}`, { status: response.status });
+                logger.debug(`fetchSearchResults: received empty results array for ${type}`, {
+                    status: response.status
+                });
             }
             return json;
         } catch (err) {
@@ -823,10 +825,10 @@ export class SearchStore {
                 type === "movie"
                     ? this.movieResults
                     : type === "person"
-                        ? this.personResults
-                        : type === "company"
-                            ? this.companyResults
-                            : this.tvResults; // This line was already correct.
+                      ? this.personResults
+                      : type === "company"
+                        ? this.companyResults
+                        : this.tvResults; // This line was already correct.
             const uniqueNewItems = this.deduplicateItems(items, currentResults);
 
             if (type === "movie") {
@@ -889,10 +891,10 @@ export class SearchStore {
             type === "movie"
                 ? this.moviePage
                 : type === "person"
-                    ? this.personPage
-                    : type === "company"
-                        ? this.companyPage
-                        : this.tvPage;
+                  ? this.personPage
+                  : type === "company"
+                    ? this.companyPage
+                    : this.tvPage;
 
         try {
             const result = await this.fetchSearchResults(type, page, signal);
@@ -906,10 +908,10 @@ export class SearchStore {
                     type === "movie"
                         ? this.movieResults
                         : type === "person"
-                            ? this.personResults
-                            : type === "company"
-                                ? this.companyResults
-                                : this.tvResults;
+                          ? this.personResults
+                          : type === "company"
+                            ? this.companyResults
+                            : this.tvResults;
                 const uniqueNewItems = this.deduplicateItems(newItems, currentResults);
 
                 if (type === "movie") {

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import * as Form from "$lib/components/ui/form/index.js";
     import type { SuperValidated } from "sveltekit-superforms";
     import { changeUserDataSchema, type ChangeUserDataSchema } from "$lib/schemas/auth";
@@ -10,15 +11,25 @@
     import { page } from "$app/state";
     import FormBase from "./form-base.svelte";
 
+    /**
+     * @component UpdateUserForm
+     *
+     * Form component for updating general user profile information (name, avatar, username).
+     * Uses sveltekit-superforms with a zod schema for client/server validation.
+     */
+
     let {
         data
     }: {
         data: SuperValidated<ChangeUserDataSchema>;
     } = $props();
 
-    const form = superForm(data, {
-        validators: zod4Client(changeUserDataSchema)
-    });
+    const form = superForm(
+        untrack(() => data),
+        {
+            validators: zod4Client(changeUserDataSchema)
+        }
+    );
 
     const { form: formData, enhance, message, delayed } = form;
 

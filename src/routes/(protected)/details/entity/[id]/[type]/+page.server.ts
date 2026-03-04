@@ -14,9 +14,9 @@ export const load: PageServerLoad = async ({ fetch, params, cookies }) => {
     }
 
     if (type === "person") {
-        let personId = Number(id);
+        const personId = Number(id);
         const tvdbToken = cookies.get("tvdb_cookie") || "";
-        let { data: personData, error: personError } = await providers.tmdb.GET(
+        const { data: personData, error: personError } = await providers.tmdb.GET(
             "/3/person/{person_id}",
             {
                 params: {
@@ -48,8 +48,8 @@ export const load: PageServerLoad = async ({ fetch, params, cookies }) => {
             error(
                 500,
                 (personError as { message?: string; status_message?: string }).message ||
-                (personError as { message?: string; status_message?: string }).status_message ||
-                "Failed to fetch person details"
+                    (personError as { message?: string; status_message?: string }).status_message ||
+                    "Failed to fetch person details"
             );
         }
 

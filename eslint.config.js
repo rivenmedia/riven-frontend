@@ -21,7 +21,18 @@ export default ts.config(
         languageOptions: {
             globals: { ...globals.browser, ...globals.node }
         },
-        rules: { "no-undef": "off" }
+        rules: {
+            "no-undef": "off",
+            "@typescript-eslint/no-unused-vars": "warn",
+            "svelte/no-navigation-without-resolve": "warn",
+            "@typescript-eslint/no-explicit-any": "warn",
+            "svelte/no-unnecessary-state-wrap": "warn",
+            "@typescript-eslint/ban-ts-comment": "warn",
+            "svelte/require-each-key": "warn",
+            "svelte/prefer-svelte-reactivity": "warn",
+            "svelte/prefer-writable-derived": "warn",
+            "svelte/no-unused-svelte-ignore": "warn"
+        }
     },
     {
         files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],

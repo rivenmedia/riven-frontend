@@ -28,10 +28,14 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
                     mediaType = "tv";
                 }
             } else {
-                logger.warn(`Backend lookup failed for id=${params.id} (Status ${res.status}), falling back to movie`);
+                logger.warn(
+                    `Backend lookup failed for id=${params.id} (Status ${res.status}), falling back to movie`
+                );
             }
         } catch (e: any) {
-            logger.warn(`Backend fetch error for id=${params.id} (${e.message}), falling back to movie`);
+            logger.warn(
+                `Backend fetch error for id=${params.id} (${e.message}), falling back to movie`
+            );
         }
     }
 

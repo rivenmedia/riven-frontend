@@ -9,6 +9,13 @@
     import { fly } from "svelte/transition";
     import type { TerminalLoadingProps } from "./types";
 
+    /**
+     * @component TerminalLoading
+     *
+     * Displays a terminal-style animated loading spinner with loading and completion messages,
+     * sequenced by the parent Terminal's animation timeline.
+     */
+
     const frames = ["◒", "◐", "◓", "◑"];
 
     let {
@@ -48,7 +55,12 @@
 
     const flyDuration = $derived(300 / animationSpeed);
 
-    const animation = useAnimation({ delay, play });
+    const animation = useAnimation({
+        get delay() {
+            return delay;
+        },
+        play
+    });
 
     onDestroy(() => {
         animation.dispose();

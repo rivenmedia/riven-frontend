@@ -9,6 +9,14 @@
     import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
 
+    /**
+     * @component Home Page Route
+     *
+     * The primary protected dashboard view. Displays tmdb-now-playing hero banner
+     * and horizontal scrolling list carousels for recently added media, trending movies,
+     * trending tv shows, and trending anime via separate store singletons tracking API data.
+     */
+
     let { data }: { data: PageData } = $props();
 
     const viewAllButtonClass =
@@ -18,7 +26,12 @@
         "recentlyAdded",
         "/api/library/recent",
         null,
-        { noCache: true, initialData: data.recentlyAdded }
+        {
+            noCache: true,
+            get initialData() {
+                return data.recentlyAdded;
+            }
+        }
     );
     const trendingMoviesStore = new MediaListStore<BaseListItem>(
         "trendingMovies",

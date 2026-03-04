@@ -68,7 +68,9 @@ export class LogStore {
             const response = await providers.riven.GET("/api/v1/logs");
             if (response.error) {
                 const err =
-                    typeof response.error === "object" && response.error !== null && "message" in response.error
+                    typeof response.error === "object" &&
+                    response.error !== null &&
+                    "message" in response.error
                         ? String((response.error as { message: string }).message)
                         : JSON.stringify(response.error);
                 throw new Error(err);

@@ -9,6 +9,13 @@
     import { onMount } from "svelte";
     import type { TerminalRootProps } from "./types.js";
 
+    /**
+     * @component Terminal
+     *
+     * Root component for the terminal typing animation effect.
+     * Manages global animation state, playback lifecycle, and timing context.
+     */
+
     let {
         delay = 0,
         speed = 1,
@@ -17,7 +24,17 @@
         class: className
     }: TerminalRootProps = $props();
 
-    const terminal = useTerminalRoot({ delay, speed, onComplete });
+    const terminal = useTerminalRoot({
+        get delay() {
+            return delay;
+        },
+        get speed() {
+            return speed;
+        },
+        get onComplete() {
+            return onComplete;
+        }
+    });
 
     onMount(() => {
         // we play here so that we don't play before it is visible (on the server)

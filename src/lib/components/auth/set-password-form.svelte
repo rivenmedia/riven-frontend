@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import * as Form from "$lib/components/ui/form/index.js";
     import * as ButtonGroup from "$lib/components/ui/button-group/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -15,15 +16,25 @@
     import { page } from "$app/state";
     import FormBase from "./form-base.svelte";
 
+    /**
+     * @component SetPasswordForm
+     *
+     * Form component for setting or changing a user's password.
+     * Uses sveltekit-superforms with a zod schema for client/server validation.
+     */
+
     let {
         data
     }: {
         data: SuperValidated<SetPasswordSchema>;
     } = $props();
 
-    const form = superForm(data, {
-        validators: zod4Client(setPasswordSchema)
-    });
+    const form = superForm(
+        untrack(() => data),
+        {
+            validators: zod4Client(setPasswordSchema)
+        }
+    );
 
     const { form: formData, enhance, message, delayed } = form;
 

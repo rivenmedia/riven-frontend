@@ -1,24 +1,49 @@
 import { error } from "@sveltejs/kit";
-import type { RequestHandler } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
 import { produce } from "sveltekit-sse";
 import { createScopedLogger } from "$lib/logger";
 
-const logger = createScopedLogger("scrape-stream");
+/** Options for creating an SSE proxy to the backend. */
+interface SseProxyOptions {
+    /** SvelteKit request locals (must contain `user` and `session` for auth). */
+    locals: App.Locals;
+    /** Backend stream path, e.g. `"/api/v1/stream/logging"`. */
+    path: string;
+    /** SSE event name emitted to the client, e.g. `"log"` or `"notification"`. */
+    eventName: string;
+    /** Logger scope identifier, e.g. `"logs-api"`. */
+    logScope: string;
+}
 
 /**
- * SSE proxy endpoint for streaming scrape results.
- * Forwards the request to the backend's scrape_stream endpoint and
- * streams the response back to the client.
+ * Creates an SSE proxy response that connects to a backend stream endpoint
+ * and forwards events to the client.
+ *
+ * Handles authentication, backend connectivity, stream reading with buffered
+ * line parsing, and clean abort/error handling.
+ *
+ * @example
+ * ```ts
+ * export const POST: RequestHandler = async ({ locals }) => {
+ *     return createSseProxy({
+ *         locals,
+ *         path: "/api/v1/stream/logging",
+ *         eventName: "log",
+ *         logScope: "logs-api",
+ *     });
+ * };
+ * ```
  */
-export const GET: RequestHandler = async ({ locals, url }) => {
+export function createSseProxy({ locals, path, eventName, logScope }: SseProxyOptions) {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
 
+    const logger = createScopedLogger(logScope);
+
     const backendUrl = env.BACKEND_URL;
     if (!backendUrl) {
-        logger.error("Scrape stream proxy: BACKEND_URL is not configured");
+        logger.error(`${logScope} proxy: BACKEND_URL is not configured`);
         error(500, "Backend URL is not configured");
     }
 
@@ -26,22 +51,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         const abortController = new AbortController();
 
         try {
-            // Use consolidated endpoint with stream=true param
-            const searchParams = new URLSearchParams(url.searchParams);
-            searchParams.set("stream", "true");
-            // Ensure backendUrl doesn't have a trailing slash and target the correct /scrape endpoint
-            const baseUrl = backendUrl.replace(/\/$/, "");
-            const targetUrl = `${baseUrl}/api/v1/scrape?${searchParams.toString()}`;
-
-            // Sanitize log URL
-            const logUrl = new URL(targetUrl);
-            logUrl.search = ""; // Redact all query params
-            logger.info(`Scrape stream proxy: forwarding to ${logUrl.toString()}`);
-
-            const response = await fetch(targetUrl, {
+            const response = await fetch(`${backendUrl}${path}`, {
                 method: "GET",
                 headers: {
-                    "x-api-key": env.BACKEND_API_KEY ?? "",
+                    "x-api-key": env.BACKEND_API_KEY || "",
                     Accept: "text/event-stream",
                     "Cache-Control": "no-cache"
                 },
@@ -49,16 +62,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             });
 
             if (!response.ok) {
-                const text = await response.text();
-                logger.error(`Scrape stream proxy error ${response.status}: ${text}`);
-                // Emit error event to client before closing
-                emit(
-                    "message",
-                    JSON.stringify({
-                        event: "error",
-                        message: `An internal server error occurred (${response.status})`
-                    })
-                );
+                logger.error(`${logScope} proxy: Backend error ${response.status}`);
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -67,7 +71,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
             const reader = response.body?.getReader();
             if (!reader) {
-                logger.error("Scrape stream proxy: No response body");
+                logger.error(`${logScope} proxy: No response body`);
                 lock.set(false);
                 return function stop() {
                     abortController.abort();
@@ -88,7 +92,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
                 for (const line of lines) {
                     if (line.startsWith("data: ")) {
                         const data = line.slice(6);
-                        const { error: emitError } = emit("message", data);
+                        const { error: emitError } = emit(eventName, data);
                         if (emitError) {
                             reader.cancel();
                             return function stop() {
@@ -108,7 +112,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             ) {
                 // Suppress stack trace spam for expected offline errors
             } else {
-                logger.error("Scrape stream proxy: Connection error:", e);
+                logger.error(`${logScope} proxy: Connection error:`, e);
             }
         } finally {
             lock.set(false);
@@ -118,4 +122,4 @@ export const GET: RequestHandler = async ({ locals, url }) => {
             abortController.abort();
         };
     });
-};
+}

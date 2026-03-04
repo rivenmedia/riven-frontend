@@ -35,7 +35,7 @@ export const SETTINGS_TABS: SectionTab[] = [
         id: "filesystem",
         label: "Filesystem",
         keys: ["filesystem"],
-        restartRequired: true,
+        restartRequired: true
     },
     {
         id: "updaters",
@@ -61,8 +61,8 @@ export const SETTINGS_TABS: SectionTab[] = [
         id: "infra",
         label: "Infra",
         keys: ["database", "notifications", "post_processing", "logging", "stream"],
-        restartRequired: true,
-    },
+        restartRequired: true
+    }
 ];
 
 export const DEFAULT_TAB_ID: SectionTabId = SETTINGS_TABS[0].id;

@@ -189,7 +189,11 @@ export function getRateLimiterForUrl(url: string): RateLimiter | null {
     }
 }
 
-export async function withRateLimit<T>(url: string, fn: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+export async function withRateLimit<T>(
+    url: string,
+    fn: () => Promise<T>,
+    signal?: AbortSignal
+): Promise<T> {
     const limiter = getRateLimiterForUrl(url);
     if (!limiter) return fn();
 

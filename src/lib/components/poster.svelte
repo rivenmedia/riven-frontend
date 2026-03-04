@@ -54,8 +54,10 @@
         </button>
     {/if}
 
-    <a href={(resolve as (path: string) => string)(mediaURL)} class="absolute inset-0 z-10" aria-label={title || "View details"}
-    ></a>
+    <a
+        href={(resolve as (path: string) => string)(mediaURL)}
+        class="absolute inset-0 z-10"
+        aria-label={title || "View details"}></a>
 
     <div class="relative flex flex-1 p-2 transition-all">
         <div class="hidden h-full w-full flex-col items-start justify-end group-hover:flex">

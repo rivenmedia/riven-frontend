@@ -9,6 +9,13 @@
     import type { TerminalAnimationProps } from "./types";
     import { fly } from "svelte/transition";
 
+    /**
+     * @component TerminalAnimatedSpan
+     *
+     * Applies a fly-in animation to text lines within the terminal,
+     * coordinated by the parent Terminal's animation context.
+     */
+
     let { children, delay = 0, class: className }: TerminalAnimationProps = $props();
 
     let playAnimation = $state(false);
@@ -24,7 +31,12 @@
 
     const duration = $derived(300 / animationSpeed);
 
-    const animation = useAnimation({ delay, play });
+    const animation = useAnimation({
+        get delay() {
+            return delay;
+        },
+        play
+    });
 
     onDestroy(() => {
         animation.dispose();

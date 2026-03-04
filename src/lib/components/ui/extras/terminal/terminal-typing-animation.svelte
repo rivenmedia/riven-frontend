@@ -9,6 +9,13 @@
     import type { TerminalAnimationProps } from "./types";
     import { typewriter } from "$lib/actions/typewriter.svelte";
 
+    /**
+     * @component TerminalTypingAnimation
+     *
+     * Provides a typewriter effect for text within the terminal,
+     * controlled by the parent Terminal's animation timeline.
+     */
+
     let { children, delay = 0, class: className }: TerminalAnimationProps = $props();
 
     let playAnimation = $state(false);
@@ -19,7 +26,12 @@
         animationSpeed = speed;
     };
 
-    const animation = useAnimation({ delay, play });
+    const animation = useAnimation({
+        get delay() {
+            return delay;
+        },
+        play
+    });
 
     onDestroy(() => animation.dispose());
 </script>

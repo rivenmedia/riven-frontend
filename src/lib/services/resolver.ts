@@ -202,13 +202,16 @@ async function tvdbToTmdb(options: ResolveOptions): Promise<ResolveResult> {
             }
 
             // 2. Use TMDB find endpoint with IMDB ID
-            const { data: tmdbFind, error: tmdbError } = await providers.tmdb.GET("/3/find/{external_id}", {
-                params: {
-                    path: { external_id: imdbId },
-                    query: { external_source: "imdb_id" }
-                },
-                fetch: customFetch
-            });
+            const { data: tmdbFind, error: tmdbError } = await providers.tmdb.GET(
+                "/3/find/{external_id}",
+                {
+                    params: {
+                        path: { external_id: imdbId },
+                        query: { external_source: "imdb_id" }
+                    },
+                    fetch: customFetch
+                }
+            );
 
             if (tmdbError || !tmdbFind) {
                 logger.warn(`TMDB find failed for IMDB ID ${imdbId}:`, tmdbError);

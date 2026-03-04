@@ -190,19 +190,19 @@ export const GET: RequestHandler = async ({ params, url, fetch, setHeaders }) =>
         const tmdbData =
             mediaType === "movie"
                 ? await providers.tmdb.GET("/3/movie/{movie_id}", {
-                    params: {
-                        path: { movie_id: Number(tmdbId) },
-                        query: { append_to_response: "external_ids" }
-                    },
-                    fetch: customFetch
-                })
+                      params: {
+                          path: { movie_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  })
                 : await providers.tmdb.GET("/3/tv/{series_id}", {
-                    params: {
-                        path: { series_id: Number(tmdbId) },
-                        query: { append_to_response: "external_ids" }
-                    },
-                    fetch: customFetch
-                });
+                      params: {
+                          path: { series_id: Number(tmdbId) },
+                          query: { append_to_response: "external_ids" }
+                      },
+                      fetch: customFetch
+                  });
 
         if (tmdbData.data) {
             const data = tmdbData.data as Record<string, unknown>;

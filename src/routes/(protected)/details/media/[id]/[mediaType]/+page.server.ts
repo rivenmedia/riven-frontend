@@ -192,7 +192,10 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 if (detailsStatus === 404) {
                     error(404, "The requested movie could not be found.");
                 }
-                error(503, "Something went wrong while fetching movie details. Please try again later.");
+                error(
+                    503,
+                    "Something went wrong while fetching movie details. Please try again later."
+                );
             }
 
             const parsedDetails = providers.parser.parseTMDBMovieDetails(
@@ -280,7 +283,11 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     rivenPromise
                 ]);
 
-            let { data: episodesData, error: episodesError, status: episodesStatus } = tvdbEpisodesResult;
+            const {
+                data: episodesData,
+                error: episodesError,
+                status: episodesStatus
+            } = tvdbEpisodesResult;
             const { data: translationsData, error: translationsError } = tvdbTranslationsResult;
 
             // HAIL MARY Fallback: if indexer=tvdb failed with 404, the ID might be for an Episode, Season, or actually a TMDB ID
@@ -303,13 +310,20 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     });
 
                     if (episodeData?.data?.seriesId) {
-                        logger.info(`Resolved TVDB Episode ID ${id} to Series ID ${episodeData.data.seriesId}`);
+                        logger.info(
+                            `Resolved TVDB Episode ID ${id} to Series ID ${episodeData.data.seriesId}`
+                        );
                         const newUrl = new URL(url);
                         newUrl.pathname = `/details/media/${episodeData.data.seriesId}/tv`;
                         newUrl.searchParams.delete("indexer"); // new URL(url) copies existing params; strip indexer for clean redirect
                         // Add/Update season and episode params if they aren't already there (or let them be overwritten)
-                        if (episodeData.data.seasonNumber != null) newUrl.searchParams.set("season", String(episodeData.data.seasonNumber));
-                        if (episodeData.data.number != null) newUrl.searchParams.set("episode", String(episodeData.data.number));
+                        if (episodeData.data.seasonNumber != null)
+                            newUrl.searchParams.set(
+                                "season",
+                                String(episodeData.data.seasonNumber)
+                            );
+                        if (episodeData.data.number != null)
+                            newUrl.searchParams.set("episode", String(episodeData.data.number));
                         throw redirect(307, newUrl.pathname + newUrl.search);
                     }
                 } catch (e: any) {
@@ -325,11 +339,14 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     });
 
                     if (seasonData?.data?.seriesId) {
-                        logger.info(`Resolved TVDB Season ID ${id} to Series ID ${seasonData.data.seriesId}`);
+                        logger.info(
+                            `Resolved TVDB Season ID ${id} to Series ID ${seasonData.data.seriesId}`
+                        );
                         const newUrl = new URL(url);
                         newUrl.pathname = `/details/media/${seasonData.data.seriesId}/tv`;
                         newUrl.searchParams.delete("indexer"); // new URL(url) copies existing params; strip indexer for clean redirect
-                        if (seasonData.data.number != null) newUrl.searchParams.set("season", String(seasonData.data.number));
+                        if (seasonData.data.number != null)
+                            newUrl.searchParams.set("season", String(seasonData.data.number));
                         throw redirect(307, newUrl.pathname + newUrl.search);
                     }
                 } catch (e: any) {
@@ -345,7 +362,9 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
 
                     if (tmdbData.data?.name) {
                         const title = tmdbData.data.name;
-                        const year = dateUtils.getYearFromISO(tmdbData.data.first_air_date as string) ?? undefined;
+                        const year =
+                            dateUtils.getYearFromISO(tmdbData.data.first_air_date as string) ??
+                            undefined;
 
                         logger.info(
                             `Attempting TVDB title search for "${title}" (${year}) as part of Hail Mary`
@@ -375,8 +394,11 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                                 // Prefer year-matching result if multiple high-similarity candidates exist
                                 if (year) {
                                     const yearMatch = searchResults.data.find(
-                                        (r) => r.name && calculateSimilarity(title, r.name) > 0.9
-                                            && r.year && String(r.year) === String(year)
+                                        (r) =>
+                                            r.name &&
+                                            calculateSimilarity(title, r.name) > 0.9 &&
+                                            r.year &&
+                                            String(r.year) === String(year)
                                     );
                                     if (yearMatch?.tvdb_id) bestMatch = yearMatch;
                                 }
@@ -427,7 +449,9 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     // then we should retry with a redirect to trigger the Hail Mary block.
                     const retryCount = Number(url.searchParams.get("_retry") || "0");
                     if (!isAlreadyTvdbId && retryCount < 2) {
-                        logger.info(`TVDB ID ${tvdbId} 404'd. Re-triggering as Hail Mary via indexer=tvdb (retry ${retryCount + 1})`);
+                        logger.info(
+                            `TVDB ID ${tvdbId} 404'd. Re-triggering as Hail Mary via indexer=tvdb (retry ${retryCount + 1})`
+                        );
                         const newUrl = new URL(url);
                         newUrl.searchParams.set("indexer", "tvdb");
                         newUrl.searchParams.set("_retry", String(retryCount + 1));
@@ -437,7 +461,10 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                     }
                     error(404, "The requested TV show could not be found.");
                 }
-                error(503, "Something went wrong while fetching TV show details. Please try again later.");
+                error(
+                    503,
+                    "Something went wrong while fetching TV show details. Please try again later."
+                );
             }
 
             if (!details) {
@@ -453,24 +480,25 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 languagesToCheck.includes(details.data.originalLanguage)
             ) {
                 try {
-                    const { data: engEpisodesData, error: engEpisodesError } = await fetchWithStatus(
-                        providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
-                            params: {
-                                path: {
-                                    id: tvdbId,
-                                    "season-type": "official",
-                                    lang: "eng"
+                    const { data: engEpisodesData, error: engEpisodesError } =
+                        await fetchWithStatus(
+                            providers.tvdb.GET("/series/{id}/episodes/{season-type}/{lang}", {
+                                params: {
+                                    path: {
+                                        id: tvdbId,
+                                        "season-type": "official",
+                                        lang: "eng"
+                                    },
+                                    query: {
+                                        page: 0
+                                    }
                                 },
-                                query: {
-                                    page: 0
-                                }
-                            },
-                            headers: {
-                                Authorization: `Bearer ${tvdbToken}`
-                            },
-                            fetch: customFetch
-                        })
-                    );
+                                headers: {
+                                    Authorization: `Bearer ${tvdbToken}`
+                                },
+                                fetch: customFetch
+                            })
+                        );
 
                     // The generated types for this endpoint are incorrect (expects data.series.episodes),
                     // but the actual API returns data.episodes.

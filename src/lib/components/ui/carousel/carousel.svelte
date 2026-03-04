@@ -1,93 +1,105 @@
 <script lang="ts">
-	import {
-		type CarouselAPI,
-		type CarouselProps,
-		type EmblaContext,
-		setEmblaContext,
-	} from "./context.js";
-	import { cn, type WithElementRef } from "$lib/utils.js";
+    import {
+        type CarouselAPI,
+        type CarouselProps,
+        type EmblaContext,
+        setEmblaContext
+    } from "./context.js";
+    import { cn, type WithElementRef } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		opts = {},
-		plugins = [],
-		setApi = () => {},
-		orientation = "horizontal",
-		class: className,
-		children,
-		...restProps
-	}: WithElementRef<CarouselProps> = $props();
+    /**
+     * @component Carousel
+     *
+     * A flexible carousel component built on top of Embla Carousel.
+     * Manages carousel state, initialization, and keyboard navigation.
+     */
 
-	let carouselState = $state<EmblaContext>({
-		api: undefined,
-		scrollPrev,
-		scrollNext,
-		orientation,
-		canScrollNext: false,
-		canScrollPrev: false,
-		handleKeyDown,
-		options: opts,
-		plugins,
-		onInit,
-		scrollSnaps: [],
-		selectedIndex: 0,
-		scrollTo,
-	});
+    let {
+        ref = $bindable(null),
+        opts = {},
+        plugins = [],
+        setApi = () => {},
+        orientation = "horizontal",
+        class: className,
+        children,
+        ...restProps
+    }: WithElementRef<CarouselProps> = $props();
 
-	setEmblaContext(carouselState);
+    let carouselState = $state<EmblaContext>({
+        api: undefined,
+        scrollPrev,
+        scrollNext,
+        get orientation() {
+            return orientation;
+        },
+        canScrollNext: false,
+        canScrollPrev: false,
+        handleKeyDown,
+        get options() {
+            return opts;
+        },
+        get plugins() {
+            return plugins;
+        },
+        onInit,
+        scrollSnaps: [],
+        selectedIndex: 0,
+        scrollTo
+    });
 
-	function scrollPrev() {
-		carouselState.api?.scrollPrev();
-	}
+    setEmblaContext(carouselState);
 
-	function scrollNext() {
-		carouselState.api?.scrollNext();
-	}
+    function scrollPrev() {
+        carouselState.api?.scrollPrev();
+    }
 
-	function scrollTo(index: number, jump?: boolean) {
-		carouselState.api?.scrollTo(index, jump);
-	}
+    function scrollNext() {
+        carouselState.api?.scrollNext();
+    }
 
-	function onSelect() {
-		if (!carouselState.api) return;
-		carouselState.selectedIndex = carouselState.api.selectedScrollSnap();
-		carouselState.canScrollNext = carouselState.api.canScrollNext();
-		carouselState.canScrollPrev = carouselState.api.canScrollPrev();
-	}
+    function scrollTo(index: number, jump?: boolean) {
+        carouselState.api?.scrollTo(index, jump);
+    }
 
-	function handleKeyDown(e: KeyboardEvent) {
-		if (e.key === "ArrowLeft") {
-			e.preventDefault();
-			scrollPrev();
-		} else if (e.key === "ArrowRight") {
-			e.preventDefault();
-			scrollNext();
-		}
-	}
+    function onSelect() {
+        if (!carouselState.api) return;
+        carouselState.selectedIndex = carouselState.api.selectedScrollSnap();
+        carouselState.canScrollNext = carouselState.api.canScrollNext();
+        carouselState.canScrollPrev = carouselState.api.canScrollPrev();
+    }
 
-	function onInit(event: CustomEvent<CarouselAPI>) {
-		carouselState.api = event.detail;
-		setApi(carouselState.api);
+    function handleKeyDown(e: KeyboardEvent) {
+        if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            scrollPrev();
+        } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            scrollNext();
+        }
+    }
 
-		carouselState.scrollSnaps = carouselState.api.scrollSnapList();
-		carouselState.api.on("select", onSelect);
-		onSelect();
-	}
+    function onInit(event: CustomEvent<CarouselAPI>) {
+        carouselState.api = event.detail;
+        setApi(carouselState.api);
 
-	$effect(() => {
-		return () => {
-			carouselState.api?.off("select", onSelect);
-		};
-	});
+        carouselState.scrollSnaps = carouselState.api.scrollSnapList();
+        carouselState.api.on("select", onSelect);
+        onSelect();
+    }
+
+    $effect(() => {
+        return () => {
+            carouselState.api?.off("select", onSelect);
+        };
+    });
 </script>
 
 <div
-	bind:this={ref}
-	data-slot="carousel"
-	class={cn("relative", className)}
-	role="region"
-	aria-roledescription="carousel"
-	{...restProps}
->
-	{@render children?.()}
+    bind:this={ref}
+    data-slot="carousel"
+    class={cn("relative", className)}
+    role="region"
+    aria-roledescription="carousel"
+    {...restProps}>
+    {@render children?.()}
 </div>

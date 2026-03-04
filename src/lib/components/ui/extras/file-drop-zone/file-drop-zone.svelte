@@ -10,6 +10,13 @@
     import type { FileDropZoneProps, FileRejectedReason } from "./types";
     import { createScopedLogger } from "$lib/logger";
 
+    /**
+     * @component FileDropZone
+     *
+     * A drag-and-drop file upload zone component that handles file selection,
+     * validation (type, size, count), and provides visual feedback during upload.
+     */
+
     const logger = createScopedLogger("file-drop-zone");
 
     let {
@@ -26,11 +33,13 @@
         ...rest
     }: FileDropZoneProps = $props();
 
-    if (maxFiles !== undefined && fileCount === undefined) {
-        logger.warn(
-            "Make sure to provide FileDropZone with `fileCount` when using the `maxFiles` prompt"
-        );
-    }
+    $effect(() => {
+        if (maxFiles !== undefined && fileCount === undefined) {
+            logger.warn(
+                "Make sure to provide FileDropZone with `fileCount` when using the `maxFiles` prompt"
+            );
+        }
+    });
 
     let uploading = $state(false);
 
