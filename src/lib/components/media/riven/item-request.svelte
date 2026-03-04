@@ -51,6 +51,22 @@
     // State for season selection - managed by SeasonSelector component
     let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
 
+    const sortedSelectedSeasonNumbers = $derived.by(() =>
+        Array.from(selectedSeasons)
+            .filter((n) => Number.isInteger(n))
+            .sort((a, b) => a - b)
+    );
+
+    const requestableSeasons = $derived.by(() =>
+        seasons
+            .filter((s) => s.status !== "Available")
+            .map((s) => s.season_number)
+            .filter((n) => Number.isInteger(n))
+            .sort((a, b) => a - b)
+    );
+
+    const hasRequestableSeasons = $derived(requestableSeasons.length > 0);
+
     async function addMediaItem(ids: (string | null | undefined)[], mediaType: string) {
         const validIds = ids.filter((id): id is string => id !== null && id !== undefined);
 
@@ -58,14 +74,13 @@
             if (
                 mediaType === "tv" &&
                 seasons.length > 0 &&
-                selectedSeasons.size > 0 &&
-                selectedSeasons.size < seasons.length &&
+                sortedSelectedSeasonNumbers.length > 0 &&
                 externalId
             ) {
                 const body: ScrapeSeasonRequest = {
                     media_type: "tv",
                     tvdb_id: externalId,
-                    season_numbers: Array.from(selectedSeasons)
+                    season_numbers: sortedSelectedSeasonNumbers
                 };
 
                 // Use consolidated /auto endpoint with season_numbers
@@ -81,13 +96,46 @@
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
                 }
+            } else if (mediaType === "movie" && validIds.length > 0) {
+                const body = {
+                    media_type: "movie",
+                    item_id: parseInt(validIds[0])
+                };
+                const response = await (providers.riven as any).POST("/api/v1/scrape/auto", {
+                    body: body
+                });
+
+                if (response.data || response.message) {
+                    toast.success("Media item requested successfully!");
+                    open = false;
+                } else {
+                    logger.error("Error response:", response.error);
+                    toast.error("Failed to request media item.");
+                }
+            } else if (validIds.length > 0) {
+                // Item already exists in Riven — use /retry so it immediately
+                // re-queues all missing episodes (clears scraped_at cooldowns recursively).
+                // Calling /items/add on an existing item is a no-op due to deduplication.
+                const response = await providers.riven.POST("/api/v1/items/retry", {
+                    body: { ids: validIds }
+                });
+
+                if (response.data) {
+                    toast.success("Retry requested successfully!");
+                    open = false;
+                } else {
+                    logger.error("Error response:", response.error);
+                    toast.error("Failed to retry media item.");
+                }
             } else {
-                // Fallback to original add logic for movies or if all/no seasons selected
+                // Fallback: item not yet in Riven — add it fresh
+                const extIds = externalId ? [externalId] : validIds;
+
                 const response = await providers.riven.POST("/api/v1/items/add", {
                     body: {
                         media_type: mediaType as "movie" | "tv",
-                        tmdb_ids: mediaType === "movie" ? validIds : [],
-                        tvdb_ids: mediaType === "tv" ? validIds : []
+                        tmdb_ids: mediaType === "movie" ? extIds : [],
+                        tvdb_ids: mediaType === "tv" ? extIds : []
                     }
                 });
 
@@ -140,7 +188,10 @@
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
             <AlertDialog.Action
                 disabled={loading ||
-                    (mediaType === "tv" && seasons.length > 0 && selectedSeasons.size === 0)}
+                    (mediaType === "tv" &&
+                        seasons.length > 0 &&
+                        hasRequestableSeasons &&
+                        sortedSelectedSeasonNumbers.length === 0)}
                 onclick={async () => {
                     loading = true;
                     await addMediaItem(ids, mediaType);

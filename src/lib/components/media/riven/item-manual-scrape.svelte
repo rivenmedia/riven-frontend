@@ -140,58 +140,6 @@
                 }
             });
 
-            // Action 1.5: Update Attributes (Map files to episodes/movies)
-            let fileDataPayload:
-                | components["schemas"]["DebridFile"]
-                | components["schemas"]["ShowFileData"]
-                | null = null;
-
-            if (mediaType === "movie") {
-                const mapping = selectedFilesMappings[0];
-                if (mapping) {
-                    fileDataPayload = {
-                        file_id: parseFileId(mapping.file_id),
-                        filename: mapping.filename,
-                        filesize: mapping.filesize,
-                        download_url: mapping.download_url
-                    };
-                }
-            } else {
-                // TV Shows
-                const showData: components["schemas"]["ShowFileData"] = {};
-                selectedFilesMappings.forEach((m) => {
-                    if (m.season !== undefined && m.episode !== undefined) {
-                        const seasonKey = String(m.season);
-                        const episodeKey = String(m.episode);
-                        if (!showData[seasonKey]) {
-                            showData[seasonKey] = {};
-                        }
-                        showData[seasonKey][episodeKey] = {
-                            file_id: parseFileId(m.file_id),
-                            filename: m.filename,
-                            filesize: m.filesize,
-                            download_url: m.download_url
-                        };
-                    }
-                });
-
-                if (Object.keys(showData).length > 0) {
-                    fileDataPayload = showData;
-                }
-            }
-
-            if (fileDataPayload) {
-                await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
-                    params: {
-                        path: { session_id: sessionData.session_id }
-                    },
-                    body: {
-                        action: "update_attributes",
-                        file_data: fileDataPayload
-                    }
-                });
-            }
-
             // Action 2: Complete Session
             const { data: selectData, error: selectErr } = await providers.riven.POST(
                 "/api/v1/scrape/session/{session_id}",
@@ -769,7 +717,7 @@
                     });
 
                     batchSessions.push({
-                        sessionId: sData.torrent_info?.infohash || magnet,
+                        sessionId: sData.session_id,
                         magnet,
                         stream: streams.find((s) => s.magnet === magnet)?.stream as Stream,
                         sessionData: sData,
@@ -982,8 +930,11 @@
         try {
             const files = sessionData.parsed_files || [];
 
+            const reqSeason = (sessionData as any)?.requested_season;
+            const reqEpisode = (sessionData as any)?.requested_episode;
+
             // Fix season/episode indexing
-            selectedFilesMappings = files.map((file, idx: number) => {
+            let mapped = files.map((file, idx: number) => {
                 const pm = file.parsed_metadata as ParsedTitleData;
                 return {
                     file_id: file.file_id?.toString() || idx.toString(),
@@ -994,6 +945,25 @@
                     download_url: file.download_url ?? undefined
                 };
             });
+
+            // If the user requested a specific episode or season, auto-select only those files
+            if (reqSeason !== undefined && reqSeason !== null) {
+                let filtered = [];
+                if (reqEpisode !== undefined && reqEpisode !== null) {
+                    filtered = mapped.filter(
+                        (m) => m.season === reqSeason && m.episode === reqEpisode
+                    );
+                } else {
+                    filtered = mapped.filter((m) => m.season === reqSeason);
+                }
+
+                // Only apply the filter if it actually matched something, otherwise fallback to all files
+                if (filtered.length > 0) {
+                    mapped = filtered;
+                }
+            }
+
+            selectedFilesMappings = mapped;
 
             step = 3;
             toast.success("Files selected!");
@@ -1027,7 +997,7 @@
                 };
 
                 try {
-                    // Step 1: Select files (Stateless Download logic)
+                    // Step 1: Select files on debrid service
                     const container: Container = {};
                     session.mappings.forEach((mapping) => {
                         const fId = parseFileId(mapping.file_id);
@@ -1038,7 +1008,6 @@
                         };
                     });
 
-                    // Use unified session endpoint with select_files and update_attributes actions
                     await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
                         params: {
                             path: { session_id: session.sessionId }
@@ -1049,7 +1018,7 @@
                         }
                     });
 
-                    // Complete the session
+                    // Step 3: Complete the session
                     await providers.riven.POST("/api/v1/scrape/session/{session_id}", {
                         params: {
                             path: { session_id: session.sessionId }
