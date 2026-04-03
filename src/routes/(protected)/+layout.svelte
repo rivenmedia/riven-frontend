@@ -8,6 +8,9 @@
     import "@fontsource/merriweather/latin.css";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
     import { afterNavigate, beforeNavigate } from "$app/navigation";
+
+    // Save scroll positions per URL for back-navigation restore
+    const scrollPositions = new Map<string, number>();
     import Sidebar from "$lib/components/sidebar.svelte";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
@@ -31,12 +34,29 @@
     NProgress.configure({
         showSpinner: false
     });
-    beforeNavigate(() => {
+    beforeNavigate((navigation) => {
         NProgress.start();
+        // Save scroll position before leaving
+        if (mainContent && navigation.from?.url) {
+            scrollPositions.set(navigation.from.url.pathname + navigation.from.url.search, mainContent.scrollTop);
+        }
     });
-    afterNavigate(() => {
+    afterNavigate((navigation) => {
         NProgress.done();
-        if (mainContent) mainContent.scrollTop = 0;
+        if (!mainContent) return;
+        if (navigation.type === 'popstate') {
+            // Restore saved scroll position on back/forward
+            const key = navigation.to?.url?.pathname + (navigation.to?.url?.search || '');
+            const saved = key ? scrollPositions.get(key) : undefined;
+            if (saved !== undefined) {
+                // Wait for content to render before restoring
+                requestAnimationFrame(() => {
+                    mainContent.scrollTop = saved;
+                });
+            }
+        } else {
+            mainContent.scrollTop = 0;
+        }
     });
 
     setContext("sidebarStore", SidebarStore);

@@ -1,6 +1,15 @@
 <script lang="ts">
     import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
+    import { invalidateAll } from "$app/navigation";
+
+    async function refreshAfterRequest() {
+        pending = true;
+        // Give Riven backend time to process the request
+        await new Promise((r) => setTimeout(r, 1500));
+        await invalidateAll();
+        pending = false;
+    }
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
@@ -47,6 +56,7 @@
 
     let open = $state(false);
     let loading = $state(false);
+    let pending = $state(false);
 
     // State for season selection - managed by SeasonSelector component
     let selectedSeasons = $state<SvelteSet<number>>(new SvelteSet());
@@ -92,6 +102,7 @@
                     // adjust check based on actual response
                     toast.success("Media item requested successfully!");
                     open = false;
+                    refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
@@ -107,6 +118,7 @@
                 if (response.data) {
                     toast.success("Retry requested successfully!");
                     open = false;
+                    refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to retry media item.");
@@ -126,6 +138,7 @@
                 if (response.data) {
                     toast.success("Media item requested successfully!");
                     open = false;
+                    refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
@@ -141,8 +154,11 @@
 <AlertDialog.Root bind:open>
     <AlertDialog.Trigger>
         {#snippet child({ props })}
-            <Button {variant} {size} class={className} {...restProps} {...props}>
-                {#if children}
+            <Button {variant} {size} class={className} disabled={pending} {...restProps} {...props}>
+                {#if pending}
+                    <Loader2 class="mr-1.5 h-4 w-4 animate-spin" />
+                    Requesting...
+                {:else if children}
                     {@render children()}
                 {:else}
                     {buttonLabel}
