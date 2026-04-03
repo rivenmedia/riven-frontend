@@ -5,10 +5,13 @@
 
     async function refreshAfterRequest() {
         pending = true;
-        // Give Riven backend time to process the request
-        await new Promise((r) => setTimeout(r, 1500));
-        await invalidateAll();
-        pending = false;
+        try {
+            // Give Riven backend time to process the request
+            await new Promise((r) => setTimeout(r, 1500));
+            await invalidateAll();
+        } finally {
+            pending = false;
+        }
     }
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -187,7 +190,7 @@
         <AlertDialog.Footer>
             <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
             <AlertDialog.Action
-                disabled={loading ||
+                disabled={loading || pending ||
                     (mediaType === "tv" &&
                         seasons.length > 0 &&
                         hasRequestableSeasons &&

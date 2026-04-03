@@ -46,7 +46,8 @@
         if (!mainContent) return;
         if (navigation.type === 'popstate') {
             // Restore saved scroll position on back/forward
-            const key = navigation.to?.url?.pathname + (navigation.to?.url?.search || '');
+            const toUrl = navigation.to?.url;
+            const key = toUrl ? toUrl.pathname + (toUrl.search || '') : undefined;
             const saved = key ? scrollPositions.get(key) : undefined;
             if (saved !== undefined) {
                 // Wait for content to render before restoring
