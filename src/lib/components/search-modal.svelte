@@ -38,6 +38,7 @@
     let savedQuery = "";
     let savedResults: TMDBTransformedListItem[] = [];
     let navigatedFromModal = false;
+    let savedOrigin = "";
     // When true, skip transitions (instant hide/show for navigation)
     let skipTransition = $state(false);
 
@@ -54,12 +55,16 @@
 
     function handleInput() {
         if (debounceTimer) clearTimeout(debounceTimer);
+        abortController?.abort();
+        abortController = null;
         debounceTimer = setTimeout(search, 300);
     }
 
     async function search() {
         const q = query.trim();
         if (!q) {
+            abortController?.abort();
+            abortController = null;
             results = [];
             loading = false;
             return;
@@ -107,6 +112,7 @@
         savedResults = results;
         navigatedFromModal = true;
         pendingNavigation = true;
+        savedOrigin = window.location.pathname + window.location.search;
         // Keep modal open — it will be hidden after the new page loads
         goto(resolve(`/details/media/${item.id}/${item.media_type}`));
     }
@@ -121,10 +127,15 @@
             return;
         }
         if (navigation.type === 'popstate' && navigatedFromModal && savedQuery) {
-            navigatedFromModal = false;
-            skipTransition = true;
-            reopenFromNav();
-            requestAnimationFrame(() => { skipTransition = false; });
+            const toUrl = navigation.to?.url;
+            const currentPath = toUrl ? toUrl.pathname + (toUrl.search || '') : '';
+            if (currentPath === savedOrigin) {
+                navigatedFromModal = false;
+                savedOrigin = "";
+                skipTransition = true;
+                reopenFromNav();
+                requestAnimationFrame(() => { skipTransition = false; });
+            }
         }
     });
 

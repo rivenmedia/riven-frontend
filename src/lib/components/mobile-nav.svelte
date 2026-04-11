@@ -94,4 +94,6 @@
     </div>
 </div>
 
-<SearchModal open={searchModalOpen} onclose={() => (searchModalOpen = false)} onopen={() => (searchModalOpen = true)} />
+<div class="md:hidden">
+    <SearchModal open={searchModalOpen} onclose={() => (searchModalOpen = false)} onopen={() => (searchModalOpen = true)} />
+</div>
