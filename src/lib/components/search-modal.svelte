@@ -10,6 +10,8 @@
     import { cubicOut } from "svelte/easing";
     import type { TMDBTransformedListItem } from "$lib/providers/parser";
 
+    const MAX_RESULTS = 20;
+
     interface Props {
         open: boolean;
         onclose: () => void;
@@ -84,6 +86,13 @@
 
             if (signal.aborted) return;
 
+            if (!movieRes.ok) {
+                console.error(`TMDB movie search failed: ${movieRes.status} ${movieRes.statusText}`);
+            }
+            if (!tvRes.ok) {
+                console.error(`TMDB TV search failed: ${tvRes.status} ${tvRes.statusText}`);
+            }
+
             const [movies, tv] = await Promise.all([
                 movieRes.ok ? movieRes.json() : { results: [] },
                 tvRes.ok ? tvRes.json() : { results: [] }
@@ -94,7 +103,8 @@
             const merged: TMDBTransformedListItem[] = [
                 ...(movies.results ?? []),
                 ...(tv.results ?? [])
-            ].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+            ].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
+             .slice(0, MAX_RESULTS);
 
             results = merged;
         } catch (err) {
@@ -198,6 +208,7 @@
                 enterkeyhint="search"
                 class="h-full flex-1 bg-transparent text-sm font-medium text-white outline-none placeholder:text-white/40" />
             <button
+                type="button"
                 onclick={clearAndClose}
                 aria-label="Close search"
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/50 transition-all hover:bg-white/10 hover:text-white active:scale-95">
@@ -217,6 +228,7 @@
                 <div class="grid grid-cols-2 gap-3 px-4 pt-4 pb-24">
                     {#each results as item (`${item.media_type}-${item.id}`)}
                         <button
+                            type="button"
                             onclick={() => handleResultClick(item)}
                             class="block w-full rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.97] transition-transform duration-150">
                             <PortraitCard

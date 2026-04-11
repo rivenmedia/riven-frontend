@@ -16,7 +16,7 @@
 
     const SidebarStore = getContext<createSidebarStore>("sidebarStore");
 
-    const MAIN_PAGES = ["/", "/explore", "/dashboard", "/library", "/settings", "/calendar", "/logs"];
+    const MAIN_PAGES = ["/", "/explore", "/dashboard", "/library", "/settings", "/calendar", "/logs", "/auth"];
 
     const isMainPage = $derived(MAIN_PAGES.includes(page.url.pathname));
 
