@@ -8,6 +8,7 @@
     import "@fontsource/merriweather/latin.css";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
     import { afterNavigate, beforeNavigate } from "$app/navigation";
+    import { SvelteMap } from "svelte/reactivity";
     import Sidebar from "$lib/components/sidebar.svelte";
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
@@ -21,6 +22,9 @@
     import { SearchStore } from "$lib/services/search-store.svelte";
     import { FilterStore } from "$lib/services/filter-store.svelte";
 
+    // Save scroll positions per URL for back-navigation restore
+    const scrollPositions = new SvelteMap<string, number>();
+
     let { data, children }: LayoutProps = $props();
 
     let mainContent: HTMLElement;
@@ -31,12 +35,28 @@
     NProgress.configure({
         showSpinner: false
     });
-    beforeNavigate(() => {
+    beforeNavigate((navigation) => {
         NProgress.start();
+        // Save scroll position before leaving
+        if (mainContent && navigation.from?.url) {
+            scrollPositions.set(navigation.from.url.pathname + navigation.from.url.search, mainContent.scrollTop);
+        }
     });
-    afterNavigate(() => {
+    afterNavigate((navigation) => {
         NProgress.done();
-        if (mainContent) mainContent.scrollTop = 0;
+        if (!mainContent) return;
+        if (navigation.type === 'popstate') {
+            // Restore saved scroll position on back/forward
+            const toUrl = navigation.to?.url;
+            const key = toUrl ? toUrl.pathname + (toUrl.search || '') : undefined;
+            const saved = key ? scrollPositions.get(key) : undefined;
+            // Wait for content to render before restoring
+            requestAnimationFrame(() => {
+                mainContent.scrollTop = saved ?? 0;
+            });
+        } else {
+            mainContent.scrollTop = 0;
+        }
     });
 
     setContext("sidebarStore", SidebarStore);
