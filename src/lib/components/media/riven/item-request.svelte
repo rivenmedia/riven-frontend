@@ -2,17 +2,6 @@
     import providers from "$lib/providers";
     import { toast } from "svelte-sonner";
     import { invalidateAll } from "$app/navigation";
-
-    async function refreshAfterRequest() {
-        pending = true;
-        try {
-            // Give Riven backend time to process the request
-            await new Promise((r) => setTimeout(r, 1500));
-            await invalidateAll();
-        } finally {
-            pending = false;
-        }
-    }
     import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader2 from "@lucide/svelte/icons/loader-2";
@@ -21,6 +10,19 @@
     import { createScopedLogger } from "$lib/logger";
     import { type Snippet } from "svelte";
     import { SvelteSet } from "svelte/reactivity";
+
+    async function refreshAfterRequest() {
+        pending = true;
+        try {
+            // Give Riven backend time to process the request
+            await new Promise((r) => setTimeout(r, 1500));
+            await invalidateAll();
+        } catch (err) {
+            logger.error("Failed to refresh after request", err);
+        } finally {
+            pending = false;
+        }
+    }
 
     const logger = createScopedLogger("item-request");
 

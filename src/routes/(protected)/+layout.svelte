@@ -8,10 +8,11 @@
     import "@fontsource/merriweather/latin.css";
     import oxanium400Woff2 from "@fontsource/oxanium/files/oxanium-latin-400-normal.woff2?url";
     import { afterNavigate, beforeNavigate } from "$app/navigation";
+    import { SvelteMap } from "svelte/reactivity";
+    import Sidebar from "$lib/components/sidebar.svelte";
 
     // Save scroll positions per URL for back-navigation restore
-    const scrollPositions = new Map<string, number>();
-    import Sidebar from "$lib/components/sidebar.svelte";
+    const scrollPositions = new SvelteMap<string, number>();
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
     import NProgress from "nprogress";
