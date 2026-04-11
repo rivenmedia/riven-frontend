@@ -10,9 +10,6 @@
     import { afterNavigate, beforeNavigate } from "$app/navigation";
     import { SvelteMap } from "svelte/reactivity";
     import Sidebar from "$lib/components/sidebar.svelte";
-
-    // Save scroll positions per URL for back-navigation restore
-    const scrollPositions = new SvelteMap<string, number>();
     import { Toaster } from "$lib/components/ui/sonner/index.js";
     import { ModeWatcher } from "mode-watcher";
     import NProgress from "nprogress";
@@ -24,6 +21,9 @@
     import MobileNav from "$lib/components/mobile-nav.svelte";
     import { SearchStore } from "$lib/services/search-store.svelte";
     import { FilterStore } from "$lib/services/filter-store.svelte";
+
+    // Save scroll positions per URL for back-navigation restore
+    const scrollPositions = new SvelteMap<string, number>();
 
     let { data, children }: LayoutProps = $props();
 
@@ -50,12 +50,10 @@
             const toUrl = navigation.to?.url;
             const key = toUrl ? toUrl.pathname + (toUrl.search || '') : undefined;
             const saved = key ? scrollPositions.get(key) : undefined;
-            if (saved !== undefined) {
-                // Wait for content to render before restoring
-                requestAnimationFrame(() => {
-                    mainContent.scrollTop = saved;
-                });
-            }
+            // Wait for content to render before restoring
+            requestAnimationFrame(() => {
+                mainContent.scrollTop = saved ?? 0;
+            });
         } else {
             mainContent.scrollTop = 0;
         }

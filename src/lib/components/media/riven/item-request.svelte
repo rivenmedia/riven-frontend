@@ -107,7 +107,7 @@
                     // adjust check based on actual response
                     toast.success("Media item requested successfully!");
                     open = false;
-                    refreshAfterRequest();
+                    void refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
@@ -123,7 +123,7 @@
                 if (response.data) {
                     toast.success("Retry requested successfully!");
                     open = false;
-                    refreshAfterRequest();
+                    void refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to retry media item.");
@@ -143,7 +143,7 @@
                 if (response.data) {
                     toast.success("Media item requested successfully!");
                     open = false;
-                    refreshAfterRequest();
+                    void refreshAfterRequest();
                 } else {
                     logger.error("Error response:", response.error);
                     toast.error("Failed to request media item.");
