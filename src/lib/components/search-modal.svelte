@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto, afterNavigate } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import { onDestroy } from "svelte";
     import X from "@lucide/svelte/icons/x";
     import Search from "@lucide/svelte/icons/search";
@@ -32,7 +33,6 @@
         if (debounceTimer) clearTimeout(debounceTimer);
         abortController?.abort();
     });
-    let abortController: AbortController | null = null;
 
     // Persist search state across navigation
     let savedQuery = "";
@@ -108,7 +108,7 @@
         navigatedFromModal = true;
         pendingNavigation = true;
         // Keep modal open — it will be hidden after the new page loads
-        goto(`/details/media/${item.id}/${item.media_type}`);
+        goto(resolve(`/details/media/${item.id}/${item.media_type}`));
     }
 
     afterNavigate((navigation) => {
@@ -133,10 +133,17 @@
     }
 
     function clearAndClose() {
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+            debounceTimer = null;
+        }
+        abortController?.abort();
+        abortController = null;
         savedQuery = "";
         savedResults = [];
         query = "";
         results = [];
+        loading = false;
         onclose();
     }
 

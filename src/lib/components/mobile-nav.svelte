@@ -7,6 +7,7 @@
     import SearchModal from "$lib/components/search-modal.svelte";
     import { getContext } from "svelte";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import Search from "@lucide/svelte/icons/search";
     import { page } from "$app/state";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
@@ -29,7 +30,7 @@
             if (history.length > 1) {
                 history.back();
             } else {
-                goto('/');
+                goto(resolve('/'));
             }
         }}
         aria-label="Go back"
