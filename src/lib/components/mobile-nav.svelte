@@ -1,11 +1,14 @@
 <script lang="ts">
     import Menu from "@lucide/svelte/icons/menu";
     import X from "@lucide/svelte/icons/x";
+    import ChevronLeft from "@lucide/svelte/icons/chevron-left";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
-    import { getContext, onDestroy } from "svelte";
-    import Search from "@lucide/svelte/icons/search";
+    import SearchModal from "$lib/components/search-modal.svelte";
+    import { getContext } from "svelte";
     import { goto } from "$app/navigation";
+    import { resolve } from "$app/paths";
+    import Search from "@lucide/svelte/icons/search";
     import { page } from "$app/state";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
     import { fly } from "svelte/transition";
@@ -13,29 +16,28 @@
 
     const SidebarStore = getContext<createSidebarStore>("sidebarStore");
 
-    let inputRef = $state<HTMLInputElement | null>(null);
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const MAIN_PAGES = ["/", "/explore", "/dashboard", "/library", "/settings", "/calendar", "/logs", "/auth"];
 
-    function navigateToSearch() {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        const query = inputRef?.value.trim() || "";
-        const currentlyExplore = page.url.pathname === "/explore";
-        goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
-            keepFocus: currentlyExplore,
-            noScroll: true,
-            replaceState: currentlyExplore
-        });
-    }
+    const isMainPage = $derived(MAIN_PAGES.includes(page.url.pathname));
 
-    function handleInput() {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(navigateToSearch, 300);
-    }
-
-    onDestroy(() => {
-        if (debounceTimer) clearTimeout(debounceTimer);
-    });
+    let searchModalOpen = $state(false);
 </script>
+
+{#if !isMainPage}
+    <button
+        transition:fly={{ y: -20, duration: 400, easing: cubicOut }}
+        onclick={() => {
+            if (history.length > 1) {
+                history.back();
+            } else {
+                goto(resolve('/'));
+            }
+        }}
+        aria-label="Go back"
+        class="fixed top-4 left-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-white/5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:bg-white/10 active:scale-95 md:hidden">
+        <ChevronLeft class="size-5 text-white/70" />
+    </button>
+{/if}
 
 <div
     transition:fly={{ y: 20, duration: 400, easing: cubicOut }}
@@ -46,22 +48,13 @@
         <!-- Search Icon -->
         <Search class="size-4 shrink-0 text-white/50" />
 
-        <!-- Input -->
-        <input
-            bind:this={inputRef}
-            name="query"
-            placeholder="Search..."
-            aria-label="Search"
-            value={page.url.searchParams.get("query") || ""}
-            oninput={handleInput}
-            onkeydown={(e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    navigateToSearch();
-                }
-            }}
-            class="text-foreground h-full flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-white/40"
-            autocomplete="off" />
+        <!-- Tap-to-search trigger -->
+        <button
+            onclick={() => (searchModalOpen = true)}
+            aria-label="Open search"
+            class="h-full flex-1 bg-transparent text-left text-sm font-medium text-white/40 outline-none">
+            Search...
+        </button>
 
         <!-- Actions Divider -->
         <div class="h-5 w-px bg-white/10"></div>
@@ -99,4 +92,8 @@
             </Button>
         </div>
     </div>
+</div>
+
+<div class="md:hidden">
+    <SearchModal open={searchModalOpen} onclose={() => (searchModalOpen = false)} onopen={() => (searchModalOpen = true)} />
 </div>
