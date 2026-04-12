@@ -62,6 +62,8 @@
         if (debounceTimer) clearTimeout(debounceTimer);
         abortController?.abort();
         abortController = null;
+        currentPage = 1;
+        hasMorePages = true;
         debounceTimer = setTimeout(() => search(true), 300);
     }
 
@@ -75,6 +77,7 @@
             hasMorePages = true;
             currentQuery = "";
             loading = false;
+            loadingMore = false;
             return;
         }
 
