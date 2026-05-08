@@ -2,7 +2,6 @@ import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
 import providers from "$lib/providers";
 import * as dateUtils from "$lib/utils/date";
-import { createCustomFetch } from "$lib/custom-fetch";
 import { createScopedLogger } from "$lib/logger";
 
 const logger = createScopedLogger("tvdb-search");
@@ -64,12 +63,10 @@ function applyServerFilters(items: any[], filters: Record<string, any>): any[] {
     });
 }
 
-export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
+export const GET: RequestHandler = async ({ locals, url }) => {
     if (!locals.user || !locals.session) {
         error(401, "Unauthorized");
     }
-
-    const customFetch = createCustomFetch(fetch);
 
     // Extract all TVDB search parameters from URL
     const query = url.searchParams.get("query") || url.searchParams.get("q");
@@ -115,13 +112,6 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         error(400, "Search query or remote_id is required");
     }
 
-    // Get TVDB token from cookie (set by hooks.server.ts)
-    const tvdbToken = cookies.get("tvdb_cookie");
-
-    if (!tvdbToken) {
-        error(500, "TVDB authentication token not available");
-    }
-
     try {
         // Build query parameters - only include defined values
         const searchParams: Record<string, string | number> = {
@@ -139,15 +129,11 @@ export const GET: RequestHandler = async ({ fetch, locals, url, cookies }) => {
         if (network) searchParams.network = network;
         if (remote_id) searchParams.remote_id = remote_id;
 
-        // Make search request to TVDB using the provider client
+        // TVDB auth is injected by `tvdbFetch` (see $lib/server/tvdb-session.ts).
         const searchResult = await providers.tvdb.GET("/search", {
             params: {
                 query: searchParams as any
-            },
-            headers: {
-                Authorization: `Bearer ${tvdbToken}`
-            },
-            fetch: customFetch
+            }
         });
 
         if (searchResult.error) {

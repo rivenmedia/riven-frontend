@@ -124,7 +124,7 @@ async function getTraktData(fetch: typeof globalThis.fetch, mediaId: string, isM
     }
 }
 
-export const load = (async ({ fetch, params, cookies, locals, url }) => {
+export const load = (async ({ fetch, params, locals, url }) => {
     const { id, mediaType } = params;
     const customFetch = createCustomFetch(fetch);
 
@@ -191,8 +191,6 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 } as MediaDetails
             };
         } else if (mediaType === "tv") {
-            const tvdbToken = cookies.get("tvdb_cookie") || "";
-
             // Check if the ID is already a TVDB ID (passed via query param from library)
             const indexerParam = url.searchParams.get("indexer");
             const isAlreadyTvdbId = indexerParam === "tvdb";
@@ -203,14 +201,14 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                 // ID is already a TVDB ID, no resolution needed
                 tvdbId = Number(id);
             } else {
-                // Resolve TMDB ID to TVDB ID
+                // Resolve TMDB ID to TVDB ID. TVDB auth is now handled inside
+                // `providers.tvdb`, so this no longer needs a token argument.
                 const resolved = await normalizeFetch(
                     resolveId({
                         from: "tmdb",
                         to: "tvdb",
                         id: Number(id),
                         mediaType: "tv",
-                        tvdbToken,
                         customFetch
                     })
                 );
@@ -244,9 +242,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             params: {
                                 path: { id: tvdbId },
                                 query: { meta: "episodes" }
-                            },
-                            headers: { Authorization: `Bearer ${tvdbToken}` },
-                            fetch: customFetch
+                            }
                         })
                     ),
                     normalizeFetch(
@@ -254,9 +250,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                             params: {
                                 path: { id: tvdbId },
                                 query: { meta: "translations" }
-                            },
-                            headers: { Authorization: `Bearer ${tvdbToken}` },
-                            fetch: customFetch
+                            }
                         })
                     ),
                     getTraktData(customFetch, String(tvdbId), false),
@@ -315,11 +309,7 @@ export const load = (async ({ fetch, params, cookies, locals, url }) => {
                                 query: {
                                     page: 0
                                 }
-                            },
-                            headers: {
-                                Authorization: `Bearer ${tvdbToken}`
-                            },
-                            fetch: customFetch
+                            }
                         })
                     );
 

@@ -17,14 +17,18 @@ import type { paths as TraktPaths } from "./trakt";
 import type { paths as RivenPaths } from "./riven";
 import { parseTMDBMovieDetails, parseTVDBShowDetails } from "./parser";
 import { customFetch } from "$lib/custom-fetch";
+import { tvdbFetch } from "$lib/server/tvdb-session";
 
 const rivenClient = createClient<RivenPaths>({
     baseUrl: ""
 });
 
+// `tvdbFetch` automatically injects the bearer token and refreshes on 401, so
+// callers no longer need to read the `tvdb_cookie` or set Authorization
+// headers manually.
 const tvdbClient = createClient<TVDBPaths>({
     baseUrl: "https://api4.thetvdb.com/v4",
-    fetch: customFetch
+    fetch: tvdbFetch
 });
 
 const TMDB_READ_ACCESS_TOKEN =
