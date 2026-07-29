@@ -63,7 +63,7 @@
         "group bg-card ring-border hover:ring-primary/30 relative flex h-full w-full transform-gpu flex-col overflow-hidden rounded-xl shadow-sm ring-1 transition-all duration-500 ease-in-out hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50",
         className
     )}>
-    <div class="relative aspect-video w-full flex-grow overflow-hidden">
+    <div class="relative aspect-video w-full grow overflow-hidden">
         {#if image}
             <img
                 alt={title}
@@ -78,11 +78,11 @@
         {/if}
 
         <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100">
+            class="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100">
         </div>
         <!-- Subtle Theme Tint at the bottom -->
         <div
-            class="from-primary/20 absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+            class="from-primary/20 absolute inset-0 bg-linear-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         </div>
 
         {#if topRight}
@@ -116,11 +116,11 @@
                             {:then ratingsData}
                                 {#if ratingsData?.scores?.length}
                                     {#each ratingsData.scores as score (score.name)}
-                                        <!-- svelte-ignore svelte/no-navigation-without-resolve -->
+                                        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                         <a
                                             href={score.url}
                                             target="_blank"
-                                            rel="noopener noreferrer"
+                                            rel="external noopener noreferrer"
                                             onclick={(e) => e.stopPropagation()}
                                             class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/90 backdrop-blur-md transition-colors hover:bg-white/20">
                                             {#if score.image}

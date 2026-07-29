@@ -16,13 +16,7 @@ const CACHE = `cache-${version}`;
 const EXTERNAL_IMAGES_CACHE = `external-images-${version}`;
 const ASSETS = [...build, ...files];
 
-const IMAGE_DOMAINS = [
-    "tmdb.org",
-    "themoviedb.org",
-    "anilist.co",
-    "s4.anilist.co",
-    "cdn.anilist.co"
-];
+const IMAGE_DOMAINS = ["tmdb.org", "themoviedb.org", "s4.anilist.co", "cdn.anilist.co"];
 
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|gif|svg|avif|bmp)$/i;
 

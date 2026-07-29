@@ -16,21 +16,30 @@
 
     let open = $state(false);
 
-    // Show toast when a new notification is added (callback pattern instead of $effect)
-    function handleNewNotification(notification: Notification) {
-        toast.success(notification.title, {
-            description: notification.message,
-            duration: 5000
-        });
+    // Deduplicated notifications carry a stable dedupeKey. Passing that as the
+    // toast `id` makes svelte-sonner update the existing toast in-place rather
+    // than mounting a new animated node.
+    function handleBatchAdded(batch: readonly Notification[]) {
+        for (const n of batch) {
+            const description = n.message;
+            const opts = {
+                description,
+                duration: 5000,
+                ...(n.dedupeKey !== null ? { id: n.dedupeKey } : {})
+            };
+            if (n.severity === "error") toast.error(n.title, opts);
+            else if (n.severity === "warning") toast.warning(n.title, opts);
+            else toast.success(n.title, opts);
+        }
     }
 
     onMount(() => {
-        notificationStore.onNotificationAdded = handleNewNotification;
+        notificationStore.onBatchAdded = handleBatchAdded;
         notificationStore.connect();
     });
 
     onDestroy(() => {
-        notificationStore.onNotificationAdded = null;
+        notificationStore.onBatchAdded = null;
         notificationStore.disconnect();
     });
 
@@ -184,6 +193,12 @@
                                             class="{getTypeColor(notification.type)} text-[10px]">
                                             {notification.type}
                                         </Badge>
+                                        {#if notification.count > 1}
+                                            <span
+                                                class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums">
+                                                ×{notification.count}
+                                            </span>
+                                        {/if}
                                         {#if !notification.read}
                                             <div class="size-2 rounded-full bg-blue-500"></div>
                                         {/if}

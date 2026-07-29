@@ -1,15 +1,35 @@
-import { source } from "sveltekit-sse";
-import providers from "$lib/providers";
+import { gqlSubscribeClient } from "$lib/graphql-client";
+import { gqlClient } from "$lib/graphql-client";
 import { createScopedLogger } from "$lib/logger";
 
 const logger = createScopedLogger("logs");
 
 export type LogEntry = {
-    message?: string;
+    timestamp?: string | null;
+    level?: string | null;
+    message?: string | null;
+    target?: string | null;
 };
 
+export type LiveLogLine = string;
+
+const HISTORICAL_LOGS_QUERY = `
+    query GetLogs($limit: Int, $level: String) {
+        logs(limit: $limit, level: $level) {
+            timestamp
+            level
+            message
+            target
+        }
+    }
+`;
+
+const LOG_LINES_SUBSCRIPTION = `subscription {
+    logLines
+}`;
+
 export class LogStore {
-    #logs = $state<LogEntry[]>([]);
+    #logs = $state<LiveLogLine[]>([]);
     #historicalLogs = $state<LogEntry[]>([]);
     #isLoadingHistorical = $state<boolean>(false);
     #activeTab = $state<"live" | "historical">("live");
@@ -18,11 +38,11 @@ export class LogStore {
     #connectionStatus = $state<"connecting" | "connected" | "disconnected" | "error">(
         "disconnected"
     );
-    #connection: ReturnType<typeof source> | null = null;
     #unsubscribe: (() => void) | null = null;
 
     #reconnectAttempts = $state<number>(0);
     #maxReconnectAttempts = 5;
+    #hasConnected = $state<boolean>(false);
 
     get reconnectAttempts() {
         return this.#reconnectAttempts;
@@ -32,7 +52,11 @@ export class LogStore {
         return this.#maxReconnectAttempts;
     }
 
-    get logs() {
+    get hasConnected() {
+        return this.#hasConnected;
+    }
+
+    get logs(): LiveLogLine[] {
         return this.#logs;
     }
 
@@ -60,82 +84,78 @@ export class LogStore {
         return this.#connectionStatus;
     }
 
-    async fetchHistoricalLogs() {
+    async fetchHistoricalLogs(limit = 500, level?: string) {
         try {
             this.#isLoadingHistorical = true;
             this.#historicalError = null;
 
-            const response = await providers.riven.GET("/api/v1/logs");
-            if (response.error) {
-                throw new Error(response.error);
-            }
-            // @ts-expect-error ignore
-            this.#historicalLogs = response.data?.logs || [];
+            const data = await gqlClient<{ logs: LogEntry[] }>(HISTORICAL_LOGS_QUERY, {
+                limit,
+                level: level ?? null
+            });
+
+            this.#historicalLogs = data.logs;
         } catch (e: unknown) {
             const message = e instanceof Error ? e.message : "Unknown error";
             logger.error("Failed to fetch historical logs:", e);
-            this.#historicalError = `Failed to fetch historical logs: ${message}`;
+            this.#historicalError = `Failed to fetch logs: ${message}`;
         } finally {
             this.#isLoadingHistorical = false;
         }
     }
 
     connect() {
-        if (this.#connection) {
+        if (this.#unsubscribe) {
             return;
         }
 
         this.#connectionStatus = "connecting";
         this.#error = null;
+        this.#hasConnected = false;
+        this.#reconnectAttempts = 0;
 
-        this.#connection = source("/api/logs", {
-            open() {
-                // Connection opened
-            },
-            close: ({ connect }) => {
-                if (this.#connectionStatus !== "disconnected") {
-                    this.#connectionStatus = "error";
-                    // Auto-reconnect
-                    setTimeout(() => {
-                        if (this.#connectionStatus !== "disconnected") {
-                            connect();
-                        }
-                    }, 1000);
+        this.#unsubscribe = gqlSubscribeClient<{ logLines: string }>(
+            LOG_LINES_SUBSCRIPTION,
+            undefined,
+            {
+                onData: (payload) => {
+                    this.#connectionStatus = "connected";
+                    this.#hasConnected = true;
+                    this.#reconnectAttempts = 0;
+                    this.#error = null;
+
+                    const raw = payload.logLines;
+                    if (!raw?.trim()) return;
+                    this.#logs.push(raw);
+                },
+                onError: (error) => {
+                    const streamEnded = error.message === "Stream ended";
+
+                    if (!streamEnded) {
+                        logger.error("Log subscription error:", error);
+                        this.#reconnectAttempts += 1;
+                    }
+
+                    if (!streamEnded && this.#reconnectAttempts >= this.#maxReconnectAttempts) {
+                        this.#connectionStatus = "error";
+                        this.#error = "Log stream disconnected";
+                        return;
+                    }
+
+                    this.#connectionStatus = "connecting";
+                    this.disconnect();
+                    setTimeout(() => this.connect(), streamEnded ? 500 : 1000);
                 }
-            },
-            error: (error) => {
-                logger.error("Log stream error:", error);
-                this.#error = "Connection error";
-                this.#connectionStatus = "error";
             }
-        });
-
-        const logValue = this.#connection.select("log").json<LogEntry>(({ error, previous }) => {
-            if (error) {
-                logger.warn("Failed to parse log entry:", error);
-            }
-            return previous;
-        });
-
-        this.#connectionStatus = "connected";
-
-        this.#unsubscribe = logValue.subscribe((value) => {
-            if (value) {
-                this.#logs.push(value);
-                this.#error = null;
-            }
-        });
+        );
     }
 
     disconnect() {
         this.#connectionStatus = "disconnected";
+        this.#hasConnected = false;
         if (this.#unsubscribe) {
             this.#unsubscribe();
             this.#unsubscribe = null;
-        }
-        if (this.#connection) {
-            this.#connection.close();
-            this.#connection = null;
         }
     }
 

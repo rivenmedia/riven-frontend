@@ -1,28 +1,31 @@
+import { SvelteSet } from "svelte/reactivity";
+
 export class ItemStore {
-    #selectedItems = $state<number[]>([]);
+    #selectedItems = new SvelteSet<number>();
 
     get items() {
-        return this.#selectedItems;
+        return [...this.#selectedItems];
     }
 
     get count() {
-        return this.#selectedItems.length;
+        return this.#selectedItems.size;
     }
 
     clear() {
-        this.#selectedItems = [];
+        this.#selectedItems.clear();
     }
 
-    has(id: number): boolean {
-        return this.#selectedItems.indexOf(id) > -1;
+    has(id: number | null | undefined): boolean {
+        return id != null && this.#selectedItems.has(id);
     }
 
-    toggle(id: number) {
-        const index = this.#selectedItems.indexOf(id);
-        if (index > -1) {
-            this.#selectedItems.splice(index, 1);
+    toggle(id: number | null | undefined) {
+        if (id == null) return;
+
+        if (this.#selectedItems.has(id)) {
+            this.#selectedItems.delete(id);
         } else {
-            this.#selectedItems.push(id);
+            this.#selectedItems.add(id);
         }
     }
 }

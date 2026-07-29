@@ -1,7 +1,9 @@
 <script lang="ts">
+    /* eslint-disable svelte/no-navigation-without-resolve */
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { cn } from "$lib/utils";
+    import { resolve } from "$app/paths";
 
     const badgeVariantClasses: Record<string, string> = {
         success: "bg-green-600/90 text-white border-0",
@@ -38,14 +40,19 @@
             (indexer === "tmdb" || indexer === "tvdb" || indexer === undefined) &&
             (normalizedType === "movie" || normalizedType === "tv")
         ) {
-            // Include indexer as query param when it's tvdb so details page knows to skip resolution
-            const queryParam = indexer === "tvdb" ? "?indexer=tvdb" : "";
+            const params: string[] = [];
+            if (indexer === "tvdb") params.push("indexer=tvdb");
+            if (data.details_query) {
+                for (const [key, value] of Object.entries(data.details_query)) {
+                    params.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+                }
+            }
+            const queryParam = params.length > 0 ? `?${params.join("&")}` : "";
             // If indexer is undefined, assume tmdb behavior for now as default
             return `/details/media/${data.id}/${normalizedType}${queryParam}`;
         }
         return `/details/${indexer}${normalizedType ? `/${normalizedType}` : ""}/${data.id}`;
     });
-
     let subtitle = $derived.by(() => {
         const parts = [];
         if (data.media_type === "tv" || normalizedType === "tv") parts.push("TV");
@@ -66,6 +73,26 @@
             className
         )
     );
+
+    function getMediaHref(mediaURL: string) {
+        const [pathname, search = ""] = mediaURL.split("?");
+
+        if (pathname.startsWith("/details/media/")) {
+            const [, , , id, mediaType] = pathname.split("/");
+            const basePath = resolve("/(protected)/details/media/[id]/[mediaType]", {
+                id,
+                mediaType
+            });
+            return search ? `${basePath}?${search}` : basePath;
+        }
+
+        if (pathname.startsWith("/details/entity/")) {
+            const [, , , id, type] = pathname.split("/");
+            return resolve("/(protected)/details/entity/[id]/[type]", { id, type });
+        }
+
+        return mediaURL;
+    }
 </script>
 
 {#snippet cardContent()}
@@ -74,8 +101,8 @@
         {subtitle}
         image={data.poster_path}
         {isSelectable}
-        isSelected={isSelectable && !!data.riven_id && selectStore?.has(data.riven_id!)}
-        onSelectToggle={() => data.riven_id && selectStore?.toggle(data.riven_id!)}>
+        isSelected={isSelectable && !!data.riven_id && selectStore?.has(data.riven_id)}
+        onSelectToggle={() => selectStore?.toggle(data.riven_id)}>
         {#snippet topRight()}
             {#if data.badge}
                 <Badge
@@ -89,8 +116,7 @@
 {/snippet}
 
 {#if mediaURL}
-    <!-- svelte-ignore svelte/no-navigation-without-resolve -->
-    <a href={mediaURL} class={containerClasses}>
+    <a href={getMediaHref(mediaURL)} class={containerClasses}>
         {@render cardContent()}
     </a>
 {:else}

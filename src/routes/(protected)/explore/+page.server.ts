@@ -3,16 +3,15 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { searchSchema } from "$lib/schemas/search";
 import type { PageServerLoad } from "./$types";
 import { parseSearchQuery } from "$lib/search-parser";
-import providers from "$lib/providers";
-import {
-    transformTMDBList,
-    type TMDBListItem,
-    type TMDBTransformedListItem
-} from "$lib/providers/parser";
-import { createCustomFetch } from "$lib/custom-fetch";
+import { type TMDBTransformedListItem } from "$lib/metadata/parser";
 import { logger } from "$lib/logger";
+import {
+    fetchTmdbCategory,
+    fetchTmdbTrending,
+    mapGqlTmdbList
+} from "$lib/services/backend-metadata";
 
-export const load: PageServerLoad = async ({ url, fetch }) => {
+export const load: PageServerLoad = async ({ url, fetch, locals }) => {
     // Parse and validate search params from the URL
     const form = await superValidate(url.searchParams, zod4(searchSchema));
     const parsed = parseSearchQuery(form.data.query || "");
@@ -23,8 +22,6 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
     let searchExamples: string[] = [];
 
     try {
-        const customFetch = createCustomFetch(fetch);
-
         // Generate 4 distinct random pages to ensure variety
         const randomPagePopMovie = Math.floor(Math.random() * 50) + 1;
         const randomPagePopTV = Math.floor(Math.random() * 50) + 1;
@@ -33,72 +30,40 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
 
         const [trendingMovies, trendingTV, popularMovies, popularTV, topRatedMovies, topRatedTV] =
             await Promise.all([
-                // High quality for Hero/Examples
-                providers.tmdb.GET("/3/trending/movie/{time_window}", {
-                    params: {
-                        path: { time_window: "week" },
-                        query: { language: "en-US" }
-                    },
-                    fetch: customFetch
-                }),
-                providers.tmdb.GET("/3/trending/tv/{time_window}", {
-                    params: {
-                        path: { time_window: "week" },
-                        query: { language: "en-US" }
-                    },
-                    fetch: customFetch
-                }),
-                // Random popular content
-                providers.tmdb.GET("/3/movie/popular", {
-                    params: {
-                        query: { page: randomPagePopMovie, language: "en-US" }
-                    },
-                    fetch: customFetch
-                }),
-                providers.tmdb.GET("/3/tv/popular", {
-                    params: {
-                        query: { page: randomPagePopTV, language: "en-US" }
-                    },
-                    fetch: customFetch
-                }),
-                // Random top rated content
-                providers.tmdb.GET("/3/movie/top_rated", {
-                    params: {
-                        query: { page: randomPageTopMovie, language: "en-US" }
-                    },
-                    fetch: customFetch
-                }),
-                providers.tmdb.GET("/3/tv/top_rated", {
-                    params: {
-                        query: { page: randomPageTopTV, language: "en-US" }
-                    },
-                    fetch: customFetch
-                })
+                fetchTmdbTrending(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "movie", timeWindow: "week", page: 1 }
+                ),
+                fetchTmdbTrending(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "tv", timeWindow: "week", page: 1 }
+                ),
+                fetchTmdbCategory(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "movie", category: "popular", page: randomPagePopMovie }
+                ),
+                fetchTmdbCategory(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "tv", category: "popular", page: randomPagePopTV }
+                ),
+                fetchTmdbCategory(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "movie", category: "top_rated", page: randomPageTopMovie }
+                ),
+                fetchTmdbCategory(
+                    { backendUrl: locals.backendUrl, apiKey: locals.apiKey, fetch },
+                    { type: "tv", category: "top_rated", page: randomPageTopTV }
+                )
             ]);
 
-        const heroMovieResults = transformTMDBList(
-            (trendingMovies.data?.results as TMDBListItem[]) ?? []
-        );
-        const heroTvResults = transformTMDBList(
-            (trendingTV.data?.results as TMDBListItem[]) ?? [],
-            "tv"
-        );
+        const heroMovieResults = mapGqlTmdbList(trendingMovies);
+        const heroTvResults = mapGqlTmdbList(trendingTV);
 
-        const popularMovieResults = transformTMDBList(
-            (popularMovies.data?.results as TMDBListItem[]) ?? []
-        );
-        const popularTvResults = transformTMDBList(
-            (popularTV.data?.results as TMDBListItem[]) ?? [],
-            "tv"
-        );
+        const popularMovieResults = mapGqlTmdbList(popularMovies);
+        const popularTvResults = mapGqlTmdbList(popularTV);
 
-        const topRatedMovieResults = transformTMDBList(
-            (topRatedMovies.data?.results as TMDBListItem[]) ?? []
-        );
-        const topRatedTvResults = transformTMDBList(
-            (topRatedTV.data?.results as TMDBListItem[]) ?? [],
-            "tv"
-        );
+        const topRatedMovieResults = mapGqlTmdbList(topRatedMovies);
+        const topRatedTvResults = mapGqlTmdbList(topRatedTV);
 
         // Hero items: Top trending
         heroItems = shuffleArray([...heroMovieResults.slice(0, 5), ...heroTvResults.slice(0, 5)]);

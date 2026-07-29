@@ -1,7 +1,14 @@
 import { command } from "$app/server";
 import { z } from "zod";
-import providers from "$lib/providers";
+import { gql } from "$lib/graphql-client";
 import { getRequestEvent } from "$app/server";
+import { buildBackendRoleHeaders, requireLibraryAccess } from "$lib/server/rbac";
+import {
+    REMOVE_ITEMS_MUTATION,
+    RESET_ITEMS_MUTATION,
+    RETRY_ITEMS_MUTATION,
+    toNumericIds
+} from "$lib/services/library-mutations";
 
 const itemIdsSchema = z.object({
     ids: z.array(z.string())
@@ -10,75 +17,62 @@ const itemIdsSchema = z.object({
 export const reset_items = command(itemIdsSchema, async ({ ids }) => {
     const event = getRequestEvent();
     if (!event) throw new Error("No event found");
+    requireLibraryAccess(event.locals.user);
 
-    // We need to access locals for auth
     const { backendUrl, apiKey } = event.locals;
+    if (!backendUrl || !apiKey) throw new Error("Backend URL or API key missing");
 
-    if (!backendUrl || !apiKey) {
-        throw new Error("Backend URL or API key missing");
-    }
+    const numericIds = toNumericIds(ids);
+    const data = await gql<{ resetItems: number }>(
+        backendUrl,
+        apiKey,
+        RESET_ITEMS_MUTATION,
+        { ids: numericIds },
+        undefined,
+        buildBackendRoleHeaders(event.locals.user, event.locals.backendAuthSigningSecret)
+    );
 
-    const res = await providers.riven.POST("/api/v1/items/reset", {
-        body: { ids },
-        baseUrl: backendUrl,
-        headers: {
-            "x-api-key": apiKey
-        }
-    });
-
-    if (res.error) {
-        throw new Error(res.error as string);
-    }
-
-    return { success: true, count: ids.length };
+    return { success: true, count: data.resetItems };
 });
 
 export const retry_items = command(itemIdsSchema, async ({ ids }) => {
     const event = getRequestEvent();
     if (!event) throw new Error("No event found");
+    requireLibraryAccess(event.locals.user);
 
     const { backendUrl, apiKey } = event.locals;
+    if (!backendUrl || !apiKey) throw new Error("Backend URL or API key missing");
 
-    if (!backendUrl || !apiKey) {
-        throw new Error("Backend URL or API key missing");
-    }
+    const numericIds = toNumericIds(ids);
+    const data = await gql<{ retryItems: number }>(
+        backendUrl,
+        apiKey,
+        RETRY_ITEMS_MUTATION,
+        { ids: numericIds },
+        undefined,
+        buildBackendRoleHeaders(event.locals.user, event.locals.backendAuthSigningSecret)
+    );
 
-    const res = await providers.riven.POST("/api/v1/items/retry", {
-        body: { ids },
-        baseUrl: backendUrl,
-        headers: {
-            "x-api-key": apiKey
-        }
-    });
-
-    if (res.error) {
-        throw new Error(res.error as string);
-    }
-
-    return { success: true, count: ids.length };
+    return { success: true, count: data.retryItems };
 });
 
 export const remove_items = command(itemIdsSchema, async ({ ids }) => {
     const event = getRequestEvent();
     if (!event) throw new Error("No event found");
+    requireLibraryAccess(event.locals.user);
 
     const { backendUrl, apiKey } = event.locals;
+    if (!backendUrl || !apiKey) throw new Error("Backend URL or API key missing");
 
-    if (!backendUrl || !apiKey) {
-        throw new Error("Backend URL or API key missing");
-    }
+    const numericIds = toNumericIds(ids);
+    const data = await gql<{ removeItems: number }>(
+        backendUrl,
+        apiKey,
+        REMOVE_ITEMS_MUTATION,
+        { ids: numericIds },
+        undefined,
+        buildBackendRoleHeaders(event.locals.user, event.locals.backendAuthSigningSecret)
+    );
 
-    const res = await providers.riven.DELETE("/api/v1/items/remove", {
-        body: { ids },
-        baseUrl: backendUrl,
-        headers: {
-            "x-api-key": apiKey
-        }
-    });
-
-    if (res.error) {
-        throw new Error(res.error as string);
-    }
-
-    return { success: true, count: ids.length };
+    return { success: true, count: data.removeItems };
 });

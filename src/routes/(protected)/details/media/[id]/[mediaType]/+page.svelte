@@ -2,15 +2,13 @@
     import { browser } from "$app/environment";
     import { page } from "$app/state";
     import { type PageProps } from "./$types";
-    import type { ParsedShowDetails } from "$lib/providers/parser";
+    import type { ParsedShowDetails } from "$lib/metadata/parser";
     import { fade, fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
     import * as Carousel from "$lib/components/ui/carousel/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
-    import * as Sheet from "$lib/components/ui/sheet/index.js";
-    import * as Drawer from "$lib/components/ui/drawer/index.js";
     import Play from "@lucide/svelte/icons/play";
     import FileJson from "@lucide/svelte/icons/file-json";
     import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
@@ -20,24 +18,39 @@
     import Pause from "@lucide/svelte/icons/pause";
     import Download from "@lucide/svelte/icons/download";
     import { cn } from "$lib/utils";
-    import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import PortraitCard from "$lib/components/media/portrait-card.svelte";
     import ItemRequest from "$lib/components/media/riven/item-request.svelte";
-    import ItemDelete from "$lib/components/media/riven/item-delete.svelte";
-    import ItemPause from "$lib/components/media/riven/item-pause.svelte";
-    import ItemReset from "$lib/components/media/riven/item-reset.svelte";
-    import ItemRetry from "$lib/components/media/riven/item-retry.svelte";
+    import ItemAction from "$lib/components/media/riven/item-action.svelte";
     import ItemManualScrape from "$lib/components/media/riven/item-manual-scrape.svelte";
     import CollectionSheet from "$lib/components/media/collection-sheet.svelte";
-    import LandscapeCard from "$lib/components/media/landscape-card.svelte";
     import StatusBadge from "$lib/components/media/status-badge.svelte";
-    import VideoPlayer from "$lib/components/media/video-player.svelte";
+    import LiveSeasons from "./live-seasons.svelte";
+    import LiveEpisodes from "./live-episodes.svelte";
     import { toast } from "svelte-sonner";
     import X from "@lucide/svelte/icons/x";
+    import { gqlClient, gqlSubscribeClient } from "$lib/graphql-client";
+    import type { RivenMediaItem } from "$lib/types/riven";
+    import {
+        MEDIA_ITEM_FULL_BY_TMDB_QUERY,
+        MEDIA_ITEM_FULL_BY_TVDB_QUERY,
+        RAW_RIVEN_DATA_BY_TMDB_QUERY,
+        RAW_RIVEN_DATA_BY_TVDB_QUERY,
+        MEDIA_ITEM_STATE_BY_TMDB_QUERY,
+        MEDIA_ITEM_STATE_BY_TVDB_QUERY,
+        MEDIA_ITEM_STATE_UPDATES_BY_TMDB_SUBSCRIPTION,
+        MEDIA_ITEM_STATE_UPDATES_BY_TVDB_SUBSCRIPTION,
+        SHOW_INDEXED_SUBSCRIPTION,
+        mapMediaItemStateTree,
+        mapMediaItemFull,
+        type GqlMediaItemFull,
+        type GqlMediaItemStateTree,
+        type GqlIndexedShow
+    } from "$lib/services/riven-media";
+    import { untrack } from "svelte";
+    import { SvelteMap } from "svelte/reactivity";
+    import { resolve } from "$app/paths";
 
     let { data }: PageProps = $props();
-
-    const isMobile = new IsMobile();
 
     const externalMeta: Record<string, { name: string; url: string }> = {
         imdb: { name: "IMDb", url: "https://www.imdb.com/title/" },
@@ -50,16 +63,85 @@
     };
     const getExternal = (key: string) => externalMeta[key.replace("_id", "")];
 
+    function mediaHref(id: number | string, mediaType: string) {
+        return resolve("/(protected)/details/media/[id]/[mediaType]", {
+            id: String(id),
+            mediaType
+        });
+    }
+
+    function entityHref(id: number | string, type: string, query?: string) {
+        const path = resolve("/(protected)/details/entity/[id]/[type]", {
+            id: String(id),
+            type
+        });
+        return query ? `${path}?${query}` : path;
+    }
+
     let showTrailerOverride = $state(false);
     const showTrailer = $derived(showTrailerOverride && data.mediaDetails?.details?.trailer);
 
-    let showVideoPlayer = $state(false);
-    function toggleVideoPlayer() {
-        showVideoPlayer = !showVideoPlayer;
-    }
+    let liveRiven = $state<RivenMediaItem | undefined>(untrack(() => data.riven));
+    let hydratedRiven = $state<RivenMediaItem | undefined>(undefined);
+    let liveRivenItemId = $state<number | undefined>(untrack(() => data.riven?.id));
+    let rivenPending = $state(untrack(() => Boolean(data.rivenPending)));
+    let completedDetailsHydrating = false;
+    let lastHydratedCompletedKey = "";
+    let rawDataOpen = $state(false);
+    let rawRivenLoading = $state(false);
+    let rawRivenError = $state<string | undefined>(undefined);
+    let rawRivenData = $state<unknown>(undefined);
+
+    const riven = $derived(liveRiven ?? hydratedRiven);
+    const rawRivenDisplayData = $derived(
+        rawRivenData ?? (rawRivenLoading ? undefined : (hydratedRiven ?? riven))
+    );
+    const rawRivenJson = $derived(JSON.stringify(rawRivenDisplayData, null, 2));
+
+    const episodeCountBySeasonNumber = $derived.by(() => {
+        if (data.mediaDetails?.type !== "tv") return undefined;
+
+        const details = data.mediaDetails.details as ParsedShowDetails;
+        const counts = new SvelteMap<number, number>();
+
+        for (const episode of details.episodes ?? []) {
+            if (episode.seasonNumber == null) continue;
+            counts.set(episode.seasonNumber, (counts.get(episode.seasonNumber) ?? 0) + 1);
+        }
+
+        return counts;
+    });
+
+    const completedFileCount = $derived.by(() => {
+        if (!riven) return 0;
+        if (data.mediaDetails?.type === "movie") {
+            return riven.state === "Completed" ? 1 : 0;
+        }
+        return (
+            riven.seasons?.reduce(
+                (acc, season) =>
+                    acc + (season.episodes?.filter((e) => e.state === "Completed").length ?? 0),
+                0
+            ) ?? 0
+        );
+    });
+
+    const totalFileCount = $derived.by(() => {
+        if (!riven) return 0;
+        if (data.mediaDetails?.type === "movie") {
+            return 1;
+        }
+
+        const details = data.mediaDetails?.details as ParsedShowDetails | undefined;
+        return details?.episode_count ?? 0;
+    });
 
     function getInitialSeason() {
         if (data.mediaDetails?.type !== "tv") return "1";
+        const requestedSeason = page.url.searchParams.get("season");
+        if (requestedSeason && !Number.isNaN(Number(requestedSeason))) {
+            return requestedSeason;
+        }
         const details = data.mediaDetails?.details as ParsedShowDetails;
         if (!details?.seasons?.length) return "1";
 
@@ -67,14 +149,114 @@
         return hasSeason1 ? "1" : (details.seasons[0].number?.toString() ?? "1");
     }
 
+    function getInitialEpisode() {
+        if (data.mediaDetails?.type !== "tv") return undefined;
+        const requestedEpisode = page.url.searchParams.get("episode");
+        return requestedEpisode && !Number.isNaN(Number(requestedEpisode))
+            ? requestedEpisode
+            : undefined;
+    }
+
     let selectedSeason: string | undefined = $state(getInitialSeason());
+    let selectedEpisode: string | undefined = $state(getInitialEpisode());
+    let selectedMovieVersionIdx = $state(0);
+
+    function getMovieEntries() {
+        const item = hydratedRiven ?? riven;
+
+        return item?.filesystem_entries?.length
+            ? item.filesystem_entries
+            : item?.filesystem_entry
+              ? [item.filesystem_entry]
+              : [];
+    }
+
+    function humanizeProfileName(name: string | undefined) {
+        if (!name) return null;
+        return name
+            .split(/[_-]+/)
+            .filter(Boolean)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(" ");
+    }
+
+    function getMetadataResolutionLabel(
+        metadata: RivenMediaItem["media_metadata"] | undefined
+    ): string | null {
+        const height = metadata?.video?.resolution_height;
+        if (!height) return null;
+        if (height >= 2160) return "4K";
+        if (height >= 1440) return "1440p";
+        if (height >= 1080) return "1080p";
+        if (height >= 720) return "720p";
+        if (height >= 480) return "480p";
+        return `${height}p`;
+    }
+
+    function getFilesystemEntryLabel(
+        entry:
+            | (NonNullable<RivenMediaItem["filesystem_entry"]> & {
+                  id?: number;
+                  ranking_profile_name?: string;
+              })
+            | undefined,
+        fallback: string
+    ) {
+        const resolutionLabel = getMetadataResolutionLabel(entry?.media_metadata);
+        const profileLabel = humanizeProfileName(entry?.ranking_profile_name);
+
+        if (resolutionLabel && profileLabel) {
+            return `${resolutionLabel} (${profileLabel})`;
+        }
+
+        return resolutionLabel ?? profileLabel ?? fallback;
+    }
+
+    async function deleteFilesystemEntry(id: number, label: string) {
+        if (
+            !confirm(
+                `Remove version "${label}"? This only removes the tracked file entry — the actual file is not deleted.`
+            )
+        )
+            return;
+        try {
+            await gqlClient<{ deleteFilesystemEntry: boolean }>(
+                `mutation DeleteFilesystemEntry($id: Int!) { deleteFilesystemEntry(id: $id) }`,
+                { id }
+            );
+            selectedMovieVersionIdx = 0;
+            toast.success(`Version "${label}" removed`);
+        } catch {
+            toast.error("Failed to remove version");
+        }
+    }
+
+    async function handleRequestSuccess() {
+        if (rivenPending) {
+            return;
+        }
+
+        await hydrateInitialState();
+    }
 
     $effect(() => {
         // Track ID changes to reset selected season
         selectedSeason = getInitialSeason();
+        selectedEpisode = getInitialEpisode();
+        selectedMovieVersionIdx = 0;
+        liveRiven = data.riven;
+        hydratedRiven = undefined;
+        liveRivenItemId = data.riven?.id;
+        rivenPending = Boolean(data.rivenPending);
+        lastHydratedCompletedKey = "";
+        completedDetailsHydrating = false;
+        rawDataOpen = false;
+        rawRivenLoading = false;
+        rawRivenError = undefined;
+        rawRivenData = undefined;
     });
 
-    let rivenId = $derived(data.riven?.id ?? data.mediaDetails?.details?.id);
+    let rivenId = $derived(riven?.id ?? data.mediaDetails?.details?.id);
 
     // For ratings, we need TMDB ID. For TV shows, check external_ids.tmdb first (in case URL has TVDB ID)
     let ratingsId = $derived(
@@ -99,13 +281,21 @@
         const controller = new AbortController();
         ratingsLoading = true;
 
-        fetch(`/api/ratings/${ratingsId}?type=${mediaType}`, { signal: controller.signal })
-            .then(async (r) => {
-                if (r.ok) {
-                    ratingsData = await r.json();
-                } else {
-                    ratingsData = null;
+        gqlClient<{
+            ratings: {
+                scores: Array<{ name: string; image?: string; score: string; url: string }>;
+            };
+        }>(
+            `query Ratings($id: String!, $mediaType: String!) {
+                ratings(indexer: "tmdb", id: $id, mediaType: $mediaType) {
+                    scores { name image score url }
                 }
+            }`,
+            { id: String(ratingsId), mediaType },
+            controller.signal
+        )
+            .then(({ ratings }) => {
+                ratingsData = ratings;
                 ratingsLoading = false;
             })
             .catch((e) => {
@@ -121,19 +311,74 @@
     const seasonData = $derived.by(() => {
         if (data.mediaDetails?.type !== "tv" || !data.mediaDetails?.details?.seasons) return [];
         const details = data.mediaDetails.details as ParsedShowDetails;
-        return details.seasons.map((s) => ({
-            id: s.id,
-            season_number: s.number ?? 0,
-            episode_count:
-                details.episodes?.filter((ep) => ep.seasonNumber === s.number).length ?? 0,
-            name: `Season ${s.number}`,
-            status:
-                data.riven?.seasons?.find((rs) => rs.season_number === s.number)?.state ===
-                "Completed"
-                    ? "Available"
-                    : undefined
-        }));
+        const episodeCountBySeason = new SvelteMap<number, number>();
+        const seasonsByNumber = new SvelteMap(
+            (liveRiven?.seasons ?? []).map((season) => [season.season_number, season])
+        );
+
+        for (const episode of details.episodes ?? []) {
+            if (episode.seasonNumber == null) continue;
+            episodeCountBySeason.set(
+                episode.seasonNumber,
+                (episodeCountBySeason.get(episode.seasonNumber) ?? 0) + 1
+            );
+        }
+
+        return details.seasons.map((s) => {
+            const rivenSeason = seasonsByNumber.get(s.number ?? 0);
+            const episodeCount = episodeCountBySeason.get(s.number ?? 0) ?? 0;
+            const completedCount =
+                rivenSeason?.episodes?.filter((e) => e.state === "Completed").length ?? 0;
+            const isComplete = episodeCount > 0 && completedCount >= episodeCount;
+            return {
+                id: s.id,
+                season_number: s.number ?? 0,
+                episode_count: episodeCount,
+                completed_count: rivenSeason ? completedCount : undefined,
+                name: `Season ${s.number}`,
+                status: isComplete ? "Available" : undefined
+            };
+        });
     });
+
+    const rivenSeasonsByNumber = $derived.by(
+        () =>
+            new SvelteMap(
+                (liveRiven?.seasons ?? []).map((season) => [season.season_number, season])
+            )
+    );
+
+    const selectedRivenSeason = $derived.by(() =>
+        selectedSeason ? rivenSeasonsByNumber.get(Number(selectedSeason)) : undefined
+    );
+
+    const selectedRivenEpisodesByNumber = $derived.by(
+        () =>
+            new SvelteMap(
+                (selectedRivenSeason?.episodes ?? []).map((episode) => [
+                    episode.episode_number,
+                    episode
+                ])
+            )
+    );
+
+    const selectedHydratedSeason = $derived.by(() =>
+        selectedSeason
+            ? hydratedRiven?.seasons?.find(
+                  (season) => season.season_number === Number(selectedSeason)
+              )
+            : undefined
+    );
+
+    const selectedHydratedEpisodesByNumber = $derived.by(
+        () =>
+            new SvelteMap(
+                (selectedHydratedSeason?.episodes ?? []).map((episode) => [
+                    episode.episode_number,
+                    episode
+                ])
+            )
+    );
 
     const formatCurrency = (n: number) =>
         new Intl.NumberFormat("en-US", {
@@ -152,7 +397,301 @@
             data.mediaDetails?.details.status
         ].filter(Boolean)
     );
+
+    function getLiveRivenSubscription() {
+        if (data.mediaDetails?.type === "movie") {
+            return {
+                query: MEDIA_ITEM_STATE_UPDATES_BY_TMDB_SUBSCRIPTION,
+                variables: { tmdbId: page.params.id },
+                resultKey: "mediaItemStateUpdatesByTmdb" as const
+            };
+        }
+
+        if (data.mediaDetails?.type === "tv" && data.resolvedTvdbId != null) {
+            return {
+                query: MEDIA_ITEM_STATE_UPDATES_BY_TVDB_SUBSCRIPTION,
+                variables: { tvdbId: data.resolvedTvdbId.toString() },
+                resultKey: "mediaItemStateUpdatesByTvdb" as const
+            };
+        }
+
+        return null;
+    }
+
+    function getCompletedDetailsRequest() {
+        if (data.mediaDetails?.type === "movie") {
+            return {
+                query: MEDIA_ITEM_FULL_BY_TMDB_QUERY,
+                variables: { tmdbId: page.params.id },
+                resultKey: "mediaItemFullByTmdb" as const
+            };
+        }
+
+        if (data.mediaDetails?.type === "tv" && data.resolvedTvdbId != null) {
+            return {
+                query: MEDIA_ITEM_FULL_BY_TVDB_QUERY,
+                variables: { tvdbId: data.resolvedTvdbId.toString() },
+                resultKey: "mediaItemFullByTvdb" as const
+            };
+        }
+
+        return null;
+    }
+
+    function getInitialStateRequest() {
+        if (data.mediaDetails?.type === "movie") {
+            return {
+                query: MEDIA_ITEM_STATE_BY_TMDB_QUERY,
+                variables: { tmdbId: page.params.id },
+                resultKey: "mediaItemStateByTmdb" as const
+            };
+        }
+
+        if (data.mediaDetails?.type === "tv" && data.resolvedTvdbId != null) {
+            return {
+                query: MEDIA_ITEM_STATE_BY_TVDB_QUERY,
+                variables: { tvdbId: data.resolvedTvdbId.toString() },
+                resultKey: "mediaItemStateByTvdb" as const
+            };
+        }
+
+        return null;
+    }
+
+    function getRawDataRequest() {
+        if (data.mediaDetails?.type === "movie") {
+            return {
+                query: RAW_RIVEN_DATA_BY_TMDB_QUERY,
+                variables: { tmdbId: page.params.id },
+                resultKey: "mediaItemFullByTmdb" as const
+            };
+        }
+
+        if (data.mediaDetails?.type === "tv" && data.resolvedTvdbId != null) {
+            return {
+                query: RAW_RIVEN_DATA_BY_TVDB_QUERY,
+                variables: { tvdbId: data.resolvedTvdbId.toString() },
+                resultKey: "mediaItemFullByTvdb" as const
+            };
+        }
+
+        return null;
+    }
+
+    // A signature of the currently-completed content. Episode file details
+    // (filesystem entries, media metadata) aren't carried by the live state
+    // subscription, so they must be fetched separately. We key the fetch on the
+    // set of completed episodes so partially-completed shows hydrate the episodes
+    // that ARE done, and re-hydrate as more episodes complete — without looping
+    // forever when a completed item has no filesystem entry yet.
+    function completedDetailsSignature(item: RivenMediaItem | undefined) {
+        if (!item) {
+            return "";
+        }
+
+        if (data.mediaDetails?.type === "movie") {
+            return item.state === "Completed" ? `m:${item.id}` : "";
+        }
+
+        const keys: string[] = [];
+        for (const season of item.seasons ?? []) {
+            for (const episode of season.episodes ?? []) {
+                if (episode.state === "Completed") {
+                    keys.push(`${season.season_number}.${episode.episode_number}`);
+                }
+            }
+        }
+
+        return keys.length ? `t:${item.id}:${keys.join(",")}` : "";
+    }
+
+    function needsCompletedDetailsHydration(item: RivenMediaItem | undefined) {
+        const signature = completedDetailsSignature(item);
+        return signature !== "" && signature !== lastHydratedCompletedKey;
+    }
+
+    async function hydrateCompletedDetails() {
+        if (completedDetailsHydrating) {
+            return;
+        }
+
+        const signature = completedDetailsSignature(riven);
+
+        if (!signature || signature === lastHydratedCompletedKey) {
+            return;
+        }
+
+        const request = getCompletedDetailsRequest();
+
+        if (!request) {
+            return;
+        }
+
+        completedDetailsHydrating = true;
+
+        try {
+            const payload = await gqlClient<{
+                mediaItemFullByTmdb?: GqlMediaItemFull | null;
+                mediaItemFullByTvdb?: GqlMediaItemFull | null;
+            }>(request.query, request.variables);
+            const full = mapMediaItemFull(payload[request.resultKey]) ?? undefined;
+
+            if (full) {
+                hydratedRiven = full;
+            }
+
+            lastHydratedCompletedKey = signature;
+        } catch {
+            // non-critical, ignore
+        } finally {
+            completedDetailsHydrating = false;
+        }
+    }
+
+    async function fetchRawRivenData() {
+        if (rawRivenLoading || rawRivenData) {
+            return;
+        }
+
+        const request = getRawDataRequest();
+
+        if (!request) {
+            return;
+        }
+
+        rawRivenLoading = true;
+        rawRivenError = undefined;
+
+        try {
+            const payload = await gqlClient<{
+                mediaItemFullByTmdb?: unknown;
+                mediaItemFullByTvdb?: unknown;
+            }>(request.query, request.variables);
+            const raw = payload[request.resultKey];
+
+            if (raw) {
+                rawRivenData = raw;
+            } else {
+                rawRivenError = "No full Riven data was returned for this item.";
+            }
+        } catch (error) {
+            rawRivenError =
+                error instanceof Error ? error.message : "Failed to load full Riven data.";
+        } finally {
+            rawRivenLoading = false;
+        }
+    }
+
+    function applyLiveState(raw: GqlMediaItemStateTree | null | undefined) {
+        const nextState = mapMediaItemStateTree(raw) ?? undefined;
+
+        if (nextState && raw) {
+            liveRiven = nextState;
+            liveRivenItemId = nextState.id;
+            return;
+        }
+
+        liveRiven = undefined;
+        hydratedRiven = undefined;
+        liveRivenItemId = undefined;
+        lastHydratedCompletedKey = "";
+    }
+
+    async function hydrateInitialState() {
+        const request = getInitialStateRequest();
+
+        if (!request) {
+            return;
+        }
+
+        rivenPending = true;
+
+        try {
+            const payload = await gqlClient<{
+                mediaItemStateByTmdb?: GqlMediaItemStateTree | null;
+                mediaItemStateByTvdb?: GqlMediaItemStateTree | null;
+            }>(request.query, request.variables);
+            applyLiveState(payload[request.resultKey]);
+        } catch {
+            // non-critical, ignore
+        } finally {
+            rivenPending = false;
+        }
+    }
+
+    $effect(() => {
+        if (!browser) {
+            return;
+        }
+
+        const subscription = getLiveRivenSubscription();
+
+        if (!subscription) {
+            rivenPending = false;
+            return;
+        }
+
+        const unsubscribe = gqlSubscribeClient<{
+            mediaItemStateUpdatesByTmdb?: GqlMediaItemStateTree | null;
+            mediaItemStateUpdatesByTvdb?: GqlMediaItemStateTree | null;
+        }>(subscription.query, subscription.variables, {
+            onData: (payload) => {
+                applyLiveState(payload[subscription.resultKey]);
+                rivenPending = false;
+            },
+            onError: () => {
+                void hydrateInitialState();
+            }
+        });
+
+        return unsubscribe;
+    });
+
+    $effect(() => {
+        if (!browser || !needsCompletedDetailsHydration(riven)) {
+            return;
+        }
+
+        void hydrateCompletedDetails();
+    });
+
+    $effect(() => {
+        if (!browser || !rawDataOpen) {
+            return;
+        }
+
+        void fetchRawRivenData();
+    });
+
+    // When the current show gets indexed (via background queue or indexShow mutation),
+    // hydrate the Riven state so the page reflects the transition without a manual refresh.
+    $effect(() => {
+        if (!browser || data.mediaDetails?.type !== "tv" || !data.resolvedTvdbId) return;
+
+        const targetTvdbId = data.resolvedTvdbId.toString();
+
+        return gqlSubscribeClient<{ showIndexed: GqlIndexedShow }>(
+            SHOW_INDEXED_SUBSCRIPTION,
+            undefined,
+            {
+                onData: (payload) => {
+                    const indexed = payload.showIndexed;
+                    if (indexed?.tvdbId !== targetTvdbId) return;
+
+                    if (!liveRivenItemId) {
+                        liveRivenItemId = indexed.id;
+                    }
+                    void hydrateInitialState();
+                },
+                onError: () => {
+                    void hydrateInitialState();
+                }
+            }
+        );
+    });
 </script>
+
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
 
 {#snippet sectionHeading(title: string)}
     <div class="mb-4 flex items-center gap-3">
@@ -181,10 +720,10 @@
         {@render sectionHeading(title)}
         <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
             <Carousel.Content class="-ml-3">
-                {#each items as item (item.id)}
+                {#each items as item (`${item.media_type}-${item.id}`)}
                     <Carousel.Item class="basis-auto pl-3">
                         <a
-                            href="/details/media/{item.id}/{item.media_type}"
+                            href={mediaHref(item.id, item.media_type)}
                             class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
                             <PortraitCard
                                 title={item.title}
@@ -197,165 +736,6 @@
             </Carousel.Content>
         </Carousel.Root>
     </section>
-{/snippet}
-
-{#snippet episodeTrigger(episode: any, rivenEpisode: any)}
-    <LandscapeCard
-        title={episode.name}
-        episodeNumber={episode.number ?? undefined}
-        image={episode.image}
-        overview={episode.overview}
-        class="h-full transition-transform duration-300 group-hover:scale-[1.01] group-hover:shadow-lg">
-        {#snippet topRight()}
-            {#if rivenEpisode?.state}
-                <StatusBadge state={rivenEpisode.state} />
-            {/if}
-        {/snippet}
-        {#snippet meta()}
-            <span
-                class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
-                >{episode.aired}</span>
-            {#if episode.runtime}
-                <span
-                    class="text-muted-foreground rounded-xl border border-white/10 bg-white/5 px-2 py-0.5 text-sm backdrop-blur-sm"
-                    >{episode.runtime} min</span>
-            {/if}
-        {/snippet}
-    </LandscapeCard>
-{/snippet}
-
-{#snippet episodeMetadata(episode: any, rivenEpisode: any)}
-    <div class="mt-2 flex flex-wrap items-center gap-2">
-        <span class="text-muted-foreground font-serif text-sm"
-            >{data.mediaDetails?.details.title}</span>
-        <span class="text-muted-foreground">•</span>
-        {#if episode.aired}<Badge variant="outline" class="font-mono text-xs">{episode.aired}</Badge
-            >{/if}
-        {#if episode.runtime}<Badge variant="outline" class="font-mono text-xs"
-                >{episode.runtime} min</Badge
-            >{/if}
-        {#if rivenEpisode}<StatusBadge class="text-xs" state={rivenEpisode.state} />{/if}
-    </div>
-{/snippet}
-
-{#snippet episodeBody(episode: any, rivenEpisode: any)}
-    <div class="mt-6 flex flex-1 flex-col gap-8 overflow-y-auto px-6 pb-36">
-        {#if episode.overview}
-            <p class="text-muted-foreground text-base leading-relaxed">
-                {episode.overview}
-            </p>
-        {/if}
-
-        {#if episode.image}
-            <div
-                class="relative w-full max-w-[640px] overflow-hidden rounded-xl shadow-lg ring-1 ring-white/10">
-                <img
-                    alt={episode.name}
-                    class="aspect-video w-full object-cover"
-                    src={episode.image}
-                    loading="lazy" />
-            </div>
-        {/if}
-
-        {#if rivenEpisode?.filesystem_entry || rivenEpisode?.media_metadata}
-            {@const meta = rivenEpisode.media_metadata}
-            {@const fs = rivenEpisode.filesystem_entry}
-            {@const video = meta?.video}
-            <div class="flex flex-col gap-6">
-                {@render sectionHeading("File Details")}
-                <div class="flex flex-col gap-4 text-sm">
-                    <!-- Filenames -->
-                    {#if meta?.filename}
-                        <div>
-                            <p
-                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase">
-                                Current Filename
-                            </p>
-                            <p class="text-muted-foreground mt-1 font-mono text-xs break-all">
-                                {meta.filename}
-                            </p>
-                        </div>
-                    {/if}
-
-                    <!-- Video -->
-                    {#if video}
-                        <div class="flex flex-col gap-2">
-                            <span
-                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
-                                >Video</span>
-                            <div class="flex flex-wrap gap-2">
-                                {#if video.resolution_width && video.resolution_height}<Badge
-                                        variant="outline"
-                                        class="font-mono text-xs"
-                                        >{video.resolution_width}x{video.resolution_height}</Badge
-                                    >{/if}
-                                {#if video.codec}<Badge variant="outline" class="font-mono text-xs"
-                                        >{video.codec}</Badge
-                                    >{/if}
-                                {#if video.hdr_type}<Badge
-                                        variant="outline"
-                                        class="font-mono text-xs">{video.hdr_type}</Badge
-                                    >{/if}
-                            </div>
-                        </div>
-                    {/if}
-
-                    <!-- Audio - Show ALL tracks -->
-                    {#if meta?.audio_tracks?.length}
-                        <div class="flex flex-col gap-2">
-                            <span
-                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
-                                >Audio</span>
-                            <div class="flex flex-wrap gap-2">
-                                {#each meta.audio_tracks as track}
-                                    <Badge variant="outline" class="font-mono text-xs"
-                                        >{track.codec}{track.channels
-                                            ? track.channels === 8
-                                                ? " 7.1"
-                                                : track.channels === 6
-                                                  ? " 5.1"
-                                                  : ` ${track.channels}ch`
-                                            : ""}{track.language
-                                            ? ` (${track.language.toUpperCase()})`
-                                            : ""}</Badge>
-                                {/each}
-                            </div>
-                        </div>
-                    {/if}
-
-                    <!-- Source -->
-                    {#if meta?.quality_source}
-                        <div class="flex flex-col gap-2">
-                            <span
-                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
-                                >Source</span>
-                            <div class="flex flex-wrap gap-2">
-                                <Badge variant="outline" class="font-mono text-xs"
-                                    >{meta.quality_source}</Badge>
-                                {#if meta?.is_remux}<Badge
-                                        variant="outline"
-                                        class="font-mono text-xs">REMUX</Badge
-                                    >{/if}
-                            </div>
-                        </div>
-                    {/if}
-
-                    <!-- Size -->
-                    {#if fs?.file_size}
-                        <div class="flex flex-col gap-2">
-                            <span
-                                class="text-primary font-mono text-xs font-semibold tracking-wider uppercase"
-                                >Size</span>
-                            <div class="flex items-center">
-                                <span class="text-muted-foreground font-mono text-xs"
-                                    >{formatSize(fs.file_size)}</span>
-                            </div>
-                        </div>
-                    {/if}
-                </div>
-            </div>
-        {/if}
-    </div>
 {/snippet}
 
 <svelte:head>
@@ -374,27 +754,27 @@
                     loading="lazy" />
                 <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
                 <div
-                    class="to-background absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent">
+                    class="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/50 to-transparent">
                 </div>
                 <div
-                    class="to-background absolute inset-0 bg-gradient-to-b from-zinc-950/20 via-transparent to-transparent">
+                    class="absolute inset-0 bg-linear-to-b from-zinc-950/20 via-transparent to-transparent">
                 </div>
             </div>
         {/if}
 
-        <div class="z-10 mx-auto flex h-full w-full max-w-[2400px] flex-col">
+        <div class="z-10 mx-auto flex h-full w-full max-w-600 flex-col">
             <!-- Hero Banner - extends behind search bar -->
             {#if data.mediaDetails?.details.backdrop_path || data.mediaDetails?.details.trailer}
                 <div class="px-2 md:px-4">
                     <div
                         class={cn(
-                            "relative mb-6 flex h-[40vh] max-h-[600px] min-h-[350px] items-end justify-between overflow-hidden rounded-3xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-10",
+                            "relative mb-6 flex h-[40vh] max-h-150 min-h-87.5 items-end justify-between overflow-hidden rounded-3xl bg-cover bg-center shadow-2xl transition-all duration-500 md:mb-10",
                             !showTrailer && "p-6 md:p-12"
                         )}
                         style="background-image: url('{data.mediaDetails?.details
                             .backdrop_path}');">
                         <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                            class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent">
                         </div>
                         <!-- Border Overlay to prevent bright edge glitch -->
                         <div
@@ -412,16 +792,6 @@
                                 {:else}<div></div>{/if}
 
                                 <div class="flex gap-2 md:gap-4">
-                                    {#if data.riven?.state === "Completed"}
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            class="border border-white/10 bg-white/10 px-6 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
-                                            onclick={toggleVideoPlayer}>
-                                            <Play class="mr-2 h-4 w-4 fill-current" />
-                                            Play
-                                        </Button>
-                                    {/if}
                                     {#if data.mediaDetails?.details.trailer}
                                         <Button
                                             variant="secondary"
@@ -479,10 +849,16 @@
                                 class="text-foreground text-3xl font-black tracking-tight drop-shadow-md sm:text-4xl lg:text-5xl">
                                 {data.mediaDetails?.details.title}
                             </h1>
-                            {#if data.riven?.state}
+                            {#if riven?.state}
                                 <StatusBadge
                                     class="px-3 py-1.5 text-sm font-medium"
-                                    state={data.riven.state} />
+                                    state={riven.state} />
+                            {/if}
+                            {#if totalFileCount > 0}
+                                <span
+                                    class="text-muted-foreground border-border rounded-full border px-3 py-1.5 text-sm font-medium tabular-nums">
+                                    {completedFileCount}/{totalFileCount} files
+                                </span>
                             {/if}
                         </div>
 
@@ -490,16 +866,17 @@
                         <div
                             class="flex flex-wrap items-center gap-2"
                             in:fly|global={{ y: 20, duration: 400, delay: 150, easing: cubicOut }}>
-                            {#if !data.riven && data.mediaDetails?.type && data.mediaDetails?.details?.id != null}
+                            {#if data.mediaDetails?.type && data.mediaDetails?.details?.id != null && !riven && !rivenPending}
                                 <ItemRequest
                                     size="default"
                                     variant="secondary"
                                     class="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
-                                    ids={data.riven ? [data.riven.id.toString()] : []}
+                                    ids={[]}
                                     mediaType={data.mediaDetails?.type}
                                     externalId={data.mediaDetails?.details?.id?.toString() ?? ""}
-                                    seasons={seasonData}>
+                                    seasons={seasonData}
+                                    onSuccess={handleRequestSuccess}>
                                     <Download class="mr-1.5 h-4 w-4" />
                                     Request
                                 </ItemRequest>
@@ -515,25 +892,30 @@
                                     <Search class="mr-1.5 h-4 w-4" />
                                     Manual Scrape
                                 </ItemManualScrape>
-                            {:else if data.riven?.id != null}
-                                <ItemReset
+                            {/if}
+                            {#if riven?.id != null}
+                                <ItemAction
+                                    kind="reset"
                                     size="default"
                                     variant="secondary"
                                     class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
-                                    ids={rivenId ? [rivenId.toString()] : []}>
+                                    ids={rivenId ? [rivenId.toString()] : []}
+                                    onSuccess={hydrateInitialState}>
                                     <RotateCcw class="mr-1.5 h-4 w-4" />
                                     Reset
-                                </ItemReset>
-                                <ItemRetry
+                                </ItemAction>
+                                <ItemAction
+                                    kind="retry"
                                     size="default"
                                     variant="secondary"
                                     class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                     title={data.mediaDetails?.details.title}
-                                    ids={rivenId ? [rivenId.toString()] : []}>
+                                    ids={rivenId ? [rivenId.toString()] : []}
+                                    onSuccess={hydrateInitialState}>
                                     <RefreshCw class="mr-1.5 h-4 w-4" />
                                     Retry
-                                </ItemRetry>
+                                </ItemAction>
 
                                 {#if data.mediaDetails?.type === "tv"}
                                     <ItemRequest
@@ -545,7 +927,8 @@
                                         mediaType={data.mediaDetails?.type}
                                         externalId={data.mediaDetails?.details?.id?.toString() ??
                                             ""}
-                                        seasons={seasonData}>
+                                        seasons={seasonData}
+                                        onSuccess={handleRequestSuccess}>
                                         <Download class="mr-1.5 h-4 w-4" />
                                         Request More
                                     </ItemRequest>
@@ -564,23 +947,25 @@
                                     Manual Scrape
                                 </ItemManualScrape>
 
-                                {#if data.riven.state !== "Completed"}
-                                    <ItemPause
+                                {#if riven.state !== "Completed"}
+                                    <ItemAction
+                                        kind="pause"
                                         size="default"
                                         variant="secondary"
                                         class="border-border text-muted-foreground hover:bg-muted hover:text-foreground border bg-transparent px-4"
                                         title={data.mediaDetails?.details.title}
-                                        isPaused={data.riven.state === "Paused"}
+                                        isPaused={riven.state === "Paused"}
                                         ids={rivenId ? [rivenId.toString()] : []}>
-                                        {#if data.riven.state === "Paused"}
+                                        {#if riven.state === "Paused"}
                                             <Play class="mr-1.5 h-4 w-4" /> Resume
                                         {:else}
                                             <Pause class="mr-1.5 h-4 w-4" /> Pause
                                         {/if}
-                                    </ItemPause>
+                                    </ItemAction>
                                 {/if}
 
-                                <ItemDelete
+                                <ItemAction
+                                    kind="delete"
                                     size="default"
                                     variant="secondary"
                                     class="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive border bg-transparent px-4"
@@ -588,9 +973,9 @@
                                     ids={rivenId ? [rivenId.toString()] : []}>
                                     <Trash2 class="mr-1.5 h-4 w-4" />
                                     Delete
-                                </ItemDelete>
+                                </ItemAction>
 
-                                <Dialog.Root>
+                                <Dialog.Root bind:open={rawDataOpen}>
                                     <Dialog.Trigger>
                                         {#snippet child({ props })}
                                             <Button
@@ -610,19 +995,25 @@
                                         </Dialog.Header>
                                         <div
                                             class="bg-muted/50 max-h-100 overflow-auto rounded-lg p-4">
-                                            <pre
-                                                class="font-mono text-xs break-all whitespace-pre-wrap text-green-400">{JSON.stringify(
-                                                    data.riven,
-                                                    null,
-                                                    2
-                                                )}</pre>
+                                            {#if rawRivenLoading && !rawRivenData}
+                                                <p class="text-muted-foreground text-sm">
+                                                    Loading full Riven data...
+                                                </p>
+                                            {:else if rawRivenError}
+                                                <p class="text-destructive text-sm">
+                                                    {rawRivenError}
+                                                </p>
+                                            {/if}
+                                            {#if rawRivenJson}
+                                                <pre
+                                                    class="font-mono text-xs break-all whitespace-pre-wrap text-green-400">{rawRivenJson}</pre>
+                                            {/if}
                                         </div>
                                         <Button
                                             variant="outline"
+                                            disabled={!rawRivenJson}
                                             onclick={() => {
-                                                navigator.clipboard.writeText(
-                                                    JSON.stringify(data.riven, null, 2)
-                                                );
+                                                navigator.clipboard.writeText(rawRivenJson);
                                                 toast.success("Copied!");
                                             }}>Copy JSON</Button>
                                     </Dialog.Content>
@@ -634,7 +1025,7 @@
                         <div
                             class="text-muted-foreground flex items-center gap-x-2.5 text-sm"
                             in:fly|global={{ y: 20, duration: 400, delay: 200, easing: cubicOut }}>
-                            {#each details as detail, i}
+                            {#each details as detail, i (i)}
                                 <span>{detail}</span>
                                 {#if i < details.length - 1}<span class="text-border">•</span>{/if}
                             {/each}
@@ -672,7 +1063,7 @@
                                     <a
                                         href={score.url}
                                         target="_blank"
-                                        rel="noopener noreferrer"
+                                        rel="external noopener noreferrer"
                                         class="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 transition-colors">
                                         {#if score.image}<img
                                                 src="/rating-logos/{score.image}"
@@ -684,7 +1075,7 @@
                             </div>
                         {:else if ratingsLoading}
                             <div class="flex gap-4">
-                                {#each [1, 2, 3] as _, i (i)}
+                                {#each [1, 2, 3] as i (i)}
                                     <div class="bg-muted h-6 w-14 animate-pulse rounded"></div>
                                 {/each}
                             </div>
@@ -708,11 +1099,12 @@
                             {@render sectionHeading("Collection")}
                             <CollectionSheet
                                 collectionId={movieDetails.collection.id}
-                                collectionName={movieDetails.collection.name}>
+                                collectionName={movieDetails.collection.name}
+                                onRequested={handleRequestSuccess}>
                                 {#snippet trigger({ props })}
                                     <button
                                         {...props}
-                                        class="group border-border/50 relative block min-h-[6rem] w-full overflow-hidden rounded-xl border text-left shadow-lg transition-all duration-300 md:min-h-[9rem]">
+                                        class="group border-border/50 relative block min-h-24 w-full overflow-hidden rounded-xl border text-left shadow-lg transition-all duration-300 md:min-h-36">
                                         <!-- Background Layer -->
                                         <div class="absolute inset-0">
                                             <img
@@ -721,7 +1113,7 @@
                                                 src={movieDetails.collection?.backdrop_path}
                                                 loading="lazy" />
                                             <div
-                                                class="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-r to-transparent">
+                                                class="from-background/90 via-background/40 absolute inset-0 bg-linear-to-r to-transparent">
                                             </div>
                                         </div>
 
@@ -749,43 +1141,12 @@
                         class="mt-8 md:mt-12"
                         in:fly|global={{ y: 20, duration: 400, delay: 450, easing: cubicOut }}>
                         {@render sectionHeading("Seasons")}
-                        <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
-                            <Carousel.Content>
-                                {#each data.mediaDetails?.details.seasons as season (season.id)}
-                                    {@const rivenSeason = data.riven?.seasons?.find(
-                                        (s) => s.season_number === season.number
-                                    )}
-                                    <Carousel.Item class="basis-auto">
-                                        <button
-                                            onclick={() =>
-                                                (selectedSeason = season.number?.toString())}
-                                            class={cn(
-                                                "group relative block transition-all",
-                                                selectedSeason === season.number?.toString()
-                                                    ? ""
-                                                    : "opacity-60 hover:opacity-90"
-                                            )}>
-                                            <PortraitCard
-                                                title={season.number === 0
-                                                    ? "Specials"
-                                                    : `Season ${season.number}`}
-                                                image={season.image}
-                                                selected={selectedSeason ===
-                                                    season.number?.toString()}
-                                                class="w-28 md:w-32 lg:w-36">
-                                                {#snippet topRight()}
-                                                    {#if rivenSeason?.state}
-                                                        <StatusBadge
-                                                            state={rivenSeason.state}
-                                                            size="default" />
-                                                    {/if}
-                                                {/snippet}
-                                            </PortraitCard>
-                                        </button>
-                                    </Carousel.Item>
-                                {/each}
-                            </Carousel.Content>
-                        </Carousel.Root>
+                        <LiveSeasons
+                            seasons={data.mediaDetails.details.seasons}
+                            {selectedSeason}
+                            stateBySeasonNumber={rivenSeasonsByNumber}
+                            {episodeCountBySeasonNumber}
+                            onSelectSeason={(season) => (selectedSeason = season)} />
                     </section>
                 {/if}
 
@@ -794,55 +1155,15 @@
                         class="mt-8 md:mt-12"
                         in:fly|global={{ y: 20, duration: 400, delay: 500, easing: cubicOut }}>
                         {@render sectionHeading("Episodes")}
-                        <div
-                            class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
-                            {#each data.mediaDetails?.details.episodes.filter((ep) => ep.seasonNumber?.toString() === selectedSeason) as episode (episode.id)}
-                                {@const rivenSeason = data.riven?.seasons?.find(
-                                    (s) => s.season_number === Number(selectedSeason)
-                                )}
-                                {@const rivenEpisode = rivenSeason?.episodes?.find(
-                                    (e) => e.episode_number === episode.number
-                                )}
-
-                                {#if isMobile.current}
-                                    <Drawer.Root direction="bottom">
-                                        <Drawer.Trigger class="group w-full text-left">
-                                            {@render episodeTrigger(episode, rivenEpisode)}
-                                        </Drawer.Trigger>
-                                        <Drawer.Content class="max-h-[85vh] outline-none">
-                                            <div class="mx-auto w-full max-w-4xl px-4 pb-6 md:px-6">
-                                                <Drawer.Header class="px-0 pt-2 pb-0 text-left">
-                                                    <Drawer.Title
-                                                        class="font-heading text-2xl font-bold tracking-tight">
-                                                        S{episode.seasonNumber}E{episode.number} - {episode.name}
-                                                    </Drawer.Title>
-                                                    {@render episodeMetadata(episode, rivenEpisode)}
-                                                </Drawer.Header>
-                                                {@render episodeBody(episode, rivenEpisode)}
-                                            </div>
-                                        </Drawer.Content>
-                                    </Drawer.Root>
-                                {:else}
-                                    <Sheet.Root>
-                                        <Sheet.Trigger class="group w-full text-left">
-                                            {@render episodeTrigger(episode, rivenEpisode)}
-                                        </Sheet.Trigger>
-                                        <Sheet.Content
-                                            side="right"
-                                            class="flex w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
-                                            <Sheet.Header class="px-6 pt-6">
-                                                <Sheet.Title
-                                                    class="font-heading text-2xl font-bold tracking-tight">
-                                                    S{episode.seasonNumber}E{episode.number} - {episode.name}
-                                                </Sheet.Title>
-                                                {@render episodeMetadata(episode, rivenEpisode)}
-                                            </Sheet.Header>
-                                            {@render episodeBody(episode, rivenEpisode)}
-                                        </Sheet.Content>
-                                    </Sheet.Root>
-                                {/if}
-                            {/each}
-                        </div>
+                        <LiveEpisodes
+                            episodes={data.mediaDetails.details.episodes}
+                            {selectedSeason}
+                            {selectedEpisode}
+                            showTitle={data.mediaDetails.details.title}
+                            stateByEpisodeNumber={selectedRivenEpisodesByNumber}
+                            detailsByEpisodeNumber={selectedHydratedEpisodesByNumber}
+                            {formatSize}
+                            onDeleteFilesystemEntry={deleteFilesystemEntry} />
                     </section>
                 {/if}
 
@@ -854,10 +1175,16 @@
                         {@render sectionHeading("Cast")}
                         <Carousel.Root opts={{ dragFree: true, slidesToScroll: "auto" }}>
                             <Carousel.Content class="-ml-3">
-                                {#each data.mediaDetails.details.cast as member (member.id)}
+                                {#each data.mediaDetails.details.cast as member, i (i)}
                                     <Carousel.Item class="basis-auto pl-3">
                                         <a
-                                            href="/details/entity/{member.id}/person"
+                                            href={entityHref(
+                                                member.id,
+                                                "person",
+                                                member.external_source === "tvdb"
+                                                    ? "indexer=tvdb"
+                                                    : undefined
+                                            )}
                                             class="group relative block opacity-80 transition-all duration-300 hover:opacity-100">
                                             <PortraitCard
                                                 title={member.name}
@@ -885,7 +1212,7 @@
                                 {#if data.mediaDetails?.type === "movie" && (data.mediaDetails?.details.budget || data.mediaDetails?.details.revenue)}
                                     <div class="flex flex-wrap gap-12">
                                         {#if data.mediaDetails.details.budget}
-                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                            <div class="flex min-w-30 flex-col gap-1">
                                                 <span
                                                     class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                     >Budget</span>
@@ -896,7 +1223,7 @@
                                             </div>
                                         {/if}
                                         {#if data.mediaDetails.details.revenue}
-                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                            <div class="flex min-w-30 flex-col gap-1">
                                                 <span
                                                     class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                     >Revenue</span>
@@ -913,7 +1240,7 @@
                                 {#if data.mediaDetails?.details.origin_country?.length || data.mediaDetails?.details.spoken_languages?.length}
                                     <div class="flex flex-wrap gap-12">
                                         {#if data.mediaDetails?.details.origin_country?.length}
-                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                            <div class="flex min-w-30 flex-col gap-1">
                                                 <span
                                                     class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                     >Origin</span>
@@ -924,7 +1251,7 @@
                                             </div>
                                         {/if}
                                         {#if data.mediaDetails?.details.spoken_languages?.length}
-                                            <div class="flex min-w-[120px] flex-col gap-1">
+                                            <div class="flex min-w-30 flex-col gap-1">
                                                 <span
                                                     class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                                     >Languages</span>
@@ -944,7 +1271,7 @@
                                             class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
                                             >Production</span>
                                         <div class="flex flex-wrap gap-2">
-                                            {#each data.mediaDetails.details.production_companies as company (company.id)}
+                                            {#each data.mediaDetails.details.production_companies as company, i (i)}
                                                 <span
                                                     class="text-muted-foreground rounded border border-white/10 bg-white/5 px-2 py-1 text-xs">
                                                     {company.name}
@@ -963,9 +1290,13 @@
                                         <div class="flex flex-wrap gap-2">
                                             {#if data.mediaDetails?.details.homepage}
                                                 <a
-                                                    href={data.mediaDetails.details.homepage}
+                                                    href={data.mediaDetails.details.homepage?.startsWith(
+                                                        "http"
+                                                    )
+                                                        ? data.mediaDetails.details.homepage
+                                                        : data.mediaDetails.details.homepage}
                                                     target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    rel="external noopener noreferrer"
                                                     class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
                                                     >Website</a>
                                             {/if}
@@ -985,11 +1316,11 @@
                                                 ).filter(
                                                     ([key, value]) => value && getExternal(key)
                                                 )}
-                                                {#each validLinks as [key, value]}
+                                                {#each validLinks as [key, value] (key)}
                                                     <a
-                                                        href="{getExternal(key).url}{value}"
+                                                        href={`${getExternal(key).url}${value}`}
                                                         target="_blank"
-                                                        rel="noopener noreferrer"
+                                                        rel="external noopener noreferrer"
                                                         class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
                                                         >{getExternal(key).name}</a>
                                                 {/each}
@@ -1001,163 +1332,281 @@
                         </div>
 
                         <!-- File Information Column (movies only) -->
-                        {#if data.riven && data.mediaDetails?.type === "movie" && data.riven.media_metadata}
-                            {@const meta = data.riven.media_metadata}
-                            {@const fs = data.riven.filesystem_entry}
-                            {@const video = meta?.video}
+                        {#if riven && data.mediaDetails?.type === "movie" && getMovieEntries().length > 0}
+                            {@const allEntries = getMovieEntries()}
                             <div class="min-w-0 flex-1">
-                                {@render sectionHeading("File Information")}
-                                <div class="flex flex-col gap-6 text-sm">
-                                    <!-- Filenames -->
-                                    {#if meta?.filename}
-                                        <div class="flex flex-col gap-1">
-                                            <p
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                                                Current Filename
-                                            </p>
-                                            <p class="text-foreground font-mono text-xs break-all">
-                                                {meta.filename}
-                                            </p>
-                                        </div>
-                                    {/if}
-
-                                    <!-- Video -->
-                                    {#if video}
-                                        <div class="flex flex-col gap-2">
-                                            <span
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
-                                                >Video</span>
-                                            <div class="flex flex-wrap gap-2">
-                                                {#if video.resolution_width && video.resolution_height}<Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
-                                                        >{video.resolution_width}x{video.resolution_height}</Badge
-                                                    >{/if}
-                                                {#if video.codec}<Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
-                                                        >{video.codec}</Badge
-                                                    >{/if}
-                                                {#if video.bit_depth}<Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
-                                                        >{video.bit_depth}-bit</Badge
-                                                    >{/if}
-                                                {#if video.hdr_type}<Badge
-                                                        variant="secondary"
-                                                        class="border border-purple-500/20 bg-purple-500/10 font-mono text-xs text-purple-200 backdrop-blur-sm"
-                                                        >{video.hdr_type}</Badge
-                                                    >{/if}
-                                                {#if video.frame_rate}<Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
-                                                        >{video.frame_rate} FPS</Badge
-                                                    >{/if}
-                                            </div>
-                                        </div>
-                                    {/if}
-
-                                    <!-- Audio - Show ALL tracks -->
-                                    {#if meta?.audio_tracks?.length}
-                                        <div class="flex flex-col gap-2">
-                                            <span
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
-                                                >Audio</span>
-                                            <div class="flex flex-wrap gap-2">
-                                                {#each meta.audio_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
-                                                    <Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
-                                                        >{track.codec}{track.channels
-                                                            ? track.channels === 8
-                                                                ? " 7.1"
-                                                                : track.channels === 6
-                                                                  ? " 5.1"
-                                                                  : ` ${track.channels}ch`
-                                                            : ""}{track.language
-                                                            ? ` (${track.language.toUpperCase()})`
-                                                            : ""}</Badge>
-                                                {/each}
-                                            </div>
-                                        </div>
-                                    {/if}
-
-                                    <!-- Subtitles - Show ALL tracks -->
-                                    {#if meta?.subtitle_tracks?.length}
-                                        <div class="flex flex-col gap-2">
-                                            <span
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
-                                                >Subtitles</span>
-                                            <div class="flex flex-wrap gap-2">
-                                                {#each meta.subtitle_tracks as track ((track.language ?? "") + (track.codec ?? "") + Math.random())}
-                                                    <Badge
-                                                        variant="secondary"
-                                                        class="text-muted-foreground border border-white/10 bg-white/5 text-[10px] backdrop-blur-sm"
-                                                        >{track.language
-                                                            ? track.language.toUpperCase()
-                                                            : "Unknown"}</Badge>
-                                                {/each}
-                                            </div>
-                                        </div>
-                                    {/if}
-
-                                    <!-- Source -->
-                                    {#if meta?.quality_source}
-                                        <div class="flex flex-col gap-2">
-                                            <span
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
-                                                >Source</span>
-                                            <div class="flex flex-wrap gap-2">
-                                                <Badge
-                                                    variant="secondary"
-                                                    class="border border-blue-500/20 bg-blue-500/10 text-xs font-bold text-blue-200 backdrop-blur-sm"
-                                                    >{meta.quality_source}</Badge>
-                                                {#if meta?.is_remux}<Badge
-                                                        variant="secondary"
-                                                        class="border border-amber-500/20 bg-amber-500/10 text-xs font-bold text-amber-200 backdrop-blur-sm"
-                                                        >REMUX</Badge
-                                                    >{/if}
-                                                {#if meta?.is_proper}<Badge
-                                                        variant="secondary"
-                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
-                                                        >PROPER</Badge
-                                                    >{/if}
-                                                {#if meta?.is_repack}<Badge
-                                                        variant="secondary"
-                                                        class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
-                                                        >REPACK</Badge
-                                                    >{/if}
-                                            </div>
-                                        </div>
-                                    {/if}
-
-                                    <!-- Size & Bitrate -->
-                                    {#if fs?.file_size || meta?.bitrate}
-                                        <div class="flex flex-col gap-2">
-                                            <span
-                                                class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
-                                                >Metrics</span>
-                                            <div class="flex flex-wrap gap-4">
-                                                {#if fs?.file_size}
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-muted-foreground text-xs"
-                                                            >Size</span>
-                                                        <span class="text-foreground font-mono"
-                                                            >{formatSize(fs.file_size)}</span>
-                                                    </div>
-                                                {/if}
-                                                {#if meta?.bitrate}
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-muted-foreground text-xs"
-                                                            >Bitrate</span>
-                                                        <span class="text-foreground font-mono"
-                                                            >{Math.round(meta.bitrate / 1000000)} Mbps</span>
-                                                    </div>
-                                                {/if}
-                                            </div>
-                                        </div>
+                                <div class="mb-4 flex items-center justify-between gap-3">
+                                    {@render sectionHeading("File Information")}
+                                    {#if allEntries.length > 1}
+                                        <select
+                                            onchange={(e) => {
+                                                selectedMovieVersionIdx = Number(
+                                                    e.currentTarget.value
+                                                );
+                                            }}
+                                            class="bg-background border-border text-foreground rounded-md border px-2 py-1 font-mono text-xs">
+                                            {#each allEntries as entry, i (i)}
+                                                <option
+                                                    value={i}
+                                                    selected={i === selectedMovieVersionIdx}
+                                                    >{getFilesystemEntryLabel(
+                                                        entry,
+                                                        `Version ${i + 1}`
+                                                    )}</option>
+                                            {/each}
+                                        </select>
                                     {/if}
                                 </div>
+                                {#key selectedMovieVersionIdx}
+                                    {@const fs =
+                                        allEntries[
+                                            selectedMovieVersionIdx < allEntries.length
+                                                ? selectedMovieVersionIdx
+                                                : 0
+                                        ] ?? allEntries[0]}
+                                    {@const meta = fs?.media_metadata ?? riven?.media_metadata}
+                                    {@const video = meta?.video}
+                                    <div class="flex flex-col gap-6 text-sm">
+                                        <!-- Filename -->
+                                        {#if meta?.filename || fs?.original_filename}
+                                            <div class="flex flex-col gap-1">
+                                                <p
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                                                    Filename
+                                                </p>
+                                                <p
+                                                    class="text-foreground font-mono text-xs break-all">
+                                                    {meta?.filename ?? fs?.original_filename}
+                                                </p>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Video -->
+                                        {#if video}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Video</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#if video.resolution_width && video.resolution_height}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{video.resolution_width}x{video.resolution_height}</Badge
+                                                        >{/if}
+                                                    {#if video.codec}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{video.codec}</Badge
+                                                        >{/if}
+                                                    {#if video.bit_depth}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{video.bit_depth}-bit</Badge
+                                                        >{/if}
+                                                    {#if video.hdr_type}<Badge
+                                                            variant="secondary"
+                                                            class="border border-purple-500/20 bg-purple-500/10 font-mono text-xs text-purple-200 backdrop-blur-sm"
+                                                            >{video.hdr_type}</Badge
+                                                        >{/if}
+                                                    {#if video.frame_rate}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{video.frame_rate} FPS</Badge
+                                                        >{/if}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Audio -->
+                                        {#if meta?.audio_tracks?.length}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Audio</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#each meta.audio_tracks as track, i (i)}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{track.codec}{track.channels
+                                                                ? track.channels === 8
+                                                                    ? " 7.1"
+                                                                    : track.channels === 6
+                                                                      ? " 5.1"
+                                                                      : ` ${track.channels}ch`
+                                                                : ""}{track.language
+                                                                ? ` (${track.language.toUpperCase()})`
+                                                                : ""}</Badge>
+                                                    {/each}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Subtitles -->
+                                        {#if meta?.subtitle_tracks?.length}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Subtitles</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#each meta.subtitle_tracks as track, i (i)}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 text-[10px] backdrop-blur-sm"
+                                                            >{track.language
+                                                                ? track.language.toUpperCase()
+                                                                : "Unknown"}</Badge>
+                                                    {/each}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Source -->
+                                        {#if meta?.quality_source || meta?.is_remux || meta?.is_proper || meta?.is_repack}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Source</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#if meta?.quality_source}<Badge
+                                                            variant="secondary"
+                                                            class="border border-blue-500/20 bg-blue-500/10 text-xs font-bold text-blue-200 backdrop-blur-sm"
+                                                            >{meta.quality_source}</Badge
+                                                        >{/if}
+                                                    {#if meta?.is_remux}<Badge
+                                                            variant="secondary"
+                                                            class="border border-amber-500/20 bg-amber-500/10 text-xs font-bold text-amber-200 backdrop-blur-sm"
+                                                            >REMUX</Badge
+                                                        >{/if}
+                                                    {#if meta?.is_proper}<Badge
+                                                            variant="secondary"
+                                                            class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                            >PROPER</Badge
+                                                        >{/if}
+                                                    {#if meta?.is_repack}<Badge
+                                                            variant="secondary"
+                                                            class="border border-green-500/20 bg-green-500/10 text-xs font-bold text-green-200 backdrop-blur-sm"
+                                                            >REPACK</Badge
+                                                        >{/if}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Metrics -->
+                                        {#if fs?.file_size || meta?.bitrate || meta?.duration}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Metrics</span>
+                                                <div class="flex flex-wrap gap-4">
+                                                    {#if fs?.file_size}
+                                                        <div class="flex items-center gap-2">
+                                                            <span
+                                                                class="text-muted-foreground text-xs"
+                                                                >Size</span>
+                                                            <span class="text-foreground font-mono"
+                                                                >{formatSize(fs.file_size)}</span>
+                                                        </div>
+                                                    {/if}
+                                                    {#if meta?.bitrate}
+                                                        <div class="flex items-center gap-2">
+                                                            <span
+                                                                class="text-muted-foreground text-xs"
+                                                                >Bitrate</span>
+                                                            <span class="text-foreground font-mono"
+                                                                >{Math.round(
+                                                                    meta.bitrate / 1000000
+                                                                )} Mbps</span>
+                                                        </div>
+                                                    {/if}
+                                                    {#if meta?.duration}
+                                                        <div class="flex items-center gap-2">
+                                                            <span
+                                                                class="text-muted-foreground text-xs"
+                                                                >Duration</span>
+                                                            <span class="text-foreground font-mono"
+                                                                >{Math.floor(meta.duration / 60)}m {meta.duration %
+                                                                    60}s</span>
+                                                        </div>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Container -->
+                                        {#if meta?.container_format?.length}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Container</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#each meta.container_format as fmt (fmt)}
+                                                        <Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{fmt}</Badge>
+                                                    {/each}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Provider -->
+                                        {#if fs?.provider || fs?.plugin}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Provider</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    {#if fs?.provider}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{fs.provider}</Badge
+                                                        >{/if}
+                                                    {#if fs?.plugin}<Badge
+                                                            variant="secondary"
+                                                            class="text-muted-foreground border border-white/10 bg-white/5 font-mono text-xs backdrop-blur-sm"
+                                                            >{fs.plugin}</Badge
+                                                        >{/if}
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Download (full file to local disk; works for debrid + usenet) -->
+                                        {#if fs?.id}
+                                            <div class="flex flex-col gap-2">
+                                                <span
+                                                    class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
+                                                    >Download</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+                                                    <a
+                                                        href={`/media/${fs.id}`}
+                                                        download={fs.original_filename ?? ""}
+                                                        rel="external"
+                                                        class="text-foreground rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-white/10"
+                                                        >Download</a>
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <!-- Delete version -->
+                                        {#if allEntries.length > 1 && fs?.id}
+                                            <button
+                                                type="button"
+                                                class="text-destructive/70 hover:text-destructive border-destructive/30 hover:border-destructive/70 mt-2 rounded-md border px-3 py-1.5 text-xs transition-colors"
+                                                onclick={() =>
+                                                    deleteFilesystemEntry(
+                                                        fs!.id!,
+                                                        getFilesystemEntryLabel(
+                                                            fs,
+                                                            `Version ${selectedMovieVersionIdx + 1}`
+                                                        )
+                                                    )}>
+                                                Remove this version
+                                            </button>
+                                        {/if}
+                                    </div>
+                                {/key}
                             </div>
                         {/if}
                     </div>
@@ -1173,7 +1622,7 @@
                         "Similar",
                         650
                     )}{/if}
-                {#if data.mediaDetails?.type === "movie" && data.mediaDetails?.details.trakt_recommendations?.length}{@render mediaCarousel(
+                {#if data.mediaDetails?.details.trakt_recommendations?.length}{@render mediaCarousel(
                         data.mediaDetails.details.trakt_recommendations,
                         "More Like This",
                         700
@@ -1181,19 +1630,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Video Player Dialog -->
-    <Dialog.Root bind:open={showVideoPlayer}>
-        <Dialog.Content class="border-border/50 max-w-5xl overflow-hidden bg-black p-0">
-            <Dialog.Header class="sr-only">
-                <Dialog.Title>Video Player</Dialog.Title>
-                <Dialog.Description>Playing {data.mediaDetails?.details.title}</Dialog.Description>
-            </Dialog.Header>
-            <div class="aspect-video w-full">
-                {#if showVideoPlayer && rivenId}
-                    <VideoPlayer itemId={rivenId} class="h-full w-full" />
-                {/if}
-            </div>
-        </Dialog.Content>
-    </Dialog.Root>
 {/key}
+
+<!-- eslint-enable svelte/no-navigation-without-resolve -->

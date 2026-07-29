@@ -1,5 +1,3 @@
-import type { operations as TVDBOperations } from "./providers/tvdb";
-
 /**
  * Type for TMDB search/discover parameters
  */
@@ -27,7 +25,20 @@ export type TMDBParams = {
 /**
  * Type for TVDB search parameters
  */
-export type TVDBParams = NonNullable<TVDBOperations["getSearchResults"]["parameters"]["query"]>;
+export type TVDBParams = {
+    query?: string;
+    year?: number;
+    language?: string;
+    country?: string;
+    director?: string;
+    network?: string;
+    company?: string;
+    remote_id?: string;
+    with_genres?: string;
+    without_genres?: string;
+};
+
+type TVDBAssignableKey = keyof TVDBParams;
 
 /**
  * Search mode type
@@ -244,7 +255,8 @@ export function parseSearchQuery(query: string): ParsedSearchQuery {
                     }
                     // All other TVDB params are strings
                     else {
-                        (tvdbParams as any)[paramName] = processedValue;
+                        tvdbParams[paramName as Exclude<TVDBAssignableKey, "year">] =
+                            processedValue;
                     }
                 }
 

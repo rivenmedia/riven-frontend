@@ -5,9 +5,9 @@ import type { Actions, PageServerLoad } from "./$types";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { auth } from "$lib/server/auth";
 import { APIError } from "better-auth/api";
-import { getUsersCount } from "$lib/server/functions";
 import { getAuthProviders } from "$lib/server/auth";
 import { createScopedLogger } from "$lib/logger";
+import { noUserExists } from "$lib/server/first-launch";
 
 const logger = createScopedLogger("auth");
 
@@ -32,11 +32,6 @@ export const load: PageServerLoad = async (event) => {
         : null;
     return { loginForm, registerForm, authProviders, isFirstUser };
 };
-
-async function noUserExists() {
-    const count = await getUsersCount();
-    return count === 0;
-}
 
 export const actions: Actions = {
     login: async (event) => {

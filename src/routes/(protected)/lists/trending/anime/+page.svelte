@@ -4,11 +4,37 @@
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
     import { onMount } from "svelte";
     import PageShell from "$lib/components/page-shell.svelte";
+    import { gqlClient } from "$lib/graphql-client";
 
-    const anilistTrendingStore = new MediaListStore<BaseListItem>(
-        "anilistTrending",
-        "/api/anilist/trending"
-    );
+    const ANILIST_TRENDING_QUERY = `query TrendingAnilist($page: Int!, $perPage: Int) {
+        trendingAnilist(page: $page, perPage: $perPage) {
+            results { id title posterPath mediaType year }
+        }
+    }`;
+
+    const anilistTrendingStore = new MediaListStore<BaseListItem>({
+        key: "anilistTrending",
+        loader: (page) =>
+            gqlClient<{
+                trendingAnilist: {
+                    results: Array<{
+                        id: number;
+                        title: string;
+                        posterPath: string | null;
+                        mediaType: string;
+                        year: string;
+                    }>;
+                };
+            }>(ANILIST_TRENDING_QUERY, { page, perPage: 20 }).then((data) =>
+                data.trendingAnilist.results.map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    poster_path: item.posterPath,
+                    media_type: item.mediaType,
+                    year: item.year
+                }))
+            )
+    });
     let loadMoreTrigger: HTMLDivElement;
 
     onMount(() => {

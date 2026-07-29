@@ -3,6 +3,7 @@
     import type { SuperValidated } from "sveltekit-superforms";
     import { changeUserDataSchema, type ChangeUserDataSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
+    import { untrack } from "svelte";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import { toast } from "svelte-sonner";
@@ -16,9 +17,11 @@
         data: SuperValidated<ChangeUserDataSchema>;
     } = $props();
 
-    const form = superForm(data, {
-        validators: zod4Client(changeUserDataSchema)
-    });
+    const form = untrack(() =>
+        superForm(data, {
+            validators: zod4Client(changeUserDataSchema)
+        })
+    );
 
     const { form: formData, enhance, message, delayed } = form;
 

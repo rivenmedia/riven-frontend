@@ -103,12 +103,10 @@ pnpm run dev
 To update Backend API schema & types, run:
 
 ```bash
-pnpm run generate-api
+pnpm run generate
 ```
 
-To update TMDB/TVDB provider types, run the commands in [`/src/lib/providers/index.ts`](./src/lib/providers/index.ts).
-
-To update Trakt provider types, run the commands in [`/scripts/trakt-b2s.ts`](./scripts/trakt-b2s.ts). Optionally if remote trakt spec is updated, replace [`/scripts/trakt.apib`](./scripts/trakt.apib) with the latest from [Trakt API description document](https://trakt.docs.apiary.io/api-description-document)
+Third-party metadata integrations now live in the backend. The frontend consumes backend GraphQL and keeps only local metadata parsing/mapping helpers in [`/src/lib/metadata/parser.ts`](./src/lib/metadata/parser.ts).
 
 #### Database schemas and migrations & Authentication
 

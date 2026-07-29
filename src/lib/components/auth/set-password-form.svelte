@@ -5,6 +5,7 @@
     import type { SuperValidated } from "sveltekit-superforms";
     import { setPasswordSchema, type SetPasswordSchema } from "$lib/schemas/auth";
     import { superForm } from "sveltekit-superforms";
+    import { untrack } from "svelte";
     import { zod4Client } from "sveltekit-superforms/adapters";
     import { Input } from "$lib/components/ui/input/index.js";
     import Eye from "@lucide/svelte/icons/eye";
@@ -21,9 +22,11 @@
         data: SuperValidated<SetPasswordSchema>;
     } = $props();
 
-    const form = superForm(data, {
-        validators: zod4Client(setPasswordSchema)
-    });
+    const form = untrack(() =>
+        superForm(data, {
+            validators: zod4Client(setPasswordSchema)
+        })
+    );
 
     const { form: formData, enhance, message, delayed } = form;
 

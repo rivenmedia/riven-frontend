@@ -1,8 +1,15 @@
 import { browser } from "$app/environment";
 import type { ParsedSearchQuery } from "$lib/search-parser";
+import { SvelteSet } from "svelte/reactivity";
 
 import { createScopedLogger } from "$lib/logger";
-import type { TMDBTransformedListItem } from "$lib/providers/parser";
+import { gqlClient } from "$lib/graphql-client";
+import type { TMDBTransformedListItem } from "$lib/metadata/parser";
+import {
+    mapGqlTmdbList,
+    SEARCH_TMDB_PAGE_QUERY,
+    type GqlTmdbListItem
+} from "$lib/services/backend-metadata";
 
 const logger = createScopedLogger("search");
 
@@ -12,6 +19,22 @@ export interface SearchResult {
     page: number;
     total_pages: number;
     total_results: number;
+}
+
+interface GqlTmdbPage {
+    results: GqlTmdbListItem[];
+    page: number;
+    totalPages: number;
+    totalResults: number;
+}
+
+function mapTmdbPage(gql: GqlTmdbPage): SearchResult {
+    return {
+        results: mapGqlTmdbList(gql.results),
+        page: gql.page,
+        total_pages: gql.totalPages,
+        total_results: gql.totalResults
+    };
 }
 
 // Filter parameters that can be applied to TMDB searches
@@ -306,7 +329,7 @@ export class SearchStore {
         newItems: TMDBTransformedListItem[],
         existingItems: TMDBTransformedListItem[] = []
     ): TMDBTransformedListItem[] {
-        const seenIds = new Set(existingItems.map((i) => i.id));
+        const seenIds = new SvelteSet(existingItems.map((i) => i.id));
         const uniqueItems: TMDBTransformedListItem[] = [];
 
         for (const item of newItems) {
@@ -347,56 +370,43 @@ export class SearchStore {
         this.filterParams = {};
     }
 
-    /**
-     * Build the search endpoint URL for a given type and page
-     */
-    private buildSearchUrl(type: "movie" | "tv" | "person" | "company", page: number): string {
-        // Merge parsed search params with filter params
-        // Filter params take precedence
+    private buildSearchParams(type: "movie" | "tv" | "person" | "company", page: number) {
         const hasFilters = Object.keys(this.filterParams).length > 0;
-
-        // When filters are active, always use discover mode because
-        // TMDB's search endpoints don't support most filter params
         const searchMode = hasFilters ? "discover" : this.parsedSearch?.searchMode || "discover";
 
-        const params = {
+        const params: Record<string, unknown> = {
             ...(this.parsedSearch?.tmdbParams || {}),
             ...this.filterParams,
-            page,
-            searchMode
+            page
         };
 
-        // Remove 'query' param when using discover mode (it's not supported)
         if (searchMode === "discover") {
             delete params.query;
         }
 
-        const searchParams = new URLSearchParams();
+        // Strip undefined/null/empty values
+        const cleaned: Record<string, string> = {};
         for (const [key, value] of Object.entries(params)) {
             if (value !== undefined && value !== null && value !== "") {
-                searchParams.append(key, String(value));
+                cleaned[key] = String(value);
             }
         }
 
-        return `/api/tmdb/search/${type}?${searchParams.toString()}`;
+        return { searchMode, params: cleaned };
     }
 
-    /**
-     * Fetch search results from the API
-     */
     private async fetchSearchResults(
         type: "movie" | "tv" | "person" | "company",
         page: number,
         signal?: AbortSignal
     ): Promise<SearchResult> {
-        const endpoint = this.buildSearchUrl(type, page);
-        const response = await fetch(endpoint, { signal });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${type}: ${response.statusText}`);
-        }
-
-        return response.json();
+        const { searchMode, params } = this.buildSearchParams(type, page);
+        const data = await gqlClient<{ searchTmdb: GqlTmdbPage }>(
+            SEARCH_TMDB_PAGE_QUERY,
+            { type, params, searchMode },
+            signal
+        );
+        return mapTmdbPage(data.searchTmdb);
     }
 
     private async fetchMedia(
@@ -488,11 +498,14 @@ export class SearchStore {
         )
             return;
 
-        let hasMore = false;
-        if (type === "movie") hasMore = this.movieHasMore;
-        else if (type === "person") hasMore = this.personHasMore;
-        else if (type === "company") hasMore = this.companyHasMore;
-        else hasMore = this.tvHasMore;
+        const hasMore =
+            type === "movie"
+                ? this.movieHasMore
+                : type === "person"
+                  ? this.personHasMore
+                  : type === "company"
+                    ? this.companyHasMore
+                    : this.tvHasMore;
 
         if (!hasMore) return;
 

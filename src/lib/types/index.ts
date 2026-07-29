@@ -1,6 +1,3 @@
-import type { components } from "$lib/providers/riven";
-
-// Manually define Stream if not in schemas
 export interface Stream {
     raw_title: string;
     rank: number;
@@ -10,12 +7,6 @@ export interface Stream {
     size: number;
     [key: string]: unknown;
 }
-
-export type AutoScrapeRequestPayload = components["schemas"]["AutoScrapeRequest"];
-export type DebridFile = components["schemas"]["DebridFile"];
-export type Container = components["schemas"]["Container"];
-export type ShowFileData = components["schemas"]["ShowFileData"];
-export type ParsedData = components["schemas"]["ParsedFile"];
 
 // Re-export types from riven.ts
 export type {
@@ -28,6 +19,39 @@ export type {
     RivenSeason,
     RivenMediaItem
 } from "./riven";
+
+export interface AutoScrapeRequestPayload {
+    imdb_id?: string | null;
+    tmdb_id?: string | null;
+    tvdb_id?: string | null;
+    title?: string | null;
+    year?: number | null;
+    media_type?: string | null;
+    season_numbers?: number[] | null;
+    [key: string]: unknown;
+}
+
+export interface DebridFile {
+    id?: string | number;
+    file_id?: string | number;
+    filename?: string;
+    filesize?: number;
+    size?: number;
+    download_url?: string | null;
+    [key: string]: unknown;
+}
+
+export type Container = Record<string, DebridFile>;
+export type ShowFileData = Record<string, Record<string, DebridFile>>;
+export type ParsedData = ParsedTitleData & Record<string, unknown>;
+
+export interface StartSessionResponse {
+    session_id?: string;
+    sessionId?: string;
+    files?: Container | null;
+    file_data?: DebridFile | ShowFileData | null;
+    [key: string]: unknown;
+}
 
 export interface ScrapeSeasonRequest extends AutoScrapeRequestPayload {
     season_numbers: number[];
@@ -69,7 +93,7 @@ export interface BatchSession {
     sessionId: string;
     magnet: string;
     stream: Stream;
-    sessionData: components["schemas"]["StartSessionResponse"];
+    sessionData: StartSessionResponse;
     mappings: FileMapping[];
     status: "pending" | "completed" | "error";
     error?: string;

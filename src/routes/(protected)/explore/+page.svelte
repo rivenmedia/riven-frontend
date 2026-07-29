@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getContext, onDestroy, onMount } from "svelte";
-    import { type Action } from "svelte/action";
+    import type { Action } from "svelte/action";
     import ListItem from "$lib/components/list-item.svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import PortraitCardSkeleton from "$lib/components/media/portrait-card-skeleton.svelte";
@@ -12,6 +12,7 @@
     import { scale, fly } from "svelte/transition";
     import { goto } from "$app/navigation";
     import { resolve } from "$app/paths";
+    import { getRatings } from "$lib/stores/ratings";
 
     let { data } = $props();
 
@@ -34,16 +35,12 @@
         const item = heroItem;
         if (!item) return null;
 
-        const res = await fetch(`/api/ratings/${item.id}?type=${item.media_type}`);
+        const ratings = await getRatings(item.id, item.media_type);
 
         // Race condition check: If the hero item has rotated while fetching, ignore this result
         if (heroItem?.id !== item.id) return null;
 
-        return res.ok
-            ? (res.json() as Promise<{
-                  scores: Array<{ name: string; image?: string; score: string; url: string }>;
-              }>)
-            : null;
+        return ratings;
     });
 
     // Derived background image: Use hero item for empty state, first result for active search
@@ -133,29 +130,28 @@
             {/key}
             <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
             <div
-                class="to-background absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent">
+                class="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/50 to-transparent">
             </div>
             <div
-                class="to-background absolute inset-0 bg-gradient-to-b from-zinc-950/20 via-transparent to-transparent">
+                class="absolute inset-0 bg-linear-to-b from-zinc-950/20 via-transparent to-transparent">
             </div>
         </div>
     {:else}
         <!-- Default subtle background -->
         <div class="pointer-events-none fixed inset-0 z-0">
-            <div class="absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black">
+            <div class="absolute inset-0 bg-linear-to-b from-zinc-900 via-zinc-950 to-black"></div>
+            <div
+                class="bg-primary/5 absolute top-[-20%] left-[-10%] h-150 w-150 rounded-full blur-[120px]">
             </div>
             <div
-                class="bg-primary/5 absolute top-[-20%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
-            </div>
-            <div
-                class="absolute right-[-5%] bottom-[-10%] h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-[100px]">
+                class="absolute right-[-5%] bottom-[-10%] h-125 w-125 rounded-full bg-blue-500/5 blur-[100px]">
             </div>
         </div>
     {/if}
 
     <!-- Content Container -->
     <div
-        class="relative z-10 mx-auto flex w-full max-w-[2400px] flex-col gap-6 px-6 pt-6 pb-24 md:px-12 md:pt-16 md:pb-12 lg:px-16">
+        class="relative z-10 mx-auto flex w-full max-w-600 flex-col gap-6 px-6 pt-6 pb-24 md:px-12 md:pt-16 md:pb-12 lg:px-16">
         <!-- Header -->
         <div class="flex flex-col gap-4">
             <div class="flex flex-wrap items-center justify-between gap-4">
@@ -227,7 +223,7 @@
                     class="rounded-lg border border-yellow-500 bg-yellow-500/10 p-4 text-yellow-600 dark:text-yellow-500">
                     <p class="font-semibold">Warnings</p>
                     <ul class="mt-1 list-disc pl-5 text-sm">
-                        {#each searchStore.warnings as warning}
+                        {#each searchStore.warnings as warning (warning)}
                             <li>{warning}</li>
                         {/each}
                     </ul>
@@ -260,7 +256,7 @@
                                         {:then ratings}
                                             {#if ratings?.scores?.length}
                                                 <div class="flex items-center gap-3">
-                                                    {#each ratings.scores as score (score.name)}
+                                                    {#each ratings.scores as score (`${score.name}-${score.score}-${score.url ?? ""}`)}
                                                         <div
                                                             title={score.name}
                                                             class="bg-background/50 flex items-center gap-1.5 rounded-xl border border-white/10 px-2.5 py-1 backdrop-blur-md transition-transform hover:scale-105">
@@ -352,10 +348,9 @@
                         </h3>
                         {#key currentExampleIndex}
                             <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {#each (data.searchExamples ?? []).slice(currentExampleIndex, currentExampleIndex + 6) as example (example)}
+                                {#each (data.searchExamples ?? []).slice(currentExampleIndex, currentExampleIndex + 6) as example, i (`${currentExampleIndex + i}-${example}`)}
                                     <button
-                                        on:click={() => {
-                                            // Dispatch event for header search input
+                                        onclick={() => {
                                             window.dispatchEvent(
                                                 new CustomEvent("riven:search", {
                                                     detail: { query: example }
@@ -377,12 +372,12 @@
             {:else if hasResults}
                 <div
                     class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
-                    {#each searchStore.results as item (`${item.media_type}-${item.id}`)}
+                    {#each searchStore.results as item (`${item.indexer}-${item.media_type}-${item.id}`)}
                         <ListItem data={item} indexer={item.indexer} type={item.media_type} />
                     {/each}
                     {#if searchStore.loading}
-                        {#each Array(6) as _, i (i)}
-                            <div class="aspect-[2/3] w-full">
+                        {#each Array.from({ length: 6 }, (_, i) => i) as i (i)}
+                            <div class="aspect-2/3 w-full">
                                 <PortraitCardSkeleton />
                             </div>
                         {/each}
@@ -391,8 +386,8 @@
             {:else if searchStore.loading}
                 <div
                     class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
-                    {#each Array(12) as _, i (i)}
-                        <div class="aspect-[2/3] w-full">
+                    {#each Array.from({ length: 12 }, (_, i) => i) as i (i)}
+                        <div class="aspect-2/3 w-full">
                             <PortraitCardSkeleton />
                         </div>
                     {/each}

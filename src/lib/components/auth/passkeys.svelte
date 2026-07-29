@@ -1,6 +1,5 @@
 <script lang="ts">
     import { authClient } from "$lib/auth-client";
-    import * as Card from "$lib/components/ui/card/index.js";
     import { toast } from "svelte-sonner";
     import Fingerprint from "@lucide/svelte/icons/fingerprint";
     import Pencil from "@lucide/svelte/icons/pencil";
@@ -103,20 +102,21 @@
     }
 </script>
 
-<Card.Root>
-    <Card.Header>
-        <Card.Title>Passkeys</Card.Title>
-        <Card.Description>
+<section class="border-border/60 grid gap-4 border-b py-6 md:grid-cols-[12rem_minmax(0,1fr)]">
+    <div>
+        <h2 class="text-base font-semibold">Passkeys</h2>
+        <p class="text-muted-foreground mt-1 text-sm">
             Manage your passkeys for secure, passwordless authentication
-        </Card.Description>
-    </Card.Header>
-    <Card.Content>
+        </p>
+    </div>
+
+    <div class="min-w-0">
         {#if isLoadingPasskeys}
             <p class="text-muted-foreground text-sm">Loading passkeys...</p>
         {:else if userPasskeys.length > 0}
-            <div class="mb-4 space-y-2">
+            <div class="border-border/60 mb-4 border-t">
                 {#each userPasskeys as passkey (passkey.id)}
-                    <div class="flex items-center justify-between rounded-lg border p-3">
+                    <div class="border-border/60 flex items-center justify-between border-b py-3">
                         <div class="flex flex-1 items-center gap-3">
                             <Fingerprint class="text-muted-foreground h-5 w-5" />
                             <div class="flex-1">
@@ -205,5 +205,5 @@
             <Fingerprint class="mr-2 h-4 w-4" />
             {isRegisteringPasskey ? "Registering..." : "Add Passkey"}
         </Button>
-    </Card.Content>
-</Card.Root>
+    </div>
+</section>

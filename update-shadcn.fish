@@ -26,7 +26,7 @@ for component in $components
     echo ""
     echo "[$current/$total] Installing component: $component..."
     
-    if bun x shadcn-svelte@latest add $component --yes --overwrite
+    if pnpm dlx shadcn-svelte@latest add $component --yes --overwrite
         echo "✓ Successfully installed $component"
         set successful (math $successful + 1)
     else

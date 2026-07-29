@@ -4,12 +4,13 @@
     import { cubicOut } from "svelte/easing";
     import { type CarouselAPI } from "$lib/components/ui/carousel/context.js";
     import Autoplay from "embla-carousel-autoplay";
-    import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/providers";
+    import { TMDB_IMAGE_BASE_URL, TMDB_GENRES } from "$lib/indexer-constants";
+    import { gqlClient } from "$lib/graphql-client";
     import { getSeasonAndYear } from "$lib/helpers";
     import { Button } from "$lib/components/ui/button/index.js";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { getRatings } from "$lib/stores/ratings";
-    import { Play, Info, Star } from "@lucide/svelte";
+    import { Star } from "@lucide/svelte";
 
     export interface TMDBNowPlayingItem {
         id: number;
@@ -49,7 +50,12 @@
 
     let currentIndex = $state(0);
     let logos = $state<Record<number, string | null>>({});
-    let ratings = $state<Record<number, any>>({});
+    let ratings = $state<
+        Record<
+            number,
+            { scores?: Array<{ name: string; image?: string; score: string; url: string }> }
+        >
+    >({});
     let certifications = $state<Record<number, string | null>>({});
 
     // Handle carousel API events with proper cleanup using $effect.pre
@@ -81,7 +87,7 @@
                     ratings[item.id] = data;
                 })
                 .catch(() => {
-                    ratings[item.id] = null;
+                    ratings[item.id] = { scores: [] };
                 });
         }
 
@@ -90,8 +96,15 @@
 
         const mediaType = item.media_type === "tv" ? "tv" : "movie";
         try {
-            const res = await fetch(`/api/tmdb/${mediaType}/${item.id}/logo`);
-            const data = await res.json();
+            const result = await gqlClient<{
+                tmdbLogoAndCert: { logo: string | null; certification: string | null };
+            }>(
+                `query TmdbLogoAndCert($type: String!, $id: Int!) {
+                    tmdbLogoAndCert(type: $type, id: $id) { logo certification }
+                }`,
+                { type: mediaType, id: item.id }
+            );
+            const data = result.tmdbLogoAndCert;
 
             // Set certification if available
             if (data.certification) {
@@ -236,10 +249,10 @@
                                                 }}
                                                 class="max-h-full max-w-[80%] object-contain drop-shadow-2xl {alignment ===
                                                 'right'
-                                                    ? 'object-right-bottom'
+                                                    ? 'object-bottom-right'
                                                     : alignment === 'center'
                                                       ? 'object-bottom'
-                                                      : 'object-left-bottom'}" />
+                                                      : 'object-bottom-left'}" />
                                         {:else}
                                             <h1
                                                 in:fly={{
@@ -289,11 +302,12 @@
                                         {/if}
                                         {#if ratings[item.id]?.scores?.length}
                                             <div class="ml-2 flex items-center gap-4">
-                                                {#each ratings[item.id].scores as score}
+                                                {#each ratings[item.id].scores as score (score.name)}
+                                                    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                                                     <a
                                                         href={score.url}
                                                         target="_blank"
-                                                        rel="noopener noreferrer"
+                                                        rel="external noopener noreferrer"
                                                         class="flex items-center gap-1.5 transition-opacity hover:opacity-80"
                                                         title={score.name}>
                                                         {#if score.image}
@@ -439,7 +453,7 @@
 
             <!-- Desktop Segmented Progress (Hidden until Large screens) -->
             <div class="hidden gap-1.5 lg:flex">
-                {#each data as _, i}
+                {#each data.map((__, idx) => idx) as i (i)}
                     <button
                         class="relative h-1 w-6 cursor-pointer overflow-hidden rounded-full transition-all duration-300 {i ===
                         currentIndex
@@ -466,7 +480,7 @@
     </div>
 {:else}
     <div class="relative w-full overflow-hidden rounded-2xl {heightClass}">
-        <div class="from-background to-muted absolute inset-0 animate-pulse bg-gradient-to-t"></div>
+        <div class="from-background to-muted absolute inset-0 animate-pulse bg-linear-to-t"></div>
 
         <div class="absolute inset-0 z-2 flex flex-col justify-end p-8 md:p-12">
             <div class="w-full max-w-xl">

@@ -8,7 +8,6 @@
         title: string;
         subtitle?: string | null;
         image: string | null;
-        selected?: boolean;
         isSelectable?: boolean;
         isSelected?: boolean;
         onSelectToggle?: () => void;
@@ -21,7 +20,7 @@
         title,
         subtitle = null,
         image,
-        selected = false,
+
         isSelectable = false,
         isSelected = false,
         onSelectToggle,
@@ -33,7 +32,7 @@
 
 <div
     class={cn(
-        "group bg-card ring-border hover:ring-primary/30 relative aspect-[2/3] w-full overflow-hidden rounded-xl shadow-sm ring-1 transition-all duration-500 hover:shadow-2xl hover:shadow-black/50",
+        "group bg-card ring-border hover:ring-primary/30 relative aspect-2/3 w-full overflow-hidden rounded-xl shadow-sm ring-1 transition-all duration-500 hover:shadow-2xl hover:shadow-black/50",
         isSelected && "ring-primary shadow-[0_0_30px_rgba(var(--primary),0.3)] ring-2",
         className
     )}>
@@ -49,11 +48,11 @@
             )} />
         <!-- Gradient Overlay - Stronger fade for text legibility using theme colors where possible but ensuring contrast -->
         <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100">
+            class="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100">
         </div>
         <!-- Subtle Theme Tint at the bottom -->
         <div
-            class="from-primary/20 absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+            class="from-primary/20 absolute inset-0 bg-linear-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         </div>
     {:else}
         <div class="bg-muted text-muted-foreground flex h-full w-full items-center justify-center">

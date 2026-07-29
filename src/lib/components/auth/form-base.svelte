@@ -1,8 +1,6 @@
 <script lang="ts">
-    import * as Card from "$lib/components/ui/card/index.js";
     import type { Snippet } from "svelte";
     import { cn } from "$lib/utils";
-    import { Separator } from "$lib/components/ui/separator/index.js";
 
     interface Props {
         title: string;
@@ -21,24 +19,25 @@
     }: Props = $props();
 </script>
 
-<Card.Root>
-    <Card.Header>
-        <Card.Title>
-            {title}
-        </Card.Title>
+<section
+    class={cn(
+        "border-border/60 grid gap-4 border-b py-6 md:grid-cols-[12rem_minmax(0,1fr)]",
+        className
+    )}>
+    <div>
+        <h2 class="text-base font-semibold">{title}</h2>
         {#if description}
-            <Card.Description>{description}</Card.Description>
+            <p class="text-muted-foreground mt-1 text-sm">{description}</p>
         {/if}
-    </Card.Header>
-    <div class={cn("flex h-full flex-col justify-between", className)}>
-        <Card.Content>
-            {@render content?.()}
-        </Card.Content>
-        <div>
-            <Separator class="my-4" />
-            <Card.Footer>
-                {@render footer?.()}
-            </Card.Footer>
-        </div>
     </div>
-</Card.Root>
+
+    <div class="min-w-0">
+        {@render content?.()}
+
+        {#if footer}
+            <div class="mt-4">
+                {@render footer?.()}
+            </div>
+        {/if}
+    </div>
+</section>

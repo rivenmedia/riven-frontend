@@ -7,6 +7,7 @@
     import { calculateAge, formatDate, isDayAndMonthToday } from "$lib/helpers";
     import ArrowRight from "@lucide/svelte/icons/arrow-right";
     import { cn, deduplicateById } from "$lib/utils";
+    import { resolve } from "$app/paths";
     import TmdbNowPlaying, {
         type TMDBNowPlayingItem
     } from "$lib/components/tmdb-now-playing.svelte";
@@ -14,6 +15,7 @@
     let { data }: PageProps = $props();
 
     const birthdayToday = $derived(isDayAndMonthToday(data.entity.birthday));
+    const sourceLabel = $derived(data.entity.indexer === "tvdb" ? "TVDB" : "TMDB");
 
     // Constants
     const GRID_CLASSES =
@@ -91,14 +93,17 @@
     // Select Top 5 for carousel (matching Seerr's logic)
     const backdropCandidates = $derived(
         uniqueCredits
-            .filter((c) => c.backdrop_path && c.vote_count != null)
-            .sort((a, b) => (b.vote_count ?? 0) - (a.vote_count ?? 0))
+            .filter((c: (typeof uniqueCredits)[number]) => c.backdrop_path && c.vote_count != null)
+            .sort(
+                (a: (typeof uniqueCredits)[number], b: (typeof uniqueCredits)[number]) =>
+                    (b.vote_count ?? 0) - (a.vote_count ?? 0)
+            )
             .slice(0, 5)
     );
 
     // Map to carousel format
     const carouselItems: TMDBNowPlayingItem[] = $derived(
-        backdropCandidates.map((c) => ({
+        backdropCandidates.map((c: (typeof backdropCandidates)[number]) => ({
             id: c.id,
             media_type: c.media_type as "movie" | "tv",
             title: c.title,
@@ -111,6 +116,14 @@
     );
 
     const currentBackdrop = $derived(carouselItems[0]);
+    const hasExternalLinks = $derived(
+        !!(
+            data.entity.tvdb_url ||
+            data.entity.imdb_id ||
+            data.entity.external_ids?.tmdb ||
+            data.entity.homepage
+        )
+    );
 
     function formatCreditSubtitle(credit: {
         character?: string | null;
@@ -205,7 +218,7 @@
         <!-- Birthday Confetti -->
         {#if birthdayToday && !data.entity.deathday}
             <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-                {#each Array(20) as i}
+                {#each Array(20) as i (i)}
                     <div
                         class="confetti {CONFETTI_CONFIG.shapes[i % CONFETTI_CONFIG.shapes.length]}"
                         style="
@@ -233,10 +246,10 @@
                     src={currentBackdrop.backdrop_path} />
                 <div class="bg-background/80 absolute inset-0 mix-blend-multiply"></div>
                 <div
-                    class="from-background via-background/50 absolute inset-0 bg-gradient-to-t to-transparent">
+                    class="from-background via-background/50 absolute inset-0 bg-linear-to-t to-transparent">
                 </div>
                 <div
-                    class="from-background/20 absolute inset-0 bg-gradient-to-b via-transparent to-transparent">
+                    class="from-background/20 absolute inset-0 bg-linear-to-b via-transparent to-transparent">
                 </div>
             </div>
         {:else if data.entity.profile_path}
@@ -251,7 +264,7 @@
             <div class="fixed top-0 left-0 z-0 h-screen w-full">
                 <div class="bg-background absolute inset-0"></div>
                 <div
-                    class="bg-primary/10 absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
+                    class="bg-primary/10 absolute top-[-10%] left-[-10%] h-150 w-150 rounded-full blur-[120px]">
                 </div>
             </div>
         {/if}
@@ -273,13 +286,13 @@
             <!-- Hero Content Area -->
             <div
                 class={cn(
-                    "mx-auto w-full max-w-[2400px] px-8 pb-12 md:px-20 md:pb-16 lg:px-24",
+                    "mx-auto w-full max-w-600 px-8 pb-12 md:px-20 md:pb-16 lg:px-24",
                     carouselItems.length === 0 && "pt-24 md:pt-[20vh]"
                 )}>
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr] lg:gap-12">
                     <!-- Portrait Column (Desktop) -->
                     <div
-                        class="relative sticky top-24 hidden h-fit lg:mx-0 lg:block"
+                        class="sticky top-24 hidden h-fit lg:mx-0 lg:block"
                         in:fly|global={{ y: 20, duration: 400, delay: 50, easing: cubicOut }}>
                         <PortraitCard
                             title={data.entity.name}
@@ -301,7 +314,7 @@
                         <div class="flex gap-6 lg:block">
                             <!-- Mobile Portrait (Hidden on Desktop) -->
                             <div
-                                class="relative flex-shrink-0 lg:hidden"
+                                class="relative shrink-0 lg:hidden"
                                 in:fly|global={{
                                     y: 20,
                                     duration: 400,
@@ -387,13 +400,53 @@
                 </div>
             </div>
 
-            <div class="mx-auto w-full max-w-[2400px] px-8 md:px-20 lg:px-24">
+            <div class="mx-auto w-full max-w-600 px-8 md:px-20 lg:px-24">
                 <div class="bg-border/20 my-8 h-px w-full"></div>
             </div>
 
+            {#if hasExternalLinks}
+                <section
+                    class="mx-auto w-full max-w-600 px-8 pb-12 md:px-20 lg:px-24"
+                    in:fly|global={{ y: 20, duration: 400, delay: 180, easing: cubicOut }}>
+                    <div class="flex flex-wrap gap-2">
+                        {#if data.entity.tvdb_url}
+                            <a
+                                href={`https://thetvdb.com/people/${data.entity.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <Badge variant="outline" class={badgeClass}>TVDB</Badge>
+                            </a>
+                        {/if}
+                        {#if data.entity.imdb_id}
+                            <a
+                                href={`https://www.imdb.com/name/${data.entity.imdb_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <Badge variant="outline" class={badgeClass}>IMDb</Badge>
+                            </a>
+                        {/if}
+                        {#if data.entity.external_ids?.tmdb}
+                            <a
+                                href={`https://www.themoviedb.org/person/${data.entity.external_ids.tmdb}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <Badge variant="outline" class={badgeClass}>TMDB</Badge>
+                            </a>
+                        {/if}
+                        {#if data.entity.homepage && data.entity.homepage !== data.entity.tvdb_url}
+                            <a
+                                href={`https://${data.entity.homepage.replace(/^https?:\/\//, "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <Badge variant="outline" class={badgeClass}>Website</Badge>
+                            </a>
+                        {/if}
+                    </div>
+                </section>
+            {/if}
+
             <!-- Credits -->
-            <div
-                class="mx-auto flex w-full max-w-[2400px] flex-col gap-20 px-8 pb-24 md:px-20 lg:px-24">
+            <div class="mx-auto flex w-full max-w-600 flex-col gap-20 px-8 pb-24 md:px-20 lg:px-24">
                 {@render creditsSection("Movies", movieCredits, 200)}
                 {@render creditsSection("TV Shows", showCredits, 250)}
                 {@render creditsSection("Crew", crewCredits, 300)}
@@ -421,7 +474,9 @@
 {#snippet creditList(credits: typeof movieCredits)}
     {#each credits as credit, index (`${credit.id}-${index}`)}
         <a
-            href="/details/media/{credit.id}/{credit.media_type}"
+            href={resolve(
+                `/details/media/${credit.id}/${credit.media_type}${credit.indexer === "tvdb" ? "?indexer=tvdb" : ""}`
+            )}
             class="group relative block opacity-80 transition-all duration-300 hover:scale-105 hover:opacity-100">
             <PortraitCard
                 title={credit.title}
@@ -433,6 +488,9 @@
 {/snippet}
 
 {#snippet metadataBadges()}
+    <Badge variant="outline" class={badgeClass}>
+        {sourceLabel}
+    </Badge>
     {#if data.entity.known_for_department}
         <Badge variant="outline" class={badgeClass}>
             {data.entity.known_for_department}
@@ -464,7 +522,7 @@
                 Also known as<span class={colonClass}>:</span>
             </h3>
             <div class="flex flex-wrap gap-2">
-                {#each data.entity.also_known_as as alias}
+                {#each data.entity.also_known_as as alias (alias)}
                     <Badge variant="outline" class={badgeClass}>
                         {alias}
                     </Badge>

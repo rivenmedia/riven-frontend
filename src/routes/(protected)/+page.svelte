@@ -8,32 +8,108 @@
     import PageShell from "$lib/components/page-shell.svelte";
     import { fly } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
+    import { subscribeToRivenMediaEvents } from "$lib/services/riven-live-updates";
+    import { gqlClient } from "$lib/graphql-client";
+    import {
+        getRecentItemsVariables,
+        mapRecentItemsPage,
+        RECENT_ITEMS_QUERY,
+        type RecentListItem,
+        type RecentItemsResponse
+    } from "$lib/services/recent-items";
 
     let { data }: { data: PageData } = $props();
 
     const viewAllButtonClass =
         "text-muted-foreground border-white/10 bg-black/20 hover:bg-black/40 hover:text-foreground h-9 w-24 rounded-xl border text-xs font-bold backdrop-blur-md shadow-inner transition-all";
 
-    const recentlyAddedStore = new MediaListStore<BaseListItem>(
-        "recentlyAdded",
-        "/api/library/recent",
-        null,
-        { noCache: true, initialData: data.recentlyAdded }
-    );
-    const trendingMoviesStore = new MediaListStore<BaseListItem>(
-        "trendingMovies",
-        "/api/tmdb/movie",
-        "day"
-    );
-    const trendingShowsStore = new MediaListStore<BaseListItem>(
-        "trendingShows",
-        "/api/tmdb/tv",
-        "day"
-    );
-    const anilistTrendingStore = new MediaListStore<BaseListItem>(
-        "anilistTrending",
-        "/api/anilist/trending"
-    );
+    // svelte-ignore state_referenced_locally
+    const recentlyAddedStore = new MediaListStore<RecentListItem>({
+        key: "recentlyAdded",
+        noCache: true,
+        initialData: data.recentlyAdded,
+        loader: async (page) => {
+            const recentData = await gqlClient<RecentItemsResponse>(
+                RECENT_ITEMS_QUERY,
+                getRecentItemsVariables(page)
+            );
+            return mapRecentItemsPage(recentData);
+        }
+    });
+    const TRENDING_QUERY = `query TrendingTmdb($type: String!, $timeWindow: String!, $page: Int) {
+        trendingTmdb(type: $type, timeWindow: $timeWindow, page: $page) {
+            results { id title posterPath mediaType year popularity }
+        }
+    }`;
+    const ANILIST_TRENDING_QUERY = `query TrendingAnilist($page: Int!, $perPage: Int) {
+        trendingAnilist(page: $page, perPage: $perPage) {
+            results { id title posterPath mediaType year }
+        }
+    }`;
+    type TrendingResult = {
+        id: number;
+        title?: string;
+        name?: string;
+        posterPath?: string;
+        mediaType?: string;
+        year?: number;
+        popularity?: number;
+    };
+    type TrendingResponse = { trendingTmdb: { results: TrendingResult[] } };
+    const mapTrending = (d: TrendingResponse) =>
+        d.trendingTmdb.results.map((r) => ({
+            ...r,
+            poster_path: r.posterPath,
+            media_type: r.mediaType
+        }));
+
+    const trendingMoviesStore = new MediaListStore<BaseListItem>({
+        key: "trendingMovies",
+        initialTimeWindow: "day",
+        loader: (page, timeWindow) =>
+            gqlClient<TrendingResponse>(TRENDING_QUERY, {
+                type: "movie",
+                timeWindow: timeWindow ?? "day",
+                page
+            }).then(mapTrending)
+    });
+    const trendingShowsStore = new MediaListStore<BaseListItem>({
+        key: "trendingShows",
+        initialTimeWindow: "day",
+        loader: (page, timeWindow) =>
+            gqlClient<TrendingResponse>(TRENDING_QUERY, {
+                type: "tv",
+                timeWindow: timeWindow ?? "day",
+                page
+            }).then(mapTrending)
+    });
+    const anilistTrendingStore = new MediaListStore<BaseListItem>({
+        key: "anilistTrending",
+        loader: (page) =>
+            gqlClient<{
+                trendingAnilist: {
+                    results: Array<{
+                        id: number;
+                        title: string;
+                        posterPath: string | null;
+                        mediaType: string;
+                        year: string;
+                    }>;
+                };
+            }>(ANILIST_TRENDING_QUERY, { page, perPage: 20 }).then((data) =>
+                data.trendingAnilist.results.map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    poster_path: item.posterPath,
+                    media_type: item.mediaType,
+                    year: item.year
+                }))
+            )
+    });
+
+    $effect(() => {
+        return subscribeToRivenMediaEvents(() => recentlyAddedStore.refresh());
+    });
 </script>
 
 {#snippet listHeading(title: string)}
@@ -54,12 +130,12 @@
     class="bg-background relative mt-0 flex min-h-screen flex-col overflow-x-hidden p-0 md:mt-0 md:p-0">
     <!-- Immersive Background -->
     <div class="pointer-events-none fixed inset-0 z-0">
-        <div class="absolute inset-0 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black"></div>
+        <div class="absolute inset-0 bg-linear-to-b from-zinc-900 via-zinc-950 to-black"></div>
         <div
-            class="bg-primary/5 absolute top-[-20%] left-[-10%] h-[600px] w-[600px] rounded-full blur-[120px]">
+            class="bg-primary/5 absolute top-[-20%] left-[-10%] h-150 w-150 rounded-full blur-[120px]">
         </div>
         <div
-            class="absolute right-[-5%] bottom-[-10%] h-[500px] w-[500px] rounded-full bg-blue-500/5 blur-[100px]">
+            class="absolute right-[-5%] bottom-[-10%] h-125 w-125 rounded-full bg-blue-500/5 blur-[100px]">
         </div>
     </div>
 
@@ -72,7 +148,7 @@
                 heightClass="h-[50vh] min-h-[500px] max-h-[800px]" />
         </div>
 
-        <div class="mx-auto flex w-full max-w-[2400px] flex-col gap-12 px-6 md:px-12 lg:px-16">
+        <div class="mx-auto flex w-full max-w-600 flex-col gap-12 px-6 md:px-12 lg:px-16">
             {#if recentlyAddedStore.items.length}
                 <div
                     class="flex flex-col gap-4"

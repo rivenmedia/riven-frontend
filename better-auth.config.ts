@@ -20,7 +20,7 @@ import "dotenv/config";
 
 export const auth = betterAuth({
     secret: process.env.AUTH_SECRET || generateSecret(),
-    baseURL: process.env.ORIGIN,
+    baseURL: process.env.ORIGIN || "http://localhost:5173",
     database: drizzleAdapter(db, {
         provider: "sqlite"
     }),

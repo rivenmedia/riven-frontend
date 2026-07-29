@@ -6,7 +6,7 @@ COMMIT_HASH := $(shell git rev-parse --short HEAD)
 help:
 	@echo "Riven Frontend Local Development Environment"
 	@echo "-------------------------------------------------------------------------"
-	@echo "install   : Install the required packages using Bun"
+	@echo "install   : Install the required packages using pnpm"
 	@echo "run       : Run the Riven Frontend development server"
 	@echo "start     : Build and run the Riven Frontend container (requires Docker)"
 	@echo "stop      : Stop and remove the Riven Frontend container (requires Docker)"
@@ -94,28 +94,28 @@ clean:
 	@find . -type d -name '.svelte-kit' -exec rm -rf {} + 2>/dev/null || true
 
 install:
-	@bun install
+	@pnpm install
 
 update:
-	@bun update
+	@pnpm update
 
 diff:
 	@git diff HEAD~1 HEAD
 
 # Run the application
 run:
-	@bun run dev
+	@pnpm run dev
 
 # Code quality commands
 format:
-	@bun run format
+	@pnpm run format
 
 check:
-	@bun run check
+	@pnpm run check
 
 lint:
-	@bun run lint
+	@pnpm run lint
 
 # Testing
 test:
-	@bun test
+	@pnpm test

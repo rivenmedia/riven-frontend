@@ -1,4 +1,5 @@
 <script lang="ts">
+    /* eslint-disable svelte/no-navigation-without-resolve */
     import Menu from "@lucide/svelte/icons/menu";
     import { Button } from "$lib/components/ui/button/index.js";
     import NotificationCenter from "$lib/components/notification-center.svelte";
@@ -7,6 +8,7 @@
     import * as Kbd from "$lib/components/ui/kbd/index.js";
     import * as InputGroup from "$lib/components/ui/input-group/index.js";
     import { goto, afterNavigate } from "$app/navigation";
+    import { resolve } from "$app/paths";
     import { page } from "$app/state";
     import type { createSidebarStore } from "$lib/stores/global.svelte";
     import type { SearchStore } from "$lib/services/search-store.svelte";
@@ -68,7 +70,11 @@
             searchStore.syncQuery(parsed);
         }
 
-        await goto(query ? `/explore?query=${encodeURIComponent(query)}` : "/explore", {
+        const explorePath = resolve("/explore");
+        const searchPath = query
+            ? `${explorePath}?query=${encodeURIComponent(query)}`
+            : explorePath;
+        await goto(searchPath, {
             keepFocus: true,
             noScroll: true,
             replaceState: currentlyExplore
@@ -93,7 +99,7 @@
 </script>
 
 <header
-    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-20 w-full items-center bg-gradient-to-b from-black/50 to-transparent px-4 transition-all duration-500 md:flex md:px-16">
+    class="pointer-events-none absolute top-0 left-0 z-50 hidden h-20 w-full items-center bg-linear-to-b from-black/50 to-transparent px-4 transition-all duration-500 md:flex md:px-16">
     <div class="pointer-events-auto flex w-full items-center justify-between gap-6">
         <div class="mx-auto w-full max-w-lg transition-all duration-300 focus-within:max-w-xl">
             <InputGroup.Root

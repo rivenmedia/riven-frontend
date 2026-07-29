@@ -16,12 +16,10 @@ services:
         environment:
             - TZ=Asia/Kolkata
 
-        # Uncomment the following if you plan to bind the port to the host machine
         expose:
             - 3000
 
-        # (Optional) Uncomment the following lines to bind the port to the host machine
-        # ports:
-        #   - 3000:3000
+        ports:
+            - 3000:3000
         volumes:
             - riven-frontend-data:/riven/data # Persistent data storage

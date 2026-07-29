@@ -4,12 +4,12 @@
     import LandscapeCard from "$lib/components/media/landscape-card.svelte";
     import Loader2 from "@lucide/svelte/icons/loader-2";
     import { toast } from "svelte-sonner";
-    import providers from "$lib/providers";
+    import { gqlClient } from "$lib/graphql-client";
     import { createScopedLogger } from "$lib/logger";
     import { isMobileStore } from "$lib/stores/global.svelte";
-    import type { CollectionDetails } from "$lib/providers/parser";
     import { type Snippet } from "svelte";
     import { resolve } from "$app/paths";
+    import { page } from "$app/state";
 
     const logger = createScopedLogger("collection-sheet");
 
@@ -17,9 +17,46 @@
         collectionId: number;
         collectionName?: string;
         trigger?: Snippet<[{ props: Record<string, unknown> }]>;
+        onRequested?: () => void | Promise<void>;
     }
 
-    let { collectionId, collectionName = "Collection", trigger }: Props = $props();
+    interface CollectionDetails {
+        id: number;
+        name: string;
+        overview: string | null;
+        poster_path: string | null;
+        backdrop_path: string | null;
+        parts: Array<{
+            id: number;
+            title: string;
+            overview?: string | null;
+            poster_path: string | null;
+            backdrop_path: string | null;
+            release_date?: string | null;
+            media_type: "movie";
+            year: string;
+        }>;
+    }
+
+    interface GqlCollectionDetails {
+        id: number;
+        name: string;
+        overview: string | null;
+        posterPath: string | null;
+        backdropPath: string | null;
+        parts: Array<{
+            id: number;
+            title: string;
+            overview?: string | null;
+            posterPath: string | null;
+            backdropPath: string | null;
+            releaseDate?: string | null;
+            mediaType: "movie";
+            year: string;
+        }>;
+    }
+
+    let { collectionId, collectionName = "Collection", trigger, onRequested }: Props = $props();
 
     let open = $state(false);
     let loading = $state(false);
@@ -32,10 +69,40 @@
         loading = true;
         error = null;
         try {
-            const res = await fetch(`/api/collection/${collectionId}`);
-            if (!res.ok) throw new Error("Failed to fetch collection");
-            const data = await res.json();
-            collectionData = data.collection;
+            const data = await gqlClient<{ tmdbCollectionDetails: GqlCollectionDetails }>(
+                `query Collection($id: Int!) {
+                    tmdbCollectionDetails(id: $id) {
+                        id
+                        name
+                        overview
+                        posterPath
+                        backdropPath
+                        parts {
+                            id
+                            title
+                            overview
+                            posterPath
+                            backdropPath
+                            releaseDate
+                            mediaType
+                            year
+                        }
+                    }
+                }`,
+                { id: collectionId }
+            );
+            collectionData = {
+                ...data.tmdbCollectionDetails,
+                poster_path: data.tmdbCollectionDetails.posterPath,
+                backdrop_path: data.tmdbCollectionDetails.backdropPath,
+                parts: data.tmdbCollectionDetails.parts.map((part) => ({
+                    ...part,
+                    poster_path: part.posterPath,
+                    backdrop_path: part.backdropPath,
+                    release_date: part.releaseDate,
+                    media_type: part.mediaType
+                }))
+            } as CollectionDetails;
         } catch (e) {
             logger.error("Failed to fetch collection", e);
             error = "Failed to load collection details.";
@@ -47,24 +114,44 @@
     async function requestAll() {
         if (!collectionData?.parts?.length) return;
         requestLoading = true;
-        const ids = collectionData.parts.map((p) => p.id.toString());
 
         try {
-            const response = await providers.riven.POST("/api/v1/items/add", {
-                body: {
-                    media_type: "movie",
-                    tmdb_ids: ids,
-                    tvdb_ids: []
+            const result = await gqlClient<{
+                requestItems: {
+                    count: number;
+                    newItems: { id: number }[];
+                    updatedItems: { id: number }[];
+                };
+            }>(
+                `mutation RequestItems($movies: [MovieRequestInput!]!) {
+                    requestItems(movies: $movies, shows: []) {
+                        count
+                        newItems { id }
+                        updatedItems { id }
+                    }
+                }`,
+                {
+                    movies: collectionData.parts.map((p) => ({
+                        title: p.title ?? "Unknown",
+                        tmdbId: String(p.id)
+                    }))
                 }
-            });
+            );
 
-            if (response.data) {
-                toast.success("All movies in collection requested!");
-                open = false;
-            } else {
-                logger.error("Error response:", response.error);
-                toast.error("Failed to request collection.");
+            const { count, newItems, updatedItems } = result.requestItems;
+            const alreadyHad = count - newItems.length - updatedItems.length;
+
+            if (newItems.length > 0) {
+                toast.success(`${newItems.length} movie(s) requested!`);
             }
+            if (alreadyHad > 0) {
+                toast.info(`${alreadyHad} movie(s) already requested.`);
+            }
+            if (newItems.length === 0 && alreadyHad === 0) {
+                toast.info("All movies in this collection have already been requested.");
+            }
+            void onRequested?.();
+            open = false;
         } catch (e) {
             logger.error("Request failed", e);
             toast.error("Failed to request collection.");
@@ -94,7 +181,8 @@
     </Sheet.Trigger>
     <Sheet.Content
         side="right"
-        class="flex w-full flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+        style="width: min(calc(100vw - 1rem), 46rem); max-width: min(calc(100vw - 1rem), 46rem);"
+        class="data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[side=right]:data-[state=open]:slide-in-from-right-10 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[side=right]:data-[state=closed]:slide-out-to-right-10 flex h-full w-full max-w-[min(100vw-1rem,46rem)] flex-col overflow-hidden border-l border-white/10 bg-zinc-950/95 backdrop-blur-2xl duration-300 ease-out">
         <Sheet.Header class="px-6 pt-6">
             <Sheet.Title class="text-3xl font-black tracking-tight drop-shadow-md"
                 >{collectionName}</Sheet.Title>
@@ -119,7 +207,7 @@
                             alt={collectionData.name}
                             class="h-full w-full object-cover" />
                         <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                            class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent">
                         </div>
                         <div class="absolute right-6 bottom-6 left-6">
                             <p
@@ -155,7 +243,6 @@
                                 overview={part.overview}
                                 tmdbId={part.id}
                                 mediaType="movie"
-                                initialRating={part.vote_average ?? undefined}
                                 class="transition-shadow group-hover:shadow-lg">
                                 {#snippet meta()}
                                     {#if part.year}
@@ -176,7 +263,7 @@
             <Sheet.Footer class="border-t border-white/5 bg-black/20 p-6 backdrop-blur-md">
                 <Button
                     onclick={requestAll}
-                    disabled={requestLoading}
+                    disabled={requestLoading || !page.data.permissions?.canRequestItems}
                     variant="secondary"
                     class="border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 w-full border shadow-lg backdrop-blur-md transition-all hover:scale-[1.02]">
                     {#if requestLoading}

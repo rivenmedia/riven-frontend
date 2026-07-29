@@ -8,6 +8,7 @@ declare global {
             session: import("$lib/server/auth").SessionValidationResult["session"];
             backendUrl: string;
             apiKey: string;
+            backendAuthSigningSecret: string;
         }
     }
 

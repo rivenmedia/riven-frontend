@@ -1,64 +1,326 @@
 <script lang="ts">
     import PageShell from "$lib/components/page-shell.svelte";
-    import type { PageData } from "./$types";
+    import { gqlClient } from "$lib/graphql-client";
     import { cn } from "$lib/utils";
-    import * as Card from "$lib/components/ui/card/index.js";
-    import * as Chart from "$lib/components/ui/chart/index.js";
-    import ResponsiveChartContainer from "$lib/components/media/riven/responsive-chart-container.svelte";
-    import { Badge } from "$lib/components/ui/badge/index.js";
-    import { BarChart, PieChart, LineChart } from "layerchart";
-    import { formatBytes, formatDate, getServiceDisplayName } from "$lib/helpers";
-    import Heatmap from "$lib/components/heatmap.svelte";
-    import { curveCatmullRom } from "d3-shape";
-    import { fly } from "svelte/transition";
-    import { cubicOut } from "svelte/easing";
+    import type { PageData } from "./$types";
+    import ActivityCard from "$lib/components/dashboard/activity-card.svelte";
+    import LibraryChartsCard from "$lib/components/dashboard/library-charts-card.svelte";
+    import ReleaseYearCard from "$lib/components/dashboard/release-year-card.svelte";
+    import ServiceStatusCard from "$lib/components/dashboard/service-status-card.svelte";
+    import DownloaderServicesGrid from "$lib/components/dashboard/downloader-services-grid.svelte";
+    import WatchingNowCard from "$lib/components/dashboard/watching-now-card.svelte";
+    import UsenetProvidersCard from "$lib/components/dashboard/usenet-providers-card.svelte";
+    import UsenetActivityCard from "$lib/components/dashboard/usenet-activity-card.svelte";
+    import UsenetHealthCard from "$lib/components/dashboard/usenet-health-card.svelte";
+    import type {
+        ActivePlaybackSession,
+        DownloaderService,
+        DashboardStatistics,
+        NntpProviderHealth,
+        UsenetStreamingHealth,
+        UsenetTitleHealth,
+        UsenetTitleHealthSummary,
+        UsenetTraffic
+    } from "$lib/components/dashboard/types";
+    import { onMount } from "svelte";
+    import { subscribeToRivenMediaEvents } from "$lib/services/riven-live-updates";
 
     let { data }: { data: PageData } = $props();
 
-    function transformStatesToArray(states: Record<string, number> | undefined) {
-        if (!states) return [];
-        return Object.entries(states).reduce<{ state: string; value: number }[]>(
-            (acc, [state, value]) => {
-                if (value > 0) acc.push({ state, value });
-                return acc;
+    let activePlaybackSessions = $state<ActivePlaybackSession[]>([]);
+    let downloaderServices = $state<DownloaderService[]>([]);
+    let statistics = $state<DashboardStatistics | undefined>(undefined);
+    let usenetProviders = $state<NntpProviderHealth[]>([]);
+    let usenetStreaming = $state<UsenetStreamingHealth | null>(null);
+    let usenetTitles = $state<UsenetTitleHealth[]>([]);
+    const EMPTY_HEALTH_SUMMARY: UsenetTitleHealthSummary = {
+        healthy: 0,
+        unhealthy: 0,
+        notIngested: 0,
+        unknown: 0,
+        total: 0
+    };
+    let usenetTitleSummary = $state<UsenetTitleHealthSummary>(EMPTY_HEALTH_SUMMARY);
+    let usenetTraffic = $state<UsenetTraffic | null>(null);
+
+    const serviceStatuses = $derived(
+        (data as PageData & { services?: Record<string, boolean | null> }).services ?? null
+    );
+    const completionRate = $derived(
+        statistics ? `${statistics.completion_rate.toFixed(2)}%` : "0%"
+    );
+    const kpiCards = $derived.by(() => [
+        {
+            title: "Total Items",
+            value: statistics?.total_items.toLocaleString()
+        },
+        {
+            title: "Completed",
+            value: statistics?.states.Completed?.toLocaleString()
+        },
+        {
+            title: "Incomplete",
+            value: statistics?.incomplete_items.toLocaleString(),
+            tone: "warning" as const
+        },
+        {
+            title: "Completion Rate",
+            value: completionRate
+        }
+    ]);
+
+    const ACTIVE_PLAYBACK_QUERY = `
+        query {
+            activePlaybackSessions {
+                server
+                userName
+                parentTitle
+                itemTitle
+                itemType
+                seasonNumber
+                episodeNumber
+                playbackState
+                playbackMethod
+                positionSeconds
+                durationSeconds
+                deviceName
+                clientName
+                imageUrl
+            }
+        }
+    `;
+
+    const USENET_HEALTH_QUERY = `
+        query {
+            nntpProviders {
+                host
+                port
+                priority
+                isBackup
+                maxConnections
+                openConnections
+                idleConnections
+                activeConnections
+                demoted
+                consecutiveNotFound
+            }
+            usenetStreamingHealth {
+                caches {
+                    name
+                    bytesUsed
+                    bytesMax
+                    entries
+                    hits
+                    misses
+                    hitRate
+                }
+                cacheHitRate
+                fetchesOk
+                fetchesFailed
+                fetchSuccessRate
+                bytesDecoded
+                inFlight
+                deadSegments
+                activeStreams
+            }
+            usenetTitleHealth {
+                infoHash
+                fileIndex
+                mediaItemId
+                status
+                totalSegments
+                sampledSegments
+                missingSegments
+                errorSegments
+                missingPct
+                checkedAt
+                repairAttempts
+                nextRepairAt
+                title
+                subtitle
+                posterPath
+                mediaType
+            }
+            usenetTitleHealthSummary {
+                healthy
+                unhealthy
+                notIngested
+                unknown
+                total
+            }
+            usenetTraffic {
+                totalBytesDownloaded
+                totalArticlesDownloaded
+                providers {
+                    host
+                    bytesDownloaded
+                    articlesDownloaded
+                }
+                daily {
+                    day
+                    host
+                    bytesDownloaded
+                    articlesDownloaded
+                }
+            }
+        }
+    `;
+
+    const STATS_QUERY = `
+        query DashboardStats {
+            stats {
+                totalMovies
+                totalShows
+                totalSeasons
+                totalEpisodes
+                totalItems
+                incompleteItems
+                completionRate
+                completed
+                scraped
+                indexed
+                failed
+                paused
+                ongoing
+                partiallyCompleted
+                unreleased
+            }
+            activity
+            yearReleases {
+                year
+                count
+            }
+        }
+    `;
+
+    type GqlDashboardStats = {
+        stats: {
+            totalMovies: number;
+            totalShows: number;
+            totalSeasons: number;
+            totalEpisodes: number;
+            totalItems: number;
+            incompleteItems: number;
+            completionRate: number;
+            completed: number;
+            scraped: number;
+            indexed: number;
+            failed: number;
+            paused: number;
+            ongoing: number;
+            partiallyCompleted: number;
+            unreleased: number;
+        };
+        activity: Record<string, number>;
+        yearReleases: { year: number; count: number }[];
+    };
+
+    function mapDashboardStats(result: GqlDashboardStats): DashboardStatistics {
+        const s = result.stats;
+
+        return {
+            total_movies: s.totalMovies,
+            total_shows: s.totalShows,
+            total_seasons: s.totalSeasons,
+            total_episodes: s.totalEpisodes,
+            total_items: s.totalItems,
+            incomplete_items: s.incompleteItems,
+            completion_rate: s.completionRate,
+            states: {
+                Completed: s.completed,
+                Scraped: s.scraped,
+                Indexed: s.indexed,
+                Failed: s.failed,
+                Paused: s.paused,
+                Ongoing: s.ongoing,
+                PartiallyCompleted: s.partiallyCompleted,
+                Unreleased: s.unreleased
             },
-            []
-        );
+            activity: result.activity ?? {},
+            media_year_releases: result.yearReleases ?? []
+        };
     }
 
-    const transformedStates = $derived(transformStatesToArray(data.statistics?.states));
+    async function refreshDashboardStats() {
+        const result = await gqlClient<GqlDashboardStats>(STATS_QUERY);
+        statistics = mapDashboardStats(result);
+    }
 
-    const contentBreakdown = $derived.by(() => {
-        if (!data.statistics) return [];
-        return [
-            { key: "Movies", value: data.statistics.total_movies, c: "#ef4444" },
-            { key: "Shows", value: data.statistics.total_shows, c: "#14b8a6" },
-            { key: "Seasons", value: data.statistics.total_seasons, c: "#60a5fa" },
-            { key: "Episodes", value: data.statistics.total_episodes, c: "#f59e0b" }
-        ];
+    // Resolve streamed Promises from the server load into local state.
+    // data.statistics / activePlaybackSessions / downloaderServices are Promises —
+    // returning them un-awaited from the server load lets SvelteKit transition
+    // immediately while data arrives in the background.
+    $effect(() => {
+        let cancelled = false;
+
+        Promise.resolve(data.statistics).then((s) => {
+            if (!cancelled && s != null) statistics = s;
+        });
+        Promise.resolve(data.activePlaybackSessions).then((sessions) => {
+            if (!cancelled) activePlaybackSessions = sessions ?? [];
+        });
+        Promise.resolve(data.downloaderServices).then((services) => {
+            if (!cancelled) downloaderServices = services ?? [];
+        });
+        Promise.resolve(data.usenetHealth).then((health) => {
+            if (!cancelled && health) {
+                usenetProviders = health.providers ?? [];
+                usenetStreaming = health.streaming ?? null;
+                usenetTitles = health.titles ?? [];
+                usenetTitleSummary = health.titleSummary ?? EMPTY_HEALTH_SUMMARY;
+                usenetTraffic = health.traffic ?? null;
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
     });
 
-    const completionRate = $derived.by(() => {
-        if (
-            !data.statistics ||
-            data.statistics.total_items === 0 ||
-            data.statistics.states.Completed === undefined
-        ) {
-            return "0%";
-        }
-        return (
-            ((data.statistics.states.Completed / data.statistics.total_items) * 100).toFixed(2) +
-            "%"
-        );
+    $effect(() => {
+        return subscribeToRivenMediaEvents(refreshDashboardStats);
     });
 
-    const heatmapLegend = [
-        { label: "No Activity", color: "var(--muted)" },
-        { label: "Low", color: "var(--chart-4)" },
-        { label: "Medium", color: "var(--chart-3)" },
-        { label: "High", color: "var(--chart-2)" },
-        { label: "Very High", color: "var(--chart-1)" }
-    ];
+    onMount(() => {
+        let cancelled = false;
+
+        const refresh = async () => {
+            try {
+                const result = await gqlClient<{ activePlaybackSessions: ActivePlaybackSession[] }>(
+                    ACTIVE_PLAYBACK_QUERY
+                );
+                if (!cancelled) {
+                    activePlaybackSessions = result.activePlaybackSessions ?? [];
+                }
+            } catch {
+                // Keep the last successful snapshot on transient dashboard polling failures.
+            }
+            try {
+                const health = await gqlClient<{
+                    nntpProviders: NntpProviderHealth[];
+                    usenetStreamingHealth: UsenetStreamingHealth;
+                    usenetTitleHealth: UsenetTitleHealth[];
+                    usenetTitleHealthSummary: UsenetTitleHealthSummary;
+                    usenetTraffic: UsenetTraffic;
+                }>(USENET_HEALTH_QUERY);
+                if (!cancelled) {
+                    usenetProviders = health.nntpProviders ?? [];
+                    usenetStreaming = health.usenetStreamingHealth ?? null;
+                    usenetTitles = health.usenetTitleHealth ?? [];
+                    usenetTitleSummary = health.usenetTitleHealthSummary ?? EMPTY_HEALTH_SUMMARY;
+                    usenetTraffic = health.usenetTraffic ?? null;
+                }
+            } catch {
+                // Keep the last successful usenet-health snapshot on transient failures.
+            }
+        };
+
+        const interval = window.setInterval(refresh, 15000);
+        return () => {
+            cancelled = true;
+            window.clearInterval(interval);
+        };
+    });
 </script>
 
 <svelte:head>
@@ -68,321 +330,44 @@
 {#snippet KPICard({
     title,
     value,
-    sub,
     tone = "default"
 }: {
     title: string;
     value: string | undefined;
-    sub?: string;
     tone?: "default" | "warning";
 })}
-    <Card.Root class={cn("", tone === "warning" && "border-amber-600/30")}>
-        <Card.Header class="pb-2">
-            <Card.Title class="text-sm font-medium text-neutral-300">{title}</Card.Title>
-        </Card.Header>
-        <Card.Content>
-            <div
-                class={cn(
-                    "text-2xl font-semibold tracking-tight",
-                    tone === "warning" ? "text-amber-300" : "text-neutral-50"
-                )}>
-                {value}
-            </div>
-            {#if sub}
-                <p class="mt-1 text-sm text-neutral-400">{sub}</p>
-            {/if}
-        </Card.Content>
-    </Card.Root>
+    <div class={cn("border-border/60 border-b py-5", tone === "warning" && "border-amber-600/30")}>
+        <p class="text-sm font-medium text-neutral-300">{title}</p>
+        <div
+            class={cn(
+                "mt-3 text-2xl font-semibold tracking-tight",
+                tone === "warning" ? "text-amber-300" : "text-neutral-50"
+            )}>
+            {value}
+        </div>
+    </div>
 {/snippet}
 
-<PageShell>
-    <h1 class="mb-8 text-3xl font-bold tracking-tight">Media Library Statistics</h1>
+<PageShell class="mx-auto w-full max-w-7xl">
+    <header class="border-border/60 border-b pb-6">
+        <h1 class="text-3xl font-bold tracking-tight">Media Library Statistics</h1>
+    </header>
 
-    <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {@render KPICard({
-            title: "Total Items",
-            value: data.statistics?.total_items.toLocaleString(),
-            sub: "All indexed items"
-        })}
-        {@render KPICard({
-            title: "Completed",
-            value: data.statistics?.states.Completed?.toLocaleString(),
-            sub: "Fully processed"
-        })}
-        {@render KPICard({
-            title: "Incomplete",
-            value: data.statistics?.incomplete_items.toLocaleString(),
-            sub: "Pending processing",
-            tone: "warning"
-        })}
-        {@render KPICard({
-            title: "Completion Rate",
-            value: completionRate,
-            sub: "Completed / Total"
-        })}
-    </section>
-
-    <section class="mb-8 grid grid-cols-1 gap-4">
-        <Card.Root>
-            <Card.Header class="pb-2">
-                <Card.Title class="text-sm font-medium text-neutral-300">Activity Chart</Card.Title>
-            </Card.Header>
-            <Card.Content>
-                <Heatmap
-                    data={data.statistics?.activity ?? {}}
-                    colors={[
-                        "var(--muted)",
-                        "var(--chart-4)",
-                        "var(--chart-3)",
-                        "var(--chart-2)",
-                        "var(--chart-1)"
-                    ]} />
-
-                <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
-                    {#each heatmapLegend as item (item.label)}
-                        <div class="flex items-center gap-1.5">
-                            <span
-                                class="inline-block h-3 w-3 shrink-0 rounded-sm"
-                                style="background-color: {item.color}"></span>
-                            <span class="text-xs text-neutral-400">{item.label}</span>
-                        </div>
-                    {/each}
-                </div>
-            </Card.Content>
-        </Card.Root>
-    </section>
-
-    <section class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card.Root class="flex h-full flex-col">
-            <Card.Header class="pb-2">
-                <Card.Title class="text-sm font-medium text-neutral-300">Library States</Card.Title>
-            </Card.Header>
-            <Card.Content class="flex flex-1 flex-col">
-                <ResponsiveChartContainer config={{}} class="min-h-[300px] w-full flex-1">
-                    <BarChart
-                        data={transformedStates}
-                        x="state"
-                        y="value"
-                        c="state"
-                        labels
-                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
-                        props={{
-                            bars: {
-                                class: "fill-primary"
-                            }
-                        }}>
-                        {#snippet tooltip()}
-                            <Chart.Tooltip />
-                        {/snippet}
-                    </BarChart>
-                </ResponsiveChartContainer>
-
-                <div class="mt-auto pt-4">
-                    {#each transformedStates as item (item.state)}
-                        <div class="mt-4 flex items-center gap-2 first:mt-0">
-                            <span class="text-sm text-neutral-300">{item.state}</span>
-                            <span class="ml-auto font-mono text-sm text-neutral-50">
-                                {item.value.toLocaleString()}
-                            </span>
-                        </div>
-                    {/each}
-                </div>
-            </Card.Content>
-        </Card.Root>
-
-        <Card.Root class="flex h-full flex-col">
-            <Card.Header class="pb-2">
-                <Card.Title class="text-sm font-medium text-neutral-300"
-                    >Content Breakdown</Card.Title>
-            </Card.Header>
-            <Card.Content class="flex flex-1 flex-col">
-                <ResponsiveChartContainer config={{}} class="min-h-[300px] w-full flex-1">
-                    <PieChart
-                        data={contentBreakdown}
-                        key="key"
-                        value="value"
-                        c="c"
-                        innerRadius={-50}
-                        cornerRadius={5}
-                        padAngle={0.02}
-                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}>
-                        {#snippet tooltip()}
-                            <Chart.Tooltip />
-                        {/snippet}
-                    </PieChart>
-                </ResponsiveChartContainer>
-
-                <div class="mt-auto pt-4">
-                    {#each contentBreakdown as item (item.key)}
-                        <div class="mt-4 flex items-center gap-2 first:mt-0">
-                            <span
-                                class="inline-block h-3 w-3 shrink-0 rounded-sm"
-                                style="background-color: {item.c}"></span>
-                            <span class="text-sm text-neutral-300">{item.key}</span>
-                            <span class="ml-auto font-mono text-sm text-neutral-50">
-                                {item.value.toLocaleString()}
-                            </span>
-                        </div>
-                    {/each}
-                </div>
-            </Card.Content>
-        </Card.Root>
-    </section>
-
-    <section class="mb-8 grid grid-cols-1">
-        <Card.Root>
-            <Card.Header class="pb-2">
-                <Card.Title class="text-sm font-medium text-neutral-300">Release Year</Card.Title>
-            </Card.Header>
-            <Card.Content>
-                <ResponsiveChartContainer
-                    config={{}}
-                    class="aspect-3/1 w-full md:aspect-4/1 lg:aspect-5/1 2xl:aspect-6/1">
-                    <LineChart
-                        data={data.statistics?.media_year_releases || []}
-                        x="year"
-                        series={[
-                            {
-                                key: "count",
-                                color: "var(--chart-1)"
-                            }
-                        ]}
-                        labels={{ offset: 10 }}
-                        points
-                        padding={{ top: 16, bottom: 32, left: 32, right: 16 }}
-                        props={{ spline: { curve: curveCatmullRom } }}>
-                        {#snippet tooltip()}
-                            <Chart.Tooltip />
-                        {/snippet}
-                    </LineChart>
-                </ResponsiveChartContainer>
-            </Card.Content>
-        </Card.Root>
-    </section>
-
-    <section class="mb-8 grid grid-cols-1">
-        <Card.Root>
-            <Card.Header>
-                <Card.Title class="text-sm font-medium text-neutral-300">Service Status</Card.Title>
-            </Card.Header>
-            <Card.Content>
-                <div class="flex flex-wrap gap-4">
-                    {#if data.services && Object.keys(data.services).length > 0}
-                        {#each Object.entries(data.services) as [serviceName, status] (serviceName)}
-                            {#if status === true}
-                                <Badge
-                                    variant="default"
-                                    class="rounded-xl bg-green-600/20 px-2 py-1 text-xs font-medium text-green-400">
-                                    {serviceName}
-                                </Badge>
-                            {:else if status === false}
-                                <Badge
-                                    variant="destructive"
-                                    class="rounded-xl px-2 py-1 text-xs font-medium">
-                                    {serviceName}
-                                </Badge>
-                            {:else}
-                                <Badge
-                                    variant="secondary"
-                                    class="rounded-xl px-2 py-1 text-xs font-medium">
-                                    {serviceName}
-                                </Badge>
-                            {/if}
-                        {/each}
-                    {:else}
-                        <p class="text-sm text-neutral-400">No service data available.</p>
-                    {/if}
-                </div>
-            </Card.Content>
-        </Card.Root>
-    </section>
-
-    <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {#each data.downloaderInfo?.services || [] as downloader (downloader.service)}
-            <Card.Root class="bg-card border bg-linear-to-br">
-                <Card.Header class="pb-3">
-                    <div class="flex items-center justify-between">
-                        <Card.Title class="text-lg font-semibold text-neutral-50">
-                            {getServiceDisplayName(downloader.service)}
-                        </Card.Title>
-                        <Badge
-                            variant={downloader.premium_status === "premium"
-                                ? "default"
-                                : "secondary"}
-                            class={downloader.premium_status === "premium"
-                                ? "rounded-xl bg-amber-600/30 text-amber-300 hover:bg-amber-600/40"
-                                : "rounded-xl"}>
-                            {downloader.premium_status === "premium" ? "Premium" : "Free"}
-                        </Badge>
-                    </div>
-                </Card.Header>
-                <Card.Content class="space-y-3">
-                    {#if downloader.username || downloader.email}
-                        <div>
-                            <p class="text-xs font-medium text-neutral-400">Account</p>
-                            <p class="mt-0.5 text-sm font-medium text-neutral-100">
-                                {downloader.username || downloader.email}
-                            </p>
-                        </div>
-                    {/if}
-
-                    {#if downloader.premium_status === "premium" && (downloader.premium_expires_at || downloader.premium_days_left !== null)}
-                        <div class="grid grid-cols-2 gap-3">
-                            {#if downloader.premium_expires_at}
-                                <div>
-                                    <p class="text-xs font-medium text-neutral-400">Expires</p>
-                                    <p class="mt-0.5 text-sm font-medium text-neutral-100">
-                                        {formatDate(downloader.premium_expires_at)}
-                                    </p>
-                                </div>
-                            {/if}
-                            {#if downloader.premium_days_left !== null && downloader.premium_days_left !== undefined}
-                                <div>
-                                    <p class="text-xs font-medium text-neutral-400">Days Left</p>
-                                    <p
-                                        class={cn(
-                                            "mt-0.5 text-sm font-semibold",
-                                            downloader.premium_days_left < 7
-                                                ? "text-red-400"
-                                                : downloader.premium_days_left < 30
-                                                  ? "text-amber-300"
-                                                  : "text-green-400"
-                                        )}>
-                                        {downloader.premium_days_left}
-                                    </p>
-                                </div>
-                            {/if}
-                        </div>
-                    {/if}
-
-                    <div class="grid grid-cols-2 gap-3">
-                        {#if downloader.points !== null && downloader.points !== undefined}
-                            <div>
-                                <p class="text-xs font-medium text-neutral-400">Points</p>
-                                <p class="mt-0.5 text-sm font-medium text-neutral-100">
-                                    {downloader.points.toLocaleString()}
-                                </p>
-                            </div>
-                        {/if}
-                        {#if downloader.total_downloaded_bytes !== null && downloader.total_downloaded_bytes !== undefined}
-                            <div>
-                                <p class="text-xs font-medium text-neutral-400">Downloaded</p>
-                                <p class="mt-0.5 text-sm font-medium text-neutral-100">
-                                    {formatBytes(downloader.total_downloaded_bytes)}
-                                </p>
-                            </div>
-                        {/if}
-                    </div>
-
-                    {#if downloader.cooldown_until}
-                        <div class="rounded-md bg-amber-600/20 p-2">
-                            <p class="text-xs font-medium text-amber-300">
-                                Cooldown until {formatDate(downloader.cooldown_until)}
-                            </p>
-                        </div>
-                    {/if}
-                </Card.Content>
-            </Card.Root>
+    <section class="grid grid-cols-1 gap-x-10 gap-y-4 py-2 md:grid-cols-2 lg:grid-cols-4">
+        {#each kpiCards as card (card.title)}
+            {@render KPICard(card)}
         {/each}
     </section>
+
+    <ActivityCard activity={statistics?.activity ?? {}} />
+    <LibraryChartsCard {statistics} />
+    <ReleaseYearCard data={statistics?.media_year_releases ?? []} />
+    <ServiceStatusCard statuses={serviceStatuses} />
+    <DownloaderServicesGrid services={downloaderServices} />
+    <WatchingNowCard sessions={activePlaybackSessions} />
+    {#if usenetProviders.length > 0}
+        <UsenetProvidersCard providers={usenetProviders} />
+        <UsenetActivityCard health={usenetStreaming} traffic={usenetTraffic} />
+        <UsenetHealthCard titles={usenetTitles} summary={usenetTitleSummary} />
+    {/if}
 </PageShell>

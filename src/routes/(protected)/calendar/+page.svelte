@@ -10,7 +10,6 @@
     import { cn } from "$lib/utils";
     import { IsMobile } from "$lib/hooks/is-mobile.svelte";
     import * as dateUtils from "$lib/utils/date";
-    import * as Card from "$lib/components/ui/card/index.js";
     import { CalendarDate } from "@internationalized/date";
     import PageShell from "$lib/components/page-shell.svelte";
     import { resolve } from "$app/paths";
@@ -30,46 +29,35 @@
         last_state?: string;
     }
 
-    const typeStyles: Record<
-        string,
-        { border: string; bg: string; hover: string; compact: string; icon: string }
-    > = {
-        episode: {
-            border: "border-blue-500/30",
-            bg: "bg-blue-500/20",
-            hover: "hover:bg-blue-500/30",
-            compact: "text-blue-300",
-            icon: "text-blue-400"
-        },
-        show: {
-            border: "border-purple-500/30",
-            bg: "bg-purple-500/20",
-            hover: "hover:bg-purple-500/30",
-            compact: "text-purple-300",
-            icon: "text-purple-400"
-        },
-        season: {
-            border: "border-green-500/30",
-            bg: "bg-green-500/20",
-            hover: "hover:bg-green-500/30",
-            compact: "text-green-300",
-            icon: "text-green-400"
-        },
-        movie: {
-            border: "border-orange-500/30",
-            bg: "bg-orange-500/20",
-            hover: "hover:bg-orange-500/30",
-            compact: "text-orange-300",
-            icon: "text-orange-400"
-        }
-    };
-
     const filterOptions = [
         { id: "movies", label: "Movies", type: "movie", icon: Film },
         { id: "episodes", label: "Episodes", type: "episode", icon: Tv },
         { id: "shows", label: "Shows", type: "show", icon: Tv },
         { id: "seasons", label: "Seasons", type: "season", icon: Tv }
     ];
+
+    const typeStyles: Record<string, { item: string; icon: string; dot: string }> = {
+        movie: {
+            item: "border-orange-500/30 bg-orange-500/20 text-orange-300 hover:bg-orange-500/30",
+            icon: "text-orange-400",
+            dot: "bg-orange-400"
+        },
+        episode: {
+            item: "border-blue-500/30 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30",
+            icon: "text-blue-400",
+            dot: "bg-blue-400"
+        },
+        show: {
+            item: "border-purple-500/30 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30",
+            icon: "text-purple-400",
+            dot: "bg-purple-400"
+        },
+        season: {
+            item: "border-green-500/30 bg-green-500/20 text-green-300 hover:bg-green-500/30",
+            icon: "text-green-400",
+            dot: "bg-green-400"
+        }
+    };
 
     function itemUrl(item: EntertainmentItem): string | undefined {
         const mediaType = item.item_type === "movie" ? "movie" : "tv";
@@ -166,6 +154,9 @@
         return days;
     });
 
+    const currentMonthDays = $derived(calendarDays.filter((day) => day.isCurrentMonth));
+    const visibleMonthDays = $derived(currentMonthDays.filter((day) => day.items.length > 0));
+
     function navigateMonth(direction: "prev" | "next") {
         const delta = direction === "prev" ? -1 : 1;
         let newMonth = currentDate.month + delta;
@@ -200,9 +191,11 @@
 {/snippet}
 
 {#snippet itemContent(item: EntertainmentItem, compact: boolean)}
-    {@render itemIcon(item, compact ? 3 : 4)}
-    <div class="min-w-0 flex-1">
-        <div class={cn("text-xs", compact ? "truncate" : "font-medium")}>
+    {#if !compact}
+        {@render itemIcon(item, 4)}
+    {/if}
+    <div class="min-w-0 flex-1 leading-none">
+        <div class={cn("min-w-0 text-xs", compact ? "truncate font-medium" : "font-semibold")}>
             {item.show_title}
             {#if item.season && compact}
                 S{item.season}{#if item.episode}E{item.episode}{/if}
@@ -220,12 +213,9 @@
     {@const href = itemUrl(item)}
     {@const s = typeStyles[item.item_type] ?? typeStyles.movie}
     {@const classes = cn(
-        "flex items-center rounded border transition-colors",
-        compact ? "gap-1 truncate p-1" : "gap-3 p-2",
-        s.border,
-        s.bg,
-        s.hover,
-        compact && s.compact,
+        "group/item flex items-center rounded-md border transition-colors",
+        compact ? "gap-1.5 truncate px-2 py-1" : "gap-3 p-2.5",
+        s.item,
         item.last_state === "Completed" && "line-through opacity-60",
         href && "no-underline"
     )}
@@ -233,18 +223,25 @@
         ? `${item.show_title}${item.season ? ` S${item.season}E${item.episode}` : ""}`
         : undefined}
     {#if href}
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
         <a {href} class={classes} {title}>
+            {#if compact}
+                <span class={cn("size-1.5 shrink-0 rounded-full", s.dot)}></span>
+            {/if}
             {@render itemContent(item, compact)}
         </a>
     {:else}
         <div class={classes} {title}>
+            {#if compact}
+                <span class={cn("size-1.5 shrink-0 rounded-full", s.dot)}></span>
+            {/if}
             {@render itemContent(item, compact)}
         </div>
     {/if}
 {/snippet}
 
 {#snippet dayItemsList(day: CalendarDay, limit = Infinity, showMore = false)}
-    <div class="space-y-1">
+    <div class="space-y-1.5">
         {#each day.items.slice(0, limit) as item (item.item_id)}
             {@render entertainmentItem(item, limit !== Infinity)}
         {/each}
@@ -253,11 +250,11 @@
             <Dialog.Root>
                 <Dialog.Trigger>
                     {#snippet child({ props })}
-                        <p
+                        <button
                             {...props}
-                            class="text-muted-foreground hover:text-foreground cursor-pointer text-xs transition-colors">
+                            class="text-muted-foreground hover:text-foreground w-full rounded-md px-2 py-1 text-left text-xs font-medium transition-colors hover:bg-white/5">
                             +{day.items.length - limit} more
-                        </p>
+                        </button>
                     {/snippet}
                 </Dialog.Trigger>
                 <Dialog.Content class="max-w-md">
@@ -284,14 +281,31 @@
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
-            "min-h-30 rounded-lg border p-2 transition-colors",
+            "group/day min-h-32 rounded-md border p-2 transition-colors",
             day.isCurrentMonth
-                ? "bg-card border-border hover:bg-accent/50"
-                : "bg-muted/30 border-muted text-muted-foreground",
-            isToday && "ring-primary ring-offset-background ring-2 ring-offset-2"
+                ? "bg-background/50 border-border/70 hover:border-primary/30 hover:bg-accent/30"
+                : "bg-muted/10 border-border/30 text-muted-foreground/60",
+            day.items.length > 0 && day.isCurrentMonth && "bg-card/80",
+            isToday && "border-primary/70 bg-primary/5"
         )}>
-        <div class={cn("mb-2 text-base font-medium", isToday && "text-primary")}>
-            {day.date.day}
+        <div class="mb-2 flex items-start justify-between gap-2">
+            <div
+                class={cn(
+                    "flex size-7 items-center justify-center rounded-md text-sm font-semibold",
+                    isToday
+                        ? "bg-primary text-primary-foreground"
+                        : day.isCurrentMonth
+                          ? "text-foreground"
+                          : "text-muted-foreground/70"
+                )}>
+                {day.date.day}
+            </div>
+            {#if day.items.length > 0}
+                <span
+                    class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                    {day.items.length}
+                </span>
+            {/if}
         </div>
         {@render dayItemsList(day, 3, true)}
     </div>
@@ -301,8 +315,8 @@
     {@const isToday = day.dateKey === todayKey}
     <div
         class={cn(
-            "bg-card border-border rounded-lg border p-3",
-            isToday && "ring-primary ring-offset-background ring-2 ring-offset-2"
+            "bg-card/80 border-border rounded-md border p-3",
+            isToday && "border-primary/70 bg-primary/5"
         )}>
         <div class="mb-3 flex items-center justify-between">
             <div class={cn("text-lg font-semibold", isToday && "text-primary")}>
@@ -316,65 +330,84 @@
     </div>
 {/snippet}
 
-<PageShell class="h-full w-full">
-    <Card.Root class="mb-4 md:mb-6">
-        <Card.Header class="pb-4">
-            <div class="flex items-center justify-between">
-                <Button variant="outline" size="sm" onclick={() => navigateMonth("prev")}>
-                    <ChevronLeft class="h-4 w-4" />
-                </Button>
+<PageShell class="mx-auto h-full w-full max-w-[1800px] gap-5">
+    <header
+        class="border-border/60 flex flex-col gap-4 border-b pb-5 md:flex-row md:items-end md:justify-between">
+        <h1 class="truncate text-3xl font-bold tracking-tight">
+            {monthNames[currentDate.month - 1]}
+            {currentDate.year}
+        </h1>
 
-                <Card.Title class="text-xl font-bold md:text-2xl">
-                    {monthNames[currentDate.month - 1]}
-                    {currentDate.year}
-                </Card.Title>
+        <div class="flex items-center gap-2">
+            <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Previous month"
+                onclick={() => navigateMonth("prev")}>
+                <ChevronLeft class="h-4 w-4" />
+            </Button>
+            <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Next month"
+                onclick={() => navigateMonth("next")}>
+                <ChevronRight class="h-4 w-4" />
+            </Button>
+        </div>
+    </header>
 
-                <Button variant="outline" size="sm" onclick={() => navigateMonth("next")}>
-                    <ChevronRight class="h-4 w-4" />
-                </Button>
-            </div>
-            <div
-                class="mt-4 flex flex-wrap items-center justify-center gap-4 border-t pt-4 md:gap-6">
-                {#each filterOptions as opt (opt.id)}
-                    {@const Icon = opt.icon}
-                    <div class="flex items-center space-x-2">
-                        <Checkbox
-                            id={opt.id}
-                            checked={filters[opt.type]}
-                            onCheckedChange={(checked: boolean) =>
-                                (filters[opt.type] = !!checked)} />
-                        <label
-                            for={opt.id}
-                            class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-                            <Icon class={cn("h-4 w-4", typeStyles[opt.type].icon)} />
-                            {opt.label}
-                        </label>
-                    </div>
-                {/each}
-            </div>
-        </Card.Header>
+    <section class="flex flex-wrap items-center gap-2">
+        {#each filterOptions as opt (opt.id)}
+            {@const Icon = opt.icon}
+            {@const selected = filters[opt.type] !== false}
+            {@const s = typeStyles[opt.type] ?? typeStyles.movie}
+            <label
+                for={opt.id}
+                class={cn(
+                    "border-border bg-card/50 hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                    selected && "border-primary/40 bg-primary/10 text-foreground",
+                    !selected && "text-muted-foreground"
+                )}>
+                <Checkbox
+                    id={opt.id}
+                    checked={filters[opt.type]}
+                    class="size-4"
+                    onCheckedChange={(checked: boolean) => (filters[opt.type] = !!checked)} />
+                <Icon class={cn("h-4 w-4", s.icon)} />
+                <span>{opt.label}</span>
+            </label>
+        {/each}
+    </section>
 
-        <Card.Content class="p-2 lg:p-4">
+    <section class="border-border/60 bg-card/30 overflow-hidden rounded-md border">
+        <div class="p-2 md:p-3">
             {#if isMobile.current}
-                <div class="space-y-2">
-                    {#each calendarDays.filter((day) => day.isCurrentMonth && day.items.length > 0) as day (day.dateKey)}
-                        {@render mobileDayCard(day)}
-                    {/each}
-                </div>
+                {#if visibleMonthDays.length > 0}
+                    <div class="space-y-2">
+                        {#each visibleMonthDays as day (day.dateKey)}
+                            {@render mobileDayCard(day)}
+                        {/each}
+                    </div>
+                {:else}
+                    <div
+                        class="border-border bg-background/40 text-muted-foreground rounded-md border border-dashed p-8 text-center">
+                        No releases match the current filters for this month.
+                    </div>
+                {/if}
             {:else}
-                <div class="mb-4 grid grid-cols-7 gap-2">
+                <div
+                    class="border-border/70 bg-border/70 grid grid-cols-7 gap-px overflow-hidden rounded-md border">
                     {#each dayNames as day (day)}
-                        <div class="text-muted-foreground py-2 text-center text-base font-semibold">
+                        <div
+                            class="bg-muted/40 text-muted-foreground px-3 py-2 text-center text-xs font-bold uppercase">
                             {day}
                         </div>
                     {/each}
-                </div>
-                <div class="grid grid-cols-7 gap-2">
                     {#each calendarDays as day (day.dateKey)}
                         {@render calendarDayCard(day)}
                     {/each}
                 </div>
             {/if}
-        </Card.Content>
-    </Card.Root>
+        </div>
+    </section>
 </PageShell>

@@ -13,7 +13,6 @@
             "options": {
                 "parser": "svelte",
                 "svelteIndentScriptAndStyle": true,
-                "svelteStrictMode": false,
                 "svelteSortOrder": "scripts-markup-styles-options",
                 "svelteAllowShorthand": true,
                 "htmlWhitespaceSensitivity": "css",
