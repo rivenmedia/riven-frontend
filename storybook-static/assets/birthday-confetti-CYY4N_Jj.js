@@ -1,8 +1,0 @@
-import{i as e}from"./preload-helper-xPQekRTU.js";import{A as t,Ht as n,Jn as r,O as i,Q as a,Rn as o,Xt as s,Z as c,Zn as l,bt as u,nt as d,t as f,vt as p,yt as m}from"./client-CPqmOrbZ.js";var h=e((()=>{}));function g(e,r){let l={colors:[`#ff6b6b`,`#4ecdc4`,`#ffe66d`,`#a8e6cf`,`#ff8b94`,`#ffd3b6`,`#dcedc1`,`#a8dadc`,`#f1c0e8`,`#cfbaf0`,`#95e1d3`,`#f38181`],shapes:[`square`,`circle`,`rectangle`,``],animations:[`confetti-fall-1`,`confetti-fall-2`,`confetti-fall-3`,`confetti-fall-4`,`confetti-fall-5`]};var u=m(),f=s(u),h=e=>{var r=v();c(r,20,()=>Array(20),a,(e,r,a)=>{var o=_();n(()=>{t(o,1,`confetti ${l.shapes[a%l.shapes.length]??``}`,`svelte-usdrxl`),i(o,`
-                left: ${a*5.26%100}%;
-                background: ${l.colors[a%l.colors.length]??``};
-                animation: ${l.animations[a%l.animations.length]??``} ${2.5+a%8*.2}s linear infinite;
-                animation-delay: ${a*.15%2}s;
-                width: ${8+a%5}px;
-                height: ${8+a*3%5}px;
-            `)}),p(e,o)}),o(r),p(e,r)};d(f,e=>{r.active&&e(h)}),p(e,u)}var _,v,y=e((()=>{l(),r(),f(),h(),_=u(`<div></div>`),v=u(`<div class="pointer-events-none fixed inset-0 z-50 overflow-hidden svelte-usdrxl"></div>`),g.__docgen={data:[{name:`active`,visibility:`public`,keywords:[{name:`required`,description:``}],kind:`let`,type:{kind:`type`,type:`boolean`,text:`boolean`},static:!1,readonly:!1}],name:`birthday-confetti.svelte`}}));export{y as n,g as t};

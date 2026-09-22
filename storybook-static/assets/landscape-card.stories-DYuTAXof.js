@@ -1,0 +1,14 @@
+import{i as e}from"./preload-helper-xPQekRTU.js";import{$n as t,An as n,Bn as r,Qt as i,St as a,Xn as o,Zt as s,bt as c,en as l,jn as u,o as d,t as f}from"./client-CnjRWATJ.js";import{a as p,i as m,n as h,r as g,t as _}from"./create-runtime-stories-CuDbtWJx.js";import{n as v,t as y}from"./landscape-card-BFKcjFEd.js";function b(e,t){u(t,!1),d();var a=w(),o=i(a);S(o,{name:`Default`,asChild:!0,children:(e,t)=>{var n=C();y(s(n),{title:`John Wick: Chapter 4`,image:`https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg`,initialRating:7.8}),r(n),c(e,n)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="w-80">
+    <LandscapeCard
+        title="John Wick: Chapter 4"
+        image="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg"
+        initialRating={7.8} />
+</div>`}}});var f=l(o,2);S(f,{name:`NoImage`,asChild:!0,children:(e,t)=>{var n=C();y(s(n),{title:`Unknown Title`,image:null}),r(n),c(e,n)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="w-80">
+    <LandscapeCard title="Unknown Title" image={null} />
+</div>`}}}),S(l(f,2),{name:`WithOverview`,asChild:!0,children:(e,t)=>{var n=C();y(s(n),{title:`Arcane`,image:`https://image.tmdb.org/t/p/w500/abVBNjmZm9lDprHUEGFQ0zN3ChD.jpg`,overview:`Amid the stark discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war.`,initialRating:9.1}),r(n),c(e,n)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="w-80">
+    <LandscapeCard
+        title="Arcane"
+        image="https://image.tmdb.org/t/p/w500/abVBNjmZm9lDprHUEGFQ0zN3ChD.jpg"
+        overview="Amid the stark discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war."
+        initialRating={9.1} />
+</div>`}}}),c(e,a),n()}var x,S,C,w,T,E,D,O,k;e((()=>{t(),p(),o(),m(),v(),f(),h(),x={title:`media/LandscapeCard`,component:y,tags:[`autodocs`],parameters:{docs:{description:{component:"`tmdbId` is intentionally omitted in these stories to avoid a live ratings fetch — passing `initialRating` alone renders the static rating badge without triggering `getRatings()`."}}},args:{title:`John Wick: Chapter 4`,image:`https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg`,initialRating:7.8}},{Story:S}=g(x),C=a(`<div class="w-80"><!></div>`),w=a(`<!> <!> <!>`,1),b.__docgen={data:[],name:`landscape-card.stories.svelte`},T=_(b,x),E=[`Default`,`NoImage`,`WithOverview`],D={...T.Default,tags:[`svelte-csf-v5`]},O={...T.NoImage,tags:[`svelte-csf-v5`]},k={...T.WithOverview,tags:[`svelte-csf-v5`]}}))();export{D as Default,O as NoImage,k as WithOverview,E as __namedExportsOrder,x as default};

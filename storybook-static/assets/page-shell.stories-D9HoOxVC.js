@@ -1,6 +1,0 @@
-import{i as e}from"./preload-helper-xPQekRTU.js";import{Jn as t,Ln as n,On as r,Zn as i,bt as a,kn as o,o as s,t as c,vt as l}from"./client-CPqmOrbZ.js";import{a as u,i as d,n as f,r as p,t as m}from"./create-runtime-stories-Bf_FwDyw.js";import{n as h,t as g}from"./page-shell-Bn3OUorv.js";function _(e,t){o(t,!1),s(),y(e,{name:`Default`,asChild:!0,children:(e,t)=>{g(e,{children:(e,t)=>{var r=b();n(2),l(e,r)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<PageShell>
-    <h1 class="text-3xl font-bold tracking-tight">Page Title</h1>
-    <p class="text-muted-foreground">
-        Consistent page padding, max-width, and enter transition wrap around this content.
-    </p>
-</PageShell>`}}}),r()}var v,y,b,x,S,C;e((()=>{i(),u(),t(),d(),h(),c(),f(),v={title:`components/PageShell`,component:g,tags:[`autodocs`],parameters:{layout:`fullscreen`}},{Story:y}=p(v),b=a(`<h1 class="text-3xl font-bold tracking-tight">Page Title</h1> <p class="text-muted-foreground">Consistent page padding, max-width, and enter transition wrap around this content.</p>`,1),_.__docgen={data:[],name:`page-shell.stories.svelte`},x=m(_,v),S=[`Default`],C={...x.Default,tags:[`svelte-csf-v5`]}}))();export{C as Default,S as __namedExportsOrder,v as default};

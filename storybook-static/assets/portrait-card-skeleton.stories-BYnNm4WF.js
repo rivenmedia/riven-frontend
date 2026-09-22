@@ -1,0 +1,7 @@
+import{i as e}from"./preload-helper-xPQekRTU.js";import{$ as t,$n as n,An as r,Bn as i,Qt as a,St as o,Xn as s,Zt as c,bt as l,en as u,et as d,jn as f,o as p,t as m}from"./client-CnjRWATJ.js";import{a as h,i as g,n as _,r as v,t as y}from"./create-runtime-stories-CuDbtWJx.js";import{n as b,t as x}from"./portrait-card-skeleton-aVernrsQ.js";function S(e,n){f(n,!1),p();var o=D(),s=a(o);w(s,{name:`Default`,asChild:!0,children:(e,t)=>{var n=T();x(c(n),{}),i(n),l(e,n)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="w-48">
+    <PortraitCardSkeleton />
+</div>`}}}),w(u(s,2),{name:`Grid`,asChild:!0,children:(e,n)=>{var r=E();t(r,4,()=>Array(8),d,(e,t)=>{x(e,{})}),i(r),l(e,r)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="grid w-full max-w-2xl grid-cols-4 gap-4">
+    {#each Array(8) as _, i (i)}
+        <PortraitCardSkeleton />
+    {/each}
+</div>`}}}),l(e,o),r()}var C,w,T,E,D,O,k,A,j;e((()=>{n(),h(),s(),g(),b(),m(),_(),C={title:`media/PortraitCardSkeleton`,component:x,tags:[`autodocs`]},{Story:w}=v(C),T=o(`<div class="w-48"><!></div>`),E=o(`<div class="grid w-full max-w-2xl grid-cols-4 gap-4"></div>`),D=o(`<!> <!>`,1),S.__docgen={data:[],name:`portrait-card-skeleton.stories.svelte`},O=y(S,C),k=[`Default`,`Grid`],A={...O.Default,tags:[`svelte-csf-v5`]},j={...O.Grid,tags:[`svelte-csf-v5`]}}))();export{A as Default,j as Grid,k as __namedExportsOrder,C as default};

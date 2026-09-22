@@ -1,1 +1,0 @@
-import{i as e}from"./preload-helper-xPQekRTU.js";import{t}from"./client-CPqmOrbZ.js";import{E as n,T as r}from"./iframe-DG8DOpKj.js";var i,a,o=e((()=>{t(),r(),i=768,a=class extends n{constructor(e=i){super(`max-width: ${e-1}px`)}}}));export{o as n,a as t};

@@ -1,0 +1,6 @@
+import{i as e}from"./preload-helper-xPQekRTU.js";import{$n as t,An as n,Et as r,Qt as i,St as a,Xn as o,bt as s,en as c,jn as l,o as u,t as d,zn as f}from"./client-CnjRWATJ.js";import{a as p,i as m,n as h,r as g,t as _}from"./create-runtime-stories-CuDbtWJx.js";import{i as v,n as y,r as b,t as x}from"./kbd-group-DARqE-PS.js";function S(e,t){l(t,!1),u();var a=T(),o=i(a);w(o,{name:`Default`,children:(e,t)=>{f(),s(e,r(`⌘`))},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<KbdRoot {...args}>
+  ⌘
+</KbdRoot>`}}}),w(c(o,2),{name:`Combo`,asChild:!0,children:(e,t)=>{x(e,{children:(e,t)=>{var n=T(),a=i(n);b(a,{children:(e,t)=>{f(),s(e,r(`⌘`))},$$slots:{default:!0}}),b(c(a,2),{children:(e,t)=>{f(),s(e,r(`K`))},$$slots:{default:!0}}),s(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<KbdGroup>
+    <KbdRoot>⌘</KbdRoot>
+    <KbdRoot>K</KbdRoot>
+</KbdGroup>`}}}),s(e,a),n()}var C,w,T,E,D,O,k;e((()=>{t(),p(),o(),m(),v(),y(),d(),h(),C={title:`ui/Kbd`,component:b,tags:[`autodocs`]},{Story:w}=g(C),T=a(`<!> <!>`,1),S.__docgen={data:[],name:`kbd.stories.svelte`},E=_(S,C),D=[`Default`,`Combo`],O={...E.Default,tags:[`svelte-csf-v5`]},k={...E.Combo,tags:[`svelte-csf-v5`]}}))();export{k as Combo,O as Default,D as __namedExportsOrder,C as default};

@@ -1,0 +1,14 @@
+import{i as e}from"./preload-helper-xPQekRTU.js";import{$n as t,An as n,Bn as r,Et as i,Qt as a,St as o,Xn as s,Zt as c,bt as l,en as u,jn as d,o as f,t as p,zn as m}from"./client-CnjRWATJ.js";import{a as h,i as g,n as _,r as v,t as y}from"./create-runtime-stories-CuDbtWJx.js";import{n as b,t as x}from"./badge-CphVOj7z.js";function S(e,t){d(t,!1),f();var o=E(),s=a(o);w(s,{name:`Default`,children:(e,t)=>{m(),l(e,i(`Badge`))},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<Badge {...args}>
+  Badge
+</Badge>`}}});var p=u(s,2);w(p,{name:`Secondary`,args:{variant:`secondary`},children:(e,t)=>{m(),l(e,i(`Secondary`))},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<Badge {...args}>
+  Secondary
+</Badge>`}}});var h=u(p,2);w(h,{name:`Destructive`,args:{variant:`destructive`},children:(e,t)=>{m(),l(e,i(`Destructive`))},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<Badge {...args}>
+  Destructive
+</Badge>`}}});var g=u(h,2);w(g,{name:`Outline`,args:{variant:`outline`},children:(e,t)=>{m(),l(e,i(`Outline`))},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<Badge {...args}>
+  Outline
+</Badge>`}}}),w(u(g,2),{name:`Variants`,asChild:!0,children:(e,t)=>{var n=T(),a=c(n);x(a,{variant:`default`,children:(e,t)=>{m(),l(e,i(`Default`))},$$slots:{default:!0}});var o=u(a,2);x(o,{variant:`secondary`,children:(e,t)=>{m(),l(e,i(`Secondary`))},$$slots:{default:!0}});var s=u(o,2);x(s,{variant:`destructive`,children:(e,t)=>{m(),l(e,i(`Destructive`))},$$slots:{default:!0}}),x(u(s,2),{variant:`outline`,children:(e,t)=>{m(),l(e,i(`Outline`))},$$slots:{default:!0}}),r(n),l(e,n)},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<div class="flex flex-wrap items-center gap-2">
+    <Badge variant="default">Default</Badge>
+    <Badge variant="secondary">Secondary</Badge>
+    <Badge variant="destructive">Destructive</Badge>
+    <Badge variant="outline">Outline</Badge>
+</div>`}}}),l(e,o),n()}var C,w,T,E,D,O,k,A,j,M,N;e((()=>{t(),h(),s(),g(),b(),p(),_(),C={title:`ui/Badge`,component:x,tags:[`autodocs`],argTypes:{variant:{control:`select`,options:[`default`,`secondary`,`destructive`,`outline`]}},args:{variant:`default`}},{Story:w}=v(C),T=o(`<div class="flex flex-wrap items-center gap-2"><!> <!> <!> <!></div>`),E=o(`<!> <!> <!> <!> <!>`,1),S.__docgen={data:[],name:`badge.stories.svelte`},D=y(S,C),O=[`Default`,`Secondary`,`Destructive`,`Outline`,`Variants`],k={...D.Default,tags:[`svelte-csf-v5`]},A={...D.Secondary,tags:[`svelte-csf-v5`]},j={...D.Destructive,tags:[`svelte-csf-v5`]},M={...D.Outline,tags:[`svelte-csf-v5`]},N={...D.Variants,tags:[`svelte-csf-v5`]}}))();export{k as Default,j as Destructive,M as Outline,A as Secondary,N as Variants,O as __namedExportsOrder,C as default};
