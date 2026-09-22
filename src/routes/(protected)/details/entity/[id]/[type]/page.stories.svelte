@@ -81,8 +81,131 @@
         cast_credits: [],
         crew_credits: []
     };
+
+    const deceasedPerson: PersonDetails = {
+        ...person,
+        id: 1231,
+        name: "River Phoenix",
+        biography:
+            "River Jude Phoenix was an American actor and musician. Over the course of his decade-long career, Phoenix was considered one of the leading young actors in the film industry, appearing in over 24 movies and television shows before his death at age 23.",
+        birthday: "1970-08-23",
+        deathday: "1993-10-31",
+        place_of_birth: "Madras, Oregon, USA",
+        also_known_as: []
+    };
+
+    // Person sourced from TVDB rather than TMDB, exercising the TVDB badge/link branch.
+    const tvdbPerson: PersonDetails = {
+        id: 280623,
+        indexer: "tvdb",
+        name: "Pedro Pascal",
+        biography:
+            "Pedro Pascal is a Chilean-American actor known for his roles in prestige television dramas.",
+        birthday: "1975-04-02",
+        deathday: null,
+        place_of_birth: "Santiago, Chile",
+        profile_path: null,
+        known_for_department: "Actor",
+        gender: "Male",
+        popularity: null,
+        homepage: null,
+        imdb_id: "nm0669791",
+        tvdb_url: "https://thetvdb.com/people/280623",
+        external_ids: {},
+        also_known_as: ["Pedro Balmaceda Pascal"],
+        cast_credits: [
+            {
+                ...baseCredits,
+                id: 121361,
+                title: "Game of Thrones",
+                original_title: "Game of Thrones",
+                character: "Oberyn Martell",
+                media_type: "tv",
+                indexer: "tvdb"
+            },
+            {
+                ...baseCredits,
+                id: 65654,
+                title: "The Last of Us",
+                original_title: "The Last of Us",
+                character: "Joel Miller",
+                media_type: "tv",
+                release_date: "2023-01-15",
+                year: 2023,
+                indexer: "tvdb"
+            }
+        ],
+        crew_credits: []
+    };
+
+    // Production company details are parsed into the same PersonDetails shape
+    // (see parseCompanyDetails), reusing "cast_credits" for its filmography.
+    const company: PersonDetails = {
+        id: 420,
+        indexer: "tmdb",
+        name: "Marvel Studios",
+        biography:
+            "Marvel Studios, LLC is an American film and television production company that is a subsidiary of Walt Disney Studios, a division of The Walt Disney Company.",
+        birthday: null,
+        deathday: null,
+        place_of_birth: "US",
+        profile_path: null,
+        known_for_department: "Production",
+        gender: null,
+        popularity: null,
+        homepage: "https://www.marvel.com",
+        imdb_id: null,
+        tvdb_url: null,
+        external_ids: {},
+        also_known_as: [],
+        cast_credits: [
+            {
+                ...baseCredits,
+                id: 299536,
+                title: "Avengers: Infinity War",
+                original_title: "Avengers: Infinity War",
+                character: "Production",
+                media_type: "movie",
+                release_date: "2018-04-25",
+                year: 2018
+            },
+            {
+                ...baseCredits,
+                id: 1399,
+                title: "Loki",
+                original_title: "Loki",
+                character: "Production",
+                media_type: "tv",
+                release_date: "2021-06-09",
+                year: 2021
+            }
+        ],
+        crew_credits: []
+    };
+
+    // A company with no headquarters/description falls back to the
+    // "Headquarters: Unknown" biography built by parseCompanyDetails.
+    const companyNoDescription: PersonDetails = {
+        ...company,
+        id: 421,
+        name: "Unknown Pictures",
+        biography: "Headquarters: Unknown",
+        place_of_birth: null,
+        homepage: null,
+        cast_credits: []
+    };
 </script>
 
 <Story name="Default" args={{ data: { entity: person, user, permissions } }} />
 
 <Story name="NoCredits" args={{ data: { entity: noCreditsPerson, user, permissions } }} />
+
+<Story name="Deceased" args={{ data: { entity: deceasedPerson, user, permissions } }} />
+
+<Story name="TvdbPerson" args={{ data: { entity: tvdbPerson, user, permissions } }} />
+
+<Story name="Company" args={{ data: { entity: company, user, permissions } }} />
+
+<Story
+    name="CompanyNoDescription"
+    args={{ data: { entity: companyNoDescription, user, permissions } }} />
